@@ -13,6 +13,16 @@
 				"AIModule",
 				"UMG"
 			]
+		},
+		{
+			"Name": "MLibrary",
+			"Type": "Runtime",
+			"LoadingPhase": "Default",
+			"AdditionalDependencies":[
+				"Core",
+				"CoreUObject",
+				"Engine"
+			]
 		}
 	],
 	"Plugins": [
