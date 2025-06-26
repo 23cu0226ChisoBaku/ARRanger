@@ -4,12 +4,17 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+
+#include "MDMeshCapture.h"
+#include "MDMeshCaptureFactory.h"
+
 #include "MDMeshCaptureComponent.generated.h"
 
 UENUM()
 enum struct EMDMeshCaptureDestroyMode : uint8
 {
-  ElapsedTime,
+  None = 0,     // 消滅ない
+  ElapsedTime,  // 時間による消滅
 
 };
 
@@ -56,31 +61,61 @@ struct MOTIONDIFF_API FMDMeshCaptureParameters
 
 
 
-
-
+// 前方宣言
+class UMDMeshCapture;
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class MOTIONDIFF_API UMDMeshCaptureComponent : public UActorComponent
 {
   GENERATED_BODY()
 
-public:
-  // Sets default values for this component's properties
-  UMDMeshCaptureComponent();
+  public:
+    // Sets default values for this component's properties
+    UMDMeshCaptureComponent(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
-protected:
-  // Called when the game starts
-  virtual void BeginPlay() override;
+  protected:
+    // Called when the game starts
+    virtual void BeginPlay() override;
 
-public:	
-  // Called every frame
-  virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+  public:	
+    // Called every frame
+    virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
-private:
-  UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
-  FMDMeshCaptureParameters m_captureParam;
+    template<typename MeshComponentType>
+    void StartCapture(MeshComponentType* MeshComponent)
+    {
+      if (m_captureInstance != nullptr)
+      {
+        m_captureInstance->Reset();
+      }
 
+      m_captureInstance = FMDMeshCaptureFactory::CreateCapture(MeshComponent);
+    }
 
+  // Editor専用関数
+  // Override 
+  #if WITH_EDITOR
+    virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+  #endif
 
-    
+  // Private
+  #if WITH_EDITOR
+  private:
+    void OnCaptureParameterChanged();
+  #endif
+
+  private:
+    UPROPERTY(EditDefaultsOnly, Category = "MeshDiff|Mesh Capture", meta = (AllowPrivateAccess = "true"))
+    FMDMeshCaptureParameters CaptureParam;
+
+    UPROPERTY(EditDefaultsOnly, Category = "MeshDiff|Mesh Capture", meta = (AllowPrivateAccess = "true"))
+    TObjectPtr<UMaterialInterface> CapturedTrailMaterial;
+
+    UPROPERTY()
+    TObjectPtr<UMDMeshCapture> m_captureInstance;
+
+    UPROPERTY(EditDefaultsOnly, Category = "MeshDiff|Mesh Capture", meta = (AllowPrivateAccess = "true"))
+    bool bUseFirstMeshAttachToThis;
+
+    EMDMeshCaptureDestroyMode m_currentCaptureDestroyMode = EMDMeshCaptureDestroyMode::None;
 };

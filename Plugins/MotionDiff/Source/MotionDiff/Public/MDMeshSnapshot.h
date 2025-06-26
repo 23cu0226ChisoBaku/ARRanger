@@ -3,13 +3,22 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "MDMeshSnapshot.generated.h"
 
-/**
- * 
- */
+
+USTRUCT(BlueprintType)
 struct MOTIONDIFF_API FMDMeshSnapshot
 {
-public:
-	FMDMeshSnapshot();
-	~FMDMeshSnapshot();
+  GENERATED_BODY()
+
+  void Reset();
+
+  UPROPERTY(VisibleAnywhere)
+  TArray<FVector3f> MeshVertices; 
+
+  UPROPERTY(VisibleAnywhere)
+  FName SnapshotName;
+
+  UPROPERTY(VisibleAnywhere)
+  bool bIsValid;
 };

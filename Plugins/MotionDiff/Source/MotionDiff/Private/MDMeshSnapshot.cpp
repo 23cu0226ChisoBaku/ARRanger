@@ -1,12 +1,8 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿#include "MDMeshSnapshot.h"
 
-
-#include "MDMeshSnapshot.h"
-
-FMDMeshSnapshot::FMDMeshSnapshot()
+void FMDMeshSnapshot::Reset()
 {
-}
-
-FMDMeshSnapshot::~FMDMeshSnapshot()
-{
+  MeshVertices.Reset();
+  SnapshotName = NAME_None;
+  bIsValid = false;
 }
