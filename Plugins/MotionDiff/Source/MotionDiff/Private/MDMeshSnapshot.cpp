@@ -2,7 +2,7 @@
 
 void FMDMeshSnapshot::Reset()
 {
-  MeshVertices.Reset();
+  MeshVerticesInfo.Reset();
   SnapshotName = NAME_None;
   bIsValid = false;
 }

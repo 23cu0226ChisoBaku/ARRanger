@@ -2,7 +2,6 @@
 
 #pragma once
 
-#include "CoreMinimal.h"
 #include "UObject/NoExportTypes.h"
 #include "MDMeshSnapShot.h"
 
@@ -20,19 +19,20 @@ class MOTIONDIFF_API UMDMeshCapture : public UObject
 
   public:
     UMDMeshCapture(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
+    
+    void SaveMeshSnapshot(FName SnapshotName);
 
     virtual void CaptureMesh(UMeshComponent* MeshComponent) PURE_VIRTUAL(UMDMeshCapture, ;)
     virtual void Reset() PURE_VIRTUAL(UMDMeshCapture, ;)
     virtual void ShowSnapshots() PURE_VIRTUAL(UMDMeshCapture, ;)
     virtual void HideSnapshots() PURE_VIRTUAL(UMDMeshCapture, ;)
 
+  protected:
+    virtual void SnapshotMesh(FMDMeshSnapshot& Snapshot) PURE_VIRTUAL(UMDMeshCapture, ;)
     const FMDMeshSnapshot* GetSnapshot(FName SnapshotName) const;
     FMDMeshSnapshot& AddSnapshot(FName SnapshotName);
     void RemoveSnapshot(FName SnapshotName);
-
-  protected:
-
-	
+    
   private:
     TArray<FMDMeshSnapshot> m_snapshots;
 };

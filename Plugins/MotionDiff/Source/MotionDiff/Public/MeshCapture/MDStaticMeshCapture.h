@@ -6,9 +6,9 @@
 #include "MDMeshCapture.h"
 #include "MDStaticMeshCapture.generated.h"
 
-/**
- * 
- */
+class UStaticMeshComponent;
+
+
 UCLASS()
 class MOTIONDIFF_API UMDStaticMeshCapture : public UMDMeshCapture
 {
@@ -19,5 +19,17 @@ class MOTIONDIFF_API UMDStaticMeshCapture : public UMDMeshCapture
     virtual void Reset() override;
     virtual void ShowSnapshots() override;
     virtual void HideSnapshots() override;
-	
+
+  protected:
+    virtual void SnapshotMesh(FMDMeshSnapshot& Snapshot) override;
+
+#if WITH_EDITOR
+  private:
+    // FIXME: リアルタイムで修正しても影響がないらしい
+    void EnableCPUAccess(UStaticMeshComponent* StaticMeshComponent);
+#endif
+
+  private:
+    UPROPERTY()
+    TObjectPtr<UStaticMeshComponent> m_staticMeshComp;
 };

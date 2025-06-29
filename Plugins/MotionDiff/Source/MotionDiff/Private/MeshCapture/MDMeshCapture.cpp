@@ -1,6 +1,6 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-#include "MDMeshCapture.h"
+#include "MeshCapture/MDMeshCapture.h"
 #include "MDMeshSnapshot.h"
 
 
@@ -9,6 +9,12 @@ UMDMeshCapture::UMDMeshCapture(const FObjectInitializer& ObjectInitializer)
   , m_snapshots{}
 {
 
+}
+
+void UMDMeshCapture::SaveMeshSnapshot(FName SnapshotName)
+{
+  FMDMeshSnapshot& snapshot = AddSnapshot(SnapshotName);
+  SnapshotMesh(snapshot);
 }
 
 const FMDMeshSnapshot* UMDMeshCapture::GetSnapshot(FName SnapshotName) const

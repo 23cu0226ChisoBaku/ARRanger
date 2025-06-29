@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
 
-#include "MDMeshCapture.h"
+#include "MeshCapture/MDMeshCapture.h"
 #include "MDMeshCaptureFactory.h"
 
 #include "MDMeshCaptureComponent.generated.h"

@@ -6,6 +6,19 @@
 #include "MDMeshSnapshot.generated.h"
 
 
+USTRUCT()
+struct MOTIONDIFF_API FMDMeshVertexInfo
+{
+  GENERATED_BODY()
+
+  UPROPERTY(VisibleAnywhere)
+  FVector3f LocalMeshVertexPosition;
+
+  int32 MeshVertexIndex;
+};
+
+
+
 USTRUCT(BlueprintType)
 struct MOTIONDIFF_API FMDMeshSnapshot
 {
@@ -14,7 +27,7 @@ struct MOTIONDIFF_API FMDMeshSnapshot
   void Reset();
 
   UPROPERTY(VisibleAnywhere)
-  TArray<FVector3f> MeshVertices; 
+  TArray<FMDMeshVertexInfo> MeshVerticesInfo; 
 
   UPROPERTY(VisibleAnywhere)
   FName SnapshotName;

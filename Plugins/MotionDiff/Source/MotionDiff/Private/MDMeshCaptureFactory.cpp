@@ -2,7 +2,7 @@
 
 #include "MDMeshCaptureFactory.h"
 
-#include "MDMeshCapture.h"
+#include "MeshCapture/MDStaticMeshCapture.h"
 
 UMDMeshCapture* FMDMeshCaptureFactory::CreateCaptureImpl(UStaticMeshComponent* MeshComponentPtr)
 {
