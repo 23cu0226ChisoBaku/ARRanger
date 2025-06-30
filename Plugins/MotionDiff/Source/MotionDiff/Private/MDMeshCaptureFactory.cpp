@@ -6,8 +6,7 @@
 
 UMDMeshCapture* FMDMeshCaptureFactory::CreateCaptureImpl(UStaticMeshComponent* MeshComponentPtr)
 {
-  // FIXME need implementation
-  return nullptr;
+  return NewObject<UMDStaticMeshCapture>();
 }
 
 UMDMeshCapture* FMDMeshCaptureFactory::CreateCaptureImpl(USkeletalMeshComponent* MeshComponentPtr)

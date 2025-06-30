@@ -2,68 +2,40 @@
 
 #include "MeshCapture/MDMeshCapture.h"
 #include "MDMeshSnapshot.h"
+#include "MeshCapture/MDMeshCaptureProxy.h"
+
+#include "MotionDiff/MotionDiffLogChannels.h"
 
 
 UMDMeshCapture::UMDMeshCapture(const FObjectInitializer& ObjectInitializer)
   : Super(ObjectInitializer)
-  , m_snapshots{}
+  , m_meshCaptureProxy{nullptr}
 {
+}
 
+void UMDMeshCapture::BeginDestroy()
+{
+  Super::BeginDestroy();
+  
+  if (m_meshCaptureProxy != nullptr)
+  {
+    DestroyMeshCaptureProxy(m_meshCaptureProxy);
+    m_meshCaptureProxy = nullptr;
+  }
 }
 
 void UMDMeshCapture::SaveMeshSnapshot(FName SnapshotName)
 {
-  FMDMeshSnapshot& snapshot = AddSnapshot(SnapshotName);
-  SnapshotMesh(snapshot);
+  FMDMeshCaptureProxy& proxy = GetMeshCaptureProxy<FMDMeshCaptureProxy>();
+  proxy.SaveMeshSnapshot(this, SnapshotName);
 }
 
-const FMDMeshSnapshot* UMDMeshCapture::GetSnapshot(FName SnapshotName) const
+FMDMeshCaptureProxy* UMDMeshCapture::CreateMeshCaptureProxy()
 {
-  return m_snapshots.FindByPredicate(
-    [SnapshotName](const FMDMeshSnapshot& Snapshot)
-    {
-      return Snapshot.SnapshotName == SnapshotName;
-    }
-  );
+  return new FMDMeshCaptureProxy();
 }
 
-FMDMeshSnapshot& UMDMeshCapture::AddSnapshot(FName SnapshotName)
+void UMDMeshCapture::DestroyMeshCaptureProxy(FMDMeshCaptureProxy* MeshCaptureProxy)
 {
-  FMDMeshSnapshot* snapshot = m_snapshots.FindByPredicate(
-    [SnapshotName](const FMDMeshSnapshot& Snapshot)
-    {
-      return Snapshot.SnapshotName == SnapshotName;
-    }
-  );
-
-  // 存在しているスナップショットを再利用
-  if (snapshot != nullptr)
-  {
-    snapshot->Reset();
-  }
-  else
-  {
-    // 新しいスナップショットを作成
-    snapshot = &m_snapshots[m_snapshots.AddDefaulted()];
-  }
-
-  snapshot->SnapshotName = SnapshotName;
-  return *snapshot;
-}
-
-void UMDMeshCapture::RemoveSnapshot(FName SnapshotName)
-{
-  const int32 index = m_snapshots.IndexOfByPredicate(
-    [SnapshotName](const FMDMeshSnapshot& Snapshot)
-    {
-      return Snapshot.SnapshotName == SnapshotName;
-    }
-  );
-
-  if (index == INDEX_NONE)
-  {
-    return;
-  }
-
-  m_snapshots.RemoveAtSwap(index);
+  delete MeshCaptureProxy;
 }

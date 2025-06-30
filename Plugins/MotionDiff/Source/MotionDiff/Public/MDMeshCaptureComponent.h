@@ -105,16 +105,16 @@ class MOTIONDIFF_API UMDMeshCaptureComponent : public UActorComponent
   #endif
 
   private:
-    UPROPERTY(EditDefaultsOnly, Category = "MeshDiff|Mesh Capture", meta = (AllowPrivateAccess = "true"))
+    UPROPERTY(EditAnywhere, Category = "MeshDiff|Mesh Capture", meta = (AllowPrivateAccess = "true"))
     FMDMeshCaptureParameters CaptureParam;
 
-    UPROPERTY(EditDefaultsOnly, Category = "MeshDiff|Mesh Capture", meta = (AllowPrivateAccess = "true"))
+    UPROPERTY(EditAnywhere, Category = "MeshDiff|Mesh Capture", meta = (AllowPrivateAccess = "true"))
     TObjectPtr<UMaterialInterface> CapturedTrailMaterial;
 
     UPROPERTY()
     TObjectPtr<UMDMeshCapture> m_captureInstance;
 
-    UPROPERTY(EditDefaultsOnly, Category = "MeshDiff|Mesh Capture", meta = (AllowPrivateAccess = "true"))
+    UPROPERTY(EditAnywhere, Category = "MeshDiff|Mesh Capture", meta = (AllowPrivateAccess = "true"))
     bool bUseFirstMeshAttachToThis;
 
     EMDMeshCaptureDestroyMode m_currentCaptureDestroyMode = EMDMeshCaptureDestroyMode::None;

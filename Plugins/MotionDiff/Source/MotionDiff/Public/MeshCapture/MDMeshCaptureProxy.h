@@ -2,12 +2,19 @@
 
 #include "MDMeshSnapShot.h"
 
+class UMDMeshCapture;
+
 class FMDMeshCaptureProxy
 {
   public:
-    const FMDMeshSnapshot* GetSnapshot(FName SnapshotName) const;
-    FMDMeshSnapshot& AddSnapshot(FName SnapshotName);
-    void RemoveSnapshot(FName SnapshotName);
+    FMDMeshCaptureProxy() = default;
+    virtual ~FMDMeshCaptureProxy() = default;
+
+    virtual FMDMeshSnapshot& AddSnapshot(FName SnapshotName);
+    virtual void RemoveSnapshot(FName SnapshotName);
+    virtual void SaveMeshSnapshot(UMDMeshCapture* MeshCapture, FName SnapshotName);
+    virtual const FMDMeshSnapshot* GetSnapshot(FName SnapshotName) const;
+    virtual const TArray<FMDMeshSnapshot>& GetAllSnapshots() const;
 
   private:
     TArray<FMDMeshSnapshot> m_snapshots;

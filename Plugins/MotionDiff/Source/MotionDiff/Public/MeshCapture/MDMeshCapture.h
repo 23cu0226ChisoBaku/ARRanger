@@ -8,6 +8,7 @@
 #include "MDMeshCapture.generated.h"
 
 class UMeshComponent;
+class FMDMeshCaptureProxy;
 
 /**
  * 
@@ -19,6 +20,9 @@ class MOTIONDIFF_API UMDMeshCapture : public UObject
 
   public:
     UMDMeshCapture(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
+
+    // UObject interface
+    virtual void BeginDestroy() override;
     
     void SaveMeshSnapshot(FName SnapshotName);
 
@@ -26,13 +30,54 @@ class MOTIONDIFF_API UMDMeshCapture : public UObject
     virtual void Reset() PURE_VIRTUAL(UMDMeshCapture, ;)
     virtual void ShowSnapshots() PURE_VIRTUAL(UMDMeshCapture, ;)
     virtual void HideSnapshots() PURE_VIRTUAL(UMDMeshCapture, ;)
+    virtual void SnapshotMesh(FMDMeshSnapshot& Snapshot) PURE_VIRTUAL(UMDMeshCapture, ;)
 
   protected:
-    virtual void SnapshotMesh(FMDMeshSnapshot& Snapshot) PURE_VIRTUAL(UMDMeshCapture, ;)
-    const FMDMeshSnapshot* GetSnapshot(FName SnapshotName) const;
-    FMDMeshSnapshot& AddSnapshot(FName SnapshotName);
-    void RemoveSnapshot(FName SnapshotName);
-    
+    template<typename MeshCaptureProxyType>
+    MeshCaptureProxyType& GetMeshCaptureProxy();
+
+    template<typename MeshCaptureProxyType>
+    const MeshCaptureProxyType& GetMeshCaptureProxy() const;
+
+    template<typename MeshCaptureProxyType>
+    static MeshCaptureProxyType* GetMeshCaptureProxyStatic(UMDMeshCapture* MeshCapture);
+
   private:
-    TArray<FMDMeshSnapshot> m_snapshots;
+    virtual FMDMeshCaptureProxy* CreateMeshCaptureProxy();
+    virtual void DestroyMeshCaptureProxy(FMDMeshCaptureProxy* MeshCaptureProxy);
+
+  private:
+
+    // Dangerous raw pointer
+    FMDMeshCaptureProxy* m_meshCaptureProxy;
 };
+
+template<typename MeshCaptureProxyType>
+MeshCaptureProxyType& UMDMeshCapture::GetMeshCaptureProxy()
+{
+  return *GetMeshCaptureProxyStatic<MeshCaptureProxyType>(this);
+}
+
+template<typename MeshCaptureProxyType>
+const MeshCaptureProxyType& UMDMeshCapture::GetMeshCaptureProxy() const
+{
+  return *GetMeshCaptureProxyStatic<const MeshCaptureProxyType>(const_cast<UMDMeshCapture*>(this));
+}
+
+template<typename MeshCaptureProxyType>
+static MeshCaptureProxyType* UMDMeshCapture::GetMeshCaptureProxyStatic(UMDMeshCapture* MeshCapture)
+{
+  if (MeshCapture == nullptr)
+  {
+    return nullptr;
+  }
+
+  if (MeshCapture->m_meshCaptureProxy == nullptr)
+  {
+    MeshCapture->m_meshCaptureProxy = MeshCapture->CreateMeshCaptureProxy();
+  }
+
+  return static_cast<MeshCaptureProxyType*>(MeshCapture->m_meshCaptureProxy);
+}
+
+

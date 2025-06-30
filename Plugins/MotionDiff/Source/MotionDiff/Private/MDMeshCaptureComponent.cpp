@@ -37,7 +37,11 @@ void UMDMeshCaptureComponent::BeginPlay()
       {
         // 複数があっても最初に見つけたコンポーネントでしか初期化しない
         m_captureInstance = FMDMeshCaptureFactory::CreateCapture(ownedStaticMeshComps[0]);
-        bIsCreated = true;
+        if (m_captureInstance != nullptr)
+        {
+          m_captureInstance->CaptureMesh(ownedStaticMeshComps[0]);
+          bIsCreated = true;
+        }
       }
     }
 
@@ -50,7 +54,11 @@ void UMDMeshCaptureComponent::BeginPlay()
       {
         // 複数があっても最初に見つけたコンポーネントでしか初期化しない
         m_captureInstance = FMDMeshCaptureFactory::CreateCapture(ownedSkeletalMeshComps[0]);
-        bIsCreated = true;
+        if (m_captureInstance != nullptr)
+        {
+          m_captureInstance->CaptureMesh(ownedSkeletalMeshComps[0]);
+          bIsCreated = true;
+        }
       }
     }
 
@@ -61,10 +69,10 @@ void UMDMeshCaptureComponent::BeginPlay()
     }
 
     // キャプチャしないもしくは破壊しない場合はTickしないようにする
-    if (!CaptureParam.bIsCapturing || !CaptureParam.bShouldDestroy)
-    {
-      SetComponentTickEnabled(false);
-    }
+    // if (!CaptureParam.bIsCapturing || !CaptureParam.bShouldDestroy)
+    // {
+    //   SetComponentTickEnabled(false);
+    // }
 
     m_currentCaptureDestroyMode = CaptureParam.DestroyMode;
   }
@@ -76,7 +84,11 @@ void UMDMeshCaptureComponent::TickComponent(float DeltaTime, ELevelTick TickType
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	
+	if (m_captureInstance != nullptr)
+  {
+    m_captureInstance->SaveMeshSnapshot(TEXT("Test"));
+    m_captureInstance->ShowSnapshots();
+  }
 }
 
 // Editor専用関数
