@@ -21,7 +21,7 @@ class MOTIONDIFF_API UMDStaticMeshCapture : public UMDMeshCapture
     virtual void HideSnapshots() override;
 
   protected:
-    virtual void SnapshotMesh(FMDMeshSnapshot& Snapshot) override;
+    virtual void SnapshotMesh(FMDMeshSnapshot& Snapshot, const int32 LODIndex) override;
 
 #if WITH_EDITOR
   private:

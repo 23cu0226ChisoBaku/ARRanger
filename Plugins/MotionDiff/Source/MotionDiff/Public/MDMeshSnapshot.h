@@ -5,16 +5,52 @@
 #include "CoreMinimal.h"
 #include "MDMeshSnapshot.generated.h"
 
-
-USTRUCT()
-struct MOTIONDIFF_API FMDMeshVertexInfo
+USTRUCT(BlueprintType)
+struct FMDMeshVertexTangent
 {
   GENERATED_BODY()
 
   UPROPERTY(VisibleAnywhere)
-  FVector3f LocalMeshVertexPosition;
+  FVector TangentX;
 
-  int32 MeshVertexIndex;
+  UPROPERTY(VisibleAnywhere)
+  bool bFlipTangentY;
+};
+
+USTRUCT(BlueprintType)
+struct MOTIONDIFF_API FMDMeshVertexBuffers
+{
+  GENERATED_BODY()
+
+  void Reset();
+
+  UPROPERTY(VisibleAnywhere)
+  TArray<FVector> Positions;
+
+  UPROPERTY(VisibleAnywhere)
+  TArray<int32> Triangles;
+
+  UPROPERTY(VisibleAnywhere)
+  TArray<FVector> Normals;
+
+  UPROPERTY(VisibleAnywhere)
+  TArray<FVector2D> UVs0;
+
+  UPROPERTY(VisibleAnywhere)
+  TArray<FVector2D> UVs1;
+
+  UPROPERTY(VisibleAnywhere)
+  TArray<FVector2D> UVs2;
+
+  UPROPERTY(VisibleAnywhere)
+  TArray<FVector2D> UVs3;
+
+  UPROPERTY(VisibleAnywhere)
+  TArray<FLinearColor> Colors;
+
+  UPROPERTY(VisibleAnywhere)
+  TArray<FMDMeshVertexTangent> Tangents;
+
 };
 
 
@@ -27,11 +63,14 @@ struct MOTIONDIFF_API FMDMeshSnapshot
   void Reset();
 
   UPROPERTY(VisibleAnywhere)
-  TArray<FMDMeshVertexInfo> MeshVerticesInfo; 
+  FMDMeshVertexBuffers MeshVertexBuffers;
 
   UPROPERTY(VisibleAnywhere)
   FName SnapshotName;
 
   UPROPERTY(VisibleAnywhere)
   bool bIsValid;
+
+  UPROPERTY(VisibleAnywhere)
+  int8 LODIndex;              // 無効値として-1を入れるようにint8を使用
 };

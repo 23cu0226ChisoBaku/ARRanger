@@ -1,4 +1,8 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
+#pragma once
+
+#ifndef _MD_MESH_CAPTURE_PROXY_
+#define _MD_MESH_CAPTURE_PROXY_
 
 #include "MDMeshSnapShot.h"
 
@@ -19,3 +23,5 @@ class FMDMeshCaptureProxy
   private:
     TArray<FMDMeshSnapshot> m_snapshots;
 };
+
+#endif

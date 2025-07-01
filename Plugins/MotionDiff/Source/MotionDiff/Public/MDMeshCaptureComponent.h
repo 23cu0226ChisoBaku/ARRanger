@@ -50,7 +50,7 @@ struct MOTIONDIFF_API FMDMeshCaptureParameters
   UPROPERTY(EditAnywhere, meta = (EditCondition = "bShouldDestroy == true", EditConditionHides))
   EMDMeshCaptureDestroyMode DestroyMode;
 
-  UPROPERTY(EditAnywhere, meta = (EditCondition = "DestroyMode == EMDMeshCaptureDestroyMode::ElapsedTime"))
+  UPROPERTY(EditAnywhere, meta = (EditCondition = "DestroyMode == EMDMeshCaptureDestroyMode::ElapsedTime", EditConditionHides))
   FMDMeshCapture_ElapseModeParameter ElapsedTimeParam;
 };
 

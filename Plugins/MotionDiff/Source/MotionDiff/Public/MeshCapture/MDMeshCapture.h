@@ -30,7 +30,7 @@ class MOTIONDIFF_API UMDMeshCapture : public UObject
     virtual void Reset() PURE_VIRTUAL(UMDMeshCapture, ;)
     virtual void ShowSnapshots() PURE_VIRTUAL(UMDMeshCapture, ;)
     virtual void HideSnapshots() PURE_VIRTUAL(UMDMeshCapture, ;)
-    virtual void SnapshotMesh(FMDMeshSnapshot& Snapshot) PURE_VIRTUAL(UMDMeshCapture, ;)
+    virtual void SnapshotMesh(FMDMeshSnapshot& Snapshot, const int32 LODIndex = 0) PURE_VIRTUAL(UMDMeshCapture, ;)
 
   protected:
     template<typename MeshCaptureProxyType>

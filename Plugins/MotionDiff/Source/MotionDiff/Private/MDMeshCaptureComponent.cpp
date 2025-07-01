@@ -75,6 +75,12 @@ void UMDMeshCaptureComponent::BeginPlay()
     // }
 
     m_currentCaptureDestroyMode = CaptureParam.DestroyMode;
+
+    if (m_captureInstance != nullptr)
+    {
+      m_captureInstance->SaveMeshSnapshot(TEXT("Test"));
+      m_captureInstance->ShowSnapshots();
+    }
   }
 }
 
@@ -84,11 +90,7 @@ void UMDMeshCaptureComponent::TickComponent(float DeltaTime, ELevelTick TickType
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	if (m_captureInstance != nullptr)
-  {
-    m_captureInstance->SaveMeshSnapshot(TEXT("Test"));
-    m_captureInstance->ShowSnapshots();
-  }
+
 }
 
 // Editor専用関数

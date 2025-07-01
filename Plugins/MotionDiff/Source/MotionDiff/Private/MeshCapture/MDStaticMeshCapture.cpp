@@ -7,6 +7,25 @@
 #include "MeshCapture/MDMeshCaptureProxy.h"
 
 #include "Components/StaticMeshComponent.h"
+#include "StaticMeshOperations.h"
+#include "StaticMeshAttributes.h"
+#include "ProceduralMeshComponent.h"
+#include "KismetProceduralMeshLibrary.h"    // Copy
+
+TArray<FProcMeshTangent> ConvertTangent(const TArray<FMDMeshVertexTangent>& Tangents)
+{
+  TArray<FProcMeshTangent> ResultTangents;
+  ResultTangents.Reset(Tangents.Num());
+  for (int32 i = 0; i < Tangents.Num(); ++i)
+  {
+    FProcMeshTangent convertedTangent{Tangents[i].TangentX, Tangents[i].bFlipTangentY};
+    ResultTangents.Add(convertedTangent);
+  }
+
+  check(ResultTangents.Num() == Tangents.Num());
+
+  return ResultTangents;
+} 
 
 void UMDStaticMeshCapture::CaptureMesh(UMeshComponent* MeshComponent)
 {
@@ -30,15 +49,44 @@ void UMDStaticMeshCapture::Reset()
 void UMDStaticMeshCapture::ShowSnapshots()
 {
   FMDMeshCaptureProxy& proxy = GetMeshCaptureProxy<FMDMeshCaptureProxy>();
-  const auto& snapShots = proxy.GetAllSnapshots();
+  const auto& snapshots = proxy.GetAllSnapshots();
 
-  for (int32 i = 0; i < snapShots.Num(); ++i)
+  if (GEngine != nullptr)
   {
-    const auto& snapshot = snapShots[i];
-    if (GEngine != nullptr)
+    FString log = FString::Printf(TEXT("Num:[%d]"), snapshots.Num());
+    GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, log);
+  }
+
+  for (int32 i = 0; i < snapshots.Num(); ++i)
+  {
+    const auto& snapshot = snapshots[i];
+    // create new mesh
     {
-      FString Log = FString::Printf(TEXT("Snapshot info: Vertices Num:[%d], Name:[%s]"), snapshot.MeshVerticesInfo.Num(), *snapshot.SnapshotName.ToString());
-      GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Blue, Log);
+      if (UWorld* currentWorld = m_staticMeshComp->GetWorld())
+      {
+        UProceduralMeshComponent* procMeshComp = NewObject<UProceduralMeshComponent>();
+        if (procMeshComp != nullptr)
+        {
+          const auto& snapshotVertexBuffers = snapshot.MeshVertexBuffers;
+          procMeshComp->CreateMeshSection_LinearColor(
+            0,
+            snapshotVertexBuffers.Positions,
+            snapshotVertexBuffers.Triangles,
+            snapshotVertexBuffers.Normals,
+            snapshotVertexBuffers.UVs0,
+            snapshotVertexBuffers.UVs1,
+            snapshotVertexBuffers.UVs2,
+            snapshotVertexBuffers.UVs3,
+            snapshotVertexBuffers.Colors,
+            ConvertTangent(snapshotVertexBuffers.Tangents),
+            false
+          );
+
+          AActor* newMeshActor = currentWorld->SpawnActorDeferred<AActor>(AActor::StaticClass(), m_staticMeshComp->GetOwner()->GetTransform());
+          newMeshActor->SetRootComponent(procMeshComp);
+          newMeshActor->FinishSpawning(m_staticMeshComp->GetOwner()->GetTransform());
+        }        
+      }
     }
   }
 }
@@ -48,7 +96,7 @@ void UMDStaticMeshCapture::HideSnapshots()
 
 }
 
-void UMDStaticMeshCapture::SnapshotMesh(FMDMeshSnapshot& Snapshot)
+void UMDStaticMeshCapture::SnapshotMesh(FMDMeshSnapshot& Snapshot, const int32 LODIndex)
 {
   Snapshot.bIsValid = false;
 
@@ -59,48 +107,113 @@ void UMDStaticMeshCapture::SnapshotMesh(FMDMeshSnapshot& Snapshot)
   }
 
   const UStaticMesh* staticMesh = m_staticMeshComp->GetStaticMesh();
-  if (staticMesh == nullptr)
+  if (staticMesh == nullptr || !staticMesh->IsValidLowLevel())
   {
     return;
   } 
 
-  const FStaticMeshRenderData* meshRenderData = staticMesh->GetRenderData();
-  if (meshRenderData == nullptr)
+  // NOTE: Use Render Data
+  // NOTE: should set Static Mesh Allow CPUAccess to true
+  // const FStaticMeshRenderData* meshRenderData = staticMesh->GetRenderData();
+  // if (meshRenderData == nullptr)
+  // {
+  //   if (!staticMesh->bAllowCPUAccess)
+  //   {
+  //     UE_LOG(LogMotionDiff, Error, TEXT("You should set Static Mesh:[%s] Allow CPUAccess as true"), *GetNameSafe(staticMesh));
+  //   } 
+  //   return;
+  // }
+
+  // NOTE: Use MeshDescription
+  const FMeshDescription* meshDesc = staticMesh->GetMeshDescription(LODIndex);
+  if (meshDesc == nullptr)
   {
-    if (!staticMesh->bAllowCPUAccess)
-    {
-      UE_LOG(LogMotionDiff, Error, TEXT("You should set Static Mesh:[%s] Allow CPUAccess as true"), *GetNameSafe(staticMesh));
-    } 
     return;
   }
 
-  // メッシュの頂点座標バッファを取得
-  if (meshRenderData->LODResources.Num() > 0)
+  // スタティックメッシュの頂点情報を取得
+  FStaticMeshConstAttributes staticMeshAttribute(*meshDesc);
+
+  const auto& vertices = staticMeshAttribute.GetVertexPositions();
+  const auto& triangles = meshDesc->Triangles();
+  const auto& normals = staticMeshAttribute.GetVertexInstanceNormals();
+  const auto& uvs0 = staticMeshAttribute.GetUVCoordinates(0);
+  const auto& uvs1 = staticMeshAttribute.GetUVCoordinates(1);
+  const auto& uvs2 = staticMeshAttribute.GetUVCoordinates(2);
+  const auto& uvs3 = staticMeshAttribute.GetUVCoordinates(3);
+  const auto& colors = staticMeshAttribute.GetVertexInstanceColors();
+  const auto& tangents = staticMeshAttribute.GetVertexInstanceTangents();
+
+  // Use this to set tangent
+  const auto& binormalSigns = staticMeshAttribute.GetVertexInstanceBinormalSigns();
+  
+  const auto& vertexIDs = meshDesc->Vertices().GetElementIDs();
+  const auto& vertexInstanceIDs = meshDesc->VertexInstances().GetElementIDs();
+
+  FMDMeshVertexBuffers& vertexBuffers = Snapshot.MeshVertexBuffers;
+
+  vertexBuffers.Positions.Reset(vertices.GetNumElements());
+  vertexBuffers.Positions.AddUninitialized(vertices.GetNumElements());
+  vertexBuffers.Triangles.Reset(triangles.Num() * 3);
+  vertexBuffers.Triangles.AddUninitialized(triangles.Num() * 3);
+  vertexBuffers.Normals.Reset(normals.GetNumElements());
+  vertexBuffers.Normals.AddUninitialized(normals.GetNumElements());
+  vertexBuffers.UVs0.Reset(uvs0.GetNumElements());
+  vertexBuffers.UVs0.AddUninitialized(uvs0.GetNumElements());
+  vertexBuffers.UVs1.Reset(uvs1.GetNumElements());
+  vertexBuffers.UVs1.AddUninitialized(uvs1.GetNumElements());
+  vertexBuffers.UVs2.Reset(uvs2.GetNumElements());
+  vertexBuffers.UVs2.AddUninitialized(uvs2.GetNumElements());
+  vertexBuffers.UVs3.Reset(uvs3.GetNumElements());
+  vertexBuffers.UVs3.AddUninitialized(uvs3.GetNumElements());
+  vertexBuffers.Tangents.Reset(tangents.GetNumElements());
+  vertexBuffers.Tangents.AddUninitialized(tangents.GetNumElements());
+
+  uint32 vertIdx = 0;
+  const bool bHasVertexColor = FStaticMeshOperations::HasVertexColor(*meshDesc);
+  for (const auto& vertexID : vertexIDs)
   {
-    const FPositionVertexBuffer& posVertexBuffer = meshRenderData->LODResources[0].VertexBuffers.PositionVertexBuffer;
-    const FRawStaticIndexBuffer& indexBuffer = meshRenderData->LODResources[0].IndexBuffer;
-    check(posVertexBuffer.GetNumVertices() != indexBuffer.GetNumIndices());
-    
-    if (posVertexBuffer.IsInitialized())
+    // Copy Vertex
+    vertexBuffers.Positions[vertIdx] = static_cast<FVector>(vertices[vertexID]);
+
+
+    ++vertIdx;
+  }
+
+  uint32 vertInstanceIdx = 0;
+  for (const auto& vertexInstanceID : vertexInstanceIDs)
+  {
+    // Copy normals
+    vertexBuffers.Normals[vertInstanceIdx] = static_cast<FVector>(normals[vertexInstanceID]);
+
+    // Copy UVs
+    vertexBuffers.UVs0[vertInstanceIdx] = static_cast<FVector2D>(uvs0.Get(vertexInstanceID));
+    vertexBuffers.UVs1[vertInstanceIdx] = static_cast<FVector2D>(uvs1.Get(vertexInstanceID));
+    vertexBuffers.UVs2[vertInstanceIdx] = static_cast<FVector2D>(uvs2.Get(vertexInstanceID));
+    vertexBuffers.UVs3[vertInstanceIdx] = static_cast<FVector2D>(uvs3.Get(vertexInstanceID));
+
+    // Copy tangents
+    vertexBuffers.Tangents[vertInstanceIdx].TangentX = static_cast<FVector>(tangents[vertexInstanceID]);
+    vertexBuffers.Tangents[vertInstanceIdx].bFlipTangentY = (binormalSigns[vertexInstanceID] < 0.f);
+
+   ++vertInstanceIdx;
+  }
+
+  // Triangles
+  uint32 triangleIdx = 0;
+  for (const auto& triangleID : triangles.GetElementIDs())
+  {
+    for (uint8 cornerID = 0; cornerID < 3; ++cornerID)
     {
-      const uint32 vertexNum = posVertexBuffer.GetNumVertices();
-
-      // TODO Need research
-      Snapshot.MeshVerticesInfo.Reset(vertexNum);
-      Snapshot.MeshVerticesInfo.AddUninitialized(vertexNum);
-
-      for (uint32 i = 0; i < vertexNum; ++i)
-      {
-        const FVector3f localVertexPosition = posVertexBuffer.VertexPosition(i);
-
-        FMDMeshVertexInfo& info = Snapshot.MeshVerticesInfo[i];
-        info.LocalMeshVertexPosition = localVertexPosition;
-        info.MeshVertexIndex = indexBuffer.GetIndex(i);
-
-        Snapshot.bIsValid = true;
-      }
+      // Copy triangles
+      FVertexInstanceID triangleVertexInstanceID = meshDesc->GetTriangleVertexInstance(triangleID, cornerID);
+      vertexBuffers.Triangles[triangleIdx] = meshDesc->GetVertexInstanceVertex(triangleVertexInstanceID).GetValue();
+      
+      ++triangleIdx;
     }
   }
+
+  Snapshot.bIsValid = true;
 }
 
 // Editor Only
