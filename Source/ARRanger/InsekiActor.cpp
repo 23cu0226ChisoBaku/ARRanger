@@ -62,7 +62,7 @@ void AInsekiActor::Tick(float DeltaTime)
 		UE_LOG(LogTemp, Warning, TEXT("PushOffset size: %f"), Direction.Size());
 		//repulsionFlag = true;
 
-		if (Distance <= 200.f)
+		if (Distance <= 250.f)
 		{
 			repulsionFlag = true;
 		}

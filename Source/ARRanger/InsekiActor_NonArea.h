@@ -21,7 +21,7 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = Inseki, meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UStaticMeshComponent> InsekiActorMesh;
 
-	UPROPERTY(VisibleAnywhere, Category = Inseki, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Inseki, meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UCapsuleComponent> Capsule;
 
 	TObjectPtr<AActor> playerCharacter;
