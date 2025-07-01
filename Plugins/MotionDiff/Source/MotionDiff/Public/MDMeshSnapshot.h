@@ -3,18 +3,36 @@
 #pragma once
 
 #include "CoreMinimal.h"
+
 #include "MDMeshSnapshot.generated.h"
 
-USTRUCT(BlueprintType)
 struct FMDMeshVertexTangent
 {
-  GENERATED_BODY()
-
-  UPROPERTY(VisibleAnywhere)
   FVector TangentX;
-
-  UPROPERTY(VisibleAnywhere)
   bool bFlipTangentY;
+};
+
+struct FMDMeshUVContainer
+{
+  public:
+    FMDMeshUVContainer() = default;
+    ~FMDMeshUVContainer() = default;
+
+    const TArray<FVector2D>& GetUVsByChannel(const int32 Channel) const;
+    void SetUVsByChannel(const TArray<FVector2D>& UVs, const int32 Channel);
+    bool IsChannelValid(const int32 Channel) const;
+    int32 AddUVByChannel(const FVector2D& UV, const int32 Channel);
+    void Reset();
+
+  private:
+    enum
+    {
+      UV_MAX_CHANNEL_NUM = 8,
+    };
+
+    // Make the 8th channel as an empty array
+    TArray<FVector2D> m_UVsArray[UV_MAX_CHANNEL_NUM + 1];
+
 };
 
 USTRUCT(BlueprintType)
@@ -33,17 +51,8 @@ struct MOTIONDIFF_API FMDMeshVertexBuffers
   UPROPERTY(VisibleAnywhere)
   TArray<FVector> Normals;
 
-  UPROPERTY(VisibleAnywhere)
-  TArray<FVector2D> UVs0;
-
-  UPROPERTY(VisibleAnywhere)
-  TArray<FVector2D> UVs1;
-
-  UPROPERTY(VisibleAnywhere)
-  TArray<FVector2D> UVs2;
-
-  UPROPERTY(VisibleAnywhere)
-  TArray<FVector2D> UVs3;
+  // UVContainer
+  FMDMeshUVContainer UVContainer;
 
   UPROPERTY(VisibleAnywhere)
   TArray<FLinearColor> Colors;

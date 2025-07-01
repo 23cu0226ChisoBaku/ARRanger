@@ -62,30 +62,50 @@ void UMDStaticMeshCapture::ShowSnapshots()
     const auto& snapshot = snapshots[i];
     // create new mesh
     {
+      
       if (UWorld* currentWorld = m_staticMeshComp->GetWorld())
       {
-        UProceduralMeshComponent* procMeshComp = NewObject<UProceduralMeshComponent>();
-        if (procMeshComp != nullptr)
+        AActor* newMeshActor = currentWorld->SpawnActorDeferred<AActor>(AActor::StaticClass(), m_staticMeshComp->GetOwner()->GetTransform());
+        check(newMeshActor != nullptr);
+        if (newMeshActor == nullptr)
         {
-          const auto& snapshotVertexBuffers = snapshot.MeshVertexBuffers;
-          procMeshComp->CreateMeshSection_LinearColor(
-            0,
-            snapshotVertexBuffers.Positions,
-            snapshotVertexBuffers.Triangles,
-            snapshotVertexBuffers.Normals,
-            snapshotVertexBuffers.UVs0,
-            snapshotVertexBuffers.UVs1,
-            snapshotVertexBuffers.UVs2,
-            snapshotVertexBuffers.UVs3,
-            snapshotVertexBuffers.Colors,
-            ConvertTangent(snapshotVertexBuffers.Tangents),
-            false
-          );
+          // TODO Add log here
 
-          AActor* newMeshActor = currentWorld->SpawnActorDeferred<AActor>(AActor::StaticClass(), m_staticMeshComp->GetOwner()->GetTransform());
-          newMeshActor->SetRootComponent(procMeshComp);
-          newMeshActor->FinishSpawning(m_staticMeshComp->GetOwner()->GetTransform());
-        }        
+          return;
+        }
+
+        UProceduralMeshComponent* procMeshComp = NewObject<UProceduralMeshComponent>(newMeshActor);
+        check(procMeshComp != nullptr);
+        if (procMeshComp == nullptr)
+        {
+          // TODO Add log here
+
+          return;
+        }
+
+        // Register before add to world
+        procMeshComp->RegisterComponent();
+
+        const FMDMeshVertexBuffers& snapshotVertexBuffers = snapshot.MeshVertexBuffers;
+        procMeshComp->CreateMeshSection_LinearColor(
+          0,
+          snapshotVertexBuffers.Positions,
+          snapshotVertexBuffers.Triangles,
+          snapshotVertexBuffers.Normals,
+          snapshotVertexBuffers.UVContainer.GetUVsByChannel(0),
+          snapshotVertexBuffers.UVContainer.GetUVsByChannel(1),
+          snapshotVertexBuffers.UVContainer.GetUVsByChannel(2),
+          snapshotVertexBuffers.UVContainer.GetUVsByChannel(3),
+          snapshotVertexBuffers.Colors,
+          ConvertTangent(snapshotVertexBuffers.Tangents),
+          false
+        );
+
+        newMeshActor->SetRootComponent(procMeshComp);
+
+        // Call this if actor spawned by SpawnActorDeferred
+        newMeshActor->FinishSpawning(m_staticMeshComp->GetOwner()->GetTransform());
+                
       }
     }
   }
@@ -134,13 +154,13 @@ void UMDStaticMeshCapture::SnapshotMesh(FMDMeshSnapshot& Snapshot, const int32 L
   // スタティックメッシュの頂点情報を取得
   FStaticMeshConstAttributes staticMeshAttribute(*meshDesc);
 
-  const auto& vertices = staticMeshAttribute.GetVertexPositions();
+  const TVertexAttributesConstRef<FVector3f>& vertices = staticMeshAttribute.GetVertexPositions();
   const auto& triangles = meshDesc->Triangles();
   const auto& normals = staticMeshAttribute.GetVertexInstanceNormals();
-  const auto& uvs0 = staticMeshAttribute.GetUVCoordinates(0);
-  const auto& uvs1 = staticMeshAttribute.GetUVCoordinates(1);
-  const auto& uvs2 = staticMeshAttribute.GetUVCoordinates(2);
-  const auto& uvs3 = staticMeshAttribute.GetUVCoordinates(3);
+
+  // UVs
+  const auto& uvs = staticMeshAttribute.GetVertexInstanceUVs();
+
   const auto& colors = staticMeshAttribute.GetVertexInstanceColors();
   const auto& tangents = staticMeshAttribute.GetVertexInstanceTangents();
 
@@ -158,14 +178,10 @@ void UMDStaticMeshCapture::SnapshotMesh(FMDMeshSnapshot& Snapshot, const int32 L
   vertexBuffers.Triangles.AddUninitialized(triangles.Num() * 3);
   vertexBuffers.Normals.Reset(normals.GetNumElements());
   vertexBuffers.Normals.AddUninitialized(normals.GetNumElements());
-  vertexBuffers.UVs0.Reset(uvs0.GetNumElements());
-  vertexBuffers.UVs0.AddUninitialized(uvs0.GetNumElements());
-  vertexBuffers.UVs1.Reset(uvs1.GetNumElements());
-  vertexBuffers.UVs1.AddUninitialized(uvs1.GetNumElements());
-  vertexBuffers.UVs2.Reset(uvs2.GetNumElements());
-  vertexBuffers.UVs2.AddUninitialized(uvs2.GetNumElements());
-  vertexBuffers.UVs3.Reset(uvs3.GetNumElements());
-  vertexBuffers.UVs3.AddUninitialized(uvs3.GetNumElements());
+
+  // UV initialize
+  const int32 uvInstanceNum = meshDesc->VertexInstances().Num();
+
   vertexBuffers.Tangents.Reset(tangents.GetNumElements());
   vertexBuffers.Tangents.AddUninitialized(tangents.GetNumElements());
 
@@ -187,16 +203,16 @@ void UMDStaticMeshCapture::SnapshotMesh(FMDMeshSnapshot& Snapshot, const int32 L
     vertexBuffers.Normals[vertInstanceIdx] = static_cast<FVector>(normals[vertexInstanceID]);
 
     // Copy UVs
-    vertexBuffers.UVs0[vertInstanceIdx] = static_cast<FVector2D>(uvs0.Get(vertexInstanceID));
-    vertexBuffers.UVs1[vertInstanceIdx] = static_cast<FVector2D>(uvs1.Get(vertexInstanceID));
-    vertexBuffers.UVs2[vertInstanceIdx] = static_cast<FVector2D>(uvs2.Get(vertexInstanceID));
-    vertexBuffers.UVs3[vertInstanceIdx] = static_cast<FVector2D>(uvs3.Get(vertexInstanceID));
+    for (int32 i = 0; i < uvs.GetNumChannels(); ++i)
+    {
+      vertexBuffers.UVContainer.AddUVByChannel(static_cast<FVector2D>(uvs.Get(vertInstanceIdx, i)), i);
+    }
 
     // Copy tangents
     vertexBuffers.Tangents[vertInstanceIdx].TangentX = static_cast<FVector>(tangents[vertexInstanceID]);
     vertexBuffers.Tangents[vertInstanceIdx].bFlipTangentY = (binormalSigns[vertexInstanceID] < 0.f);
 
-   ++vertInstanceIdx;
+    ++vertInstanceIdx;
   }
 
   // Triangles
