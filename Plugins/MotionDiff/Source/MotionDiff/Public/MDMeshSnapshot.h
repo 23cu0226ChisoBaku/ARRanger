@@ -22,6 +22,7 @@ struct FMDMeshUVContainer
     void SetUVsByChannel(const TArray<FVector2D>& UVs, const int32 Channel);
     bool IsChannelValid(const int32 Channel) const;
     int32 AddUVByChannel(const FVector2D& UV, const int32 Channel);
+    void ResetByChannel(const int32 Channel, const int32 newSize = 0);
     void Reset();
 
   private:
@@ -35,29 +36,27 @@ struct FMDMeshUVContainer
 
 };
 
-USTRUCT(BlueprintType)
-struct MOTIONDIFF_API FMDMeshVertexBuffers
+struct FMDMeshVertexBuffers
 {
-  GENERATED_BODY()
 
   void Reset();
 
-  UPROPERTY(VisibleAnywhere)
-  TArray<FVector> Positions;
+  // Vertex position
+  TArray<FVector> Vertices;
 
-  UPROPERTY(VisibleAnywhere)
+  // Triangle index
   TArray<int32> Triangles;
 
-  UPROPERTY(VisibleAnywhere)
+  // Normal 
   TArray<FVector> Normals;
 
   // UVContainer
   FMDMeshUVContainer UVContainer;
 
-  UPROPERTY(VisibleAnywhere)
+  // Color
   TArray<FLinearColor> Colors;
 
-  UPROPERTY(VisibleAnywhere)
+  // Tangent
   TArray<FMDMeshVertexTangent> Tangents;
 
 };
@@ -71,7 +70,6 @@ struct MOTIONDIFF_API FMDMeshSnapshot
 
   void Reset();
 
-  UPROPERTY(VisibleAnywhere)
   FMDMeshVertexBuffers MeshVertexBuffers;
 
   UPROPERTY(VisibleAnywhere)

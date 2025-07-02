@@ -4,12 +4,12 @@
 
 #include "MeshCapture/MDStaticMeshCapture.h"
 
-UMDMeshCapture* FMDMeshCaptureFactory::CreateCaptureImpl(UStaticMeshComponent* MeshComponentPtr)
+UMDMeshCapture* FMDMeshCaptureFactory::CreateCaptureImpl(UObject* Owner, const UStaticMeshComponent* MeshComponentPtr)
 {
-  return NewObject<UMDStaticMeshCapture>();
+  return NewObject<UMDStaticMeshCapture>(Owner);
 }
 
-UMDMeshCapture* FMDMeshCaptureFactory::CreateCaptureImpl(USkeletalMeshComponent* MeshComponentPtr)
+UMDMeshCapture* FMDMeshCaptureFactory::CreateCaptureImpl(UObject* Owner, const USkeletalMeshComponent* MeshComponentPtr)
 {
   // FIXME need implementation
   return nullptr;

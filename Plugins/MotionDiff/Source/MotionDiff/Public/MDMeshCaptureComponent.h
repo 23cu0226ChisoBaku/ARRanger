@@ -73,6 +73,8 @@ class MOTIONDIFF_API UMDMeshCaptureComponent : public UActorComponent
     // Sets default values for this component's properties
     UMDMeshCaptureComponent(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
+    virtual void BeginDestroy() override;
+
   protected:
     // Called when the game starts
     virtual void BeginPlay() override;
@@ -89,7 +91,7 @@ class MOTIONDIFF_API UMDMeshCaptureComponent : public UActorComponent
         m_captureInstance->Reset();
       }
 
-      m_captureInstance = FMDMeshCaptureFactory::CreateCapture(MeshComponent);
+      m_captureInstance = FMDMeshCaptureFactory::CreateCapture(this, MeshComponent);
     }
 
   // Editor専用関数

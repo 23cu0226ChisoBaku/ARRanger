@@ -18,6 +18,16 @@ UMDMeshCaptureComponent::UMDMeshCaptureComponent(const FObjectInitializer& Objec
 
 }
 
+void UMDMeshCaptureComponent::BeginDestroy()
+{
+  if (m_captureInstance != nullptr)
+  {
+    m_captureInstance->Reset();
+  }
+
+  Super::BeginDestroy();
+}
+
 
 // Called when the game starts
 void UMDMeshCaptureComponent::BeginPlay()
@@ -36,7 +46,7 @@ void UMDMeshCaptureComponent::BeginPlay()
       if (ownedStaticMeshComps.Num() != 0)
       {
         // 複数があっても最初に見つけたコンポーネントでしか初期化しない
-        m_captureInstance = FMDMeshCaptureFactory::CreateCapture(ownedStaticMeshComps[0]);
+        m_captureInstance = FMDMeshCaptureFactory::CreateCapture(this, ownedStaticMeshComps[0]);
         if (m_captureInstance != nullptr)
         {
           m_captureInstance->CaptureMesh(ownedStaticMeshComps[0]);
@@ -53,7 +63,7 @@ void UMDMeshCaptureComponent::BeginPlay()
       if (ownedSkeletalMeshComps.Num() != 0)
       {
         // 複数があっても最初に見つけたコンポーネントでしか初期化しない
-        m_captureInstance = FMDMeshCaptureFactory::CreateCapture(ownedSkeletalMeshComps[0]);
+        m_captureInstance = FMDMeshCaptureFactory::CreateCapture(this, ownedSkeletalMeshComps[0]);
         if (m_captureInstance != nullptr)
         {
           m_captureInstance->CaptureMesh(ownedSkeletalMeshComps[0]);
@@ -78,6 +88,8 @@ void UMDMeshCaptureComponent::BeginPlay()
 
     if (m_captureInstance != nullptr)
     {
+      m_captureInstance->ApplyMaterialOverride(CapturedTrailMaterial);
+
       m_captureInstance->SaveMeshSnapshot(TEXT("Test"));
       m_captureInstance->ShowSnapshots();
     }

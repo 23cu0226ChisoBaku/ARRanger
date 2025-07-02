@@ -15,13 +15,13 @@ UMDMeshCapture::UMDMeshCapture(const FObjectInitializer& ObjectInitializer)
 
 void UMDMeshCapture::BeginDestroy()
 {
-  Super::BeginDestroy();
-  
   if (m_meshCaptureProxy != nullptr)
   {
     DestroyMeshCaptureProxy(m_meshCaptureProxy);
     m_meshCaptureProxy = nullptr;
   }
+  
+  Super::BeginDestroy();
 }
 
 void UMDMeshCapture::SaveMeshSnapshot(FName SnapshotName)

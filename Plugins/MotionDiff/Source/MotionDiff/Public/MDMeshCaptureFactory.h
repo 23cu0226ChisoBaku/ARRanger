@@ -11,16 +11,16 @@ class MOTIONDIFF_API FMDMeshCaptureFactory
 {
   public:
     template<typename UEMeshComponentType>
-    static UMDMeshCapture* CreateCapture(UEMeshComponentType* MeshComponentPtr)
+    static UMDMeshCapture* CreateCapture(UObject* Owner,UEMeshComponentType* MeshComponentPtr)
     {
       static_assert(IsSupportedMeshComponentCapture_V<UEMeshComponentType>, "Unsupported capture type");
 
-      return CreateCaptureImpl(MeshComponentPtr);
+      return CreateCaptureImpl(Owner, MeshComponentPtr);
     }
 
   private:
-    static UMDMeshCapture* CreateCaptureImpl(UStaticMeshComponent* MeshComponentPtr);
-    static UMDMeshCapture* CreateCaptureImpl(USkeletalMeshComponent* MeshComponentPtr);
+    static UMDMeshCapture* CreateCaptureImpl(UObject* Owner, const UStaticMeshComponent* MeshComponentPtr);
+    static UMDMeshCapture* CreateCaptureImpl(UObject* Owner, const USkeletalMeshComponent* MeshComponentPtr);
 
   public:
     FMDMeshCaptureFactory() = delete;

@@ -41,6 +41,7 @@ public class MotionDiff : ModuleRules
         "Engine",
         "Slate",
         "SlateCore",
+        "AssetRegistry",
 
 				// ... add private dependencies that you statically link with here ...	
       }

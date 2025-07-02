@@ -2,9 +2,8 @@
 
 const TArray<FVector2D>& FMDMeshUVContainer::GetUVsByChannel(const int32 Channel) const
 {
-  // This only support uv channel max to 8
-  check(Channel >= 0 && Channel < UV_MAX_CHANNEL_NUM);
-  if (Channel < 0 || Channel >= UV_MAX_CHANNEL_NUM)
+  // Return empty array if channel is invalid or channel uvs are not initialized 
+  if (!IsChannelValid(Channel))
   {
     // An empty array
     return m_UVsArray[UV_MAX_CHANNEL_NUM];
@@ -23,13 +22,15 @@ void FMDMeshUVContainer::SetUVsByChannel(const TArray<FVector2D>& UVs, const int
   }
 
   const int newUVsNum = UVs.Num();
-  m_UVsArray[Channel].Reset(newUVsNum);
-  m_UVsArray[Channel].AddUninitialized(newUVsNum);
+
+  TArray<FVector2D>& channelUVArray = m_UVsArray[Channel];
+  channelUVArray.Reset(newUVsNum);
+  channelUVArray.AddUninitialized(newUVsNum);
 
   // Copy UVs
   for (int32 idx = 0; idx < newUVsNum; ++idx)
   { 
-    m_UVsArray[Channel][idx] = UVs[idx];
+    channelUVArray[idx] = UVs[idx];
   }
 
 }
@@ -43,7 +44,7 @@ bool FMDMeshUVContainer::IsChannelValid(const int32 Channel) const
     return false;
   }
 
-  return !m_UVsArray[Channel].IsEmpty();
+  return true;
 }
 
 int32 FMDMeshUVContainer::AddUVByChannel(const FVector2D& UV, const int32 Channel)
@@ -69,7 +70,7 @@ void FMDMeshUVContainer::Reset()
 
 void FMDMeshVertexBuffers::Reset()
 {
-  Positions.Reset();
+  Vertices.Reset();
   Triangles.Reset();
   Normals.Reset();
   UVContainer.Reset();
