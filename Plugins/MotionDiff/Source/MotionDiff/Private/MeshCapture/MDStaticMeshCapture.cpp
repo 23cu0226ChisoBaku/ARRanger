@@ -130,26 +130,6 @@ void UMDStaticMeshCapture::ShowSnapshots()
         procMeshComp->RegisterComponent();
         
         const FMDMeshVertexBuffers& snapshotVertexBuffers = snapshot.MeshVertexBuffers;
-        
-        // NOTE: Debug purpose
-        {
-          for (int32 channel = 0; channel < 4; ++channel)
-          {
-            const auto& uvs = snapshotVertexBuffers.UVContainer.GetUVsByChannel(channel);
-            for (int32 j = 0; j < uvs.Num(); ++j)
-            {
-              const FVector2D& uv = uvs[j];
-              UE_LOG(LogMotionDiff, Log, TEXT("UV after add to snapshot: Channel:[%d], U:[%f], V:[%f]"), channel, uv.X, uv.Y);
-            }
-          }
-
-          AActor* testMeshActor = currentWorld->SpawnActor<AActor>(AActor::StaticClass(), FTransform::Identity);
-          UProceduralMeshComponent* testPMC = NewObject<UProceduralMeshComponent>(testMeshActor);
-          testMeshActor->SetRootComponent(testPMC);
-          testPMC->RegisterComponent();
-
-          UKismetProceduralMeshLibrary::CopyProceduralMeshFromStaticMeshComponent(m_staticMeshComp, 0, testPMC, false);
-        }
 
         // FIXME: Start temporary code
 
@@ -172,7 +152,16 @@ void UMDStaticMeshCapture::ShowSnapshots()
         }
         // FIXME: End temporary code
         
+        /**
+         * | 概念    | PMC（ProceduralMeshComponent）          | StaticMesh / FMeshDescription    |
+          | ----- | ------------------------------------- | -------------------------------- |
+          | 子网格部分 | Section（编号）                           | PolygonGroup                     |
+          | 材质槽索引 | SectionIndex（直接就是材质索引）                | PolygonGroupID → Material Index  |
+          | 材质绑定  | `SetMaterial(SectionIndex, Material)` | `StaticMesh->SetMaterial(Index)` |
+
+         */
         // Override material if allows
+        // PMC->SetMaterial also need a section id
         if (m_overrideMaterial != nullptr)
         {
           procMeshComp->SetMaterial(0, m_overrideMaterial);
@@ -247,35 +236,34 @@ void UMDStaticMeshCapture::SnapshotMesh(FMDMeshSnapshot& Snapshot, const int32 L
   const TVertexAttributesConstRef<FVector3f>& vertices = staticMeshAttribute.GetVertexPositions();
 
   // Triangles
-  const auto& triangles = meshDesc->Triangles();
-  TArray<int32> remapVertices;
-  remapVertices.AddZeroed(meshDesc->Vertices().GetArraySize());
+  const FTriangleArray& triangles = meshDesc->Triangles();
+  // PolygonGroups
+  // Use it PolygonID as section
+  const FPolygonGroupArray& PolygonGroups = meshDesc->PolygonGroups();
 
   // Vertex normals
-  const auto& normals = staticMeshAttribute.GetVertexInstanceNormals();
+  const TVertexInstanceAttributesConstRef<FVector3f>& normals = staticMeshAttribute.GetVertexInstanceNormals();
 
   // UVs
-  const auto& uvs = staticMeshAttribute.GetVertexInstanceUVs();
+  const TVertexInstanceAttributesConstRef<FVector2f>& uvs = staticMeshAttribute.GetVertexInstanceUVs();
   const int32 uvInstanceNum = meshDesc->VertexInstances().Num();
 
   // Vertex colors
-  const auto& colors = staticMeshAttribute.GetVertexInstanceColors();
+  const TVertexInstanceAttributesConstRef<FVector4f>& colors = staticMeshAttribute.GetVertexInstanceColors();
   const bool bHasVertexColor = FStaticMeshOperations::HasVertexColor(*meshDesc);
   
   // Vertex tangents
-  const auto& tangents = staticMeshAttribute.GetVertexInstanceTangents();
-  const auto& binormalSigns = staticMeshAttribute.GetVertexInstanceBinormalSigns();
-  
-  const auto& vertexIDs = meshDesc->Vertices().GetElementIDs();
-  const auto& vertexInstanceIDs = meshDesc->VertexInstances().GetElementIDs();
+  const TVertexInstanceAttributesConstRef<FVector3f>& tangents = staticMeshAttribute.GetVertexInstanceTangents();
+  const TVertexInstanceAttributesConstRef<float>& binormalSigns = staticMeshAttribute.GetVertexInstanceBinormalSigns();
+
+  // Vertex instance IDs to iterate all vertices
+  const FVertexInstanceArray::TElementIDs& vertexInstanceIDs = meshDesc->VertexInstances().GetElementIDs();
 
   FMDMeshVertexBuffers& vertexBuffers = Snapshot.MeshVertexBuffers;
 
   const int32 triangleNumber = triangles.Num() * 3;
-  // TODO
   vertexBuffers.Vertices.Reset(triangleNumber);
   vertexBuffers.Vertices.AddUninitialized(triangleNumber);
-
   vertexBuffers.Triangles.Reset(triangleNumber);
   vertexBuffers.Triangles.AddUninitialized(triangleNumber);
   vertexBuffers.Normals.Reset(normals.GetNumElements());
@@ -287,15 +275,7 @@ void UMDStaticMeshCapture::SnapshotMesh(FMDMeshSnapshot& Snapshot, const int32 L
   vertexBuffers.Tangents.Reset(tangents.GetNumElements());
   vertexBuffers.Tangents.AddUninitialized(tangents.GetNumElements());
 
-  int32 vertIdx = 0;
-  for (const auto& vertexID : vertexIDs)
-  {
-    // Prepare for remapping vertex index to triangle index
-    remapVertices[vertexID.GetValue()] = vertIdx;
-    
-    ++vertIdx;
-  }
-  
+  // Scan all vertex instance
   int32 vertInstanceIdx = 0;
   for (const auto& vertexInstanceID : vertexInstanceIDs)
   {
@@ -309,13 +289,13 @@ void UMDStaticMeshCapture::SnapshotMesh(FMDMeshSnapshot& Snapshot, const int32 L
     for (int32 channel = 0; channel < uvs.GetNumChannels(); ++channel)
     {
       const FVector2D& uv = static_cast<FVector2D>(uvs.Get(vertexInstanceID, channel));
-      
-      // NOTE:Debug purpose
-      {
-        UE_LOG(LogMotionDiff, Log, TEXT("UV before add to snapshot: Channel:[%d], U:[%f], V:[%f]"), channel, uv.X, uv.Y);
-      }
-
       vertexBuffers.UVContainer.AddUVByChannel(uv, channel);
+    }
+
+    // Copy colors
+    if (bHasVertexColor)
+    {
+      vertexBuffers.Colors[vertInstanceIdx] = FLinearColor{colors[vertexInstanceID]}.ToFColor(true);
     }
 
     // Copy tangents
@@ -326,24 +306,25 @@ void UMDStaticMeshCapture::SnapshotMesh(FMDMeshSnapshot& Snapshot, const int32 L
   }
 
   // Triangles
+  TMap<int32, int32> meshToIndex{};
   int32 triangleIdx = 0;
   for (const auto& triangleID : triangles.GetElementIDs())
   {
     for (uint8 cornerID = 0; cornerID < 3; ++cornerID)
     {
       const FVertexInstanceID triangleVertexInstanceID = meshDesc->GetTriangleVertexInstance(triangleID, cornerID);
-      
-      // Copy Colors
-      if (bHasVertexColor)
-      {
-        vertexBuffers.Colors[triangleIdx] = FLinearColor{colors[triangleVertexInstanceID]}.ToFColor(true);
-      
-      }
 
       // Copy triangles
-      vertexBuffers.Triangles[triangleIdx] = remapVertices[meshDesc->GetVertexInstanceVertex(triangleVertexInstanceID).GetValue()];
-      
-      ++triangleIdx;
+      if (meshToIndex.Contains(triangleVertexInstanceID.GetValue()))
+      {
+        vertexBuffers.Triangles[triangleIdx] = meshToIndex[triangleVertexInstanceID.GetValue()];
+      }
+      else
+      {
+        meshToIndex.Emplace(triangleVertexInstanceID.GetValue(), triangleIdx);
+        vertexBuffers.Triangles[triangleIdx] = triangleIdx;
+        ++triangleIdx;
+      }
     }
   }
 
