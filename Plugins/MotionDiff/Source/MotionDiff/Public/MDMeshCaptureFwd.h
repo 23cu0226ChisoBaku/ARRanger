@@ -2,6 +2,12 @@
 
 #pragma once
 
+// Mesh capture forward
 class UMDMeshCapture;
 class UMDStaticMeshCapture;
 class UMDSkeletalMeshCapture;
+
+// Mesh component forward
+class UMeshComponent;
+class UStaticMeshComponent;
+class USkeletalMeshComponent;

@@ -97,7 +97,6 @@ void UMDStaticMeshCapture::ShowSnapshots()
 
     // create new mesh
     {
-      
       if (UWorld* currentWorld = m_staticMeshComp->GetWorld())
       {
         // Set snapshot actor's transform with owner's transform of static mesh component, use FTransform::Identity if owner is null
@@ -169,8 +168,10 @@ void UMDStaticMeshCapture::ShowSnapshots()
 
         // Call this if actor spawned by SpawnActorDeferred
         newMeshActor->FinishSpawning(newMeshUserTransform);
-                
-        CreateStaticMeshFromPMC(procMeshComp, TEXT("/MotionDiff/"), TEXT("CheckerMesh"));
+           
+        // NOTE: PMC To Static mesh for check purpose
+        // FIXME: Something different from origin object,FIX IT IMMEDIATELY!!!!!!!!!!!!!!!!
+        // CreateStaticMeshFromPMC(procMeshComp, TEXT("/MotionDiff/"), TEXT("CheckerMesh"));
       }
     }
   }
