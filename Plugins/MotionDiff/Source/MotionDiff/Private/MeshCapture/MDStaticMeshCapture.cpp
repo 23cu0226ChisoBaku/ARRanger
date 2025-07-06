@@ -6,35 +6,18 @@
 #include "MotionDiff/MotionDiffLogChannels.h"
 #include "MeshCapture/MDMeshCaptureProxy.h"
 
+// NOTE: For internal use
+#include "MotionDiff/Internal/MDMeshCaptureHelperLibrary.h"
+
 #include "Components/StaticMeshComponent.h"
 #include "StaticMeshOperations.h"
 #include "StaticMeshAttributes.h"
 #include "ProceduralMeshComponent.h"
 
-
 #include "KismetProceduralMeshLibrary.h"    // Copy
 
 // FIXME Debug purpose
 #include "MotionDiff/Internal/MDMeshAssetCreator.h"
-
-
-namespace MeshCapture::Private
-{
-  TArray<FProcMeshTangent> ConvertTangent(const TArray<FMDMeshVertexTangent>& Tangents)
-  {
-    TArray<FProcMeshTangent> ResultTangents;
-    ResultTangents.Reset(Tangents.Num());
-    for (int32 i = 0; i < Tangents.Num(); ++i)
-    {
-      FProcMeshTangent convertedTangent{Tangents[i].TangentX, Tangents[i].bFlipTangentY};
-      ResultTangents.Add(convertedTangent);
-    }
-  
-    check(ResultTangents.Num() == Tangents.Num());
-  
-    return ResultTangents;
-  } 
-}
 
 UMDStaticMeshCapture::UMDStaticMeshCapture(const FObjectInitializer& ObjectInitializer)
   : Super(ObjectInitializer)
@@ -79,7 +62,7 @@ void UMDStaticMeshCapture::ShowSnapshots()
 
   for (int32 i = 0; i < snapshots.Num(); ++i)
   {
-    const auto& snapshot = snapshots[i];
+    const FMDMeshSnapshot& snapshot = snapshots[i];
 
     // Use this to get Section index
     // FIXME Start Temporary code
@@ -135,6 +118,10 @@ void UMDStaticMeshCapture::ShowSnapshots()
         const int32 sectionNum = staticMesh->GetNumSections(0);
         for (int32 sectionIdx = 0; sectionIdx < sectionNum; ++sectionIdx)
         {
+          // Convert to PMC Tangents
+          TArray<FProcMeshTangent> convertedTangents;
+          MotionDiff::FMeshCaptureHelperLibrary::ConvertToProcMeshTangent(snapshotVertexBuffers.Tangents, convertedTangents);
+
           procMeshComp->CreateMeshSection_LinearColor(
             sectionIdx,
             snapshotVertexBuffers.Vertices,
@@ -145,7 +132,7 @@ void UMDStaticMeshCapture::ShowSnapshots()
             snapshotVertexBuffers.UVContainer.GetUVsByChannel(2),
             snapshotVertexBuffers.UVContainer.GetUVsByChannel(3),
             snapshotVertexBuffers.Colors,
-            MeshCapture::Private::ConvertTangent(snapshotVertexBuffers.Tangents),
+            convertedTangents,
             false
           );
         }

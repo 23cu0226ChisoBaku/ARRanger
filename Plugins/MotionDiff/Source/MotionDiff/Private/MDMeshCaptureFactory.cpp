@@ -3,6 +3,7 @@
 #include "MDMeshCaptureFactory.h"
 
 #include "MeshCapture/MDStaticMeshCapture.h"
+#include "MeshCapture/MDSkeletalMeshCapture.h"
 
 UMDMeshCapture* FMDMeshCaptureFactory::CreateCaptureImpl(UObject* Owner, const UStaticMeshComponent* MeshComponentPtr)
 {
@@ -11,6 +12,5 @@ UMDMeshCapture* FMDMeshCaptureFactory::CreateCaptureImpl(UObject* Owner, const U
 
 UMDMeshCapture* FMDMeshCaptureFactory::CreateCaptureImpl(UObject* Owner, const USkeletalMeshComponent* MeshComponentPtr)
 {
-  // FIXME need implementation
-  return nullptr;
+  return NewObject<UMDSkeletalMeshCapture>(Owner);
 }

@@ -1,5 +1,4 @@
 /.git
-/.vs
 /.vscode
 /Content
 /DerivedDataCache
@@ -7,5 +6,4 @@
 /Saved
 /Plugins/MotionDiff/Content
 /Plugins/MotionDiff/Intermediate
-/Plugins/MStateMachine/Content
 /Plugins/MStateMachine/Intermediate

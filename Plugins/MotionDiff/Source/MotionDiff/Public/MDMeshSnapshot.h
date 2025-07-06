@@ -22,8 +22,13 @@ struct FMDMeshUVContainer
     void SetUVsByChannel(const TArray<FVector2D>& UVs, const int32 Channel);
     bool IsChannelValid(const int32 Channel) const;
     int32 AddUVByChannel(const FVector2D& UV, const int32 Channel);
-    void ResetByChannel(const int32 Channel, const int32 newSize = 0);
+    void ResetByChannel(const int32 Channel, const int32 NewSize = 0);
     void Reset();
+
+    int32 GetSupportedNumUVChannels() const 
+    {
+      return static_cast<int32>(UV_MAX_CHANNEL_NUM);
+    }
 
   private:
     enum
@@ -61,7 +66,14 @@ struct FMDMeshVertexBuffers
 
 };
 
+// FIXME: Next start from here
+struct FMDMeshRenderDataKeeper
+{
+  FMDMeshVertexBuffers MeshVertexBuffers;
 
+  // Section Index
+  int32 SectionIndex = 0;
+};
 
 USTRUCT(BlueprintType)
 struct MOTIONDIFF_API FMDMeshSnapshot
@@ -70,6 +82,7 @@ struct MOTIONDIFF_API FMDMeshSnapshot
 
   void Reset();
 
+  // TODO Add section version(PMC sections == MeshDescription.PolygonGroups())
   FMDMeshVertexBuffers MeshVertexBuffers;
 
   UPROPERTY(VisibleAnywhere)
@@ -80,4 +93,9 @@ struct MOTIONDIFF_API FMDMeshSnapshot
 
   UPROPERTY(VisibleAnywhere)
   int8 LODIndex;              // 無効値として-1を入れるようにint8を使用
+
+  int32 GetSupportedNumUVChannels() const
+  {
+    return MeshVertexBuffers.UVContainer.GetSupportedNumUVChannels();
+  }
 };

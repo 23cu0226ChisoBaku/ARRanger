@@ -26,8 +26,8 @@ class MOTIONDIFF_API UMDSkeletalMeshCapture : public UMDMeshCapture
     virtual void SnapshotMesh(FMDMeshSnapshot& Snapshot, const int32 LODIndex) override;
 
   private:
-    virtual FMDMeshCaptureProxy* CreateMeshCaptureProxy();
-    virtual void DestroyMeshCaptureProxy(FMDMeshCaptureProxy* MeshCaptureProxy);
+    virtual FMDMeshCaptureProxy* CreateMeshCaptureProxy() override;
+    virtual void DestroyMeshCaptureProxy(FMDMeshCaptureProxy* MeshCaptureProxy) override;
 
   private:
     UPROPERTY()

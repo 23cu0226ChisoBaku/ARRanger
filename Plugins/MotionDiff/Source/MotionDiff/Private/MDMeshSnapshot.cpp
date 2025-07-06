@@ -59,6 +59,19 @@ int32 FMDMeshUVContainer::AddUVByChannel(const FVector2D& UV, const int32 Channe
   return m_UVsArray[Channel].Emplace(UV);
 }
 
+void FMDMeshUVContainer::ResetByChannel(const int32 Channel, const int32 NewSize)
+{
+  // This only support uv channel max to 8
+  check(Channel >= 0 && Channel < UV_MAX_CHANNEL_NUM);
+  if (Channel < 0 || Channel >= UV_MAX_CHANNEL_NUM)
+  {
+    return;
+  }
+
+  m_UVsArray[Channel].Reset(NewSize);
+  m_UVsArray[Channel].AddUninitialized(NewSize);
+}
+
 void FMDMeshUVContainer::Reset()
 {
   for (int32 channel = 0; channel < UV_MAX_CHANNEL_NUM; ++channel)
