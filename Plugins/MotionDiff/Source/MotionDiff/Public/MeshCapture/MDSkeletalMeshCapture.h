@@ -32,4 +32,7 @@ class MOTIONDIFF_API UMDSkeletalMeshCapture : public UMDMeshCapture
   private:
     UPROPERTY()
     TObjectPtr<USkeletalMeshComponent> m_skeletalMeshComp;
+
+    UPROPERTY()
+    TObjectPtr<UMaterialInterface> m_overrideMaterial;
 };

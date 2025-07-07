@@ -111,7 +111,9 @@ void UMDStaticMeshCapture::ShowSnapshots()
         // Register after root set
         procMeshComp->RegisterComponent();
         
-        const FMDMeshVertexBuffers& snapshotVertexBuffers = snapshot.MeshVertexBuffers;
+        // WARN: Temporary code
+        // FIXME: Dont use only section 0
+        const FMDMeshVertexBuffers& snapshotVertexBuffers = snapshot.MeshSectionMap.GetSectionMeshVertexBuffers(0);
 
         // FIXME: Start temporary code
 
@@ -247,7 +249,7 @@ void UMDStaticMeshCapture::SnapshotMesh(FMDMeshSnapshot& Snapshot, const int32 L
   // Vertex instance IDs to iterate all vertices
   const FVertexInstanceArray::TElementIDs& vertexInstanceIDs = meshDesc->VertexInstances().GetElementIDs();
 
-  FMDMeshVertexBuffers& vertexBuffers = Snapshot.MeshVertexBuffers;
+  FMDMeshVertexBuffers& vertexBuffers = Snapshot.MeshSectionMap.GetSectionMeshVertexBuffers(0);
 
   const int32 triangleNumber = triangles.Num() * 3;
   vertexBuffers.Vertices.Reset(triangleNumber);

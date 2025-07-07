@@ -5,6 +5,7 @@
 
 // NOTE: For only internal use
 #include "MotionDiff/Internal/MDMeshCaptureHelperLibrary.h"
+#include "MotionDiff/Internal/MDMeshAssetCreator.h"
 
 #include "Components/SkeletalMeshComponent.h"
 #include "Rendering/SkeletalMeshRenderData.h"
@@ -60,9 +61,9 @@ void UMDSkeletalMeshCapture::ShowSnapshots()
   }
 
   FMDMeshCaptureProxy& proxy = GetMeshCaptureProxy<FMDMeshCaptureProxy>();
-  const auto& snapshots = proxy.GetAllSnapshots();
+  const TArray<FMDMeshSnapshot>& snapshots = proxy.GetAllSnapshots();
 
-  for (const auto& snapshot : snapshots)
+  for (const FMDMeshSnapshot& snapshot : snapshots)
   {
     // create new mesh
     {
@@ -96,8 +97,6 @@ void UMDSkeletalMeshCapture::ShowSnapshots()
 
         // Register after root set
         procMeshComp->RegisterComponent();
-        
-        const FMDMeshVertexBuffers& snapshotVertexBuffers = snapshot.MeshVertexBuffers;
 
         // FIXME: Start temporary code
 
@@ -106,10 +105,11 @@ void UMDSkeletalMeshCapture::ShowSnapshots()
         const int32 sectionNum = lodRenderData.RenderSections.Num();
         for (int32 sectionIdx = 0; sectionIdx < sectionNum; ++sectionIdx)
         {
+          const FMDMeshVertexBuffers& snapshotVertexBuffers = snapshot.MeshSectionMap.GetSectionMeshVertexBuffers(sectionIdx);
           // Convert to PMC Tangent
           TArray<FProcMeshTangent> convertedTangents;
           MotionDiff::FMeshCaptureHelperLibrary::ConvertToProcMeshTangent(snapshotVertexBuffers.Tangents, convertedTangents);
-
+          
           procMeshComp->CreateMeshSection_LinearColor(
             sectionIdx,
             snapshotVertexBuffers.Vertices,
@@ -123,7 +123,17 @@ void UMDSkeletalMeshCapture::ShowSnapshots()
             convertedTangents,
             false
           );
+
+
+          if (m_overrideMaterial != nullptr)
+          {
+            procMeshComp->SetMaterial(sectionIdx, m_overrideMaterial);
+          }
         }
+
+        newMeshActor->FinishSpawning(newMeshUserTransform);
+
+        ::CreateStaticMeshFromPMC(procMeshComp, TEXT("/MotionDiff/"), TEXT("CheckerMesh"));
       }
     }
   }
@@ -136,7 +146,14 @@ void UMDSkeletalMeshCapture::HideSnapshots()
 
 void UMDSkeletalMeshCapture::ApplyMaterialOverride(UMaterialInterface* Material)
 {
+  if (Material == nullptr)
+  {
+    UE_LOG(LogMotionDiff, Warning, TEXT("Trying to apply a null material to [%s]"), *GetNameSafe(this));
 
+    return;
+  }
+
+  m_overrideMaterial = Material;
 }
 
 void UMDSkeletalMeshCapture::SnapshotMesh(FMDMeshSnapshot& Snapshot, const int32 LODIndex)
@@ -182,124 +199,164 @@ void UMDSkeletalMeshCapture::SnapshotMesh(FMDMeshSnapshot& Snapshot, const int32
   // Skin weights
   const FSkinWeightVertexBuffer* skinBuffer = lodRenderData.GetSkinWeightVertexBuffer();
   // Bone transforms
-  const TArray<FTransform>& boneMatrices = m_skeletalMeshComp->GetComponentSpaceTransforms();
+  const TArray<FTransform>& boneComponentTransforms = m_skeletalMeshComp->GetComponentSpaceTransforms();
+  // Skeleton pose
+  const FReferenceSkeleton& refSkeleton = skeletalMesh->GetRefSkeleton();
+  const TArray<FTransform>& refSkeletonPoses = refSkeleton.GetRefBonePose();
+  const int32 bonesNum = refSkeleton.GetNum();
 
   // Vertex color
   const bool bHasVertexColor = (lodRenderData.StaticVertexBuffers.ColorVertexBuffer.GetNumVertices() > 0);
 
-  const int32 verticesNum = lodRenderData.GetNumVertices();
-  Snapshot.MeshVertexBuffers.Vertices.Reset(verticesNum);
-  Snapshot.MeshVertexBuffers.Vertices.AddUninitialized(verticesNum);
-  Snapshot.MeshVertexBuffers.Normals.Reset(verticesNum);
-  Snapshot.MeshVertexBuffers.Normals.AddUninitialized(verticesNum);
-  Snapshot.MeshVertexBuffers.Tangents.Reset(verticesNum);
-  Snapshot.MeshVertexBuffers.Tangents.AddUninitialized(verticesNum);
-  Snapshot.MeshVertexBuffers.Colors.Reset(verticesNum);
-  Snapshot.MeshVertexBuffers.Colors.AddUninitialized(verticesNum);
-
-  // Check uv channel nums
-  const int32 uvChannelsNum = lodRenderData.GetNumTexCoords();
-  const int32 snapshotSupportedUVChannelsNum = Snapshot.GetSupportedNumUVChannels();
-  const int32 validUVChannelsNum = uvChannelsNum <= snapshotSupportedUVChannelsNum ? uvChannelsNum : snapshotSupportedUVChannelsNum;
-  
-  for (int32 i = 0; i < validUVChannelsNum; ++i)
-  {
-    Snapshot.MeshVertexBuffers.UVContainer.ResetByChannel(i, verticesNum);
-  }
-
-  for (int32 vertexIdx = 0; vertexIdx < verticesNum; ++vertexIdx)
-  {
-    FVector skinnedPos = FVector::ZeroVector;
-    // TangentZ
-    FVector skinnedNormal = FVector::ZeroVector;
-    FVector skinnedTangentX = FVector::ZeroVector;
-
-    const FVector originPos = static_cast<FVector>(vertexBuffer.VertexPosition(vertexIdx));
-    const FVector originNormal = FVector{vertexInstanceBuffer.VertexTangentZ(vertexIdx)};
-    const FVector originTangentX = FVector{vertexInstanceBuffer.VertexTangentX(vertexIdx)};
-
-    // Use skin weight to recalculate all vertexs
-    const FSkinWeightInfo skinWeights = skinBuffer->GetVertexSkinWeights(vertexIdx);
-    for (int32 influenceIdx = 0; influenceIdx < MAX_TOTAL_INFLUENCES; ++influenceIdx)
-    {
-      const FBoneIndexType boneIdx = skinWeights.InfluenceBones[influenceIdx];
-      const uint16 weight = skinWeights.InfluenceWeights[influenceIdx];
-      if (weight == 0)
-      {
-        continue;
-      }
-
-      // NOTE: Inside is 16bit integer weight.Should change to normalized weight by using maximum number of uint16(65535)
-      // NOTE: But skinBuffer->Use16BitBoneIndex returns false by unknown reason.
-      const float normalizer = UE_SKIN_WEIGHT_NORMALIZER_UINT16;
-      const float realWeight = weight / normalizer;
-      const FTransform boneTransform = boneMatrices[static_cast<uint32>(boneIdx)];
-
-      // NOTE: Transform local vertex position of bon to world position
-      skinnedPos += boneTransform.TransformPosition(originPos) * realWeight;
-      skinnedNormal += boneTransform.TransformVector(originNormal) * realWeight;
-      skinnedTangentX += boneTransform.TransformVector(originTangentX) * realWeight;
-    }
-
-    // Copy vertex position
-    Snapshot.MeshVertexBuffers.Vertices[vertexIdx] = skinnedPos;
-
-    // Copy vertex normal
-    Snapshot.MeshVertexBuffers.Normals[vertexIdx] = skinnedNormal.GetSafeNormal();
-
-    // Use this to calculate if we should flip tangentY
-    const FVector originTangentY = FVector{vertexInstanceBuffer.VertexTangentY(vertexIdx)};
-    // NOTE: It must be FVector::CrossProduct(TangentZ, TangentX) in Unreal Engine
-    const float sign = FVector::DotProduct(FVector::CrossProduct(originNormal, originTangentX), originTangentY);
-
-    // Copy UVs
-    for (int32 channel = 0; channel < validUVChannelsNum; ++channel)
-    {
-      const FVector2D uv = static_cast<FVector2D>(vertexInstanceBuffer.GetVertexUV(vertexIdx, channel));
-      Snapshot.MeshVertexBuffers.UVContainer.AddUVByChannel(uv, channel);
-    }
-
-    // Copy colors
-    if (bHasVertexColor)
-    {
-      const FColor& vertexColor = lodRenderData.StaticVertexBuffers.ColorVertexBuffer.VertexColor(vertexIdx); 
-      Snapshot.MeshVertexBuffers.Colors[vertexIdx] = FLinearColor{vertexColor};
-    }
-    else
-    {
-      Snapshot.MeshVertexBuffers.Colors[vertexIdx] = FLinearColor::White;
-    }
-
-    // Copy vertex tangentX
-    Snapshot.MeshVertexBuffers.Tangents[vertexIdx].TangentX = skinnedTangentX.GetSafeNormal();
-    Snapshot.MeshVertexBuffers.Tangents[vertexIdx].bFlipTangentY = (sign < 0.0f);
-  }
-
-  // Copy triangles
-  // NOTE: Need remapping index
+  // Index buffer
   const FRawStaticIndexBuffer16or32Interface* indexBuffer = lodRenderData.MultiSizeIndexContainer.GetIndexBuffer();
   if (indexBuffer != nullptr)
   {
-    const int32 indicesNum = indexBuffer->Num();
-    Snapshot.MeshVertexBuffers.Triangles.Reset(indicesNum);
-    Snapshot.MeshVertexBuffers.Triangles.AddUninitialized(indicesNum);
-
-    TMap<int32, int32> meshToTriangleIdx{};
-
-    int32 sectionNum = lodRenderData.RenderSections.Num();
-
-    for (int32 indexID = 0; indexID < indicesNum - 2; indexID += 3)
+    const int32 sectionNum = lodRenderData.RenderSections.Num();
+    for (int32 sectionIdx = 0; sectionIdx < sectionNum; ++sectionIdx)
     {
-      Snapshot.MeshVertexBuffers.Triangles[indexID] = indexBuffer->Get(indexID);
-      Snapshot.MeshVertexBuffers.Triangles[indexID + 1] = indexBuffer->Get(indexID + 1);
-      Snapshot.MeshVertexBuffers.Triangles[indexID + 2] = indexBuffer->Get(indexID + 2);
+      const FSkelMeshRenderSection& currentSection = lodRenderData.RenderSections[sectionIdx];
+  
+      // Section vertex buffers
+      FMDMeshVertexBuffers& meshVertexBuffers = Snapshot.MeshSectionMap.GetSectionMeshVertexBuffers(sectionIdx);
+  
+      const int32 triangleVerticesNum = currentSection.NumTriangles * 3; 
+      const int32 verticesNum = currentSection.GetNumVertices();
+      
+      meshVertexBuffers.Vertices.Reset(verticesNum);
+      meshVertexBuffers.Normals.Reset(verticesNum);
+      meshVertexBuffers.Tangents.Reset(verticesNum);
+      meshVertexBuffers.Colors.Reset(verticesNum);
+      meshVertexBuffers.Triangles.Reset(triangleVerticesNum);
+
+      // Check uv channel nums
+      const int32 uvChannelsNum = lodRenderData.GetNumTexCoords();
+      const int32 snapshotSupportedUVChannelsNum = Snapshot.GetSupportedNumUVChannels();
+      const int32 validUVChannelsNum = uvChannelsNum <= snapshotSupportedUVChannelsNum ? uvChannelsNum : snapshotSupportedUVChannelsNum;
+
+      for (int32 channel = 0; channel < validUVChannelsNum; ++channel)
+      {
+        meshVertexBuffers.UVContainer.ResetByChannel(channel, verticesNum);
+      }
+
+      TMap<int32, int32> triangleToVertexIndexRemap{};
+      TArray<FMatrix> refPoseComponentMatrices{};
+      refPoseComponentMatrices.Reset(bonesNum);
+      refPoseComponentMatrices.AddUninitialized(bonesNum);
+
+      // Calculate pose component space
+      // TODO Need research
+      for (int32 boneIdx = 0; boneIdx < bonesNum; ++boneIdx)
+      {
+        const int32 parentIdx = refSkeleton.GetParentIndex(boneIdx);
+        const FTransform boneLocalTransform = refSkeletonPoses[boneIdx];
+
+        if (parentIdx != INDEX_NONE)
+        {
+          refPoseComponentMatrices[boneIdx] = (boneLocalTransform * FTransform(refPoseComponentMatrices[parentIdx])).ToMatrixWithScale();
+        }
+        else
+        {
+          refPoseComponentMatrices[boneIdx] = boneLocalTransform.ToMatrixWithScale();
+        }
+      }
+  
+      int32 vertexIdx = 0;
+      for (int32 triangleIdx = 0; triangleIdx < triangleVerticesNum; ++triangleIdx)
+      {
+        // Calculate the proper vertex index in current section
+        const int32 globalIdx = indexBuffer->Get(currentSection.BaseIndex + triangleIdx);
+
+        if (!triangleToVertexIndexRemap.Contains(globalIdx))
+        {
+          FVector skinnedPos = FVector::ZeroVector;
+          FVector skinnedTangentX = FVector::ZeroVector;
+          FVector skinnedTangentY = FVector::ZeroVector;
+          // TangentZ
+          FVector skinnedNormal = FVector::ZeroVector;
+
+          const FVector originPos = static_cast<FVector>(vertexBuffer.VertexPosition(globalIdx));
+          const FVector originTangentX = FVector{vertexInstanceBuffer.VertexTangentX(globalIdx)};
+          const FVector originTangentY = FVector{vertexInstanceBuffer.VertexTangentY(globalIdx)};
+          const FVector originNormal = FVector{vertexInstanceBuffer.VertexTangentZ(globalIdx)};
+
+          // Use skin weight to recalculate all vertexs
+          const FSkinWeightInfo skinWeights = skinBuffer->GetVertexSkinWeights(globalIdx);
+          for (int32 influenceIdx = 0; influenceIdx < MAX_TOTAL_INFLUENCES; ++influenceIdx)
+          {
+            const FBoneIndexType boneIdx = skinWeights.InfluenceBones[influenceIdx];
+            const uint16 weight = skinWeights.InfluenceWeights[influenceIdx];
+            if (weight == 0)
+            {
+              continue;
+            }
+
+            // NOTE: Inside is 16bit integer weight.Should change to normalized weight by using maximum number of uint16(65535)
+            // NOTE: But skinBuffer->Use16BitBoneIndex returns false by unknown reason.
+            const float normalizer = UE_SKIN_WEIGHT_NORMALIZER_UINT16;
+            const float realWeight = weight / normalizer;
+            // TODO: Need research
+            const FMatrix& currentBoneMatrix = boneComponentTransforms[static_cast<uint32>(boneIdx)].ToMatrixWithScale(); 
+            const FMatrix& InvBindMatrix = refPoseComponentMatrices[static_cast<uint32>(boneIdx)].InverseFast();
+
+            const FMatrix& skinnedMatrix = currentBoneMatrix * InvBindMatrix;
+
+            // NOTE: Transform local vertex position of bon to world position
+            skinnedPos += skinnedMatrix.TransformPosition(originPos) * realWeight;
+            skinnedTangentX += skinnedMatrix.TransformVector(originTangentX) * realWeight;
+            skinnedTangentY += skinnedMatrix.TransformVector(originTangentY) * realWeight;
+            skinnedNormal += skinnedMatrix.TransformVector(originNormal) * realWeight;
+          }
+
+          // Copy vertex position
+          meshVertexBuffers.Vertices.Add(skinnedPos);
+
+          // Copy vertex normal
+          meshVertexBuffers.Normals.Add(skinnedNormal.GetSafeNormal());
+
+          // Use this to calculate if we should flip tangentY
+        // NOTE: It must be FVector::CrossProduct(TangentZ, TangentX) in Unreal Engine
+          const float sign = FVector::DotProduct(FVector::CrossProduct(skinnedNormal, skinnedTangentX), skinnedTangentY);
+
+          // Copy UVs
+          for (int32 channel = 0; channel < validUVChannelsNum; ++channel)
+          {
+            const FVector2D uv = static_cast<FVector2D>(vertexInstanceBuffer.GetVertexUV(globalIdx, channel));
+            meshVertexBuffers.UVContainer.AddUVByChannel(uv, channel);
+          }
+
+          // Copy colors
+          if (bHasVertexColor)
+          {
+            const FColor& vertexColor = lodRenderData.StaticVertexBuffers.ColorVertexBuffer.VertexColor(globalIdx); 
+            meshVertexBuffers.Colors.Add(FLinearColor{vertexColor});
+          }
+          else
+          {
+            meshVertexBuffers.Colors.Add(FLinearColor::White);
+          }
+
+          // Copy vertex tangentX
+          meshVertexBuffers.Tangents.Add({skinnedTangentX.GetSafeNormal(), (sign < 0.0f)});
+
+          triangleToVertexIndexRemap.Add(globalIdx, vertexIdx);
+          ++vertexIdx;
+        }
+      }
+
+      // Copy triangles
+      for (int32 triangleIdx = 0; triangleIdx < triangleVerticesNum; ++triangleIdx)
+      {
+        const int32 globalIdx = indexBuffer->Get(currentSection.BaseIndex + triangleIdx);
+        const int32 remappedIdx = triangleToVertexIndexRemap[globalIdx];
+        meshVertexBuffers.Triangles.Add(remappedIdx);
+      }
     }
   }
-
   // Copy LODIndex
   Snapshot.LODIndex = validLODIdx;
 
-  const FReferenceSkeleton& refSkeleton = skeletalMesh->GetRefSkeleton();
+  Snapshot.bIsValid = true;
 
 }
 

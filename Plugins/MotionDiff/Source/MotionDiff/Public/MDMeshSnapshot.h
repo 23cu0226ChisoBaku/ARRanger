@@ -67,12 +67,15 @@ struct FMDMeshVertexBuffers
 };
 
 // FIXME: Next start from here
-struct FMDMeshRenderDataKeeper
+struct FMDMeshSectionMap
 {
-  FMDMeshVertexBuffers MeshVertexBuffers;
+  FMDMeshVertexBuffers& GetSectionMeshVertexBuffers(const int32 Section);
+  const FMDMeshVertexBuffers& GetSectionMeshVertexBuffers(const int32 Section) const;
+  bool HasSection(const int32 Section) const;
+  void Reset();
 
-  // Section Index
-  int32 SectionIndex = 0;
+  private:
+    mutable TMap<int32, FMDMeshVertexBuffers> m_sectionMapData;
 };
 
 USTRUCT(BlueprintType)
@@ -83,7 +86,7 @@ struct MOTIONDIFF_API FMDMeshSnapshot
   void Reset();
 
   // TODO Add section version(PMC sections == MeshDescription.PolygonGroups())
-  FMDMeshVertexBuffers MeshVertexBuffers;
+  FMDMeshSectionMap MeshSectionMap;
 
   UPROPERTY(VisibleAnywhere)
   FName SnapshotName;
@@ -96,6 +99,6 @@ struct MOTIONDIFF_API FMDMeshSnapshot
 
   int32 GetSupportedNumUVChannels() const
   {
-    return MeshVertexBuffers.UVContainer.GetSupportedNumUVChannels();
+    return MeshSectionMap.GetSectionMeshVertexBuffers(0).UVContainer.GetSupportedNumUVChannels();
   }
 };

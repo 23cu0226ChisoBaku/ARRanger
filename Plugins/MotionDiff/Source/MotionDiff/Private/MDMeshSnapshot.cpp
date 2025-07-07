@@ -69,7 +69,6 @@ void FMDMeshUVContainer::ResetByChannel(const int32 Channel, const int32 NewSize
   }
 
   m_UVsArray[Channel].Reset(NewSize);
-  m_UVsArray[Channel].AddUninitialized(NewSize);
 }
 
 void FMDMeshUVContainer::Reset()
@@ -80,6 +79,33 @@ void FMDMeshUVContainer::Reset()
   }
 }
 
+FMDMeshVertexBuffers& FMDMeshSectionMap::GetSectionMeshVertexBuffers(const int32 Section)
+{
+  return const_cast<FMDMeshVertexBuffers&>(static_cast<const FMDMeshSectionMap*>(this)->GetSectionMeshVertexBuffers(Section));
+}
+
+const FMDMeshVertexBuffers& FMDMeshSectionMap::GetSectionMeshVertexBuffers(const int32 Section) const
+{
+  if (!HasSection(Section))
+  {
+    m_sectionMapData.Emplace(Section, FMDMeshVertexBuffers{});
+  }
+
+  return m_sectionMapData[Section];
+}
+
+bool FMDMeshSectionMap::HasSection(const int32 Section) const
+{
+  return m_sectionMapData.Contains(Section);
+}
+
+void FMDMeshSectionMap::Reset()
+{
+  for (auto& [ _ , meshVertexBuffers] : m_sectionMapData)
+  {
+    meshVertexBuffers.Reset();
+  }
+}
 
 void FMDMeshVertexBuffers::Reset()
 {
@@ -92,7 +118,7 @@ void FMDMeshVertexBuffers::Reset()
 
 void FMDMeshSnapshot::Reset()
 {
-  MeshVertexBuffers.Reset();
+  MeshSectionMap.Reset();
   SnapshotName = NAME_None;
   bIsValid = false;
   LODIndex = -1;
