@@ -4,6 +4,7 @@
 
 #include "UObject/NoExportTypes.h"
 #include "MDMeshSnapShot.h"
+#include "MDMeshCaptureMaterial.h"
 
 #include "MDMeshCapture.generated.h"
 
@@ -25,13 +26,14 @@ class MOTIONDIFF_API UMDMeshCapture : public UObject
     virtual void BeginDestroy() override;
     
     void SaveMeshSnapshot(FName SnapshotName);
+    void SetMaterials(const TArray<FMDMeshCaptureMaterial>& Materials);
+    const TArray<FMDMeshCaptureMaterial>& GetMaterials() const;
 
     virtual void CaptureMesh(UMeshComponent* MeshComponent) PURE_VIRTUAL(UMDMeshCapture, ;)
     virtual void Reset() PURE_VIRTUAL(UMDMeshCapture, ;)
     virtual void ShowSnapshots() PURE_VIRTUAL(UMDMeshCapture, ;)
     virtual void HideSnapshots() PURE_VIRTUAL(UMDMeshCapture, ;)
     virtual void SnapshotMesh(FMDMeshSnapshot& Snapshot, const int32 LODIndex = 0) PURE_VIRTUAL(UMDMeshCapture, ;)
-    virtual void ApplyMaterialOverride(UMaterialInterface* Material) PURE_VIRTUAL(UMDMeshCapture, ;)
 
   protected:
     template<typename MeshCaptureProxyType>
@@ -51,6 +53,8 @@ class MOTIONDIFF_API UMDMeshCapture : public UObject
 
     // Dangerous raw pointer
     FMDMeshCaptureProxy* m_meshCaptureProxy;
+
+    TArray<FMDMeshCaptureMaterial> m_materials;
 };
 
 template<typename MeshCaptureProxyType>

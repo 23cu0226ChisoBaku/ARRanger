@@ -10,6 +10,7 @@
 UMDMeshCapture::UMDMeshCapture(const FObjectInitializer& ObjectInitializer)
   : Super(ObjectInitializer)
   , m_meshCaptureProxy{nullptr}
+  , m_materials{}
 {
 }
 
@@ -20,6 +21,8 @@ void UMDMeshCapture::BeginDestroy()
     DestroyMeshCaptureProxy(m_meshCaptureProxy);
     m_meshCaptureProxy = nullptr;
   }
+
+  m_materials.Empty();
   
   Super::BeginDestroy();
 }
@@ -28,6 +31,16 @@ void UMDMeshCapture::SaveMeshSnapshot(FName SnapshotName)
 {
   FMDMeshCaptureProxy& proxy = GetMeshCaptureProxy<FMDMeshCaptureProxy>();
   proxy.SaveMeshSnapshot(this, SnapshotName);
+}
+
+void UMDMeshCapture::SetMaterials(const TArray<FMDMeshCaptureMaterial>& Materials)
+{
+  m_materials = Materials;
+}
+
+const TArray<FMDMeshCaptureMaterial>& UMDMeshCapture::GetMaterials() const
+{
+  return m_materials;
 }
 
 FMDMeshCaptureProxy* UMDMeshCapture::CreateMeshCaptureProxy()

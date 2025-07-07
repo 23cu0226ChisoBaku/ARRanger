@@ -20,7 +20,6 @@ class MOTIONDIFF_API UMDStaticMeshCapture : public UMDMeshCapture
     virtual void Reset() override;
     virtual void ShowSnapshots() override;
     virtual void HideSnapshots() override;
-    virtual void ApplyMaterialOverride(UMaterialInterface* Material) override;
 
   protected:
     virtual void SnapshotMesh(FMDMeshSnapshot& Snapshot, const int32 LODIndex) override;
@@ -38,7 +37,4 @@ class MOTIONDIFF_API UMDStaticMeshCapture : public UMDMeshCapture
   private:
     UPROPERTY()
     TObjectPtr<UStaticMeshComponent> m_staticMeshComp;
-
-    UPROPERTY()
-    TObjectPtr<UMaterialInterface> m_overrideMaterial;
 };

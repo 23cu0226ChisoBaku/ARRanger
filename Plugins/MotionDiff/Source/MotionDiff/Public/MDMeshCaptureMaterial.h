@@ -25,7 +25,7 @@ struct FMDMeshCaptureMaterial
   TObjectPtr<UMaterialInterface> Material;
 
   UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MotionDiff|Material")
-  FName MaterialSimbolName;
+  FName MaterialSymbolName;
 
   
 };

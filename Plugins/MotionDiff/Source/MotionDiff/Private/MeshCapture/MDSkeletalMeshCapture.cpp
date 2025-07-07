@@ -62,6 +62,7 @@ void UMDSkeletalMeshCapture::ShowSnapshots()
 
   FMDMeshCaptureProxy& proxy = GetMeshCaptureProxy<FMDMeshCaptureProxy>();
   const TArray<FMDMeshSnapshot>& snapshots = proxy.GetAllSnapshots();
+  const TArray<FMDMeshCaptureMaterial>& snapshotMats = GetMaterials();
 
   for (const FMDMeshSnapshot& snapshot : snapshots)
   {
@@ -125,9 +126,9 @@ void UMDSkeletalMeshCapture::ShowSnapshots()
           );
 
 
-          if (m_overrideMaterial != nullptr)
+          if (snapshotMats.Num() > sectionIdx)
           {
-            procMeshComp->SetMaterial(sectionIdx, m_overrideMaterial);
+            procMeshComp->SetMaterial(sectionIdx, snapshotMats[sectionIdx].Material);
           }
         }
 
@@ -142,18 +143,6 @@ void UMDSkeletalMeshCapture::ShowSnapshots()
 void UMDSkeletalMeshCapture::HideSnapshots()
 {
 
-}
-
-void UMDSkeletalMeshCapture::ApplyMaterialOverride(UMaterialInterface* Material)
-{
-  if (Material == nullptr)
-  {
-    UE_LOG(LogMotionDiff, Warning, TEXT("Trying to apply a null material to [%s]"), *GetNameSafe(this));
-
-    return;
-  }
-
-  m_overrideMaterial = Material;
 }
 
 void UMDSkeletalMeshCapture::SnapshotMesh(FMDMeshSnapshot& Snapshot, const int32 LODIndex)

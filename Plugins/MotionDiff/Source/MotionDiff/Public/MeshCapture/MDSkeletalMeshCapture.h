@@ -20,7 +20,6 @@ class MOTIONDIFF_API UMDSkeletalMeshCapture : public UMDMeshCapture
     virtual void Reset() override;
     virtual void ShowSnapshots() override;
     virtual void HideSnapshots() override;
-    virtual void ApplyMaterialOverride(UMaterialInterface* Material) override;
 
   protected:
     virtual void SnapshotMesh(FMDMeshSnapshot& Snapshot, const int32 LODIndex) override;
@@ -32,7 +31,4 @@ class MOTIONDIFF_API UMDSkeletalMeshCapture : public UMDMeshCapture
   private:
     UPROPERTY()
     TObjectPtr<USkeletalMeshComponent> m_skeletalMeshComp;
-
-    UPROPERTY()
-    TObjectPtr<UMaterialInterface> m_overrideMaterial;
 };

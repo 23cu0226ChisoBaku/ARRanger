@@ -22,7 +22,6 @@
 UMDStaticMeshCapture::UMDStaticMeshCapture(const FObjectInitializer& ObjectInitializer)
   : Super(ObjectInitializer)
   , m_staticMeshComp{nullptr}
-  , m_overrideMaterial{nullptr}
 {
 
 }
@@ -45,7 +44,6 @@ void UMDStaticMeshCapture::Reset()
 {
   // FIXME Need implementation
   m_staticMeshComp = nullptr;
-  m_overrideMaterial = nullptr;
 }
 
 void UMDStaticMeshCapture::ShowSnapshots()
@@ -78,6 +76,7 @@ void UMDStaticMeshCapture::ShowSnapshots()
     }
     // FIXME End
 
+    const TArray<FMDMeshCaptureMaterial> snapshotMats = GetMaterials();
     // create new mesh
     {
       if (UWorld* currentWorld = m_staticMeshComp->GetWorld())
@@ -137,23 +136,23 @@ void UMDStaticMeshCapture::ShowSnapshots()
             convertedTangents,
             false
           );
+          
+          /**
+           *  | 概念    | PMC（ProceduralMeshComponent）          | StaticMesh / FMeshDescription    |
+              | ----- | ------------------------------------- | -------------------------------- |
+              | 子网格部分 | Section（编号）                           | PolygonGroup                     |
+              | 材质槽索引 | SectionIndex（直接就是材质索引）                | PolygonGroupID → Material Index  |
+              | 材质绑定  | `SetMaterial(SectionIndex, Material)` | `StaticMesh->SetMaterial(Index)` |
+
+           */
+          // Override material if allows
+          // PMC->SetMaterial also need a section id
+          if (snapshotMats.Num() > sectionIdx)
+          {
+            procMeshComp->SetMaterial(sectionIdx, snapshotMats[sectionIdx].Material);
+          }
         }
         // FIXME: End temporary code
-        
-        /**
-         * | 概念    | PMC（ProceduralMeshComponent）          | StaticMesh / FMeshDescription    |
-          | ----- | ------------------------------------- | -------------------------------- |
-          | 子网格部分 | Section（编号）                           | PolygonGroup                     |
-          | 材质槽索引 | SectionIndex（直接就是材质索引）                | PolygonGroupID → Material Index  |
-          | 材质绑定  | `SetMaterial(SectionIndex, Material)` | `StaticMesh->SetMaterial(Index)` |
-
-         */
-        // Override material if allows
-        // PMC->SetMaterial also need a section id
-        if (m_overrideMaterial != nullptr)
-        {
-          procMeshComp->SetMaterial(0, m_overrideMaterial);
-        }
 
         // Call this if actor spawned by SpawnActorDeferred
         newMeshActor->FinishSpawning(newMeshUserTransform);
@@ -169,18 +168,6 @@ void UMDStaticMeshCapture::ShowSnapshots()
 void UMDStaticMeshCapture::HideSnapshots()
 {
   // FIXME Need implementation
-}
-
-void UMDStaticMeshCapture::ApplyMaterialOverride(UMaterialInterface* Material)
-{
-  if (Material == nullptr)
-  {
-    UE_LOG(LogMotionDiff, Warning, TEXT("Trying to apply a null material to [%s]"), *GetNameSafe(this));
-
-    return;
-  }
-
-  m_overrideMaterial = Material;
 }
 
 void UMDStaticMeshCapture::SnapshotMesh(FMDMeshSnapshot& Snapshot, const int32 LODIndex)

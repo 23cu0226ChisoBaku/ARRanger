@@ -7,10 +7,10 @@
 // Sets default values for this component's properties
 UMDMeshCaptureComponent::UMDMeshCaptureComponent(const FObjectInitializer& ObjectInitializer)
   : Super(ObjectInitializer)
-  , CaptureParam{}
-  , CapturedTrailMaterial{nullptr}
-  , m_captureInstance{nullptr}
   , bUseFirstMeshAttachToThis{false}
+  , SnapshotMaterials{}
+  , CaptureParam{}
+  , m_captureInstance{nullptr}
 {
 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
 	// off to improve performance if you don't need them.
@@ -88,7 +88,7 @@ void UMDMeshCaptureComponent::BeginPlay()
 
     if (m_captureInstance != nullptr)
     {
-      m_captureInstance->ApplyMaterialOverride(CapturedTrailMaterial);
+      m_captureInstance->SetMaterials(SnapshotMaterials);
 
       m_captureInstance->SaveMeshSnapshot(TEXT("Test"));
       m_captureInstance->ShowSnapshots();
