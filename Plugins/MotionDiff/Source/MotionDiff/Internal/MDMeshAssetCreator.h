@@ -9,9 +9,10 @@
 #include "AssetRegistry/AssetRegistryModule.h"
 #include "UObject/SavePackage.h"
 
+// NOTE: Created by AI
 inline void CreateStaticMeshFromPMC(UProceduralMeshComponent* PMC, const FString& PackagePath, const FString& AssetName)
 {
-// 1. 创建 Asset Package
+  // 1. 创建 Asset Package
 	FString FullPackageName = PackagePath / AssetName;
 	UPackage* Package = CreatePackage(*FullPackageName);
 	Package->FullyLoad();

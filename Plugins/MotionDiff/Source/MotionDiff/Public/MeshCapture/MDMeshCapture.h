@@ -5,15 +5,13 @@
 #include "UObject/NoExportTypes.h"
 #include "MDMeshSnapShot.h"
 #include "MDMeshCaptureMaterial.h"
+#include "Misc/MDConcepts.h"
 
 #include "MDMeshCapture.generated.h"
 
 class UMeshComponent;
 class FMDMeshCaptureProxy;
 
-/**
- * 
- */
 UCLASS()
 class MOTIONDIFF_API UMDMeshCapture : public UObject
 {
@@ -37,14 +35,14 @@ class MOTIONDIFF_API UMDMeshCapture : public UObject
     virtual FString GetCaptureName() const;
 
   protected:
-    template<typename MeshCaptureProxyType>
+    template<MotionDiff::Concepts::MeshCaptureProxyConcept MeshCaptureProxyType>
     MeshCaptureProxyType& GetMeshCaptureProxy();
 
-    template<typename MeshCaptureProxyType>
+    template<MotionDiff::Concepts::MeshCaptureProxyConcept MeshCaptureProxyType>
     const MeshCaptureProxyType& GetMeshCaptureProxy() const;
 
   public:
-    template<typename MeshCaptureProxyType>
+    template<MotionDiff::Concepts::MeshCaptureProxyConcept MeshCaptureProxyType>
     static MeshCaptureProxyType* GetMeshCaptureProxyStatic(UMDMeshCapture* MeshCapture);
 
   private:
@@ -59,19 +57,19 @@ class MOTIONDIFF_API UMDMeshCapture : public UObject
     TArray<FMDMeshCaptureMaterial> m_materials;
 };
 
-template<typename MeshCaptureProxyType>
+template<MotionDiff::Concepts::MeshCaptureProxyConcept MeshCaptureProxyType>
 MeshCaptureProxyType& UMDMeshCapture::GetMeshCaptureProxy()
 {
   return *GetMeshCaptureProxyStatic<MeshCaptureProxyType>(this);
 }
 
-template<typename MeshCaptureProxyType>
+template<MotionDiff::Concepts::MeshCaptureProxyConcept MeshCaptureProxyType>
 const MeshCaptureProxyType& UMDMeshCapture::GetMeshCaptureProxy() const
 {
   return *GetMeshCaptureProxyStatic<const MeshCaptureProxyType>(const_cast<UMDMeshCapture*>(this));
 }
 
-template<typename MeshCaptureProxyType>
+template<MotionDiff::Concepts::MeshCaptureProxyConcept MeshCaptureProxyType>
 static MeshCaptureProxyType* UMDMeshCapture::GetMeshCaptureProxyStatic(UMDMeshCapture* MeshCapture)
 {
   if (MeshCapture == nullptr)

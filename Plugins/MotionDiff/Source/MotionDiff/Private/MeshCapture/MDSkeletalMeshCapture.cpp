@@ -136,8 +136,6 @@ void UMDSkeletalMeshCapture::ShowSnapshots()
 
         newMeshActor->FinishSpawning(newMeshUserTransform);
 
-        ::CreateStaticMeshFromPMC(procMeshComp, TEXT("/MotionDiff/"), TEXT("CheckerMesh"));
-
         m_snapshotActors.Emplace(newMeshActor);
       }
     }
