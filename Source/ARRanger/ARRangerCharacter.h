@@ -1,33 +1,33 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
-
 #pragma once
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "Logging/LogMacros.h"
+
 #include "ARRangerCharacter.generated.h"
 
 class USpringArmComponent;
 class UCameraComponent;
 class UInputAction;
+
 struct FInputActionValue;
 
 DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);
 
 /**
- *  A simple player-controllable third person character
- *  Implements a controllable orbiting camera
+ *  シンプルでプレイヤーが操作可能な三人称視点キャラクター
+ *  制御可能な軌道カメラの実装
  */
 UCLASS(abstract)
 class AARRangerCharacter : public ACharacter
 {
 	GENERATED_BODY()
 
-	/** Camera boom positioning the camera behind the character */
+	/** カメラをキャラクターの背後に配置するカメラブーム */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	USpringArmComponent* CameraBoom;
 
-	/** Follow camera */
+	/** フォローカメラ */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	UCameraComponent* FollowCamera;
 	
@@ -49,48 +49,69 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
 	UInputAction* MouseLookAction;
 
+	// ロックオンアクション
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	class UInputAction* LockOnAction;
+
 public:
 
-	/** Constructor */
+	/** コンストラクタ */
 	AARRangerCharacter();	
 
 protected:
 
-	/** Initialize input action bindings */
+	/** 入力アクションのバインディングを初期化する */
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 protected:
 
-	/** Called for movement input */
+	/** 移動入力のために呼び出される */
 	void Move(const FInputActionValue& Value);
 
-	/** Called for looking input */
+	/** 入力を求める */
 	void Look(const FInputActionValue& Value);
+
+private:
+	// ロックオン中フラグ
+	bool bIsLockedOn;
+
+	// ロックオン切替関数
+	void ToggleLockOn();
+
+	// スティック入力で敵切替（右スティックのX軸など）
+	void SwitchTarget(float Value);
+
+	// ロックオン可能な敵を検索
+	AActor* FindNearestEnemy();
 
 public:
 
-	/** Handles move inputs from either controls or UI interfaces */
+	/** コントロールまたはUIインターフェースからの移動入力を処理する */
 	UFUNCTION(BlueprintCallable, Category="Input")
 	virtual void DoMove(float Right, float Forward);
 
-	/** Handles look inputs from either controls or UI interfaces */
+	/** コントロールまたはUIインターフェースからのルック入力を処理する */
 	UFUNCTION(BlueprintCallable, Category="Input")
 	virtual void DoLook(float Yaw, float Pitch);
 
-	/** Handles jump pressed inputs from either controls or UI interfaces */
+	/** コントロールまたはUIインターフェースのどちらからでも、押されたジャンプ入力を処理する */
 	UFUNCTION(BlueprintCallable, Category="Input")
 	virtual void DoJumpStart();
 
-	/** Handles jump pressed inputs from either controls or UI interfaces */
+	/** コントロールまたはUIインターフェースのどちらからでも、押されたジャンプ入力を処理する */
 	UFUNCTION(BlueprintCallable, Category="Input")
 	virtual void DoJumpEnd();
 
-public:
+	// ロックオン対象
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	AActor* LockedOnTarget;
 
-	/** Returns CameraBoom subobject **/
+public:
+	virtual void Tick(float DeltaTime) override;
+
+	/** CameraBoomサブオブジェクトを返す **/
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 
-	/** Returns FollowCamera subobject **/
+	/** FollowCameraサブオブジェクトを返す **/
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
 };
-
