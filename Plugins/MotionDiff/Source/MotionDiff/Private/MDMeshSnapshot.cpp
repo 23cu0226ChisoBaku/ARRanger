@@ -104,6 +104,7 @@ void FMDMeshSectionMap::Reset()
   for (auto& [ _ , meshVertexBuffers] : m_sectionMapData)
   {
     meshVertexBuffers.Reset();
+
   }
 }
 
@@ -119,6 +120,7 @@ void FMDMeshVertexBuffers::Reset()
 void FMDMeshSnapshot::Reset()
 {
   MeshSectionMap.Reset();
+  MeshTransform = FTransform::Identity;
   SnapshotName = NAME_None;
   bIsValid = false;
   LODIndex = -1;

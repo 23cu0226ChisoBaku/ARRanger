@@ -89,6 +89,9 @@ struct MOTIONDIFF_API FMDMeshSnapshot
   FMDMeshSectionMap MeshSectionMap;
 
   UPROPERTY(VisibleAnywhere)
+  FTransform MeshTransform;
+
+  UPROPERTY(VisibleAnywhere)
   FName SnapshotName;
 
   UPROPERTY(VisibleAnywhere)

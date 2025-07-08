@@ -13,6 +13,8 @@
 // TODO
 #include "ProceduralMeshComponent.h"
 
+#include UE_INLINE_GENERATED_CPP_BY_NAME(MDSkeletalMeshCapture)
+
 namespace SkeletalMeshCapture::Private
 {
   constexpr float UE_SKIN_WEIGHT_NORMALIZER_UINT8 = 255.0f;
@@ -71,7 +73,7 @@ void UMDSkeletalMeshCapture::ShowSnapshots()
       if (UWorld* currentWorld = m_skeletalMeshComp->GetWorld())
       {
         // Set snapshot actor's transform with owner's transform of static mesh component, use FTransform::Identity if owner is null
-        const FTransform& newMeshUserTransform = (m_skeletalMeshComp->GetOwner() != nullptr) ? m_skeletalMeshComp->GetOwner()->GetTransform() : FTransform::Identity; 
+        const FTransform& newMeshUserTransform = snapshot.MeshTransform; 
 
         AActor* newMeshActor = currentWorld->SpawnActorDeferred<AActor>(AActor::StaticClass(), newMeshUserTransform);
         check(newMeshActor != nullptr);
@@ -135,6 +137,8 @@ void UMDSkeletalMeshCapture::ShowSnapshots()
         newMeshActor->FinishSpawning(newMeshUserTransform);
 
         ::CreateStaticMeshFromPMC(procMeshComp, TEXT("/MotionDiff/"), TEXT("CheckerMesh"));
+
+        m_snapshotActors.Emplace(newMeshActor);
       }
     }
   }
@@ -142,7 +146,18 @@ void UMDSkeletalMeshCapture::ShowSnapshots()
 
 void UMDSkeletalMeshCapture::HideSnapshots()
 {
+  for (const TObjectPtr<AActor>& snapshotActor : m_snapshotActors)
+  {
+    if (snapshotActor != nullptr)
+    {
+      snapshotActor->Destroy();
+    }
+  }
+}
 
+FString UMDSkeletalMeshCapture::GetCaptureName() const
+{
+  return TEXT("SkeletalMesh_Capture");
 }
 
 void UMDSkeletalMeshCapture::SnapshotMesh(FMDMeshSnapshot& Snapshot, const int32 LODIndex)
@@ -347,8 +362,9 @@ void UMDSkeletalMeshCapture::SnapshotMesh(FMDMeshSnapshot& Snapshot, const int32
 
   Snapshot.bIsValid = true;
 
-}
+  Snapshot.MeshTransform = m_skeletalMeshComp->GetComponentTransform();
 
+}
 FMDMeshCaptureProxy* UMDSkeletalMeshCapture::CreateMeshCaptureProxy()
 {
   return new FMDSkeletalMeshCaptureProxy();

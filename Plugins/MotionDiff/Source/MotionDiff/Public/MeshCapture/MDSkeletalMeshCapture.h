@@ -20,6 +20,7 @@ class MOTIONDIFF_API UMDSkeletalMeshCapture : public UMDMeshCapture
     virtual void Reset() override;
     virtual void ShowSnapshots() override;
     virtual void HideSnapshots() override;
+    virtual FString GetCaptureName() const override;
 
   protected:
     virtual void SnapshotMesh(FMDMeshSnapshot& Snapshot, const int32 LODIndex) override;
@@ -31,4 +32,7 @@ class MOTIONDIFF_API UMDSkeletalMeshCapture : public UMDMeshCapture
   private:
     UPROPERTY()
     TObjectPtr<USkeletalMeshComponent> m_skeletalMeshComp;
+
+    UPROPERTY()
+    TArray<TObjectPtr<AActor>> m_snapshotActors;
 };

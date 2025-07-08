@@ -11,12 +11,25 @@
 
 #include "MDMeshCaptureComponent.generated.h"
 
+namespace MotionDiff
+{
+  struct FMDMeshCaptureShutter;
+}
+
+
 UENUM()
 enum struct EMDMeshCaptureDestroyMode : uint8
 {
   None = 0,     // 消滅ない
   ElapsedTime,  // 時間による消滅
 
+};
+
+UENUM()
+enum struct EMDMeshCaptureShutterMode : uint8
+{
+  Default = 0,    
+  IntervalBase,
 };
 
 USTRUCT()
@@ -108,6 +121,10 @@ class MOTIONDIFF_API UMDMeshCaptureComponent : public UActorComponent
   #endif
 
   private:
+    MotionDiff::FMDMeshCaptureShutter* CreateShutter();
+    void DestroyShutter(MotionDiff::FMDMeshCaptureShutter* ShutterPtr);
+
+  private:
     UPROPERTY(EditAnywhere, Category = "Mesh Capture", meta = (AllowPrivateAccess = "true"))
     bool bUseFirstMeshAttachToThis;
 
@@ -120,5 +137,8 @@ class MOTIONDIFF_API UMDMeshCaptureComponent : public UActorComponent
     UPROPERTY()
     TObjectPtr<UMDMeshCapture> m_captureInstance;
 
+    MotionDiff::FMDMeshCaptureShutter* m_shutterInstance;
+
     EMDMeshCaptureDestroyMode m_currentCaptureDestroyMode = EMDMeshCaptureDestroyMode::None;
+
 };

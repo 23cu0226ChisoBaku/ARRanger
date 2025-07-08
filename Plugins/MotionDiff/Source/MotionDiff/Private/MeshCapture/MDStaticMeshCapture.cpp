@@ -19,6 +19,8 @@
 // FIXME Debug purpose
 #include "MotionDiff/Internal/MDMeshAssetCreator.h"
 
+#include UE_INLINE_GENERATED_CPP_BY_NAME(MDStaticMeshCapture)
+
 UMDStaticMeshCapture::UMDStaticMeshCapture(const FObjectInitializer& ObjectInitializer)
   : Super(ObjectInitializer)
   , m_staticMeshComp{nullptr}
@@ -138,12 +140,11 @@ void UMDStaticMeshCapture::ShowSnapshots()
           );
           
           /**
-           *  | 概念    | PMC（ProceduralMeshComponent）          | StaticMesh / FMeshDescription    |
-              | ----- | ------------------------------------- | -------------------------------- |
-              | 子网格部分 | Section（编号）                           | PolygonGroup                     |
-              | 材质槽索引 | SectionIndex（直接就是材质索引）                | PolygonGroupID → Material Index  |
-              | 材质绑定  | `SetMaterial(SectionIndex, Material)` | `StaticMesh->SetMaterial(Index)` |
-
+           *  | 概念       | PMC（ProceduralMeshComponent）         | StaticMesh / FMeshDescription    |
+              | -----      | ------------------------------------- | -------------------------------- |
+              | 子网格部分  | Section（编号）                        | PolygonGroup                     |
+              | 材质槽索引  | SectionIndex（直接就是材质索引）        | PolygonGroupID → Material Index  |
+              | 材质绑定    | `SetMaterial(SectionIndex, Material)` | `StaticMesh->SetMaterial(Index)` |
            */
           // Override material if allows
           // PMC->SetMaterial also need a section id
@@ -170,6 +171,11 @@ void UMDStaticMeshCapture::HideSnapshots()
   // FIXME Need implementation
 }
 
+FString UMDStaticMeshCapture::GetCaptureName() const
+{
+  return TEXT("StaticMesh_Capture");
+}
+
 void UMDStaticMeshCapture::SnapshotMesh(FMDMeshSnapshot& Snapshot, const int32 LODIndex)
 {
   Snapshot.bIsValid = false;
@@ -185,19 +191,6 @@ void UMDStaticMeshCapture::SnapshotMesh(FMDMeshSnapshot& Snapshot, const int32 L
   {
     return;
   } 
-
-  // NOTE: Use Render Data
-  // NOTE: should set Static Mesh Allow CPUAccess to true
-  // NOTE: Deprecated
-  // const FStaticMeshRenderData* meshRenderData = staticMesh->GetRenderData();
-  // if (meshRenderData == nullptr)
-  // {
-  //   if (!staticMesh->bAllowCPUAccess)
-  //   {
-  //     UE_LOG(LogMotionDiff, Error, TEXT("You should set Static Mesh:[%s] Allow CPUAccess as true"), *GetNameSafe(staticMesh));
-  //   } 
-  //   return;
-  // }
 
   // NOTE: Use MeshDescription
   const FMeshDescription* meshDesc = staticMesh->GetMeshDescription(LODIndex);

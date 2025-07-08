@@ -3,6 +3,9 @@
 
 #include "MDMeshCaptureComponent.h"
 #include "MotionDiff/MotionDiffLogChannels.h"
+#include "MeshCaptureShutter/MDMeshCaptureShutter.h"
+
+#include UE_INLINE_GENERATED_CPP_BY_NAME(MDMeshCaptureComponent)
 
 // Sets default values for this component's properties
 UMDMeshCaptureComponent::UMDMeshCaptureComponent(const FObjectInitializer& ObjectInitializer)
@@ -11,6 +14,7 @@ UMDMeshCaptureComponent::UMDMeshCaptureComponent(const FObjectInitializer& Objec
   , SnapshotMaterials{}
   , CaptureParam{}
   , m_captureInstance{nullptr}
+  , m_shutterInstance{nullptr}
 {
 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
 	// off to improve performance if you don't need them.
@@ -23,6 +27,12 @@ void UMDMeshCaptureComponent::BeginDestroy()
   if (m_captureInstance != nullptr)
   {
     m_captureInstance->Reset();
+  }
+
+  if (m_shutterInstance != nullptr)
+  {
+    DestroyShutter(m_shutterInstance);
+    m_shutterInstance = nullptr;
   }
 
   Super::BeginDestroy();
@@ -90,8 +100,11 @@ void UMDMeshCaptureComponent::BeginPlay()
     {
       m_captureInstance->SetMaterials(SnapshotMaterials);
 
-      m_captureInstance->SaveMeshSnapshot(TEXT("Test"));
-      m_captureInstance->ShowSnapshots();
+      if (m_shutterInstance == nullptr)
+      {
+        m_shutterInstance = CreateShutter();
+        m_shutterInstance->StartTriggerShutter();
+      }
     }
   }
 }
@@ -128,9 +141,18 @@ void UMDMeshCaptureComponent::TickComponent(float DeltaTime, ELevelTick TickType
       m_currentCaptureDestroyMode = CaptureParam.DestroyMode;
     }
   }
-
-
 #endif
 
+MotionDiff::FMDMeshCaptureShutter* UMDMeshCaptureComponent::CreateShutter()
+{
+  MotionDiff::FMDMeshCaptureShutter_IntervalTime shutterModel = MotionDiff::FMDMeshCaptureShutter_IntervalTime(m_captureInstance, 0.5f);
+  shutterModel.SetShutterRepeatTimes(10);
+  return new MotionDiff::FMDMeshCaptureShutter(shutterModel);
+}
+
+void UMDMeshCaptureComponent::DestroyShutter(MotionDiff::FMDMeshCaptureShutter* Shutter)
+{
+  delete Shutter;
+}
 
 

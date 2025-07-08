@@ -6,6 +6,7 @@
 
 #include "MotionDiff/MotionDiffLogChannels.h"
 
+#include UE_INLINE_GENERATED_CPP_BY_NAME(MDMeshCapture)
 
 UMDMeshCapture::UMDMeshCapture(const FObjectInitializer& ObjectInitializer)
   : Super(ObjectInitializer)
@@ -41,6 +42,11 @@ void UMDMeshCapture::SetMaterials(const TArray<FMDMeshCaptureMaterial>& Material
 const TArray<FMDMeshCaptureMaterial>& UMDMeshCapture::GetMaterials() const
 {
   return m_materials;
+}
+
+FString UMDMeshCapture::GetCaptureName() const
+{
+  return TEXT("Invalid_Capture");
 }
 
 FMDMeshCaptureProxy* UMDMeshCapture::CreateMeshCaptureProxy()

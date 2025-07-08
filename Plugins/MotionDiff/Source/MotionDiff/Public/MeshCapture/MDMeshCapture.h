@@ -34,6 +34,7 @@ class MOTIONDIFF_API UMDMeshCapture : public UObject
     virtual void ShowSnapshots() PURE_VIRTUAL(UMDMeshCapture, ;)
     virtual void HideSnapshots() PURE_VIRTUAL(UMDMeshCapture, ;)
     virtual void SnapshotMesh(FMDMeshSnapshot& Snapshot, const int32 LODIndex = 0) PURE_VIRTUAL(UMDMeshCapture, ;)
+    virtual FString GetCaptureName() const;
 
   protected:
     template<typename MeshCaptureProxyType>
@@ -42,6 +43,7 @@ class MOTIONDIFF_API UMDMeshCapture : public UObject
     template<typename MeshCaptureProxyType>
     const MeshCaptureProxyType& GetMeshCaptureProxy() const;
 
+  public:
     template<typename MeshCaptureProxyType>
     static MeshCaptureProxyType* GetMeshCaptureProxyStatic(UMDMeshCapture* MeshCapture);
 
