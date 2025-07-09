@@ -6,6 +6,7 @@
 
 #include "ARRangerCharacter.generated.h"
 
+class UAnimMontage;
 class USpringArmComponent;
 class UCameraComponent;
 class UInputAction;
@@ -33,25 +34,33 @@ class AARRangerCharacter : public ACharacter
 	
 protected:
 
-	/** Jump Input Action */
+	// ジャンプアクション
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
 	UInputAction* JumpAction;
 
-	/** Move Input Action */
+	// 移動アクション
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
 	UInputAction* MoveAction;
 
-	/** Look Input Action */
+	// 視点回転アクション(ゲームパッド)
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
 	UInputAction* LookAction;
 
-	/** Mouse Look Input Action */
+	// 視点回転アクション(マウス)
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
 	UInputAction* MouseLookAction;
 
 	// ロックオンアクション
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	class UInputAction* LockOnAction;
+
+	// パンチアクション
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	class UInputAction* PunchAction;
+
+	// パンチアニメーションモンタージュ
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat")
+	UAnimMontage* PunchMontage;
 
 public:
 
@@ -75,6 +84,15 @@ private:
 	// ロックオン中フラグ
 	bool bIsLockedOn;
 
+	// 現在のコンボ数
+	int32 CurrentCombo = 0;
+
+	// 次のコンボ攻撃を行えるかのフラグ
+	bool bCanNextCombo = false;
+
+	// 攻撃しているかのフラグ
+	bool bIsAttacking = false;
+
 	// ロックオン切替関数
 	void ToggleLockOn();
 
@@ -84,21 +102,36 @@ private:
 	// ロックオン可能な敵を検索
 	AActor* FindNearestEnemy();
 
+	// パンチボタンが押されたときに呼び出される
+	void OnAttackPressed();
+	
+	// コンボアニメーションを再生
+	void PlayComboMontage(int32 ComboIndex);
+
+	// コンボができる状態にする
+	void EnableCombo();
+
+	// 攻撃のヒット判定
+	void AttackHitCheck();
+
+	// コンボが終了した際に呼び出される
+	void ComboEnd();
+
 public:
 
-	/** コントロールまたはUIインターフェースからの移動入力を処理する */
+	// コントロールまたはUIインターフェースからの移動入力を処理する
 	UFUNCTION(BlueprintCallable, Category="Input")
 	virtual void DoMove(float Right, float Forward);
 
-	/** コントロールまたはUIインターフェースからのルック入力を処理する */
+	// コントロールまたはUIインターフェースからのルック入力を処理する
 	UFUNCTION(BlueprintCallable, Category="Input")
 	virtual void DoLook(float Yaw, float Pitch);
 
-	/** コントロールまたはUIインターフェースのどちらからでも、押されたジャンプ入力を処理する */
+	// コントロールまたはUIインターフェースのどちらからでも、押されたジャンプ入力を処理する
 	UFUNCTION(BlueprintCallable, Category="Input")
 	virtual void DoJumpStart();
 
-	/** コントロールまたはUIインターフェースのどちらからでも、押されたジャンプ入力を処理する */
+	// コントロールまたはUIインターフェースのどちらからでも、押されたジャンプ入力を処理する
 	UFUNCTION(BlueprintCallable, Category="Input")
 	virtual void DoJumpEnd();
 
@@ -109,9 +142,9 @@ public:
 public:
 	virtual void Tick(float DeltaTime) override;
 
-	/** CameraBoomサブオブジェクトを返す **/
+	// CameraBoomサブオブジェクトを返す
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 
-	/** FollowCameraサブオブジェクトを返す **/
+	// FollowCameraサブオブジェクトを返す
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
 };

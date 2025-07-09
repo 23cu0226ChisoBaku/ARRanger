@@ -10,6 +10,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "InputActionValue.h"
 #include "Kismet/GameplayStatics.h"
+#include "Kismet/KismetSystemLibrary.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -67,8 +68,12 @@ void AARRangerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 		// 見る
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AARRangerCharacter::Look);
 
+		// ロックオン
 		EnhancedInputComponent->BindAction(LockOnAction, ETriggerEvent::Triggered, this, &AARRangerCharacter::ToggleLockOn);
 		PlayerInputComponent->BindAxis("SwitchTarget", this, &AARRangerCharacter::SwitchTarget);
+
+		// パンチ
+		EnhancedInputComponent->BindAction(PunchAction, ETriggerEvent::Started, this, &AARRangerCharacter::OnAttackPressed);
 	}
 	else
 	{
@@ -246,4 +251,103 @@ AActor* AARRangerCharacter::FindNearestEnemy()
 		}
 	}
 	return NearestEnemy;
+}
+
+void AARRangerCharacter::OnAttackPressed()
+{
+	if (bIsAttacking)
+	{
+		if (bCanNextCombo)
+		{
+			CurrentCombo = FMath::Clamp(CurrentCombo + 1, 1, 3);
+			bCanNextCombo = false; // 次のコンボを一回だけ許可
+		}
+		return;
+	}
+
+	// 最初の一発目
+	CurrentCombo = 1;
+	bIsAttacking = true;
+
+	// AnimMontageの該当セクション再生
+	PlayComboMontage(CurrentCombo);
+}
+
+void AARRangerCharacter::PlayComboMontage(int32 ComboIndex)
+{
+	if (!PunchMontage || !GetMesh() || !GetMesh()->GetAnimInstance()) return;
+
+	FName SectionName = NAME_None;
+	switch (ComboIndex)
+	{
+	case 1: SectionName = FName("Punch1"); break;
+	case 2: SectionName = FName("Punch2"); break;
+	case 3: SectionName = FName("Punch3"); break;
+	}
+
+	GetMesh()->GetAnimInstance()->Montage_Play(PunchMontage);
+	GetMesh()->GetAnimInstance()->Montage_JumpToSection(SectionName, PunchMontage);
+}
+
+void AARRangerCharacter::EnableCombo()
+{
+	bCanNextCombo = true;
+}
+
+void AARRangerCharacter::AttackHitCheck()
+{
+	FVector HandLocation = GetMesh()->GetSocketLocation("RightHandSocket");
+	float Radius = 100.f;
+
+	TArray<AActor*> OverlappedActors;
+
+	// このクラスを除外する
+	TArray<AActor*> ActorsToIgnore;
+	ActorsToIgnore.Add(this);
+
+	// 「Pawn」チャンネルでOverlap
+	bool bHit = UKismetSystemLibrary::SphereOverlapActors(
+		GetWorld(),
+		HandLocation,
+		Radius,
+		TArray<TEnumAsByte<EObjectTypeQuery>>{UEngineTypes::ConvertToObjectType(ECC_Pawn)},
+		nullptr, // 任意でフィルター（AEnemyBase::StaticClass()など）
+		ActorsToIgnore,
+		OverlappedActors
+	);
+
+	if (bHit)
+	{
+		for (AActor* HitActor : OverlappedActors)
+		{
+			if (HitActor && HitActor->ActorHasTag("Enemy"))
+			{
+				// ノックバック処理（3段目）
+				if (CurrentCombo == 3)
+				{
+					ACharacter* HitCharacter = Cast<ACharacter>(HitActor);
+					if (HitCharacter)
+					{
+						FVector LaunchDir = (HitCharacter->GetActorLocation() - GetActorLocation()).GetSafeNormal();
+						FVector LaunchVelocity = LaunchDir * 800.0f + FVector(0, 0, 300.0f); // 前＋上方向
+
+						// 吹き飛ばし（Z方向も少し加えてジャンプ風に）
+						HitCharacter->LaunchCharacter(LaunchVelocity, true, true);
+					}
+				}
+
+				// ここでダメージ処理やスタッガーなど
+			}
+		}
+	}
+
+	// デバッグ表示
+	DrawDebugSphere(GetWorld(), HandLocation, Radius, 12, FColor::Red, false, 1.0f);
+}
+
+void AARRangerCharacter::ComboEnd()
+{
+	CurrentCombo = 0;
+	bCanNextCombo = false;
+	bIsAttacking = false;
 }
