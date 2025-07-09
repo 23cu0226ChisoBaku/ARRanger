@@ -85,13 +85,22 @@ private:
 	bool bIsLockedOn;
 
 	// 現在のコンボ数
-	int32 CurrentCombo = 0;
+	int32 CurrentCombo;
 
 	// 次のコンボ攻撃を行えるかのフラグ
-	bool bCanNextCombo = false;
+	bool bCanNextCombo;
 
 	// 攻撃しているかのフラグ
-	bool bIsAttacking = false;
+	bool bIsAttacking;
+
+	// もともとのカメラとプレイヤーの距離
+	float DefaultArmLength;
+
+	// ダッシュ中に近づける距離
+	float DashArmLength; 
+
+	// 補間速度
+	float ArmLengthInterpSpeed; 
 
 	// ロックオン切替関数
 	void ToggleLockOn();
@@ -138,6 +147,14 @@ public:
 	// ロックオン対象
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	AActor* LockedOnTarget;
+
+	// ダッシュ中フラグ
+	UPROPERTY(BlueprintReadWrite)
+	bool bIsDashing;
+
+	// 移動入力の閾値(これを超えるとダッシュに遷移する)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float moveThreshold;
 
 public:
 	virtual void Tick(float DeltaTime) override;

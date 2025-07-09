@@ -15,6 +15,14 @@
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
 AARRangerCharacter::AARRangerCharacter()
+	: CurrentCombo(0)
+	, bCanNextCombo(false)
+	, bIsAttacking(false)
+	, DefaultArmLength(400)
+	, DashArmLength(270)
+	, ArmLengthInterpSpeed(5.0f)
+	, bIsDashing(false)
+	, moveThreshold(0.9f)
 {
 	// カプセルのサイズを設定する
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
@@ -95,6 +103,32 @@ void AARRangerCharacter::Tick(float DeltaTime)
 		SetActorRotation(NewRotation);
 	}
 
+	// ダッシュしているかの判定
+	if (APlayerController* PlayerController = Cast<APlayerController>(GetController()))
+	{
+		if (ULocalPlayer* LocalPlayer = Cast<ULocalPlayer>(PlayerController->Player))
+		{
+			if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(LocalPlayer))
+			{
+				const FInputActionValue InputValue = Subsystem->GetPlayerInput()->GetActionValue(MoveAction);
+				if (InputValue.GetValueType() == EInputActionValueType::Axis2D)
+				{
+					FVector2D InputVec = InputValue.Get<FVector2D>();
+					// 入力値が閾値を超えているかで判断
+					bIsDashing = InputVec.Size() > moveThreshold; 
+				}
+			}
+		}
+	}
+
+	// ダッシュ時にカメラをプレイヤーに近づける
+	float TargetArmLength = bIsDashing ? DashArmLength : DefaultArmLength;
+	CameraBoom->TargetArmLength = FMath::FInterpTo(
+		CameraBoom->TargetArmLength,
+		TargetArmLength,
+		DeltaTime,
+		ArmLengthInterpSpeed);
+
 	// ロックオン時の処理
 	if (bIsLockedOn && LockedOnTarget)
 	{
@@ -141,6 +175,10 @@ void AARRangerCharacter::DoMove(float Right, float Forward)
 {
 	if (GetController() != nullptr)
 	{
+		// 入力ベクトルの長さで走っているかどうか判定
+		const float InputMagnitude = FVector2D(Right, Forward).Size();
+		bIsDashing = InputMagnitude > moveThreshold;
+
 		// どちらを向いているか調べる
 		const FRotator Rotation = GetController()->GetControlRotation();
 		const FRotator YawRotation(0, Rotation.Yaw, 0);
