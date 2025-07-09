@@ -79,6 +79,59 @@ void FMDMeshUVContainer::Reset()
   }
 }
 
+int32 FMDMeshUVContainer::GetValidChannelNum() const
+{
+  int32 validChannelResult = 0;
+  for (int32 channel = 0; channel < UV_MAX_CHANNEL_NUM; ++channel)
+  {
+    if (m_UVsArray[channel].Num() == 0)
+    {
+      continue;
+    }
+
+    bool bHasAnyValidUV = false;
+    const TArray<FVector2D> uvs = GetUVsByChannel(channel);
+    for (int32 uvIdx = 0; uvIdx < uvs.Num(); ++uvIdx)
+    {
+      const FVector2D& uv = uvs[uvIdx];
+      // uvがゼロに近似しないものを有効値に見なす
+      if (!uv.IsNearlyZero())
+      {
+        bHasAnyValidUV = true;
+        break;
+      }
+    }
+
+    if (bHasAnyValidUV)
+    {
+      ++validChannelResult;
+    }
+  }
+
+  return validChannelResult;
+}
+
+const TArray<FVector2D>& FMDMeshUVContainer::operator[](const int32 Channel) const&
+{
+  check(IsChannelValid(Channel));
+
+  return m_UVsArray[Channel];
+}
+
+TArray<FVector2D>& FMDMeshUVContainer::operator[](const int32 Channel) &
+{
+  check(IsChannelValid(Channel));
+
+  return m_UVsArray[Channel];
+}
+
+TArray<FVector2D> FMDMeshUVContainer::operator[](const int32 Channel) const&&
+{
+  check(IsChannelValid(Channel));
+
+  return m_UVsArray[Channel];
+}
+
 FMDMeshVertexBuffers& FMDMeshSectionMap::GetSectionMeshVertexBuffers(const int32 Section)
 {
   return const_cast<FMDMeshVertexBuffers&>(static_cast<const FMDMeshSectionMap*>(this)->GetSectionMeshVertexBuffers(Section));
@@ -97,6 +150,11 @@ const FMDMeshVertexBuffers& FMDMeshSectionMap::GetSectionMeshVertexBuffers(const
 bool FMDMeshSectionMap::HasSection(const int32 Section) const
 {
   return m_sectionMapData.Contains(Section);
+}
+
+int32 FMDMeshSectionMap::GetSectionNum() const
+{
+  return m_sectionMapData.Num();
 }
 
 void FMDMeshSectionMap::Reset()

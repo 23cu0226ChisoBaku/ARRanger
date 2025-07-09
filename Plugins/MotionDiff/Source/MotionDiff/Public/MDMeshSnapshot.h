@@ -30,13 +30,19 @@ struct FMDMeshUVContainer
       return static_cast<int32>(UV_MAX_CHANNEL_NUM);
     }
 
+    int32 GetValidChannelNum() const;
+
+    const TArray<FVector2D>& operator[](const int32 Channel) const&;
+    TArray<FVector2D>& operator[](const int32 Channel) &;
+    TArray<FVector2D> operator[](const int32 Channel) const&&;
+
   private:
     enum
     {
       UV_MAX_CHANNEL_NUM = 8,
     };
 
-    // Make the 8th channel as an empty array
+    // Make the 9th channel(Index = 8) as an empty array
     TArray<FVector2D> m_UVsArray[UV_MAX_CHANNEL_NUM + 1];
 
 };
@@ -66,12 +72,12 @@ struct FMDMeshVertexBuffers
 
 };
 
-// FIXME: Next start from here
 struct FMDMeshSectionMap
 {
   FMDMeshVertexBuffers& GetSectionMeshVertexBuffers(const int32 Section);
   const FMDMeshVertexBuffers& GetSectionMeshVertexBuffers(const int32 Section) const;
   bool HasSection(const int32 Section) const;
+  int32 GetSectionNum() const;
   void Reset();
 
   private:

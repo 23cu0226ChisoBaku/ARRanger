@@ -4,14 +4,12 @@
 #include "MotionDiff/MotionDiffLogChannels.h"
 
 // NOTE: For only internal use
-#include "MotionDiff/Internal/MDMeshCaptureHelperLibrary.h"
-#include "MotionDiff/Internal/MDMeshAssetCreator.h"
+#include "Internal/MDMeshAssetCreator.h"
+#include "Internal/MDMeshGenerator.h"
 
 #include "Components/SkeletalMeshComponent.h"
 #include "Rendering/SkeletalMeshRenderData.h"
 
-// TODO
-#include "ProceduralMeshComponent.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(MDSkeletalMeshCapture)
 
@@ -62,83 +60,58 @@ void UMDSkeletalMeshCapture::ShowSnapshots()
     return;
   }
 
+  const FSkeletalMeshRenderData* renderData = skeletalMesh->GetResourceForRendering();
+  if (renderData == nullptr)
+  {
+    // TODO: Add Log
+
+    return;
+  }
+
+  const int32 LODDataNum = renderData->LODRenderData.Num();
+  if (LODDataNum == 0)
+  {
+    // TODO: Add Log
+
+    return;
+  }
+
+
   FMDMeshCaptureProxy& proxy = GetMeshCaptureProxy<FMDMeshCaptureProxy>();
   const TArray<FMDMeshSnapshot>& snapshots = proxy.GetAllSnapshots();
   const TArray<FMDMeshCaptureMaterial>& snapshotMats = GetMaterials();
+  
+  TArray<UMaterialInterface*> mats{};
+  mats.Reset(snapshotMats.Num());
+  for (int32 matIdx = 0; matIdx < snapshotMats.Num(); ++matIdx)
+  {
+    mats.Add(snapshotMats[matIdx].Material);
+  }
 
   for (const FMDMeshSnapshot& snapshot : snapshots)
   {
-    // create new mesh
+    // Ignore invalid LODIndex
+    // Currently we dont fall back to LOD0
+    if (LODDataNum <= snapshot.LODIndex)
     {
-      if (UWorld* currentWorld = m_skeletalMeshComp->GetWorld())
-      {
-        // Set snapshot actor's transform with owner's transform of static mesh component, use FTransform::Identity if owner is null
-        const FTransform& newMeshUserTransform = snapshot.MeshTransform; 
-
-        AActor* newMeshActor = currentWorld->SpawnActorDeferred<AActor>(AActor::StaticClass(), newMeshUserTransform);
-        check(newMeshActor != nullptr);
-        if (newMeshActor == nullptr)
-        {
-          // TODO Add log here
-
-          return;
-        }
-
-        UProceduralMeshComponent* procMeshComp = NewObject<UProceduralMeshComponent>(newMeshActor);
-        check(procMeshComp != nullptr);
-        if (procMeshComp == nullptr)
-        {
-          // TODO Add log here
-
-          return;
-        }
-
-        // Set root before register
-        newMeshActor->SetRootComponent(procMeshComp);
-
-        procMeshComp->SetRelativeTransform(newMeshUserTransform);
-
-        // Register after root set
-        procMeshComp->RegisterComponent();
-
-        // FIXME: Start temporary code
-
-        const FSkeletalMeshLODRenderData& lodRenderData = skeletalMesh->GetResourceForRendering()->LODRenderData[snapshot.LODIndex];
-        
-        const int32 sectionNum = lodRenderData.RenderSections.Num();
-        for (int32 sectionIdx = 0; sectionIdx < sectionNum; ++sectionIdx)
-        {
-          const FMDMeshVertexBuffers& snapshotVertexBuffers = snapshot.MeshSectionMap.GetSectionMeshVertexBuffers(sectionIdx);
-          // Convert to PMC Tangent
-          TArray<FProcMeshTangent> convertedTangents;
-          MotionDiff::FMeshCaptureHelperLibrary::ConvertToProcMeshTangent(snapshotVertexBuffers.Tangents, convertedTangents);
-          
-          procMeshComp->CreateMeshSection_LinearColor(
-            sectionIdx,
-            snapshotVertexBuffers.Vertices,
-            snapshotVertexBuffers.Triangles,
-            snapshotVertexBuffers.Normals,
-            snapshotVertexBuffers.UVContainer.GetUVsByChannel(0),
-            snapshotVertexBuffers.UVContainer.GetUVsByChannel(1),
-            snapshotVertexBuffers.UVContainer.GetUVsByChannel(2),
-            snapshotVertexBuffers.UVContainer.GetUVsByChannel(3),
-            snapshotVertexBuffers.Colors,
-            convertedTangents,
-            false
-          );
-
-
-          if (snapshotMats.Num() > sectionIdx)
-          {
-            procMeshComp->SetMaterial(sectionIdx, snapshotMats[sectionIdx].Material);
-          }
-        }
-
-        newMeshActor->FinishSpawning(newMeshUserTransform);
-
-        m_snapshotActors.Emplace(newMeshActor);
-      }
+      continue;
     }
+
+    const FSkeletalMeshLODRenderData& lodRenderData = renderData->LODRenderData[snapshot.LODIndex];
+    const int32 sectionNum = lodRenderData.RenderSections.Num(); 
+
+    const float startTime = FPlatformTime::Seconds();
+  
+    AActor* newMeshActor = MotionDiff::FMDMeshGenerator::GeneratePMCActorBySnapshot(m_skeletalMeshComp->GetWorld(), snapshot, sectionNum, mats);
+
+    const float deltaTime = FPlatformTime::Seconds() - startTime;
+
+    UE_LOG(LogMotionDiff, Error, TEXT("Create mesh delta time: [%f]"), deltaTime);
+
+    if (newMeshActor != nullptr)
+    {
+      m_snapshotActors.Emplace(newMeshActor);
+    } 
   }
 }
 
@@ -250,6 +223,7 @@ void UMDSkeletalMeshCapture::SnapshotMesh(FMDMeshSnapshot& Snapshot, const int32
       // TODO Need research
       for (int32 boneIdx = 0; boneIdx < bonesNum; ++boneIdx)
       {
+        // NOTE: Transform
         const int32 parentIdx = refSkeleton.GetParentIndex(boneIdx);
         const FTransform boneLocalTransform = refSkeletonPoses[boneIdx];
 
