@@ -4,7 +4,6 @@
 
 #include "MStateInstance.h"
 #include "MStateDefinition.h"
-#include "MStateMachineLogChannels.h"
 #include "GameplayTagContainer.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(MStateMachineComponent)
@@ -14,23 +13,30 @@ bool FMStateHandle::IsValid() const
   return m_state.IsValid() && m_ownerComp.IsValid() && m_stateTag.IsValid();
 }
 
+// 現在のステートを返す関数
 FGameplayTag FMStateHandle::GetStateTag() const
 {
 	return m_stateTag;
 }
 
+// 新しいステートを追加する関数
 FMStateHandle FMStateMachineStateList::AddEntry(TSubclassOf<UMStateDefinition> stateDef)
 {
 	check(stateDef != nullptr);
 	check(OwnerComponent != nullptr);
 
+	// デフォルトオブジェクトを取得 
+	// Class Default Objectを使うことでテンプレート的に中身を参照できる
 	const UMStateDefinition* mStateDefCDO = GetDefault<UMStateDefinition>(stateDef);
+
+	// 引数で渡されたステートが既に存在するかチェック
 	if (ContainsStateTag(mStateDefCDO->TransitionInfo.StateTag))
 	{
 		UE_LOG(LogMStateMachine, Warning, TEXT("State Tag [%s] already exists"), *mStateDefCDO->TransitionInfo.ToString());
 		return FMStateHandle{};
 	}
 
+	// インスタンス(挙動)を記述したクラスを指定する
 	TSubclassOf<UMStateInstance> instanceType = mStateDefCDO->InstanceType;
 	if (instanceType == nullptr)
 	{
@@ -39,23 +45,30 @@ FMStateHandle FMStateMachineStateList::AddEntry(TSubclassOf<UMStateDefinition> s
 
 	FMStateMachineStateListEntry newEntry;
 
+	// インスタンスの実体を作成
 	UMStateInstance* stateInstance = NewObject<UMStateInstance>(OwnerComponent->GetOwner(), instanceType);
+
+	// リストを登録
 	newEntry.State = stateInstance;
 	newEntry.StateDefinition = mStateDefCDO;
-
 	Entries.Emplace(newEntry);
 
+	// ステートハンドルを返す
+	// 状態を切り替えたり、削除したりするための識別子
 	return FMStateHandle(stateInstance, OwnerComponent, mStateDefCDO->TransitionInfo.StateTag);
 }
 
+// 指定したステートをステートリストから削除する関数
 void FMStateMachineStateList::RemoveEntry(FMStateHandle removeStateHandle)
 {
+	// 存在するかどうかチェック
 	if (!removeStateHandle.IsValid())
 	{
 		UE_LOG(LogMStateMachine, Warning, TEXT("State Handle is invalid, Can not remove"));
 		return;
 	}
 
+	// タグでステートを探して削除する
 	for (auto entryIt = Entries.CreateIterator(); entryIt; ++entryIt)
 	{
 		const FMStateMachineStateListEntry& entry = *entryIt;
@@ -68,8 +81,10 @@ void FMStateMachineStateList::RemoveEntry(FMStateHandle removeStateHandle)
 
 }
 
+// 現在のステートから指定したタグのステートに切り替えられるか判断する関数
 UMStateInstance* FMStateMachineStateList::SwitchState(const UMStateInstance* currentStateInstance, FGameplayTag nextStateTag)
 {
+	// ステートタグが存在するかチェック
 	UMStateInstance* nextState = nullptr;
 	if (!nextStateTag.IsValid())
 	{
@@ -77,6 +92,7 @@ UMStateInstance* FMStateMachineStateList::SwitchState(const UMStateInstance* cur
 		return nextState;
 	}
 
+	// 現在のステートから指定されたステートへの遷移が許可されているかチェック
 	FGameplayTag currentStateTag = GetTagByState(currentStateInstance);
 	if (currentStateTag.IsValid())
 	{
@@ -94,20 +110,24 @@ UMStateInstance* FMStateMachineStateList::SwitchState(const UMStateInstance* cur
 		}
 	}
 
+	// 切り替えるステートをセット
 	nextState = GetStateByTag(nextStateTag);
+	// 切り替えるステートが存在するかチェック
 	if (nextState == nullptr)
 	{
 		UE_LOG(LogMStateMachine, Error, TEXT("State machine does not contains Gameplay Tag [%s]"), *nextStateTag.ToString());
 	}
 
+	// 切り替えるステートを返す
 	return nextState;
-
 }
 
+// ステートマシンの状態リスト内に、指定された FGameplayTag を持つステートがすでに存在するかどうかを調べる関数
 bool FMStateMachineStateList::ContainsStateTag(const FGameplayTag& tag) const
 {
 	bool isContain = false;
 
+	// CreateConstIterator() とは UEで標準用意されているイテレータ(リストと配列)を作成する関数
 	for (auto entryIt = Entries.CreateConstIterator(); entryIt; ++entryIt)
 	{
 		const FMStateMachineStateListEntry& entry = *entryIt;
@@ -121,6 +141,7 @@ bool FMStateMachineStateList::ContainsStateTag(const FGameplayTag& tag) const
 	return isContain;
 }
 
+// タグからステートを取得する関数
 UMStateInstance* FMStateMachineStateList::GetStateByTag(const FGameplayTag& tag) const
 {
 	UMStateInstance* foundState = nullptr;
@@ -138,6 +159,7 @@ UMStateInstance* FMStateMachineStateList::GetStateByTag(const FGameplayTag& tag)
 	return foundState;
 }
 
+// ステートからタグを取得する関数
 FGameplayTag FMStateMachineStateList::GetTagByState(const UMStateInstance* stateInstance) const
 {
 	FGameplayTag foundTag = FGameplayTag::EmptyTag;
@@ -155,6 +177,7 @@ FGameplayTag FMStateMachineStateList::GetTagByState(const UMStateInstance* state
 	return foundTag;
 }
 
+// UActorComponent の処理
 UMStateMachineComponent::UMStateMachineComponent(const FObjectInitializer& objectInitializer)
 	: Super(objectInitializer)
 	, m_stateList(this)
@@ -189,6 +212,7 @@ void UMStateMachineComponent::TickComponent(float DeltaTime, ELevelTick TickType
 
 }
 
+// ステート終了処理
 void UMStateMachineComponent::UninitializeComponent()
 {
 	if (m_currentState != nullptr)
@@ -205,6 +229,7 @@ void UMStateMachineComponent::UninitializeComponent()
 	Super::UninitializeComponent();
 }
 
+// ステートのTick処理を稼働させる関数
 void UMStateMachineComponent::StartTickState()
 {
 	if (m_bCanTickStateMachine)
@@ -225,6 +250,7 @@ void UMStateMachineComponent::StartTickState()
 	m_bIsStateMachineStarted = true;
 }
 
+// ステートのTick処理を止める関数
 void UMStateMachineComponent::StopTickState()
 {
 	if (!m_bCanTickStateMachine || !m_bIsStateMachineStarted)
@@ -237,6 +263,7 @@ void UMStateMachineComponent::StopTickState()
 	m_bCanTickStateMachine = false;
 }
 
+// 初期ステートをセットする関数
 void UMStateMachineComponent::SetEntryState(const FGameplayTag& EntryStateTag)
 {
 	if (m_bIsStateMachineStarted)
@@ -248,6 +275,7 @@ void UMStateMachineComponent::SetEntryState(const FGameplayTag& EntryStateTag)
 	m_currentState = m_stateList.GetStateByTag(EntryStateTag);
 }
 
+// ステートリストに新しいステートを追加する関数
 FMStateHandle UMStateMachineComponent::AddNewState(TSubclassOf<UMStateDefinition> StateDefClass)
 {
 	check(StateDefClass != nullptr)
@@ -256,6 +284,7 @@ FMStateHandle UMStateMachineComponent::AddNewState(TSubclassOf<UMStateDefinition
 	
 }
 
+// 複数のステートをまとめて登録してそれぞれのハンドルを返す関数
 TArray<FMStateHandle> UMStateMachineComponent::AddStates(const TArray<TSubclassOf<UMStateDefinition>>& StateDefClasses)
 {
 	TArray<FMStateHandle> handles{};
@@ -273,11 +302,13 @@ TArray<FMStateHandle> UMStateMachineComponent::AddStates(const TArray<TSubclassO
 	return handles;
 }
 
+// ステートをリストから削除
 void UMStateMachineComponent::RemoveState(FMStateHandle StateHandle)
 {
 	m_stateList.RemoveEntry(StateHandle);
 }
 
+// 現在のステートから指定したタグのステートに切り替える関数
 bool UMStateMachineComponent::SwitchNextState(const FGameplayTag& NextStateTag)
 {
 	UMStateInstance* nextState = m_stateList.SwitchState(m_currentState, NextStateTag);
@@ -297,11 +328,13 @@ bool UMStateMachineComponent::SwitchNextState(const FGameplayTag& NextStateTag)
 	return true;
 }
 
+// 指定したステートがステートマシンに存在するか見る関数
 bool UMStateMachineComponent::ContainsStateTag(const FGameplayTag& Tag) const
 {
 	return m_stateList.ContainsStateTag(Tag);
 }
 
+// 次の切り替えステートが切り替えられるか返す関数
 bool UMStateMachineComponent::CanSwitchToNext(const FGameplayTag& NextStateTag) const
 {
 	bool bCanSwitch = false;
@@ -318,6 +351,7 @@ bool UMStateMachineComponent::CanSwitchToNext(const FGameplayTag& NextStateTag) 
 	return bCanSwitch;
 }
 
+// 現在のステートのタグを取得する関数
 FGameplayTag UMStateMachineComponent::GetCurrentStateTag() const
 {
 	if (m_currentState == nullptr)

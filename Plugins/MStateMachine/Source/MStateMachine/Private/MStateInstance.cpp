@@ -1,5 +1,5 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
+// ステートの本体
+// K2_：C++から呼び出されるBlueprint実装用の関数に使われる UEの命名規則 
 
 #include "MStateInstance.h"
 
