@@ -22,7 +22,7 @@ AARRangerCharacter::AARRangerCharacter()
 	, ArmLengthInterpSpeed(2.5f)
 	, bIsDashing(false)
 	, moveThreshold(0.9f)
-	, punchRadius(100.0f)
+	, punchRadius(20.0f)
 {
 	// カプセルのサイズを設定する
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
