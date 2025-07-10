@@ -12,6 +12,7 @@
 #include "InputActionValue.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetSystemLibrary.h"
+#include "PunchCameraShake.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -301,17 +302,16 @@ void AARRangerCharacter::Punch()
 void AARRangerCharacter::PunchHitNotify()
 {
 	FVector Origin = GetActorLocation() + GetActorForwardVector() * 100.f;
-
+	DrawDebugSphere(GetWorld(), Origin, punchRadius, 16, FColor::Red, false, 2.0f);
 	TArray<AActor*> OverlappingActors;
 
-	// SphereOverlapActors を使って、AActor配列で取得
 	bool bHit = UKismetSystemLibrary::SphereOverlapActors(
 		this,
 		Origin,
 		punchRadius,
 		TArray<TEnumAsByte<EObjectTypeQuery>>{UEngineTypes::ConvertToObjectType(ECC_Pawn)},
 		nullptr,
-		TArray<AActor*>{this}, // 自分は除外
+		TArray<AActor*>{this}, // 自分を除外
 		OverlappingActors
 	);
 
@@ -321,8 +321,33 @@ void AARRangerCharacter::PunchHitNotify()
 	{
 		if (HitActor->ActorHasTag("Enemy"))
 		{
-			FVector LaunchDir = GetActorForwardVector() * 800.f + FVector(0, 0, 200.f);
-			HitActor->AddActorWorldOffset(LaunchDir, false);
+			// スタティックメッシュを取得
+			if (UStaticMeshComponent* MeshComp = HitActor->FindComponentByClass<UStaticMeshComponent>())
+			{
+				// 全体ヒットストップ（スロー再生）
+				UGameplayStatics::SetGlobalTimeDilation(GetWorld(), 0.1f);
+
+				// 数フレーム後に元に戻す
+				FTimerHandle HitStopTimerHandle;
+				GetWorldTimerManager().SetTimer(HitStopTimerHandle, []()
+					{
+						UGameplayStatics::SetGlobalTimeDilation(GWorld, 1.0f);
+					}, 0.005f, false);
+
+				
+				// カメラシェイク
+				if (APlayerController* PlayerController = Cast<APlayerController>(GetController()))
+				{
+					UE_LOG(LogTemp, Warning, TEXT("CameraShake triggered!"));
+					if (PlayerController->PlayerCameraManager)
+					{
+						PlayerController->PlayerCameraManager->StartCameraShake(UPunchCameraShake::StaticClass());
+					}
+				}
+
+				FVector LaunchDir = GetActorForwardVector() * 600.f + FVector(0, 0, 150.f);
+				MeshComp->AddImpulse(LaunchDir, NAME_None, true);
+			}
 		}
 	}
 }
