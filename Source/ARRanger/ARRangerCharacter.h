@@ -64,34 +64,25 @@ protected:
 
 public:
 
-	/** コンストラクタ */
+	// コンストラクタ
 	AARRangerCharacter();	
 
 protected:
 
-	/** 入力アクションのバインディングを初期化する */
+	// 入力アクションのバインディングを初期化する
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 protected:
 
-	/** 移動入力のために呼び出される */
+	// 移動入力のために呼び出される
 	void Move(const FInputActionValue& Value);
 
-	/** 入力を求める */
+	// 入力を求める
 	void Look(const FInputActionValue& Value);
 
 private:
 	// ロックオン中フラグ
 	bool bIsLockedOn;
-
-	// 現在のコンボ数
-	int32 CurrentCombo;
-
-	// 次のコンボ攻撃を行えるかのフラグ
-	bool bCanNextCombo;
-
-	// 攻撃しているかのフラグ
-	bool bIsAttacking;
 
 	// もともとのカメラとプレイヤーの距離
 	float DefaultArmLength;
@@ -111,20 +102,8 @@ private:
 	// ロックオン可能な敵を検索
 	AActor* FindNearestEnemy();
 
-	// パンチボタンが押されたときに呼び出される
-	void OnAttackPressed();
-	
-	// コンボアニメーションを再生
-	void PlayComboMontage(int32 ComboIndex);
-
-	// コンボができる状態にする
-	void EnableCombo();
-
-	// 攻撃のヒット判定
-	void AttackHitCheck();
-
-	// コンボが終了した際に呼び出される
-	void ComboEnd();
+	// パンチの際に呼び出される
+	void Punch();
 
 public:
 
@@ -144,6 +123,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category="Input")
 	virtual void DoJumpEnd();
 
+	// パンチのAnimNotifyの通知を受け取る
+	UFUNCTION(BlueprintCallable)
+	void PunchHitNotify();
+
 	// ロックオン対象
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	AActor* LockedOnTarget;
@@ -155,6 +138,10 @@ public:
 	// 移動入力の閾値(これを超えるとダッシュに遷移する)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float moveThreshold;
+
+	// パンチの当たり判定用
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	float punchRadius;
 
 public:
 	virtual void Tick(float DeltaTime) override;

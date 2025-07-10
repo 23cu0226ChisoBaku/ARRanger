@@ -2,6 +2,7 @@
 
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "Enemy.h"
 #include "Engine/LocalPlayer.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
@@ -15,14 +16,12 @@
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
 AARRangerCharacter::AARRangerCharacter()
-	: CurrentCombo(0)
-	, bCanNextCombo(false)
-	, bIsAttacking(false)
-	, DefaultArmLength(400)
-	, DashArmLength(270)
-	, ArmLengthInterpSpeed(5.0f)
+	: DefaultArmLength(250)
+	, DashArmLength(500)
+	, ArmLengthInterpSpeed(2.5f)
 	, bIsDashing(false)
 	, moveThreshold(0.9f)
+	, punchRadius(100.0f)
 {
 	// カプセルのサイズを設定する
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
@@ -81,7 +80,7 @@ void AARRangerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 		PlayerInputComponent->BindAxis("SwitchTarget", this, &AARRangerCharacter::SwitchTarget);
 
 		// パンチ
-		EnhancedInputComponent->BindAction(PunchAction, ETriggerEvent::Started, this, &AARRangerCharacter::OnAttackPressed);
+		EnhancedInputComponent->BindAction(PunchAction, ETriggerEvent::Started, this, &AARRangerCharacter::Punch);
 	}
 	else
 	{
@@ -291,101 +290,39 @@ AActor* AARRangerCharacter::FindNearestEnemy()
 	return NearestEnemy;
 }
 
-void AARRangerCharacter::OnAttackPressed()
+void AARRangerCharacter::Punch()
 {
-	if (bIsAttacking)
+	if (PunchMontage && !GetMesh()->GetAnimInstance()->Montage_IsPlaying(PunchMontage))
 	{
-		if (bCanNextCombo)
-		{
-			CurrentCombo = FMath::Clamp(CurrentCombo + 1, 1, 3);
-			bCanNextCombo = false; // 次のコンボを一回だけ許可
-		}
-		return;
+		GetMesh()->GetAnimInstance()->Montage_Play(PunchMontage);
 	}
-
-	// 最初の一発目
-	CurrentCombo = 1;
-	bIsAttacking = true;
-
-	// AnimMontageの該当セクション再生
-	PlayComboMontage(CurrentCombo);
 }
 
-void AARRangerCharacter::PlayComboMontage(int32 ComboIndex)
+void AARRangerCharacter::PunchHitNotify()
 {
-	if (!PunchMontage || !GetMesh() || !GetMesh()->GetAnimInstance()) return;
+	FVector Origin = GetActorLocation() + GetActorForwardVector() * 100.f;
 
-	FName SectionName = NAME_None;
-	switch (ComboIndex)
-	{
-	case 1: SectionName = FName("Punch1"); break;
-	case 2: SectionName = FName("Punch2"); break;
-	case 3: SectionName = FName("Punch3"); break;
-	}
+	TArray<AActor*> OverlappingActors;
 
-	GetMesh()->GetAnimInstance()->Montage_Play(PunchMontage);
-	GetMesh()->GetAnimInstance()->Montage_JumpToSection(SectionName, PunchMontage);
-}
-
-void AARRangerCharacter::EnableCombo()
-{
-	bCanNextCombo = true;
-}
-
-void AARRangerCharacter::AttackHitCheck()
-{
-	FVector HandLocation = GetMesh()->GetSocketLocation("RightHandSocket");
-	float Radius = 100.f;
-
-	TArray<AActor*> OverlappedActors;
-
-	// このクラスを除外する
-	TArray<AActor*> ActorsToIgnore;
-	ActorsToIgnore.Add(this);
-
-	// 「Pawn」チャンネルでOverlap
+	// SphereOverlapActors を使って、AActor配列で取得
 	bool bHit = UKismetSystemLibrary::SphereOverlapActors(
-		GetWorld(),
-		HandLocation,
-		Radius,
+		this,
+		Origin,
+		punchRadius,
 		TArray<TEnumAsByte<EObjectTypeQuery>>{UEngineTypes::ConvertToObjectType(ECC_Pawn)},
-		nullptr, // 任意でフィルター（AEnemyBase::StaticClass()など）
-		ActorsToIgnore,
-		OverlappedActors
+		nullptr,
+		TArray<AActor*>{this}, // 自分は除外
+		OverlappingActors
 	);
 
-	if (bHit)
+	if (!bHit) return;
+
+	for (AActor* HitActor : OverlappingActors)
 	{
-		for (AActor* HitActor : OverlappedActors)
+		if (HitActor->ActorHasTag("Enemy"))
 		{
-			if (HitActor && HitActor->ActorHasTag("Enemy"))
-			{
-				// ノックバック処理（3段目）
-				if (CurrentCombo == 3)
-				{
-					ACharacter* HitCharacter = Cast<ACharacter>(HitActor);
-					if (HitCharacter)
-					{
-						FVector LaunchDir = (HitCharacter->GetActorLocation() - GetActorLocation()).GetSafeNormal();
-						FVector LaunchVelocity = LaunchDir * 800.0f + FVector(0, 0, 300.0f); // 前＋上方向
-
-						// 吹き飛ばし（Z方向も少し加えてジャンプ風に）
-						HitCharacter->LaunchCharacter(LaunchVelocity, true, true);
-					}
-				}
-
-				// ここでダメージ処理やスタッガーなど
-			}
+			FVector LaunchDir = GetActorForwardVector() * 800.f + FVector(0, 0, 200.f);
+			HitActor->AddActorWorldOffset(LaunchDir, false);
 		}
 	}
-
-	// デバッグ表示
-	DrawDebugSphere(GetWorld(), HandLocation, Radius, 12, FColor::Red, false, 1.0f);
-}
-
-void AARRangerCharacter::ComboEnd()
-{
-	CurrentCombo = 0;
-	bCanNextCombo = false;
-	bIsAttacking = false;
 }
