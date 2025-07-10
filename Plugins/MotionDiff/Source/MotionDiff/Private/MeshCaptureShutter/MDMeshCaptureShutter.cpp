@@ -115,6 +115,8 @@ namespace MotionDiff
       // Callback of timer
       auto onTriggeredTimerCallback = [this, LODIndex, bShowImmediately]()
       {
+        m_meshCapturePtr->RefreshMeshState();
+        
         this->OnShutterTriggered(LODIndex, bShowImmediately);
       };
 

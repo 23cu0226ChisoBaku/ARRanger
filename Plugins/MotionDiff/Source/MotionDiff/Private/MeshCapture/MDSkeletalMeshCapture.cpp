@@ -131,6 +131,13 @@ FString UMDSkeletalMeshCapture::GetCaptureName() const
   return TEXT("SkeletalMesh_Capture");
 }
 
+void UMDSkeletalMeshCapture::RefreshMeshState()
+{
+  // FIXME: For test purpose
+  m_skeletalMeshComp->TickAnimation(FApp::GetDeltaTime(), false);
+  m_skeletalMeshComp->RefreshBoneTransforms();
+}
+
 void UMDSkeletalMeshCapture::SnapshotMesh(FMDMeshSnapshot& Snapshot, const int32 LODIndex)
 {
   using namespace SkeletalMeshCapture::Private;
@@ -173,8 +180,10 @@ void UMDSkeletalMeshCapture::SnapshotMesh(FMDMeshSnapshot& Snapshot, const int32
 
   // Skin weights
   const FSkinWeightVertexBuffer* skinBuffer = lodRenderData.GetSkinWeightVertexBuffer();
+
   // Bone transforms
   const TArray<FTransform>& boneComponentTransforms = m_skeletalMeshComp->GetComponentSpaceTransforms();
+  
   // Skeleton pose
   const FReferenceSkeleton& refSkeleton = skeletalMesh->GetRefSkeleton();
   const TArray<FTransform>& refSkeletonPoses = refSkeleton.GetRefBonePose();
@@ -216,8 +225,7 @@ void UMDSkeletalMeshCapture::SnapshotMesh(FMDMeshSnapshot& Snapshot, const int32
 
       TMap<int32, int32> triangleToVertexIndexRemap{};
       TArray<FMatrix> refPoseComponentMatrices{};
-      refPoseComponentMatrices.Reset(bonesNum);
-      refPoseComponentMatrices.AddUninitialized(bonesNum);
+      refPoseComponentMatrices.SetNum(bonesNum);
 
       // Calculate pose component space
       // TODO Need research
@@ -225,16 +233,17 @@ void UMDSkeletalMeshCapture::SnapshotMesh(FMDMeshSnapshot& Snapshot, const int32
       {
         // NOTE: Transform
         const int32 parentIdx = refSkeleton.GetParentIndex(boneIdx);
-        const FTransform boneLocalTransform = refSkeletonPoses[boneIdx];
+        const FTransform& boneLocalTransform = refSkeletonPoses[boneIdx];
 
         if (parentIdx != INDEX_NONE)
         {
-          refPoseComponentMatrices[boneIdx] = (boneLocalTransform * FTransform(refPoseComponentMatrices[parentIdx])).ToMatrixWithScale();
+          refPoseComponentMatrices[boneIdx] = boneLocalTransform.ToMatrixWithScale() * refPoseComponentMatrices[parentIdx];
         }
         else
         {
           refPoseComponentMatrices[boneIdx] = boneLocalTransform.ToMatrixWithScale();
         }
+
       }
   
       int32 vertexIdx = 0;
@@ -257,6 +266,7 @@ void UMDSkeletalMeshCapture::SnapshotMesh(FMDMeshSnapshot& Snapshot, const int32
           const FVector originNormal = FVector{vertexInstanceBuffer.VertexTangentZ(globalIdx)};
 
           // Use skin weight to recalculate all vertexs
+          // スキンウェイトを計算し、頂点に入れる
           const FSkinWeightInfo skinWeights = skinBuffer->GetVertexSkinWeights(globalIdx);
           for (int32 influenceIdx = 0; influenceIdx < MAX_TOTAL_INFLUENCES; ++influenceIdx)
           {
@@ -267,17 +277,21 @@ void UMDSkeletalMeshCapture::SnapshotMesh(FMDMeshSnapshot& Snapshot, const int32
               continue;
             }
 
-            // NOTE: Inside is 16bit integer weight.Should change to normalized weight by using maximum number of uint16(65535)
+            // NOTE: Inside is 16bit unsigned integer weight.Should change to normalized weight by using maximum number of uint16(65535)
             // NOTE: But skinBuffer->Use16BitBoneIndex returns false by unknown reason.
             const float normalizer = UE_SKIN_WEIGHT_NORMALIZER_UINT16;
             const float realWeight = weight / normalizer;
             // TODO: Need research
-            const FMatrix& currentBoneMatrix = boneComponentTransforms[static_cast<uint32>(boneIdx)].ToMatrixWithScale(); 
-            const FMatrix& InvBindMatrix = refPoseComponentMatrices[static_cast<uint32>(boneIdx)].InverseFast();
 
-            const FMatrix& skinnedMatrix = currentBoneMatrix * InvBindMatrix;
+            const int32 skeletonBoneIdx = currentSection.BoneMap[boneIdx];
 
-            // NOTE: Transform local vertex position of bon to world position
+            // 骨をワールド座標原点に戻して、スキンウェイトを頂点に掛ける
+            const FMatrix& currentBoneMatrix = boneComponentTransforms[static_cast<uint32>(skeletonBoneIdx)].ToMatrixWithScale(); 
+            const FMatrix& InvBindMatrix = refPoseComponentMatrices[static_cast<uint32>(skeletonBoneIdx)].InverseFast();
+
+            const FMatrix& skinnedMatrix = InvBindMatrix * currentBoneMatrix;
+
+            // NOTE: Transform local vertex position of bone to world position
             skinnedPos += skinnedMatrix.TransformPosition(originPos) * realWeight;
             skinnedTangentX += skinnedMatrix.TransformVector(originTangentX) * realWeight;
             skinnedTangentY += skinnedMatrix.TransformVector(originTangentY) * realWeight;
@@ -337,6 +351,7 @@ void UMDSkeletalMeshCapture::SnapshotMesh(FMDMeshSnapshot& Snapshot, const int32
   Snapshot.MeshTransform = m_skeletalMeshComp->GetComponentTransform();
 
 }
+
 FMDMeshCaptureProxy* UMDSkeletalMeshCapture::CreateMeshCaptureProxy()
 {
   return new FMDSkeletalMeshCaptureProxy();

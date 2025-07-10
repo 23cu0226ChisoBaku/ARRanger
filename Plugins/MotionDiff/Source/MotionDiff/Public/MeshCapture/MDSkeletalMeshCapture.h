@@ -21,6 +21,7 @@ class MOTIONDIFF_API UMDSkeletalMeshCapture : public UMDMeshCapture
     virtual void ShowSnapshots() override;
     virtual void HideSnapshots() override;
     virtual FString GetCaptureName() const override;
+    virtual void RefreshMeshState() override;
 
   protected:
     virtual void SnapshotMesh(FMDMeshSnapshot& Snapshot, const int32 LODIndex) override;
