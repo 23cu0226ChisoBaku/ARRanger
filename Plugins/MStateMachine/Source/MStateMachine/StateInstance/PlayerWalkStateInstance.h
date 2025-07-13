@@ -4,13 +4,13 @@
 
 #include "CoreMinimal.h"
 #include "MStateInstance.h"
-#include "PlayerIdleState.generated.h"
+#include "PlayerWalkStateInstance.generated.h"
 
 /**
- * プレイヤーの待機状態ステート
+ * プレイヤーの歩き状態
  */
 UCLASS()
-class MSTATEMACHINE_API UPlayerIdleState : public UMStateInstance
+class MSTATEMACHINE_API UPlayerWalkStateInstance : public UMStateInstance
 {
 	GENERATED_BODY()
 	
@@ -18,4 +18,5 @@ public:
 	void EntryState() override;
 	void TickState(float inDeltaTime) override;
 	void ExitState() override;
+
 };
