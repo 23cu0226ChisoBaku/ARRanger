@@ -30,4 +30,7 @@
   #define MCW_API
 #endif // MCW_API
 
+// FIXME: Temporary use
+#include "Core/Cast.h"
+
 #endif // _MCW_CAMERAWORK_CORE_DEFINES_

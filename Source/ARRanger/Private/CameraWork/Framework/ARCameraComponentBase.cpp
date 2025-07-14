@@ -14,22 +14,39 @@ UARCameraComponentBase::UARCameraComponentBase(const FObjectInitializer& ObjectI
 	// ...
 }
 
+void UARCameraComponentBase::OnRegister()
+{
+  Super::OnRegister();
+}
 
-// Called when the game starts
 void UARCameraComponentBase::BeginPlay()
 {
-	Super::BeginPlay();
-
-	// ...
-	
+  Super::BeginPlay();
+  
 }
 
+void UARCameraComponentBase::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+  Super::EndPlay(EndPlayReason);
+}
 
-// Called every frame
+void UARCameraComponentBase::Activate(bool bReset)
+{
+  Super::Activate(bReset);
+}
+
+void UARCameraComponentBase::Deactivate()
+{
+  Super::Deactivate(); 
+}
+
 void UARCameraComponentBase::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
-	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+  Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	// ...
 }
 
+void UARCameraComponentBase::BeginDestroy()
+{
+  Super::BeginDestroy();
+}

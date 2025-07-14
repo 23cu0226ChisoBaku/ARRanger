@@ -289,6 +289,7 @@ void UMDSkeletalMeshCapture::SnapshotMesh(FMDMeshSnapshot& Snapshot, const int32
             const FMatrix& currentBoneMatrix = boneComponentTransforms[static_cast<uint32>(skeletonBoneIdx)].ToMatrixWithScale(); 
             const FMatrix& InvBindMatrix = refPoseComponentMatrices[static_cast<uint32>(skeletonBoneIdx)].InverseFast();
 
+            // 
             const FMatrix& skinnedMatrix = InvBindMatrix * currentBoneMatrix;
 
             // NOTE: Transform local vertex position of bone to world position

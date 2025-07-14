@@ -11,14 +11,15 @@
 			"AdditionalDependencies": [
 				"Engine",
 				"AIModule",
-				"UMG"
+				"UMG",
+				"MStateMachine"
 			]
 		},
 		{
 			"Name": "MLibrary",
 			"Type": "Runtime",
 			"LoadingPhase": "Default",
-			"AdditionalDependencies":[
+			"AdditionalDependencies": [
 				"Core",
 				"CoreUObject",
 				"Engine"
@@ -40,6 +41,10 @@
 		{
 			"Name": "GameplayStateTree",
 			"Enabled": true
+		},
+		{
+			"Name": "CameraShakePreviewer",
+			"Enabled": false
 		}
 	]
 }
