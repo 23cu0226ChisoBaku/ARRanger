@@ -20,7 +20,9 @@ public class ARRanger : ModuleRules
 			"UMG"
 		});
 
-		PrivateDependencyModuleNames.AddRange(new string[] { });
+		PrivateDependencyModuleNames.AddRange(new string[] {
+			"GameplayTags",
+		});
 
 		PublicIncludePaths.AddRange(new string[] {
 			"ARRanger",

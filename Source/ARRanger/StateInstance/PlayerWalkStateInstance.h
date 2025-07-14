@@ -1,4 +1,6 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+//*************************************************
+// プレイヤーの歩き状態の処理(挙動)
+//*************************************************
 
 #pragma once
 
@@ -10,7 +12,7 @@
  * プレイヤーの歩き状態
  */
 UCLASS()
-class MSTATEMACHINE_API UPlayerWalkStateInstance : public UMStateInstance
+class ARRANGER_API UPlayerWalkStateInstance : public UMStateInstance
 {
 	GENERATED_BODY()
 	
@@ -18,5 +20,4 @@ public:
 	void EntryState() override;
 	void TickState(float inDeltaTime) override;
 	void ExitState() override;
-
 };

@@ -1,5 +1,6 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
+//*************************************************
+// ƒvƒŒƒCƒ„[‚Ì•à‚«ó‘Ô‚Ìˆ—(‹““®)
+//*************************************************
 
 #include "PlayerWalkStateInstance.h"
 
