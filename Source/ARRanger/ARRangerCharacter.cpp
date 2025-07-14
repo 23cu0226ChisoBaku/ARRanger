@@ -441,7 +441,7 @@ void AARRangerCharacter::KickHitNotify()
 			GetWorldTimerManager().SetTimer(HitStopTimerHandle, []()
 				{
 					UGameplayStatics::SetGlobalTimeDilation(GWorld, 1.0f);
-				}, 0.01f, false);
+				}, 0.0075f, false);
 
 			// カメラシェイクも追加
 		}

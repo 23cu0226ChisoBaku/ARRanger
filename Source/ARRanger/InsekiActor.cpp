@@ -1,8 +1,8 @@
 #include "InsekiActor.h"
 
 #include "ARRangerCharacter.h"
+#include "Components/BoxComponent.h"
 #include "Components/StaticMeshComponent.h"
-#include "Components/SphereComponent.h"
 #include "Kismet/GameplayStatics.h"
 
 AInsekiActor::AInsekiActor()
@@ -23,7 +23,7 @@ AInsekiActor::AInsekiActor()
 	InsekiActorMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMeshComponent"));
 	RootComponent = InsekiActorMesh;
 
-	// SphereComponentを追加し、SphereComponentをRootComponentにAttachする
+	// BoxComponentを追加し、SphereComponentをRootComponentにAttachする
 	Sphere = CreateDefaultSubobject<USphereComponent>(TEXT("SphereComponent"));
 	Sphere->SetupAttachment(RootComponent);
 }
@@ -48,41 +48,44 @@ void AInsekiActor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (onStayFlag == true)
+	FVector Direction = playerCharacter->GetActorLocation() - GetActorLocation();
+	float Distance = Direction.Size();
+	if (Distance <= 250.f)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("huttobeeeeeee"));
+		UE_LOG(LogTemp, Warning, TEXT("Oooooooooooon"));
+		repulsionFlag = true;
+	}
 
-		// プレイヤーとの方向と距離を取得
-		FVector Direction = playerCharacter->GetActorLocation() - GetActorLocation();
-		float Distance = Direction.Size();
-
-		// ベクトルを初期化
+	if (repulsionFlag && playerCharacter)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("ugoku?"));
 		FVector DirectionNorm = Direction / Distance;
 
-		UE_LOG(LogTemp, Warning, TEXT("PushOffset size: %f"), Direction.Size());
-		//repulsionFlag = true;
+		// 有効範囲を指定（ここまでなら力が働く）
+		const float MaxRange = 3000.f;
+		const float MinDistance = 100.f;
+		const float ForceScale = constProp * magneticValue * magneticValue;
 
-		if (Distance <= 250.f)
+		
+
+		if (Distance < MaxRange)
 		{
-			repulsionFlag = true;
+			float ClampedDistance = FMath::Clamp(Distance, MinDistance, MaxRange);
+			float ForceMagnitude = ForceScale / (ClampedDistance * ClampedDistance);
+			FVector PushForce = DirectionNorm * ForceMagnitude;
+
+			// DeltaTime かけてスムーズに
+			playerCharacter->AddActorWorldOffset(PushForce, false);
+
+			UE_LOG(LogTemp, Warning, TEXT("Magnetic push active. Distance: %f, Force: %s"), Distance, *PushForce.ToString());
 		}
-		if (repulsionFlag == true)
+
+		if (Distance >= MaxRange)
 		{
-			// 磁気力を発してプレイヤーを押し出す
-			FVector pushForce = DirectionNorm * constProp * magneticValue * magneticValue / (Distance * Distance);
-
-			// デバッグ確認用
-			UE_LOG(LogTemp, Warning, TEXT("pushForce Value Is : %f"), pushForce.Size());
-
-			playerCharacter->AddActorWorldOffset(pushForce, false);
-
-			/*// ACharacterにキャストして動かす
-			ACharacter* Char = Cast<ACharacter>(playerCharacter);
-			Char->LaunchCharacter(pushForce, false, false);*/
+			repulsionFlag = false;
 		}
 	}
 }
-
 void AInsekiActor::OnSphereBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	// 接触したActorがAInsekiCharacterか判定する
@@ -90,8 +93,6 @@ void AInsekiActor::OnSphereBeginOverlap(UPrimitiveComponent* OverlappedComp, AAc
 	{
 		UE_LOG(LogTemp, Warning, TEXT("gomikasuuuuuuu"));
 		RootPrimitive = Cast<UPrimitiveComponent>(OtherActor->GetRootComponent());
-		// 入ってきたフラグをオンに
-		onStayFlag = true;
 	}
 }
 
@@ -104,8 +105,5 @@ void AInsekiActor::OnSphereEndOverlap(UPrimitiveComponent* OverlappedComponent, 
 		RootPrimitive = nullptr;
 
 		UE_LOG(LogTemp, Warning, TEXT("shinebokeeeeeee"));
-		// 入ってきたフラグをオフに
-		onStayFlag = false;
-		repulsionFlag = false;
 	}
 }
