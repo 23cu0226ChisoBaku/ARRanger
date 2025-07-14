@@ -372,7 +372,6 @@ void AARRangerCharacter::PunchHitNotify()
 						UGameplayStatics::SetGlobalTimeDilation(GWorld, 1.0f);
 					}, 0.005f, false);
 
-				
 				// カメラシェイク
 				if (APlayerController* PlayerController = Cast<APlayerController>(GetController()))
 				{
