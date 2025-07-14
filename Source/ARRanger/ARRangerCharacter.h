@@ -33,6 +33,7 @@ class AARRangerCharacter : public ACharacter
 	UCameraComponent* FollowCamera;
 	
 protected:
+	virtual void BeginPlay() override;
 
 	// ジャンプアクション
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
@@ -61,6 +62,14 @@ protected:
 	// パンチアニメーションモンタージュ
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat")
 	UAnimMontage* PunchMontage;
+
+	// キックアクション
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	class UInputAction* KickAction;
+
+	// キックアニメーションモンタージュ
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat")
+	UAnimMontage* KickMontage;
 
 public:
 
@@ -105,6 +114,9 @@ private:
 	// パンチの際に呼び出される
 	void Punch();
 
+	// キックの際に呼び出される
+	void Kick();
+
 public:
 
 	// コントロールまたはUIインターフェースからの移動入力を処理する
@@ -127,13 +139,21 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void PunchHitNotify();
 
+	// キックのAnimNotifyの通知を受け取る
+	UFUNCTION(BlueprintCallable)
+	void KickHitNotify();
+
+	// 攻撃が終わった際のコールバック
+	UFUNCTION()
+	void OnAttackMontageEnded(UAnimMontage* Montage, bool IsInterrupted);
+
 	// ロックオン対象
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	AActor* LockedOnTarget;
 
 	// ダッシュ中フラグ
 	UPROPERTY(BlueprintReadWrite)
-	bool bIsDashing;
+	bool isDashed;
 
 	// 移動入力の閾値(これを超えるとダッシュに遷移する)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
@@ -142,6 +162,14 @@ public:
 	// パンチの当たり判定用
 	UPROPERTY(EditAnywhere, Category = "Combat")
 	float punchRadius;
+
+	// キックの当たり判定用
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	float kickRadius;
+
+	// 攻撃中フラグ
+	UPROPERTY(BlueprintReadOnly)
+	bool isAttacked;
 
 public:
 	virtual void Tick(float DeltaTime) override;

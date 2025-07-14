@@ -20,9 +20,11 @@ AARRangerCharacter::AARRangerCharacter()
 	: DefaultArmLength(250)
 	, DashArmLength(500)
 	, ArmLengthInterpSpeed(2.5f)
-	, bIsDashing(false)
+	, isDashed(false)
 	, moveThreshold(0.9f)
 	, punchRadius(20.0f)
+	, kickRadius(120.0f)
+	, isAttacked(false)
 {
 	// カプセルのサイズを設定する
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
@@ -60,6 +62,22 @@ AARRangerCharacter::AARRangerCharacter()
     // ThirdPersonCharacterという名前の派生ブループリントアセットに設定される (C++ でのコンテンツの直接参照を避けるため)。
 }
 
+void AARRangerCharacter::BeginPlay()
+{
+	Super::BeginPlay();
+
+	if (UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("AnimInstance found! Registering OnMontageEnded"));
+		// 攻撃アニメーションの終了時、OnAttackMontageEndedが呼ばれるようにする
+		AnimInstance->OnMontageEnded.AddDynamic(this, &AARRangerCharacter::OnAttackMontageEnded);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("NO AnimInstance at BeginPlay!"));
+	}
+}
+
 void AARRangerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	// アクションバインディングの設定
@@ -82,6 +100,9 @@ void AARRangerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 
 		// パンチ
 		EnhancedInputComponent->BindAction(PunchAction, ETriggerEvent::Started, this, &AARRangerCharacter::Punch);
+
+		// キック
+		EnhancedInputComponent->BindAction(KickAction, ETriggerEvent::Started, this, &AARRangerCharacter::Kick);
 	}
 	else
 	{
@@ -115,14 +136,14 @@ void AARRangerCharacter::Tick(float DeltaTime)
 				{
 					FVector2D InputVec = InputValue.Get<FVector2D>();
 					// 入力値が閾値を超えているかで判断
-					bIsDashing = InputVec.Size() > moveThreshold; 
+					isDashed = InputVec.Size() > moveThreshold; 
 				}
 			}
 		}
 	}
 
 	// ダッシュ時にカメラをプレイヤーに近づける
-	float TargetArmLength = bIsDashing ? DashArmLength : DefaultArmLength;
+	float TargetArmLength = isDashed ? DashArmLength : DefaultArmLength;
 	CameraBoom->TargetArmLength = FMath::FInterpTo(
 		CameraBoom->TargetArmLength,
 		TargetArmLength,
@@ -175,9 +196,15 @@ void AARRangerCharacter::DoMove(float Right, float Forward)
 {
 	if (GetController() != nullptr)
 	{
+		// 攻撃中は移動しない
+		if (isAttacked)
+		{
+			return;
+		}
+
 		// 入力ベクトルの長さで走っているかどうか判定
 		const float InputMagnitude = FVector2D(Right, Forward).Size();
-		bIsDashing = InputMagnitude > moveThreshold;
+		isDashed = InputMagnitude > moveThreshold;
 
 		// どちらを向いているか調べる
 		const FRotator Rotation = GetController()->GetControlRotation();
@@ -207,6 +234,12 @@ void AARRangerCharacter::DoLook(float Yaw, float Pitch)
 
 void AARRangerCharacter::DoJumpStart()
 {
+	// 攻撃中はジャンプしない
+	if (isAttacked)
+	{
+		return;
+	}
+
 	// キャラクターがジャンプする合図
 	Jump();
 }
@@ -291,10 +324,15 @@ AActor* AARRangerCharacter::FindNearestEnemy()
 	return NearestEnemy;
 }
 
+
 void AARRangerCharacter::Punch()
 {
 	if (PunchMontage && !GetMesh()->GetAnimInstance()->Montage_IsPlaying(PunchMontage))
 	{
+		// 攻撃中フラグを上げる
+		isAttacked = true;
+
+		// パンチアニメーションを再生
 		GetMesh()->GetAnimInstance()->Montage_Play(PunchMontage);
 	}
 }
@@ -350,4 +388,67 @@ void AARRangerCharacter::PunchHitNotify()
 			}
 		}
 	}
+}
+
+void AARRangerCharacter::Kick()
+{
+	if (KickMontage && !GetMesh()->GetAnimInstance()->Montage_IsPlaying(KickMontage))
+	{
+		// 攻撃中フラグを上げる
+		isAttacked = true;
+
+		// キックアニメーションを再生
+		GetMesh()->GetAnimInstance()->Montage_Play(KickMontage);
+	}
+}
+
+void AARRangerCharacter::KickHitNotify()
+{
+	// 当たり判定を作成
+	// パンチより少し広くする
+	FVector Origin = GetActorLocation() + GetActorForwardVector() * 100.f;
+
+	TArray<AActor*> OverlappingActors;
+	bool bHit = UKismetSystemLibrary::SphereOverlapActors(
+		this,
+		Origin,
+		120.0f,
+		TArray<TEnumAsByte<EObjectTypeQuery>>{
+		UEngineTypes::ConvertToObjectType(ECC_Pawn),
+			UEngineTypes::ConvertToObjectType(ECC_WorldDynamic)
+	},
+		nullptr,
+		TArray<AActor*>{this},
+		OverlappingActors
+	);
+
+	if (!bHit) return;
+
+	for (AActor* HitActor : OverlappingActors)
+	{
+		if (HitActor->ActorHasTag("Enemy"))
+		{
+			FVector LaunchDir = GetActorForwardVector() * 1200.f + FVector(0, 0, 300.f);
+			UPrimitiveComponent* Comp = Cast<UPrimitiveComponent>(HitActor->GetRootComponent());
+			if (Comp && Comp->IsSimulatingPhysics())
+			{
+				Comp->AddImpulse(LaunchDir, NAME_None, true);
+			}
+
+			// ヒットストップ（パンチより少し長め）
+			UGameplayStatics::SetGlobalTimeDilation(GetWorld(), 0.1f);
+			FTimerHandle HitStopTimerHandle;
+			GetWorldTimerManager().SetTimer(HitStopTimerHandle, []()
+				{
+					UGameplayStatics::SetGlobalTimeDilation(GWorld, 1.0f);
+				}, 0.01f, false);
+
+			// カメラシェイクも追加
+		}
+	}
+}
+
+void AARRangerCharacter::OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted)
+{
+	isAttacked = false;
 }

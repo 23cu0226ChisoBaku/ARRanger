@@ -21,7 +21,7 @@ APlatformingCharacter::APlatformingCharacter()
 	bHasWallJumped = false;
 	bHasDoubleJumped = false;
 	bHasDashed = false;
-	bIsDashing = false;
+	isDashed = false;
 
 	// bind the attack montage ended delegate
 	OnDashMontageEnded.BindUObject(this, &APlatformingCharacter::DashMontageEnded);
@@ -103,7 +103,7 @@ void APlatformingCharacter::Dash()
 void APlatformingCharacter::MultiJump()
 {
 	// ignore jumps while dashing
-	if(bIsDashing)
+	if(isDashed)
 		return;
 
 	// are we already in the air?
@@ -220,7 +220,7 @@ void APlatformingCharacter::DoDash()
 		return;
 
 	// raise the dash flags
-	bIsDashing = true;
+	isDashed = true;
 	bHasDashed = true;
 
 	// disable gravity while dashing
@@ -272,7 +272,7 @@ void APlatformingCharacter::EndDash()
 	GetCharacterMovement()->GravityScale = 2.5f;
 
 	// reset the dashing flag
-	bIsDashing = false;
+	isDashed = false;
 
 	// are we grounded after the dash?
 	if (GetCharacterMovement()->IsMovingOnGround())
