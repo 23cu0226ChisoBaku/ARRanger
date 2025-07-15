@@ -14,7 +14,7 @@ public class ARRanger : ModuleRules
 			"Engine",
 			"InputCore",
 			"EnhancedInput",
-			"AIModule",
+            "AIModule",
 			"StateTreeModule",
 			"GameplayStateTreeModule",
 			"UMG"
