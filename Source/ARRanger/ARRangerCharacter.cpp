@@ -20,9 +20,11 @@ AARRangerCharacter::AARRangerCharacter()
 	: DefaultArmLength(250)
 	, DashArmLength(500)
 	, ArmLengthInterpSpeed(2.5f)
+	, maxLockOnDistance(1500.0f)
 	, isDashed(false)
 	, moveThreshold(0.9f)
-	, punchRadius(20.0f)
+	, attackPower(35)
+	, punchRadius(100.0f)
 	, kickRadius(120.0f)
 	, isAttacked(false)
 {
@@ -84,8 +86,8 @@ void AARRangerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent)) {
 		
 		// ジャンプ
-		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &ACharacter::Jump);
-		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
+		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &AARRangerCharacter::DoJumpStart);
+		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &AARRangerCharacter::DoJumpEnd);
 
 		// 移動
 		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AARRangerCharacter::Move);
@@ -96,7 +98,9 @@ void AARRangerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 
 		// ロックオン
 		EnhancedInputComponent->BindAction(LockOnAction, ETriggerEvent::Triggered, this, &AARRangerCharacter::ToggleLockOn);
-		PlayerInputComponent->BindAxis("SwitchTarget", this, &AARRangerCharacter::SwitchTarget);
+
+		// ロックオン時ターゲット切り替え
+		EnhancedInputComponent->BindAction(SwitchTargetAction, ETriggerEvent::Triggered, this, &AARRangerCharacter::SwitchTarget);
 
 		// パンチ
 		EnhancedInputComponent->BindAction(PunchAction, ETriggerEvent::Started, this, &AARRangerCharacter::Punch);
@@ -158,6 +162,21 @@ void AARRangerCharacter::Tick(float DeltaTime)
 		TargetRotation.Pitch = 0.f;
 		TargetRotation.Roll = 0.f;
 
+		if (!IsValid(LockedOnTarget) || LockedOnTarget->IsActorBeingDestroyed())
+		{
+			AActor* NewTarget = FindNearestEnemy(LockedOnTarget);
+			// ロックオンした敵を倒した後、近くに敵がいればそちらにロックオンする
+			if (NewTarget)
+			{
+				LockedOnTarget = NewTarget;
+			}
+			// いなければロックオンを解除
+			else
+			{
+				LockedOnTarget = nullptr;
+				bIsLockedOn = false;
+			}
+		}
 		// キャラクター本体を回転させる
 		SetActorRotation(TargetRotation);
 
@@ -171,6 +190,8 @@ void AARRangerCharacter::Tick(float DeltaTime)
 
 			Controller->SetControlRotation(NewControlRot);
 		}
+
+		
 	}
 }
 
@@ -276,46 +297,50 @@ void AARRangerCharacter::ToggleLockOn()
 	}
 }
 
-void AARRangerCharacter::SwitchTarget(float Value)
+void AARRangerCharacter::SwitchTarget(const FInputActionValue& Value)
 {
-	if (!bIsLockedOn || FMath::IsNearlyZero(Value))
+	if (!bIsLockedOn) return;
+
+	float AxisValue = Value.Get<float>();
+
+	// 閾値つける（スティック軽く倒れただけでは切り替えないように）
+	if (FMath::Abs(AxisValue) < 0.5f)
 		return;
 
-	// ロックオン可能な敵を全取得して、
-	// 現在のターゲットの左右にいる敵に切り替えなど
+	// 方向に応じて切り替え
+	const bool bRight = AxisValue > 0;
+
 	TArray<AActor*> Enemies;
 	UGameplayStatics::GetAllActorsWithTag(GetWorld(), FName("Enemy"), Enemies);
-
 	if (Enemies.Num() <= 1) return;
 
-	// 現在のターゲットのインデックスを取得
 	int32 CurrentIndex = Enemies.IndexOfByKey(LockedOnTarget);
 	if (CurrentIndex == INDEX_NONE) return;
 
-	int32 NewIndex;
-	if (Value > 0)
-		NewIndex = (CurrentIndex + 1) % Enemies.Num();
-	else
-		NewIndex = (CurrentIndex - 1 + Enemies.Num()) % Enemies.Num();
+	int32 NewIndex = bRight
+		? (CurrentIndex + 1) % Enemies.Num()
+		: (CurrentIndex - 1 + Enemies.Num()) % Enemies.Num();
 
 	LockedOnTarget = Enemies[NewIndex];
 }
 
-AActor* AARRangerCharacter::FindNearestEnemy()
+AActor* AARRangerCharacter::FindNearestEnemy(AActor* IgnoreActor)
 {
 	TArray<AActor*> Enemies;
 	UGameplayStatics::GetAllActorsWithTag(GetWorld(), FName("Enemy"), Enemies);
 
-	UE_LOG(LogTemp, Warning, TEXT("Found %d enemies"), Enemies.Num());
-
 	AActor* NearestEnemy = nullptr;
 	float MinDistSq = FLT_MAX;
 	FVector MyLocation = GetActorLocation();
+	float MaxDistSq = maxLockOnDistance * maxLockOnDistance;
 
 	for (AActor* Enemy : Enemies)
 	{
+		if (Enemy == IgnoreActor || !IsValid(Enemy)) continue;
+
 		float DistSq = FVector::DistSquared(MyLocation, Enemy->GetActorLocation());
-		if (DistSq < MinDistSq)
+
+		if (DistSq <= MaxDistSq && DistSq < MinDistSq)
 		{
 			MinDistSq = DistSq;
 			NearestEnemy = Enemy;
@@ -340,7 +365,7 @@ void AARRangerCharacter::Punch()
 void AARRangerCharacter::PunchHitNotify()
 {
 	FVector Origin = GetActorLocation() + GetActorForwardVector() * 100.f;
-	DrawDebugSphere(GetWorld(), Origin, punchRadius, 16, FColor::Red, false, 2.0f);
+	//DrawDebugSphere(GetWorld(), Origin, punchRadius, 16, FColor::Red, false, 2.0f);
 	TArray<AActor*> OverlappingActors;
 
 	bool bHit = UKismetSystemLibrary::SphereOverlapActors(
@@ -359,31 +384,19 @@ void AARRangerCharacter::PunchHitNotify()
 	{
 		if (HitActor->ActorHasTag("Enemy"))
 		{
-			// スタティックメッシュを取得
-			if (UStaticMeshComponent* MeshComp = HitActor->FindComponentByClass<UStaticMeshComponent>())
+			AEnemy* Enemy = Cast<AEnemy>(HitActor);
+			if (Enemy)
 			{
-				// 全体ヒットストップ（スロー再生）
-				UGameplayStatics::SetGlobalTimeDilation(GetWorld(), 0.1f);
+				// 死亡していたら処理しない
+				if (Enemy->isDead) continue;
 
-				// 数フレーム後に元に戻す
-				FTimerHandle HitStopTimerHandle;
-				GetWorldTimerManager().SetTimer(HitStopTimerHandle, []()
-					{
-						UGameplayStatics::SetGlobalTimeDilation(GWorld, 1.0f);
-					}, 0.005f, false);
+				FVector LaunchDir = GetActorForwardVector() + FVector(0, 0, 0.2f);
+				LaunchDir.Normalize();
 
-				// カメラシェイク
-				if (APlayerController* PlayerController = Cast<APlayerController>(GetController()))
-				{
-					UE_LOG(LogTemp, Warning, TEXT("CameraShake triggered!"));
-					if (PlayerController->PlayerCameraManager)
-					{
-						PlayerController->PlayerCameraManager->StartCameraShake(UPunchCameraShake::StaticClass());
-					}
-				}
+				// 敵のHPが0になるかどうか先に見る
+				bool willBeKilled = (Enemy->currentHP - attackPower <= 0);
 
-				FVector LaunchDir = GetActorForwardVector() * 600.f + FVector(0, 0, 150.f);
-				MeshComp->AddImpulse(LaunchDir, NAME_None, true);
+				Enemy->ReceiveDamage(attackPower, LaunchDir, willBeKilled);
 			}
 		}
 	}
@@ -411,7 +424,7 @@ void AARRangerCharacter::KickHitNotify()
 	bool bHit = UKismetSystemLibrary::SphereOverlapActors(
 		this,
 		Origin,
-		120.0f,
+		kickRadius,
 		TArray<TEnumAsByte<EObjectTypeQuery>>{
 		UEngineTypes::ConvertToObjectType(ECC_Pawn),
 			UEngineTypes::ConvertToObjectType(ECC_WorldDynamic)
@@ -427,22 +440,20 @@ void AARRangerCharacter::KickHitNotify()
 	{
 		if (HitActor->ActorHasTag("Enemy"))
 		{
-			FVector LaunchDir = GetActorForwardVector() * 1200.f + FVector(0, 0, 300.f);
-			UPrimitiveComponent* Comp = Cast<UPrimitiveComponent>(HitActor->GetRootComponent());
-			if (Comp && Comp->IsSimulatingPhysics())
+			AEnemy* Enemy = Cast<AEnemy>(HitActor);
+			if (Enemy)
 			{
-				Comp->AddImpulse(LaunchDir, NAME_None, true);
+				// 死亡していたら処理しない
+				if (Enemy->isDead) continue;
+
+				FVector LaunchDir = GetActorForwardVector() + FVector(0, 0, 0.2f);
+				LaunchDir.Normalize();
+
+				// 敵のHPが0になるかどうか先に見る
+				bool willBeKilled = (Enemy->currentHP - attackPower <= 0);
+
+				Enemy->ReceiveDamage(attackPower, LaunchDir, willBeKilled);
 			}
-
-			// ヒットストップ（パンチより少し長め）
-			UGameplayStatics::SetGlobalTimeDilation(GetWorld(), 0.1f);
-			FTimerHandle HitStopTimerHandle;
-			GetWorldTimerManager().SetTimer(HitStopTimerHandle, []()
-				{
-					UGameplayStatics::SetGlobalTimeDilation(GWorld, 1.0f);
-				}, 0.0075f, false);
-
-			// カメラシェイクも追加
 		}
 	}
 }

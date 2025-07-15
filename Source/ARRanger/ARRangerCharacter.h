@@ -55,6 +55,10 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	class UInputAction* LockOnAction;
 
+	// ロックオン時ターゲット切り替えアクション
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	class UInputAction* SwitchTargetAction;
+
 	// パンチアクション
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	class UInputAction* PunchAction;
@@ -106,10 +110,10 @@ private:
 	void ToggleLockOn();
 
 	// スティック入力で敵切替（右スティックのX軸など）
-	void SwitchTarget(float Value);
+	void SwitchTarget(const FInputActionValue& Value);
 
 	// ロックオン可能な敵を検索
-	AActor* FindNearestEnemy();
+	AActor* FindNearestEnemy(AActor* IgnoreActor = nullptr);
 
 	// パンチの際に呼び出される
 	void Punch();
@@ -151,6 +155,10 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	AActor* LockedOnTarget;
 
+	// ロックオン可能距離
+	UPROPERTY(EditAnywhere, Category = "LockOn")
+	float maxLockOnDistance;
+
 	// ダッシュ中フラグ
 	UPROPERTY(BlueprintReadWrite)
 	bool isDashed;
@@ -158,6 +166,9 @@ public:
 	// 移動入力の閾値(これを超えるとダッシュに遷移する)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float moveThreshold;
+
+	// 攻撃力
+	int attackPower;
 
 	// パンチの当たり判定用
 	UPROPERTY(EditAnywhere, Category = "Combat")

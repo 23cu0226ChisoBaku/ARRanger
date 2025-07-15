@@ -74,7 +74,6 @@ void AInsekiActor::Tick(float DeltaTime)
 			float ForceMagnitude = ForceScale / (ClampedDistance * ClampedDistance);
 			FVector PushForce = DirectionNorm * ForceMagnitude;
 
-			// DeltaTime ‚©‚¯‚ÄƒXƒ€[ƒY‚É
 			playerCharacter->AddActorWorldOffset(PushForce, false);
 
 			UE_LOG(LogTemp, Warning, TEXT("Magnetic push active. Distance: %f, Force: %s"), Distance, *PushForce.ToString());

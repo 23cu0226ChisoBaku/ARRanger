@@ -56,8 +56,6 @@ private:
 	// 遅延呼び出し用関数（OnHit内から呼ばれる）
 	void PerformLaunch();
 
-	void RestoreMovementMode();
-
 public:
 	virtual void Tick(float DeltaTime) override;
 

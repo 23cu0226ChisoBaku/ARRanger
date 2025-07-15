@@ -37,12 +37,30 @@ void AInsekiActor_NonArea::BeginPlay()
 
 	TArray<AActor*> FoundActors;
 	UGameplayStatics::GetAllActorsWithTag(GetWorld(), FName("Player"), FoundActors);
-	playerCharacter = FoundActors[0];
+	if (FoundActors.Num() > 0)
+	{
+		playerCharacter = FoundActors[0];
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("AInsekiActor_NonArea: No actor found with tag 'Player'"));
+	}
 }
 
 void AInsekiActor_NonArea::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	if (!playerCharacter)
+	{
+		TArray<AActor*> FoundActors;
+		UGameplayStatics::GetAllActorsWithTag(GetWorld(), FName("Player"), FoundActors);
+		if (FoundActors.Num() > 0)
+		{
+			playerCharacter = FoundActors[0];
+			UE_LOG(LogTemp, Warning, TEXT("Found PlayerCharacter later in Tick"));
+		}
+	}
 }
 
 void AInsekiActor_NonArea::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
@@ -93,40 +111,43 @@ void AInsekiActor_NonArea::OnHit(UPrimitiveComponent* HitComponent, AActor* Othe
 		UE_LOG(LogTemp, Warning, TEXT("Player Velocity: %f"), ProjectedVelocity.Size());*/
 
 		// ACharacterにキャストして動かす
+		/*FVector Direction = playerCharacter->GetActorLocation() - GetActorLocation();
+		float Distance = Direction.Size();
+		FVector DirectionNorm = Direction / Distance;
+		const float MinDistance = 100.f;
+		const float ForceScale = 63300.0f * 5000.0f * 5000.0f;
+
+		float ForceMagnitude = ForceScale / (Distance * Distance);
+		FVector PushForce = DirectionNorm * ForceMagnitude;
+
 		ACharacter* Char = Cast<ACharacter>(playerCharacter);
-		Char->LaunchCharacter(ProjectedVelocity, false, false);
+		Char->LaunchCharacter(ProjectedVelocity, false, false);*/
 
-		// LaunchCharacterで使う予定の速度を保存
-		PendingLaunchVelocity = ProjectedVelocity;
-
-		// 少し遅延してLaunchCharacterを呼ぶ
-		//GetWorld()->GetTimerManager().SetTimer(LaunchTimerHandle, this, &AInsekiActor_NonArea::PerformLaunch, 0.02f, false);
-
-		/*// 衝突方向ベクトル
-		FVector ToPlayerDir = playerCharacter->GetActorLocation() - GetActorLocation();
-
-		// はじき飛ばす力の大きさ（調整可能）
-		const float PushPower = 50.0f;
-
-		// 移動ベクトルを直接指定
-		FVector PushVector = ToPlayerDir * PushPower;
-
-		// ACharacterにキャストして動かす
 		ACharacter* Char = Cast<ACharacter>(playerCharacter);
-		Char->LaunchCharacter(PushVector, false, false);*/
-	}
-}
+		// 接触方向を取得
+		FVector ImpactDirection = playerCharacter->GetActorLocation() - GetActorLocation();
+		ImpactDirection.Normalize();
 
-void AInsekiActor_NonArea::RestoreMovementMode()
-{
-	if (playerCharacter)
-	{
-		auto Char = Cast<ACharacter>(playerCharacter);
-		if (Char)
+		// 真上から来てるかどうか判定（Z成分が正で十分大きい）
+		if (ImpactDirection.Z > 0.7f) // 真上から落ちてきた場合
 		{
-			Char->GetCharacterMovement()->SetMovementMode(MOVE_Walking);
+			// プレイヤーをLaunch（Yは無視して上に飛ばす）
+			FVector LaunchVelocity = FVector(0.f, 0.f, 1000.f); 
+			Char->LaunchCharacter(LaunchVelocity, true, true);
+		}
+		else
+		{
+			// 横から当たった場合は吹き飛ばし（Zは少しだけ、XY方向に飛ばす）
+			FVector HorizontalDir = ImpactDirection;
+			HorizontalDir.Z = 0.f;
+			HorizontalDir.Normalize();
+
+			FVector KnockbackVelocity = HorizontalDir * 800.f + FVector(0.f, 0.f, 200.f);
+			Char->LaunchCharacter(KnockbackVelocity, true, false);
 		}
 	}
+
+
 }
 
 /*void AInsekiActor_NonArea::PerformLaunch()
