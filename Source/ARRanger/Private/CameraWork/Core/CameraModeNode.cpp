@@ -23,10 +23,5 @@ namespace CameraWork
     return m_bIsEnabled;
   }
 
-  FCameraModeNodeEvaluatorPtr FCameraModeNode::MakeEvaluatorImpl() const
-  {
-    return nullptr;
-  }
-
-}
-}
+} // namespace AR::CameraWork
+} // namespace AR

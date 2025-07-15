@@ -12,7 +12,21 @@ namespace AR
 namespace CameraWork
 {
   class FCameraModeNode;
-  class FCameraModeEvaluationResult;
+  
+  /**
+   * Camera mode node evaluator build params
+   * 
+   * // NOTE:USE FOR MEMORY MANAGEMENT
+   */
+  struct FCameraModeNodeEvaluatorBuildParameters
+  {
+
+  };
+
+  struct MCW_API FCameraModeNodeEvaluationResult
+  {
+    
+  };
 
   class FCameraModeNodeEvaluator
   {
@@ -28,10 +42,22 @@ namespace CameraWork
       template<typename NodeType>
       const NodeType* GetCameraModeNodeAs() const;
 
-      MCW_API void Evaluate(FCameraModeEvaluationResult& Result);
+      MCW_API void BuildEvaluator(FCameraModeNodeEvaluatorBuildParameters& BuildParams);
 
+      MCW_API void InitializeEvaluator();
+
+      MCW_API void Evaluate(FCameraModeNodeEvaluationResult& Result);
+
+    // pure virtual method
     protected:
-      MCW_API virtual void EvaluateImpl(FCameraModeEvaluationResult& Result);
+      MCW_API virtual void EvaluateImpl(FCameraModeNodeEvaluationResult& Result) = 0;
+    
+    // non-pure virtual method
+    protected:
+      MCW_API virtual void BuildEvaluatorImpl(FCameraModeNodeEvaluatorBuildParameters& BuildParams);
+
+      MCW_API virtual void InitializeEvaluatorImpl();
+
     
     // Only for internal use
     private:

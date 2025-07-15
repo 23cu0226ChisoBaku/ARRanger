@@ -30,6 +30,17 @@
   #define MCW_API
 #endif // MCW_API
 
+#if defined(UE_BUILD_DEBUG) || defined(UE_BUILD_DEBUGGING) || defined(UE_BUILD_DEVELOPMENT) || defined(UE_BUILD_SHIPPING) || defined(UE_BUILD_TEST)
+  #define IS_UE_ENVIRONMENT 1
+#else
+  #define IS_UE_ENVIRONMENT 0
+#endif // defined(UE_BUILD_DEBUG) || defined(UE_BUILD_DEBUGGING) || defined(UE_BUILD_DEVELOPMENT) || defined(UE_BUILD_SHIPPING) || defined(UE_BUILD_TEST)
+
+// Fallback if not defined
+#ifndef IS_UE_ENVIRONMENT
+  #define IS_UE_ENVIRONMENT 0
+#endif
+
 // FIXME: Temporary use
 #include "Core/Cast.h"
 

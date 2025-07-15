@@ -10,15 +10,30 @@ namespace CameraWork
     return m_privateNode;
   }
 
-  void FCameraModeNodeEvaluator::Evaluate(FCameraModeEvaluationResult& Result)
+  void FCameraModeNodeEvaluator::BuildEvaluator(FCameraModeNodeEvaluatorBuildParameters& BuildParams)
+  {
+    BuildEvaluatorImpl(BuildParams);
+  }
+
+  void FCameraModeNodeEvaluator::InitializeEvaluator()
+  {
+    InitializeEvaluatorImpl();
+  }
+
+  void FCameraModeNodeEvaluator::Evaluate(FCameraModeNodeEvaluationResult& Result)
   {
     if ((m_privateNode != nullptr) && m_privateNode->IsEnable())
     {
       EvaluateImpl(Result);
     }
   }
-  
-  void FCameraModeNodeEvaluator::EvaluateImpl(FCameraModeEvaluationResult& Result)
+
+  void FCameraModeNodeEvaluator::BuildEvaluatorImpl(FCameraModeNodeEvaluatorBuildParameters& BuildParams)
+  {
+    // Empty implementation
+  }
+
+  void FCameraModeNodeEvaluator::InitializeEvaluatorImpl()
   {
     // Empty implementation
   }

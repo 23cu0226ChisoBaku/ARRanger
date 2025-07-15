@@ -24,7 +24,7 @@ namespace CameraWork
       MCW_API bool IsEnable() const;
 
     protected:
-      virtual FCameraModeNodeEvaluatorPtr MakeEvaluatorImpl() const;
+      virtual FCameraModeNodeEvaluatorPtr MakeEvaluatorImpl() const = 0;
 
     private:
       bool m_bIsEnabled : 1;
