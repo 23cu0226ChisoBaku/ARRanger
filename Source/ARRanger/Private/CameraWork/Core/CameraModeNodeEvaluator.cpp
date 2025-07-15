@@ -5,6 +5,11 @@ namespace AR
 {
 namespace CameraWork
 {
+  void FCameraModeNodeEvaluationResult::Reset()
+  {
+    CameraView.Reset();
+  }
+
   const FCameraModeNode* FCameraModeNodeEvaluator::GetCameraModeNode() const
   {
     return m_privateNode;

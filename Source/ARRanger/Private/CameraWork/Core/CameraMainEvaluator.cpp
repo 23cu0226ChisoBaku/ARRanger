@@ -12,6 +12,18 @@ namespace AR
 {
 namespace CameraWork
 {
+  void FCameraMainEvaluationResult::Reset()
+  {
+    CameraView.Reset();
+  }
+
+  void FCameraMainEvaluationResult::Reset(const FCameraModeNodeEvaluationResult& OverrideResult)
+  {
+    Reset();
+
+    CameraView = OverrideResult.CameraView;
+  }
+
   FCameraMainEvaluator::FCameraMainEvaluator()
     : m_weakOwner{nullptr}
     , m_rootNode{nullptr}
@@ -81,7 +93,15 @@ namespace CameraWork
 
   void FCameraMainEvaluator::EvaluateImpl(const FCameraMainEvaluationParameters& EvaluateParams)
   {
-    if 
+    MCW_CHECK(m_rootEvaluator != nullptr);
+
+    // Evaluate root node
+    {
+      m_rootEvaluator->Evaluate(m_nodeResult);
+    }
+
+    // Override evaluated result to output result
+    m_evaluatedResult.Reset(m_nodeResult);
   }
 }
 }

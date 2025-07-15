@@ -4,6 +4,8 @@
 #define _MCW_CAMERAWORK_CORE_CAMERA_MAIN_EVALUATOR_
 
 #include "Core/CoreDefines.h"
+#include "Core/CameraModeNodeEvaluator.h"
+#include "Core/CameraModeView.h"
 
 #include <memory>
 
@@ -65,6 +67,16 @@ namespace CameraWork
     float DeltaTime = 0.0f;
   };
 
+  struct MCW_API FCameraMainEvaluationResult
+  {
+    FCameraModeView CameraView;
+
+    public:
+      void Reset();
+
+      void Reset(const FCameraModeNodeEvaluationResult& OverrideResult);
+  };
+
   /**
    * Main evaluator to evaluate nodes in specific camera work asset
    */
@@ -80,6 +92,8 @@ namespace CameraWork
 
       MCW_API void Evaluate(const FCameraMainEvaluationParameters& EvaluateParams);
 
+      MCW_API __forceinline const FCameraMainEvaluationResult& GetEvaluatedResult() const;
+
     private:
       void EvaluateImpl(const FCameraMainEvaluationParameters& EvaluateParams);
     
@@ -89,7 +103,33 @@ namespace CameraWork
       Private::SharedPtr<FCameraModeRootNode> m_rootNode;
 
       Private::SharedPtr<FCameraModeRootNodeEvaluator> m_rootEvaluator;
+
+      /**
+       * Result of root node evaluation
+       */
+      FCameraModeNodeEvaluationResult m_nodeResult;
+
+      /**
+       * Result of overall evaluation 
+       */
+      FCameraMainEvaluationResult m_evaluatedResult;
   };
+
+  /**
+   * Start FCameraMainEvaluator inline method definition
+   */
+
+
+  #pragma region Main evaluator inline method def
+  __forceinline const FCameraMainEvaluationResult& FCameraMainEvaluator::GetEvaluatedResult() const
+  {
+    return m_evaluatedResult;
+  }
+  #pragma endregion Main evaluator inline method def
+
+  /**
+   * End FCameraMainEvaluator inline method definition
+   */
 }
 }
 

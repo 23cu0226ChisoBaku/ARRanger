@@ -41,6 +41,19 @@
   #define IS_UE_ENVIRONMENT 0
 #endif
 
+// Assertion
+#if IS_UE_ENVIRONMENT
+  #define MCW_CHECK(Expression) check(!!(Expression))
+#elif defined(_MENGINE_VER) // MEngine assertion
+  #define MCW_CHECK(Expression) me_assert(!!(Expression))
+#endif
+
+// Fallback to c++ standard assertion
+#ifndef MCW_CHECK
+  #include <cassert>
+  #define MCW_CHECK(Expression) assert(!!(Expression))
+#endif
+
 // FIXME: Temporary use
 #include "Core/Cast.h"
 

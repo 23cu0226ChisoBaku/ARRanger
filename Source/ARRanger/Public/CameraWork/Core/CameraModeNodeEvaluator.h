@@ -4,6 +4,7 @@
 #define _MCW_CAMERAWORK_CORE_CAMERA_MODE_NODE_EVALUATOR_
 
 #include "Core/CoreDefines.h"
+#include "Core/CameraModeView.h"
 
 #include <type_traits>
 
@@ -20,12 +21,18 @@ namespace CameraWork
    */
   struct FCameraModeNodeEvaluatorBuildParameters
   {
-
+    
   };
 
   struct MCW_API FCameraModeNodeEvaluationResult
   {
-    
+    /**
+     * Camera view for node evaluation
+     */
+    FCameraModeView CameraView;
+
+    public:
+      void Reset();
   };
 
   class FCameraModeNodeEvaluator

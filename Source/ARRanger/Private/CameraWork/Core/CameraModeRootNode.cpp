@@ -4,7 +4,18 @@ namespace AR
 {
 namespace CameraWork
 {
-  #error Start Here!!!!!!
-  void FCameraModeRootNodeEvaluator::
+  void FCameraModeRootNodeEvaluator::EvaluateImpl(FCameraModeNodeEvaluationResult& Result)
+  {
+    // FIXME: UE 5.6 TEST CODE
+    if (GEngine)
+    {
+      
+    }
+  }
+
+  FCameraModeNodeEvaluatorPtr FCameraModeRootNode::MakeEvaluatorImpl() const
+  {
+    return nullptr;
+  }
 } 
 }

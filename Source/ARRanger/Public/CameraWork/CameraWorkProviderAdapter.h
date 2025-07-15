@@ -1,0 +1,8 @@
+﻿#pragma once
+
+#ifndef _MCW_CAMERA_WORK_PROVIDER_ADAPTER_
+#define _MCW_CAMERA_WORK_PROVIDER_ADAPTER_
+
+#error Start here
+
+#endif // _MCW_CAMERA_WORK_PROVIDER_ADAPTER_
