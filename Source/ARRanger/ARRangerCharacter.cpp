@@ -121,6 +121,32 @@ void AARRangerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	// 毎フレーム入力強度をチェックしてisDashedを更新
+	float InputMagnitude = 0.f;
+	if (APlayerController* PC = Cast<APlayerController>(GetController()))
+	{
+		if (ULocalPlayer* LP = Cast<ULocalPlayer>(PC->Player))
+		{
+			if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(LP))
+			{
+				const FInputActionValue InputValue = Subsystem->GetPlayerInput()->GetActionValue(MoveAction);
+				if (InputValue.GetValueType() == EInputActionValueType::Axis2D)
+				{
+					InputMagnitude = InputValue.Get<FVector2D>().Size();
+				}
+			}
+		}
+	}
+
+	// ヒステリシスによるダッシュ判定
+	if (!isDashed && InputMagnitude > dashStartThreshold)
+	{
+		isDashed = true;
+	}
+	else if (isDashed && InputMagnitude < dashEndThreshold)
+	{
+		isDashed = false;
+	}
 
 	// ダッシュ時にカメラをプレイヤーに近づける
 	const float TargetArmLength = isDashed ? DashArmLength : DefaultArmLength;
@@ -196,33 +222,6 @@ void AARRangerCharacter::DoMove(float Right, float Forward)
 		if (isAttacked)
 		{
 			return;
-		}
-
-		// ダッシュしているかの判定
-		float InputMagnitude = 0.f;
-		if (APlayerController* PC = Cast<APlayerController>(GetController()))
-		{
-			if (ULocalPlayer* LP = Cast<ULocalPlayer>(PC->Player))
-			{
-				if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(LP))
-				{
-					const FInputActionValue InputValue = Subsystem->GetPlayerInput()->GetActionValue(MoveAction);
-					if (InputValue.GetValueType() == EInputActionValueType::Axis2D)
-					{
-						InputMagnitude = InputValue.Get<FVector2D>().Size();
-					}
-				}
-			}
-		}
-
-		// ヒステリシスを用いてダッシュ状態を制御
-		if (!isDashed && InputMagnitude > dashStartThreshold)
-		{
-			isDashed = true;
-		}
-		else if (isDashed && InputMagnitude < dashEndThreshold)
-		{
-			isDashed = false;
 		}
 
 		// どちらを向いているか調べる
