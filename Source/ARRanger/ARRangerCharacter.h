@@ -55,9 +55,13 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	class UInputAction* LockOnAction;
 
-	// ロックオン時ターゲット切り替えアクション
+	// ロックオン時ターゲット切り替えアクション(次のターゲット)
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
-	class UInputAction* SwitchTargetAction;
+	class UInputAction* SwitchTargetRightAction;
+
+	// ロックオン時ターゲット切り替えアクション(前のターゲット)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	class UInputAction* SwitchTargetLeftAction;
 
 	// パンチアクション
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
@@ -97,6 +101,9 @@ private:
 	// ロックオン中フラグ
 	bool bIsLockedOn;
 
+	// ロックオン時敵切り替えの可能フラグ
+	bool isAbleToSwitchTarget;
+
 	// もともとのカメラとプレイヤーの距離
 	float DefaultArmLength;
 
@@ -109,8 +116,14 @@ private:
 	// ロックオン切替関数
 	void ToggleLockOn();
 
-	// スティック入力で敵切替（右スティックのX軸など）
-	void SwitchTarget(const FInputActionValue& Value);
+	// 十字ボタン右を押した際に呼び出される
+	void SwitchTargetRight();
+
+	// 十字ボタン左を押した際に呼び出される
+	void SwitchTargetLeft();
+
+	// ロックオン時ターゲット切り替え関数(引数によって前後に切り替え)
+	void SwitchTarget(bool isPressedRight);
 
 	// ロックオン可能な敵を検索
 	AActor* FindNearestEnemy(AActor* IgnoreActor = nullptr);

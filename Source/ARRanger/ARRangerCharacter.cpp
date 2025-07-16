@@ -27,6 +27,7 @@ AARRangerCharacter::AARRangerCharacter()
 	, punchRadius(100.0f)
 	, kickRadius(120.0f)
 	, isAttacked(false)
+	, isAbleToSwitchTarget(false)
 {
 	// カプセルのサイズを設定する
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
@@ -99,8 +100,11 @@ void AARRangerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 		// ロックオン
 		EnhancedInputComponent->BindAction(LockOnAction, ETriggerEvent::Triggered, this, &AARRangerCharacter::ToggleLockOn);
 
-		// ロックオン時ターゲット切り替え
-		EnhancedInputComponent->BindAction(SwitchTargetAction, ETriggerEvent::Triggered, this, &AARRangerCharacter::SwitchTarget);
+		// ロックオン時ターゲット切り替え(次のターゲット)
+		EnhancedInputComponent->BindAction(SwitchTargetRightAction, ETriggerEvent::Triggered, this, &AARRangerCharacter::SwitchTargetRight);
+
+		// ロックオン時ターゲット切り替え(前のターゲット)
+		EnhancedInputComponent->BindAction(SwitchTargetLeftAction, ETriggerEvent::Triggered, this, &AARRangerCharacter::SwitchTargetLeft);
 
 		// パンチ
 		EnhancedInputComponent->BindAction(PunchAction, ETriggerEvent::Started, this, &AARRangerCharacter::Punch);
@@ -117,16 +121,6 @@ void AARRangerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 void AARRangerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
-	// プレイヤーを敵の方向に向ける
-	if (bIsLockedOn && LockedOnTarget)
-	{
-		FVector Direction = LockedOnTarget->GetActorLocation() - GetActorLocation();
-		FRotator NewRotation = FRotationMatrix::MakeFromX(Direction).Rotator();
-		NewRotation.Pitch = 0.f;
-		NewRotation.Roll = 0.f;
-		SetActorRotation(NewRotation);
-	}
 
 	// ダッシュしているかの判定
 	if (APlayerController* PlayerController = Cast<APlayerController>(GetController()))
@@ -297,31 +291,75 @@ void AARRangerCharacter::ToggleLockOn()
 	}
 }
 
-void AARRangerCharacter::SwitchTarget(const FInputActionValue& Value)
+void AARRangerCharacter::SwitchTargetRight()
 {
-	if (!bIsLockedOn) return;
+	// 次のターゲットへ
+	SwitchTarget(true); 
+}
 
-	float AxisValue = Value.Get<float>();
+void AARRangerCharacter::SwitchTargetLeft()
+{
+	// 前のターゲットへ
+	SwitchTarget(false); 
+}
 
-	// 閾値つける（スティック軽く倒れただけでは切り替えないように）
-	if (FMath::Abs(AxisValue) < 0.5f)
+void AARRangerCharacter::SwitchTarget(bool isPressedRight)
+{
+	// 非ロックオン時は処理しない
+	if (!bIsLockedOn)
+	{
 		return;
-
-	// 方向に応じて切り替え
-	const bool bRight = AxisValue > 0;
-
+	}
+		
+	// 敵がワールドに複数体いないときは処理しない
 	TArray<AActor*> Enemies;
 	UGameplayStatics::GetAllActorsWithTag(GetWorld(), FName("Enemy"), Enemies);
-	if (Enemies.Num() <= 1) return;
-
+	if (Enemies.Num() <= 1)
+	{
+		return;
+	}
 	int32 CurrentIndex = Enemies.IndexOfByKey(LockedOnTarget);
-	if (CurrentIndex == INDEX_NONE) return;
+	if (CurrentIndex == INDEX_NONE)
+	{
+		return;
+	}
 
-	int32 NewIndex = bRight
-		? (CurrentIndex + 1) % Enemies.Num()
-		: (CurrentIndex - 1 + Enemies.Num()) % Enemies.Num();
+	// 自身の位置を取得
+	const FVector MyLocation = GetActorLocation();
 
-	LockedOnTarget = Enemies[NewIndex];
+	const int32 EnemyCount = Enemies.Num();
+	int32 Index = CurrentIndex;
+	int32 Checked = 0;
+
+	while (Checked < EnemyCount)
+	{
+		// 次のインデックスを決定
+		Index = isPressedRight
+			? (Index + 1) % EnemyCount
+			: (Index - 1 + EnemyCount) % EnemyCount;
+
+		// 自分自身に戻ったら終了
+		if (Index == CurrentIndex)
+		{
+			break;
+		}
+
+		AActor* Candidate = Enemies[Index];
+		if (!Candidate)
+		{
+			Checked++;
+			continue;
+		}
+
+		const float Distance = FVector::Dist(MyLocation, Candidate->GetActorLocation());
+		if (Distance <= maxLockOnDistance)
+		{
+			LockedOnTarget = Candidate;
+			return;
+		}
+
+		Checked++;
+	}
 }
 
 AActor* AARRangerCharacter::FindNearestEnemy(AActor* IgnoreActor)
