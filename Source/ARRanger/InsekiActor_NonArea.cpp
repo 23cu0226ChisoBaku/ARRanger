@@ -37,13 +37,15 @@ void AInsekiActor_NonArea::BeginPlay()
 
 	TArray<AActor*> FoundActors;
 	UGameplayStatics::GetAllActorsWithTag(GetWorld(), FName("Player"), FoundActors);
-	if (FoundActors.Num() > 0)
+
+	if (FoundActors.Num() > 0 && FoundActors[0] != nullptr)
 	{
 		playerCharacter = FoundActors[0];
 	}
 	else
 	{
-		UE_LOG(LogTemp, Error, TEXT("AInsekiActor_NonArea: No actor found with tag 'Player'"));
+		playerCharacter = nullptr;
+		UE_LOG(LogTemp, Error, TEXT("AInsekiActor_NonArea: No valid actor found with tag 'Player'"));
 	}
 }
 
