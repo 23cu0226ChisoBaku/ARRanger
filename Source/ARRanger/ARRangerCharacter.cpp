@@ -1,5 +1,6 @@
 #include "ARRangerCharacter.h"
 
+#include "AttackData.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Enemy.h"
@@ -374,8 +375,11 @@ AActor* AARRangerCharacter::FindNearestEnemy(AActor* IgnoreActor)
 
 	for (AActor* Enemy : Enemies)
 	{
-		if (Enemy == IgnoreActor || !IsValid(Enemy)) continue;
-
+		if (Enemy == IgnoreActor || !IsValid(Enemy))
+		{
+			continue;
+		}
+			
 		float DistSq = FVector::DistSquared(MyLocation, Enemy->GetActorLocation());
 
 		if (DistSq <= MaxDistSq && DistSq < MinDistSq)
@@ -387,110 +391,70 @@ AActor* AARRangerCharacter::FindNearestEnemy(AActor* IgnoreActor)
 	return NearestEnemy;
 }
 
-
 void AARRangerCharacter::Punch()
 {
-	if (PunchMontage && !GetMesh()->GetAnimInstance()->Montage_IsPlaying(PunchMontage))
-	{
-		// 攻撃中フラグを上げる
-		isAttacked = true;
-
-		// パンチアニメーションを再生
-		GetMesh()->GetAnimInstance()->Montage_Play(PunchMontage);
-	}
+	PlayAttackMontage(PunchData);
 }
 
 void AARRangerCharacter::PunchHitNotify()
 {
-	FVector Origin = GetActorLocation() + GetActorForwardVector() * 100.f;
-	//DrawDebugSphere(GetWorld(), Origin, punchRadius, 16, FColor::Red, false, 2.0f);
-	TArray<AActor*> OverlappingActors;
-
-	bool bHit = UKismetSystemLibrary::SphereOverlapActors(
-		this,
-		Origin,
-		punchRadius,
-		TArray<TEnumAsByte<EObjectTypeQuery>>{UEngineTypes::ConvertToObjectType(ECC_Pawn)},
-		nullptr,
-		TArray<AActor*>{this}, // 自分を除外
-		OverlappingActors
-	);
-
-	if (!bHit) return;
-
-	for (AActor* HitActor : OverlappingActors)
-	{
-		if (HitActor->ActorHasTag("Enemy"))
-		{
-			AEnemy* Enemy = Cast<AEnemy>(HitActor);
-			if (Enemy)
-			{
-				// 死亡していたら処理しない
-				if (Enemy->isDead) continue;
-
-				FVector LaunchDir = GetActorForwardVector() + FVector(0, 0, 0.2f);
-				LaunchDir.Normalize();
-
-				// 敵のHPが0になるかどうか先に見る
-				bool willBeKilled = (Enemy->currentHP - attackPower <= 0);
-
-				Enemy->ReceiveDamage(attackPower, LaunchDir, willBeKilled);
-			}
-		}
-	}
+	AttackHit(PunchData);
 }
+
 
 void AARRangerCharacter::Kick()
 {
-	if (KickMontage && !GetMesh()->GetAnimInstance()->Montage_IsPlaying(KickMontage))
-	{
-		// 攻撃中フラグを上げる
-		isAttacked = true;
-
-		// キックアニメーションを再生
-		GetMesh()->GetAnimInstance()->Montage_Play(KickMontage);
-	}
+	PlayAttackMontage(KickData);
 }
 
 void AARRangerCharacter::KickHitNotify()
 {
-	// 当たり判定を作成
-	// パンチより少し広くする
-	FVector Origin = GetActorLocation() + GetActorForwardVector() * 100.f;
+	AttackHit(KickData);
+}
+void AARRangerCharacter::PlayAttackMontage(const FAttackData& Attack)
+{
+	if (!Attack.Montage || isAttacked) return;
 
-	TArray<AActor*> OverlappingActors;
+	UAnimInstance* Anim = GetMesh()->GetAnimInstance();
+	if (!Anim || Anim->Montage_IsPlaying(Attack.Montage)) return;
+
+	isAttacked = true;
+	Anim->Montage_Play(Attack.Montage);
+}
+
+void AARRangerCharacter::AttackHit(const FAttackData& Attack)
+{
+	FVector Origin = GetActorLocation() + GetActorForwardVector() * 100.f;
+	TArray<AActor*> HitActors;
+
 	bool bHit = UKismetSystemLibrary::SphereOverlapActors(
 		this,
 		Origin,
-		kickRadius,
+		Attack.HitRadius,
 		TArray<TEnumAsByte<EObjectTypeQuery>>{
 		UEngineTypes::ConvertToObjectType(ECC_Pawn),
 			UEngineTypes::ConvertToObjectType(ECC_WorldDynamic)
 	},
 		nullptr,
 		TArray<AActor*>{this},
-		OverlappingActors
+		HitActors
 	);
 
 	if (!bHit) return;
 
-	for (AActor* HitActor : OverlappingActors)
+	for (AActor* HitActor : HitActors)
 	{
-		if (HitActor->ActorHasTag("Enemy"))
+		if (HitActor->ActorHasTag(Attack.TargetTag))
 		{
 			AEnemy* Enemy = Cast<AEnemy>(HitActor);
-			if (Enemy)
+			if (Enemy && !Enemy->isDead)
 			{
-				// 死亡していたら処理しない
-				if (Enemy->isDead) continue;
+				const bool bWillBeKilled = (Enemy->currentHP - Attack.Damage <= 0);
 
 				FVector LaunchDir = GetActorForwardVector() + FVector(0, 0, 0.2f);
 				LaunchDir.Normalize();
 
-				// 敵のHPが0になるかどうか先に見る
-				bool willBeKilled = (Enemy->currentHP - attackPower <= 0);
-
-				Enemy->ReceiveDamage(attackPower, LaunchDir, willBeKilled);
+				Enemy->ReceiveDamage(Attack.Damage, LaunchDir, bWillBeKilled);
 			}
 		}
 	}

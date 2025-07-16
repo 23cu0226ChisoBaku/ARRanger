@@ -1,5 +1,6 @@
 #pragma once
 
+#include "AttackData.h"
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "Logging/LogMacros.h"
@@ -134,6 +135,12 @@ private:
 	// キックの際に呼び出される
 	void Kick();
 
+	// 攻撃アニメーションの再生用関数
+	void PlayAttackMontage(const FAttackData& Attack);
+
+	// 当たり判定の処理
+	void AttackHit(const FAttackData& Attack);
+
 public:
 
 	// コントロールまたはUIインターフェースからの移動入力を処理する
@@ -179,6 +186,14 @@ public:
 	// 移動入力の閾値(これを超えるとダッシュに遷移する)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float moveThreshold;
+
+	// パンチデータ（Blueprintから設定）
+	UPROPERTY(EditAnywhere, Category = "Attack")
+	FAttackData PunchData;
+
+	// キックデータ（Blueprintから設定）
+	UPROPERTY(EditAnywhere, Category = "Attack")
+	FAttackData KickData;
 
 	// 攻撃力
 	int attackPower;
