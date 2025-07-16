@@ -1,49 +1,18 @@
-﻿/**
- * MCW camera mode view
- */
+﻿// NOTE : Environment: Unreal engine 5.6
 
 #pragma once
 
-#ifndef _MCW_CORE_CAMERA_MODE_VIEW_
-#define _MCW_CORE_CAMERA_MODE_VIEW_
+#ifndef _MCW_CAMERAWORK_CORE_CAMERA_MODE_VIEW_
+#define _MCW_CAMERAWORK_CORE_CAMERA_MODE_VIEW_
 
 #include "Core/CoreDefines.h"
+
+#include "Misc/EnvironmentTypeAdapter.h"
 
 namespace AR
 {
 namespace CameraWork
 {
-  // NOTE : Current environment: Unreal engine 5.6
-  #if IS_UE_ENVIRONMENT
-    namespace Private
-    {
-      using MCW_Vector = FVector;
-      using MCW_Rotator = FRotator;
-      
-      template<typename T>
-      constexpr T Default()
-      {
-        return static_cast<T>(0);
-      }
-
-      template<FVector>
-      constexpr FVector Default()
-      {
-        return FVector{0.0, UE::Math::TVectorConstInit{}};
-      }
-
-      template<FRotator>
-      constexpr FRotator Default()
-      {
-        return FRotator{0.0};
-      }
-    }
-  #else
-    namespace Private
-    {
-
-    }
-  #endif
 
   #define MCW_CAMERA_TRANSFORM_PROPERTIES_DEFINITION() \
           MCW_CAMERA_PROPERTY_DEFINITION(Private::MCW_Vector, Location) \
@@ -82,15 +51,19 @@ namespace CameraWork
       ~FCameraModeView() = default;
       void Reset();
 
-    public:
-      
-
     private:
+      
+      /**
+       * Current camera transform location
+       */
       Private::MCW_Vector Location = Private::Default<decltype(Location)>();
 
+      /**
+       * Current camera transform rotation
+       */
       Private::MCW_Rotator Rotation = Private::Default<decltype(Rotation)>();
   };  
 } 
 }
 
-#endif // _MCW_CORE_CAMERA_MODE_VIEW_
+#endif // _MCW_CAMERAWORK_CORE_CAMERA_MODE_VIEW_

@@ -9,7 +9,6 @@ namespace AR
 {
 namespace CameraWork
 {
-
   class FCameraModeNodeEvaluator;
   using FCameraModeNodeEvaluatorPtr = AR::CameraWork::FCameraModeNodeEvaluator*;
 

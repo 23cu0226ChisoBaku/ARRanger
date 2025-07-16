@@ -1,9 +1,11 @@
 ﻿#pragma once
 
-#ifndef _MCW_CAMERAWORK_CAMERA_RIG_
-#define _MCW_CAMERAWORK_CAMERA_RIG_
+#ifndef _MCW_CAMERAWORK_CORE_CAMERA_RIG_
+#define _MCW_CAMERAWORK_CORE_CAMERA_RIG_
 
-#include <memory>
+#include "Core/CoreDefines.h"
+
+#include "Misc/EnvironmentTypeAdapter.h"
 
 namespace AR
 {
@@ -19,12 +21,11 @@ namespace CameraWork
   {
     private:
       using Node = AR::CameraWork::FCameraModeNode;
-      using NodePtr = std::shared_ptr<Node>;
 
     private:
-      NodePtr m_rootNode;
+      Private::SharedPtr<Node> m_rootNode;
   };
 }
 }
 
-#endif // _MCW_CAMERAWORK_CAMERA_RIG_
+#endif // _MCW_CAMERAWORK_CORE_CAMERA_RIG_

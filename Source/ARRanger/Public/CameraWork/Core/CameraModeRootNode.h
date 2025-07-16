@@ -10,8 +10,11 @@ namespace AR
 {
 namespace CameraWork
 {
+  class FCameraRig;
+
   class FCameraModeRootNodeEvaluator : public FCameraModeNodeEvaluator
   {
+
     protected:
       MCW_API virtual void EvaluateImpl(FCameraModeNodeEvaluationResult& Result) override; 
   };

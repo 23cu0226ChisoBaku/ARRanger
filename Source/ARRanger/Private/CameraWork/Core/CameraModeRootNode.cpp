@@ -15,7 +15,10 @@ namespace CameraWork
 
   FCameraModeNodeEvaluatorPtr FCameraModeRootNode::MakeEvaluatorImpl() const
   {
-    return nullptr;
+    // NOTE: Currently for temporary use. Need change static to memory management
+    static FCameraModeRootNodeEvaluator s_evaluator;
+    return &s_evaluator;
+
   }
 } 
 }

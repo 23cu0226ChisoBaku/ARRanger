@@ -1,6 +1,4 @@
-﻿// Code name MCW
-
-#pragma once
+﻿#pragma once
 
 #ifndef _MCW_CAMERAWORK_CORE_DEFINES_
 #define _MCW_CAMERAWORK_CORE_DEFINES_

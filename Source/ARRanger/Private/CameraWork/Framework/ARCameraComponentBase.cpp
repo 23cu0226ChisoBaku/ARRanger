@@ -11,6 +11,8 @@ UARCameraComponentBase::UARCameraComponentBase(const FObjectInitializer& ObjectI
 	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = true;
 
+  // Blend camera after physics
+  PrimaryComponentTick.TickGroup = TG_PostPhysics;
 	// ...
 }
 

@@ -81,15 +81,20 @@ namespace CameraWork
   }
 
   template<typename NodeType>
-  class TCameraModeNodeEvaluator : private FCameraModeNodeEvaluator
+  class TCameraModeNodeEvaluator : public FCameraModeNodeEvaluator
   {
     static_assert(std::is_base_of_v<FCameraModeNode, NodeType>, "Use non devired class of FCameraModeNode is invalid");
 
-    const NodeType* GetCameraModeNode() const
-    {
-      return GetCameraModeNodeAs<NodeType>();
-    }
+    public:
+      const NodeType* GetCameraModeNode() const;
   };
+
+  template<typename NodeType>
+  const NodeType* TCameraModeNodeEvaluator<NodeType>::GetCameraModeNode() const
+  {
+    return GetCameraModeNodeAs<NodeType>();
+  }
+
 
 } // namespace AR::CameraWork
 } // namespace AR

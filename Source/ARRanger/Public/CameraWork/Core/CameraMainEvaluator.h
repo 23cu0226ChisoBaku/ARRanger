@@ -1,4 +1,6 @@
-﻿#pragma once
+﻿// NOTE: Current environment: Unreal engine 5.6
+
+#pragma once
 
 #ifndef _MCW_CAMERAWORK_CORE_CAMERA_MAIN_EVALUATOR_
 #define _MCW_CAMERAWORK_CORE_CAMERA_MAIN_EVALUATOR_
@@ -7,11 +9,9 @@
 #include "Core/CameraModeNodeEvaluator.h"
 #include "Core/CameraModeView.h"
 
-#include <memory>
+#include "Misc/EnvironmentTypeAdapter.h"
 
-/**
- * 前方宣言
- */
+#include <memory>
 
 namespace AR
 {
@@ -20,30 +20,6 @@ namespace CameraWork
   class FCameraModeRootNode;
   class FCameraModeRootNodeEvaluator;
 
-  // NOTE: Private alias
-  // NOTE: Current environment: Unreal engine 5.6
-  #if IS_UE_ENVIRONMENT
-    namespace Private
-    {
-      using OwnerType = UObject;
-      using StrongOwnerPtr = TObjectPtr<OwnerType>;
-      using WeakOwnerPtr = TWeakObjectPtr<OwnerType>;
-
-      template<typename T>
-      using SharedPtr = TSharedPtr<T>;
-
-      template<typename T>
-      using WeakPtr = TWeakPtr<T>;
-
-      // Factory delegate
-      using RootNodeFactoryMethod = TDelegate<FCameraModeRootNode*()>;
-    }
-  #else
-    namespace Private
-    {
-
-    }
-  #endif
 
   struct FCameraMainEvaluatorInitializeParameters
   {
