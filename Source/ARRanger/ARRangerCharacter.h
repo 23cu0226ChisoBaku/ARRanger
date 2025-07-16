@@ -68,17 +68,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	class UInputAction* PunchAction;
 
-	// パンチアニメーションモンタージュ
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat")
-	UAnimMontage* PunchMontage;
-
 	// キックアクション
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	class UInputAction* KickAction;
-
-	// キックアニメーションモンタージュ
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat")
-	UAnimMontage* KickMontage;
 
 public:
 
@@ -183,9 +175,11 @@ public:
 	UPROPERTY(BlueprintReadWrite)
 	bool isDashed;
 
-	// 移動入力の閾値(これを超えるとダッシュに遷移する)
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	float moveThreshold;
+	// ダッシュ時カメラが切り替わる入力の閾値（押し込み時）
+	float dashStartThreshold;
+
+	// 少し入力を緩めたらダッシュを解除する用の数値
+	float dashEndThreshold;    
 
 	// パンチデータ（Blueprintから設定）
 	UPROPERTY(EditAnywhere, Category = "Attack")
@@ -194,17 +188,6 @@ public:
 	// キックデータ（Blueprintから設定）
 	UPROPERTY(EditAnywhere, Category = "Attack")
 	FAttackData KickData;
-
-	// 攻撃力
-	int attackPower;
-
-	// パンチの当たり判定用
-	UPROPERTY(EditAnywhere, Category = "Combat")
-	float punchRadius;
-
-	// キックの当たり判定用
-	UPROPERTY(EditAnywhere, Category = "Combat")
-	float kickRadius;
 
 	// 攻撃中フラグ
 	UPROPERTY(BlueprintReadOnly)

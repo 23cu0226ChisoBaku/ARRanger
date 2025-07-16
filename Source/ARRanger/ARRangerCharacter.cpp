@@ -23,10 +23,8 @@ AARRangerCharacter::AARRangerCharacter()
 	, ArmLengthInterpSpeed(2.5f)
 	, maxLockOnDistance(1500.0f)
 	, isDashed(false)
-	, moveThreshold(0.9f)
-	, attackPower(35)
-	, punchRadius(100.0f)
-	, kickRadius(120.0f)
+	, dashStartThreshold(0.92f)
+	, dashEndThreshold(0.7f)
 	, isAttacked(false)
 	, isAbleToSwitchTarget(false)
 {
@@ -123,31 +121,15 @@ void AARRangerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	// ダッシュしているかの判定
-	if (APlayerController* PlayerController = Cast<APlayerController>(GetController()))
-	{
-		if (ULocalPlayer* LocalPlayer = Cast<ULocalPlayer>(PlayerController->Player))
-		{
-			if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(LocalPlayer))
-			{
-				const FInputActionValue InputValue = Subsystem->GetPlayerInput()->GetActionValue(MoveAction);
-				if (InputValue.GetValueType() == EInputActionValueType::Axis2D)
-				{
-					FVector2D InputVec = InputValue.Get<FVector2D>();
-					// 入力値が閾値を超えているかで判断
-					isDashed = InputVec.Size() > moveThreshold; 
-				}
-			}
-		}
-	}
 
 	// ダッシュ時にカメラをプレイヤーに近づける
-	float TargetArmLength = isDashed ? DashArmLength : DefaultArmLength;
+	const float TargetArmLength = isDashed ? DashArmLength : DefaultArmLength;
 	CameraBoom->TargetArmLength = FMath::FInterpTo(
 		CameraBoom->TargetArmLength,
 		TargetArmLength,
 		DeltaTime,
-		ArmLengthInterpSpeed);
+		ArmLengthInterpSpeed
+	);
 
 	// ロックオン時の処理
 	if (bIsLockedOn && LockedOnTarget)
@@ -180,13 +162,11 @@ void AARRangerCharacter::Tick(float DeltaTime)
 		{
 			FRotator CurrentControlRot = Controller->GetControlRotation();
 
-			// スムーズに補間（オプション）
+			// スムーズに補間
 			FRotator NewControlRot = FMath::RInterpTo(CurrentControlRot, TargetRotation, DeltaTime, 5.0f);
 
 			Controller->SetControlRotation(NewControlRot);
 		}
-
-		
 	}
 }
 
@@ -218,9 +198,32 @@ void AARRangerCharacter::DoMove(float Right, float Forward)
 			return;
 		}
 
-		// 入力ベクトルの長さで走っているかどうか判定
-		const float InputMagnitude = FVector2D(Right, Forward).Size();
-		isDashed = InputMagnitude > moveThreshold;
+		// ダッシュしているかの判定
+		float InputMagnitude = 0.f;
+		if (APlayerController* PC = Cast<APlayerController>(GetController()))
+		{
+			if (ULocalPlayer* LP = Cast<ULocalPlayer>(PC->Player))
+			{
+				if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(LP))
+				{
+					const FInputActionValue InputValue = Subsystem->GetPlayerInput()->GetActionValue(MoveAction);
+					if (InputValue.GetValueType() == EInputActionValueType::Axis2D)
+					{
+						InputMagnitude = InputValue.Get<FVector2D>().Size();
+					}
+				}
+			}
+		}
+
+		// ヒステリシスを用いてダッシュ状態を制御
+		if (!isDashed && InputMagnitude > dashStartThreshold)
+		{
+			isDashed = true;
+		}
+		else if (isDashed && InputMagnitude < dashEndThreshold)
+		{
+			isDashed = false;
+		}
 
 		// どちらを向いているか調べる
 		const FRotator Rotation = GetController()->GetControlRotation();

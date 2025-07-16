@@ -134,7 +134,7 @@ void AInsekiActor_NonArea::OnHit(UPrimitiveComponent* HitComponent, AActor* Othe
 		if (ImpactDirection.Z > 0.7f) // 真上から落ちてきた場合
 		{
 			// プレイヤーをLaunch（Yは無視して上に飛ばす）
-			FVector LaunchVelocity = FVector(0.f, 0.f, 1000.f); 
+			FVector LaunchVelocity = FVector(0.f, 0.f, 1200.f); 
 			Char->LaunchCharacter(LaunchVelocity, true, true);
 		}
 		else
