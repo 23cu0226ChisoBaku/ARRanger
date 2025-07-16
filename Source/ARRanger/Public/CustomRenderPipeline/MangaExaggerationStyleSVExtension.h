@@ -5,6 +5,8 @@
 
 #include "SceneViewExtension.h"
 
+class UCustomRPWorldSubsystem;
+
 namespace AR
 {
 namespace CustomRP
@@ -12,14 +14,20 @@ namespace CustomRP
   class FMangaExaggerationStyleSVExtension : public FSceneViewExtensionBase
   {
     public:
-      FMangaExaggerationStyleSVExtension(const FAutoRegister& AutoRegister);
+      FMangaExaggerationStyleSVExtension(const FAutoRegister& AutoRegister, UCustomRPWorldSubsystem* Subsystem);
+
+      virtual void SetupView(FSceneViewFamily& InViewFamily, FSceneView& InView) override;
 
       // NOTE: なるべく評価を遅らせる
       virtual int32 GetPriority() const override { return -99999; }
 
-      
-      
-  }
+      void Invalidate();
+
+    private:
+
+      UCustomRPWorldSubsystem* m_CRPSubsystem;
+
+  };
 }
 }
 

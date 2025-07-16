@@ -21,9 +21,9 @@ void AARPlayerCameraManager::UpdateViewTarget(FTViewTarget& OutVT, float DeltaTi
 
   offset = moveDir * FMath::Cos(m_timeInterval * 2 * PI);
 
-  // NG:ただ近接平面を直接的いじっても、平行移動のように見える
-  OutVT.POV.OffCenterProjectionOffset += FVector2D{offset.X, offset.Y};
-  OutVT.POV.FOV = 90.0f - FMath::Cos(m_timeInterval * 2 * PI) * 20.0f;
+  // ただ近接平面を直接的いじっても、平行移動のように見える
+  // OutVT.POV.OffCenterProjectionOffset += FVector2D{offset.X, offset.Y};
+  // OutVT.POV.FOV = 90.0f - FMath::Cos(m_timeInterval * 2 * PI) * 20.0f;
 }
  
 

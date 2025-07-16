@@ -21,7 +21,7 @@ namespace CameraWork
 
     public:
       MCW_API FCameraWorkDirectorEvaluator();
-      MCW_API ~FCameraWorkDirectorEvaluator();
+      MCW_API virtual ~FCameraWorkDirectorEvaluator();
 
       const FCameraWorkDirector* GetDirector() const;
       
