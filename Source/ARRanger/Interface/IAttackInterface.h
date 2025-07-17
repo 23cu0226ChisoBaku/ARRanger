@@ -8,8 +8,10 @@
 #include "UObject/Interface.h"
 #include "IAttackInterface.generated.h"
 
-// BPÇ©ÇÁåpè≥â¬î\
-UINTERFACE(Blueprintable)
+/*
+* BPÇ©ÇÁåpè≥â¬î\
+*/
+UINTERFACE(MinimalAPI)
 class UAttackInterface : public UInterface
 {
 	GENERATED_BODY()
@@ -20,7 +22,12 @@ class IAttackInterface
 	GENERATED_BODY()
 
 public:
-	virtual void Attack() = 0;
-	virtual bool CanAttack() const = 0;
-	virtual float GetAttackCoolTime() const = 0;
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "IAttack")
+	void Attack() ;
+
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "IAttack")
+	bool CanAttack() const ;
+
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "IAttack")
+	float GetAttackCoolTime() const;
 };
