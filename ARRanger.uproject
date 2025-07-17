@@ -16,6 +16,14 @@
 			]
 		},
 		{
+			"Name": "ARRangerEditor",
+			"Type": "Editor",
+			"LoadingPhase": "Default",
+			"AdditionalDependencies": [
+				"Engine"
+			]
+		},
+		{
 			"Name": "MLibrary",
 			"Type": "Runtime",
 			"LoadingPhase": "Default",
