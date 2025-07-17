@@ -24,7 +24,9 @@ class IJumpInterface
 public:
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "IJump")
 	void IJump();
-
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "IJump")
 	bool ICanJump() const;
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "IJump")
+	void IJump();
+
 };
