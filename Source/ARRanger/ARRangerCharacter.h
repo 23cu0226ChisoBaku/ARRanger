@@ -1,5 +1,6 @@
 #pragma once
 
+#include "AttackData.h"
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "Logging/LogMacros.h"
@@ -55,25 +56,21 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	class UInputAction* LockOnAction;
 
-	// ロックオン時ターゲット切り替えアクション
+	// ロックオン時ターゲット切り替えアクション(次のターゲット)
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
-	class UInputAction* SwitchTargetAction;
+	class UInputAction* SwitchTargetRightAction;
+
+	// ロックオン時ターゲット切り替えアクション(前のターゲット)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	class UInputAction* SwitchTargetLeftAction;
 
 	// パンチアクション
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	class UInputAction* PunchAction;
 
-	// パンチアニメーションモンタージュ
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat")
-	UAnimMontage* PunchMontage;
-
 	// キックアクション
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	class UInputAction* KickAction;
-
-	// キックアニメーションモンタージュ
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat")
-	UAnimMontage* KickMontage;
 
 public:
 
@@ -97,6 +94,9 @@ private:
 	// ロックオン中フラグ
 	bool bIsLockedOn;
 
+	// ロックオン時敵切り替えの可能フラグ
+	bool isAbleToSwitchTarget;
+
 	// もともとのカメラとプレイヤーの距離
 	float DefaultArmLength;
 
@@ -109,8 +109,14 @@ private:
 	// ロックオン切替関数
 	void ToggleLockOn();
 
-	// スティック入力で敵切替（右スティックのX軸など）
-	void SwitchTarget(const FInputActionValue& Value);
+	// 十字ボタン右を押した際に呼び出される
+	void SwitchTargetRight();
+
+	// 十字ボタン左を押した際に呼び出される
+	void SwitchTargetLeft();
+
+	// ロックオン時ターゲット切り替え関数(引数によって前後に切り替え)
+	void SwitchTarget(bool isPressedRight);
 
 	// ロックオン可能な敵を検索
 	AActor* FindNearestEnemy(AActor* IgnoreActor = nullptr);
@@ -120,6 +126,12 @@ private:
 
 	// キックの際に呼び出される
 	void Kick();
+
+	// 攻撃アニメーションの再生用関数
+	void PlayAttackMontage(const FAttackData& Attack);
+
+	// 当たり判定の処理
+	void AttackHit(const FAttackData& Attack);
 
 public:
 
@@ -163,20 +175,19 @@ public:
 	UPROPERTY(BlueprintReadWrite)
 	bool isDashed;
 
-	// 移動入力の閾値(これを超えるとダッシュに遷移する)
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	float moveThreshold;
+	// ダッシュ時カメラが切り替わる入力の閾値（押し込み時）
+	float dashStartThreshold;
 
-	// 攻撃力
-	int attackPower;
+	// 少し入力を緩めたらダッシュを解除する用の数値
+	float dashEndThreshold;    
 
-	// パンチの当たり判定用
-	UPROPERTY(EditAnywhere, Category = "Combat")
-	float punchRadius;
+	// パンチデータ（Blueprintから設定）
+	UPROPERTY(EditAnywhere, Category = "Attack")
+	FAttackData PunchData;
 
-	// キックの当たり判定用
-	UPROPERTY(EditAnywhere, Category = "Combat")
-	float kickRadius;
+	// キックデータ（Blueprintから設定）
+	UPROPERTY(EditAnywhere, Category = "Attack")
+	FAttackData KickData;
 
 	// 攻撃中フラグ
 	UPROPERTY(BlueprintReadOnly)

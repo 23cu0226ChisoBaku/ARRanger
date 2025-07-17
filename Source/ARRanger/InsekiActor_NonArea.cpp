@@ -37,13 +37,15 @@ void AInsekiActor_NonArea::BeginPlay()
 
 	TArray<AActor*> FoundActors;
 	UGameplayStatics::GetAllActorsWithTag(GetWorld(), FName("Player"), FoundActors);
-	if (FoundActors.Num() > 0)
+
+	if (FoundActors.Num() > 0 && FoundActors[0] != nullptr)
 	{
 		playerCharacter = FoundActors[0];
 	}
 	else
 	{
-		UE_LOG(LogTemp, Error, TEXT("AInsekiActor_NonArea: No actor found with tag 'Player'"));
+		playerCharacter = nullptr;
+		UE_LOG(LogTemp, Error, TEXT("AInsekiActor_NonArea: No valid actor found with tag 'Player'"));
 	}
 }
 
@@ -132,7 +134,7 @@ void AInsekiActor_NonArea::OnHit(UPrimitiveComponent* HitComponent, AActor* Othe
 		if (ImpactDirection.Z > 0.7f) // 真上から落ちてきた場合
 		{
 			// プレイヤーをLaunch（Yは無視して上に飛ばす）
-			FVector LaunchVelocity = FVector(0.f, 0.f, 1000.f); 
+			FVector LaunchVelocity = FVector(0.f, 0.f, 1200.f); 
 			Char->LaunchCharacter(LaunchVelocity, true, true);
 		}
 		else
