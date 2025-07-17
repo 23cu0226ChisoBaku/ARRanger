@@ -93,7 +93,7 @@ void AARRangerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AARRangerCharacter::Move);
 		EnhancedInputComponent->BindAction(MouseLookAction, ETriggerEvent::Triggered, this, &AARRangerCharacter::Look);
 
-		// 見る
+		// 視点移動
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AARRangerCharacter::Look);
 
 		// ロックオン
@@ -110,6 +110,9 @@ void AARRangerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 
 		// キック
 		EnhancedInputComponent->BindAction(KickAction, ETriggerEvent::Started, this, &AARRangerCharacter::Kick);
+
+		// 変身
+		EnhancedInputComponent->BindAction(TransformAction, ETriggerEvent::Started, this, &AARRangerCharacter::Transform);
 	}
 	else
 	{
@@ -465,4 +468,22 @@ void AARRangerCharacter::AttackHit(const FAttackData& Attack)
 void AARRangerCharacter::OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted)
 {
 	isAttacked = false;
+}
+
+void AARRangerCharacter::Transform()
+{
+	// モード変更（引力 or 斥力）
+	CurrentGravityType = (CurrentGravityType == EGravityType::Attractive)
+		? EGravityType::Repulsive
+		: EGravityType::Attractive;
+
+	// モデル切り替え
+	USkeletalMesh* NewMesh = (CurrentGravityType == EGravityType::Repulsive)
+		? RepulsiveMesh
+		: AttractiveMesh;
+
+	if (NewMesh)
+	{
+		GetMesh()->SetSkeletalMesh(NewMesh);
+	}
 }

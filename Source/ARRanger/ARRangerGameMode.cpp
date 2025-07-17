@@ -1,6 +1,8 @@
 #include "ARRangerGameMode.h"
 
-#include "Blueprint/UserWidget.h"
+#include "Engine/World.h"
+#include "Engine/GameInstance.h"
+#include "GameFramework/PlayerController.h"
 #include "Kismet/GameplayStatics.h"
 
 AARRangerGameMode::AARRangerGameMode()
@@ -12,13 +14,23 @@ void AARRangerGameMode::BeginPlay()
 {
 	Super::BeginPlay();
 
+	UGameInstance* GameInstance = GetGameInstance();
+	if (GameInstance)
+	{
+		FString OutError;
+		ULocalPlayer* NewPlayer = GameInstance->CreateLocalPlayer(1, OutError, true);
+
+		if (!NewPlayer)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("2P‚Ìì¬‚É¸”s: %s"), *OutError);
+		}
+	}
+
 	// ƒ^ƒO•t‚«‚Ì“G‚ğ‚·‚×‚Äæ“¾
 	TArray<AActor*> FoundEnemies;
 	UGameplayStatics::GetAllActorsWithTag(GetWorld(), FName("Enemy"), FoundEnemies);
 
 	EnemyCount = FoundEnemies.Num();
-
-	UE_LOG(LogTemp, Warning, TEXT("Initial Enemy Count: %d"), EnemyCount);
 }
 
 void AARRangerGameMode::OnEnemyKilled()
