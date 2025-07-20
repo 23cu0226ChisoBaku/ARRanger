@@ -13,6 +13,8 @@ class UMyMaterialExpression : public UMaterialExpression
 {
 	GENERATED_BODY()
 
+  UMyMaterialExpression(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
+
   UPROPERTY(meta = (RequiredInput = "true"))
   FExpressionInput InputUV;
 

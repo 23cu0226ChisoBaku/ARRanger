@@ -38,10 +38,46 @@ int32 UMyMaterialExpression::Compile(FMaterialCompiler* Compiler, int32 OutputIn
     const int32 inputUV = Compiler->ForceCast(inputVal, MCT_Float2);
   
     // Calculate slope 
-    // UV (0,0) 
-    #error Start here
-    //Compiler->Sub
-    result = inputUV;
+    switch (OutputIndex)
+    { 
+      // UV (0,0) 
+      case 0:
+      {
+        const int32 vert00 = Compiler->Constant2(0.0f, 0.0f);
+        result = Compiler->Min(inputUV, vert00);
+      }
+      break;
+      // UV (0,1)
+      case 1:
+      {
+        const int32 vert01 = Compiler->Constant2(0.0f, 1.0f);
+        result = Compiler->Min(inputUV, vert01);
+      }
+      break;
+      // UV (1,0)
+      case 2:
+      {
+        const int32 vert10 = Compiler->Constant2(1.0f, 0.0f);
+        result = Compiler->Min(inputUV, vert10);
+      }
+      break;
+      // UV (1,1)
+      case 3:
+      {
+        const int32 vert11 = Compiler->Constant2(1.0f, 1.0f);
+        result = Compiler->Min(inputUV, vert11);
+      }
+      break;
+    }
+
+    // Get U of UV vector(Mask(R))
+    const int32 resultU = Compiler->ComponentMask(result, true, false, false, false);
+
+    // Get V of UV vector(Mask(G))
+    const int32 resultV = Compiler->ComponentMask(result, false, true, false, false);
+
+    // Calculate slope (V divides U)
+    result = Compiler->Div(resultU, resultV);
   }
 
   return result;
