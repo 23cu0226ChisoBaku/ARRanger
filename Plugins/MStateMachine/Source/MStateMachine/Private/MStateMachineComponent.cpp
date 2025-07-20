@@ -6,8 +6,25 @@
 #include "MStateDefinition.h"
 #include "MStateMachineLogChannels.h"
 #include "GameplayTagContainer.h"
+#include "MStateContext.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(MStateMachineComponent)
+
+FMStateHandle::FMStateHandle()
+  : m_state(nullptr)
+  , m_ownerComp(nullptr)
+  , m_stateTag(FGameplayTag::EmptyTag)
+{ }
+
+FMStateHandle::FMStateHandle(
+              UMStateInstance* state,
+              UActorComponent* ownerComp,
+              const FGameplayTag& stateTag
+              )
+  : m_state(state)
+  , m_ownerComp(ownerComp)
+  , m_stateTag(stateTag)
+{ }
 
 bool FMStateHandle::IsValid() const
 {
@@ -17,6 +34,18 @@ bool FMStateHandle::IsValid() const
 FGameplayTag FMStateHandle::GetStateTag() const
 {
 	return m_stateTag;
+}
+
+FMStateMachineStateList::FMStateMachineStateList()
+  : Entries{}
+  , OwnerComponent{nullptr}
+{ }
+
+FMStateMachineStateList::FMStateMachineStateList(UMStateMachineComponent* OwnerComp)
+  : Entries{}
+  , OwnerComponent{OwnerComp}
+{ 
+  check(OwnerComponent != nullptr);
 }
 
 FMStateHandle FMStateMachineStateList::AddEntry(TSubclassOf<UMStateDefinition> stateDef)
@@ -40,6 +69,12 @@ FMStateHandle FMStateMachineStateList::AddEntry(TSubclassOf<UMStateDefinition> s
 	FMStateMachineStateListEntry newEntry;
 
 	UMStateInstance* stateInstance = NewObject<UMStateInstance>(OwnerComponent->GetOwner(), instanceType);
+
+  FStateInitializationParameters initParams;
+  initParams.OwnerActor = OwnerComponent->GetOwner();
+  initParams.OwnerStateMachineComponent = OwnerComponent;
+  stateInstance->InitializeState(initParams);
+
 	newEntry.State = stateInstance;
 	newEntry.StateDefinition = mStateDefCDO;
 
@@ -61,11 +96,12 @@ void FMStateMachineStateList::RemoveEntry(FMStateHandle removeStateHandle)
 		const FMStateMachineStateListEntry& entry = *entryIt;
 		if (entry.StateDefinition->TransitionInfo.StateTag == removeStateHandle.GetStateTag())
 		{
+      FStateUninitializationParameters params;
+      entryIt->State->UninitializeState(params);
 			entryIt.RemoveCurrent();
 			break;
 		}
 	}
-
 }
 
 UMStateInstance* FMStateMachineStateList::SwitchState(const UMStateInstance* currentStateInstance, FGameplayTag nextStateTag)
@@ -140,6 +176,11 @@ UMStateInstance* FMStateMachineStateList::GetStateByTag(const FGameplayTag& tag)
 
 FGameplayTag FMStateMachineStateList::GetTagByState(const UMStateInstance* stateInstance) const
 {
+  if (stateInstance == nullptr)
+  {
+    return FGameplayTag::EmptyTag;
+  }
+ 
 	FGameplayTag foundTag = FGameplayTag::EmptyTag;
 
 	for (auto entryIt = Entries.CreateConstIterator(); entryIt; ++entryIt)
@@ -155,9 +196,9 @@ FGameplayTag FMStateMachineStateList::GetTagByState(const UMStateInstance* state
 	return foundTag;
 }
 
-UMStateMachineComponent::UMStateMachineComponent(const FObjectInitializer& objectInitializer)
-	: Super(objectInitializer)
-	, m_stateList(this)
+UMStateMachineComponent::UMStateMachineComponent(const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer)
+	, m_stateList{this}
 	, m_bIsStateMachineStarted(false)
 	, m_bCanTickStateMachine(false)
 {
@@ -173,6 +214,25 @@ void UMStateMachineComponent::BeginPlay()
 void UMStateMachineComponent::InitializeComponent()
 {
 	Super::InitializeComponent();
+
+  if (bAutoInitializeContext)
+  {
+    APawn* ownerPawn = ::Cast<APawn>(GetOwner());
+    if (ownerPawn != nullptr)
+    {
+      FStateMachineInitializationParameters params;
+
+      params.Owner = ::StaticCast<UObject*>(ownerPawn);
+      params.OwnerController = ownerPawn->GetController();
+
+      Initialize(params);
+    }
+
+    if (m_context == nullptr)
+    {
+      UE_LOG(LogMStateMachine, Error, TEXT("Failed to initialize context automatically because owner:{%s} of [%s] is not a pawn.\n Please call Initialize MANUALLY!!!"), *GetNameSafe(GetOwner()), *GetNameSafe(this));
+    }
+  }
 }
 // Called every frame
 void UMStateMachineComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
@@ -181,28 +241,44 @@ void UMStateMachineComponent::TickComponent(float DeltaTime, ELevelTick TickType
 
 	if (m_bCanTickStateMachine)
 	{
-		if (m_currentState != nullptr)
-		{
-			m_currentState->TickState(DeltaTime);
-		}
+    TickStateInternal(m_currentState, DeltaTime);
 	}
-
 }
 
 void UMStateMachineComponent::UninitializeComponent()
 {
-	if (m_currentState != nullptr)
-	{
-		m_currentState->ExitState();
-		m_currentState = nullptr;
-	}
+  ExitStateInternal(m_currentState, nullptr, EStateExitReason::Uninitialize);
+  m_currentState = nullptr;
+
+  for (auto& entry : m_stateList.Entries)
+  {
+    if (entry.State != nullptr)
+    {
+      FStateUninitializationParameters params;
+      entry.State->UninitializeState(params);
+    }
+  }
 
 	m_stateList.Entries.Empty();
 
-	m_bCanTickStateMachine = false;
-	m_bIsStateMachineStarted = false;
-
 	Super::UninitializeComponent();
+}
+
+void UMStateMachineComponent::Initialize(const FStateMachineInitializationParameters& Params)
+{
+  if (m_context != nullptr)
+  {
+    return;
+  }
+
+  m_context = ::MakeShared<FMStateContext, ESPMode::NotThreadSafe>();
+
+  FMStateContextInitializeParameters ctxInitParams;
+  ctxInitParams.Owner = Params.Owner;
+  ctxInitParams.OwnerController = Params.OwnerController;
+  ctxInitParams.StateMachineComponent = this;
+
+  m_context->InitializeContext(ctxInitParams);
 }
 
 void UMStateMachineComponent::StartTickState()
@@ -220,8 +296,8 @@ void UMStateMachineComponent::StartTickState()
 	}
 
 	SetComponentTickEnabled(true);
-	m_bCanTickStateMachine = true;
 
+	m_bCanTickStateMachine = true;
 	m_bIsStateMachineStarted = true;
 }
 
@@ -259,15 +335,13 @@ FMStateHandle UMStateMachineComponent::AddNewState(TSubclassOf<UMStateDefinition
 TArray<FMStateHandle> UMStateMachineComponent::AddStates(const TArray<TSubclassOf<UMStateDefinition>>& StateDefClasses)
 {
 	TArray<FMStateHandle> handles{};
+  handles.Reset(StateDefClasses.Num());
+
 	for (const TSubclassOf<UMStateDefinition>& stateDefClass : StateDefClasses)
 	{
 		check(stateDefClass != nullptr);
-		FMStateHandle handle = m_stateList.AddEntry(stateDefClass);
 
-		if (handle.IsValid())
-		{
-			handles.Emplace(handle);
-		}
+    handles.Emplace(m_stateList.AddEntry(stateDefClass));	
 	}
 
 	return handles;
@@ -281,18 +355,18 @@ void UMStateMachineComponent::RemoveState(FMStateHandle StateHandle)
 bool UMStateMachineComponent::SwitchNextState(const FGameplayTag& NextStateTag)
 {
 	UMStateInstance* nextState = m_stateList.SwitchState(m_currentState, NextStateTag);
-	if (nextState == nullptr || m_currentState == nextState)
+	if ((nextState == nullptr) || (m_currentState == nextState))
 	{
 		return false;
 	}
 
-	if (m_currentState != nullptr)
-	{
-		m_currentState->ExitState();
-	}
+  // Exit current state
+  ExitStateInternal(m_currentState, nextState);
+	
+  // Enter next state
+  EnterStateInternal(m_currentState, nextState);
 
-	m_currentState = nextState;
-	m_currentState->EntryState();
+  m_currentState = nextState;
 
 	return true;
 }
@@ -320,12 +394,68 @@ bool UMStateMachineComponent::CanSwitchToNext(const FGameplayTag& NextStateTag) 
 
 FGameplayTag UMStateMachineComponent::GetCurrentStateTag() const
 {
-	if (m_currentState == nullptr)
-	{
-		return FGameplayTag::EmptyTag;
-	}
-
-	return m_stateList.GetTagByState(m_currentState);
+	return GetStateTagByInstance(m_currentState);
 }
 
+FGameplayTag UMStateMachineComponent::GetStateTagByInstance(const UMStateInstance* StateInstance) const
+{
+  return m_stateList.GetTagByState(StateInstance);
+}
+
+void UMStateMachineComponent::EnterStateInternal(const UMStateInstance* PreviousStateInstance, UMStateInstance* NextStateInstance)
+{
+  check((NextStateInstance != nullptr));
+  
+  FStateTransitionParameters params;
+  params.TransitionTag = GetStateTagByInstance(PreviousStateInstance);
+  params.Transition = EStateTransitionType::Enter;
+  params.Context = m_context;
+
+  // First run c++ implementation then run blueprint implementation
+  NextStateInstance->EnterState(params);
+}
+
+void UMStateMachineComponent::TickStateInternal(UMStateInstance* StateInstance, float DeltaTime)
+{
+  check(StateInstance != nullptr);
+
+  FStateTickParameters params;
+  params.DeltaTime = DeltaTime;
+  params.Context = m_context;
+
+  // First run c++ implementation then run blueprint implementation
+  StateInstance->TickState(params);
+}
+
+void UMStateMachineComponent::ExitStateInternal(UMStateInstance* PreviousStateInstance, const UMStateInstance* NextStateInstance, const EStateExitReason Reason)
+{
+  if (PreviousStateInstance == nullptr)
+  {
+    return;
+  }
+
+  FStateTransitionParameters params;
+
+  using enum EStateExitReason;
+  switch (Reason)
+  {
+    case Transition:
+    {
+      params.TransitionTag = GetStateTagByInstance(NextStateInstance);
+    }
+    break;
+    
+    case Uninitialize:
+    default:
+    {
+      params.TransitionTag = FGameplayTag::EmptyTag;
+    }
+    break;
+  }  
+
+  params.Transition = EStateTransitionType::Exit;
+  params.Context = m_context;
+
+  PreviousStateInstance->ExitState(params);
+}
 

@@ -8,30 +8,79 @@
 
 #include "MStateInstance.generated.h"
 
+class UMStateMachineComponent;
+
+UENUM(BlueprintType)
+enum class EStateTransitionType : uint8
+{
+  Enter,
+  Exit,
+};
+
 /**
  * 
  */
-UCLASS(Abstract, BlueprintType, Blueprintable)
-class MSTATEMACHINE_API UMStateInstance : public UObject
+USTRUCT(BlueprintType)
+struct FStateTransitionParameters
+{
+  GENERATED_BODY()
+
+  UPROPERTY(BlueprintReadOnly)
+  FGameplayTag TransitionTag = FGameplayTag::EmptyTag;
+
+  UPROPERTY(BlueprintReadOnly)
+  EStateTransitionType Transition = EStateTransitionType::Enter;
+
+  TSharedPtr<class FMStateContext, ESPMode::NotThreadSafe> Context;
+};
+
+USTRUCT(BlueprintType)
+struct FStateTickParameters
+{
+  GENERATED_BODY()
+
+  UPROPERTY(BlueprintReadOnly)
+  float DeltaTime = 0.0f;
+
+  TSharedPtr<class FMStateContext, ESPMode::NotThreadSafe> Context;
+};
+
+struct FStateInitializationParameters
+{
+  TObjectPtr<AActor> OwnerActor;
+
+  TObjectPtr<UMStateMachineComponent> OwnerStateMachineComponent;
+};
+
+struct FStateUninitializationParameters
+{
+
+};
+
+
+
+
+UCLASS(Abstract, BlueprintType)
+class UMStateInstance : public UObject
 {
 	GENERATED_BODY()
 
 public:
-	UMStateInstance(const FObjectInitializer& = FObjectInitializer::Get());
-	virtual void BeginDestroy() override;
+	UMStateInstance(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
+
+  MSTATEMACHINE_API void InitializeState(const FStateInitializationParameters& InitParams);
+  MSTATEMACHINE_API void UninitializeState(const FStateUninitializationParameters& UninitParams);
 
 public:
-	virtual void EntryState();
-	virtual void TickState(float inDeltaTime);
-	virtual void ExitState();
-
-	UFUNCTION(BlueprintImplementableEvent, Category = "MState|Instance", meta = (DisplayName = "EntryState"))
-	void K2_EntryState();
-
-	UFUNCTION(BlueprintImplementableEvent, Category = "MState|Instance", meta = (DisplayName = "TickState"))
-	void K2_TickState(float InDeltaTime);
-
-	UFUNCTION(BlueprintImplementableEvent, Category = "MState|Instance", meta = (DisplayName = "ExitState"))
-	void K2_ExitState();
+	MSTATEMACHINE_API void EnterState(const FStateTransitionParameters& TransParams);
+	MSTATEMACHINE_API void TickState(const FStateTickParameters& TickParams);
+	MSTATEMACHINE_API void ExitState(const FStateTransitionParameters& TransParams);
+  
+protected:
+  MSTATEMACHINE_API virtual void OnEnterState(const FStateTransitionParameters& TransParams) { };
+  MSTATEMACHINE_API virtual void OnTickState(const FStateTickParameters& TickParams) { };
+  MSTATEMACHINE_API virtual void OnExitState(const FStateTransitionParameters& TransParams) { };
+  MSTATEMACHINE_API virtual void OnInitializeState(const FStateInitializationParameters& InitParams) { };
+  MSTATEMACHINE_API virtual void OnUninitializeState(const FStateUninitializationParameters& UninitParams) { };
 	
 };
