@@ -37,7 +37,7 @@ int32 FMStateContext::GetAvailableTransitionTags(TArray<FGameplayTag>& OutTags) 
 {
   OutTags.Reset();
 
-  if (m_weakStateMachineComponent == nullptr)
+  if (!m_weakStateMachineComponent.IsValid())
   {
     return 0;
   }
