@@ -8,17 +8,17 @@ public class ARRanger : ModuleRules
   {
     PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
-    PublicDependencyModuleNames.AddRange(new string[] {
-      "Core",
-      "CoreUObject",
-      "Engine",
-      "InputCore",
-      "EnhancedInput",
-      "AIModule",
-      "StateTreeModule",
-      "GameplayStateTreeModule",
-      "UMG"
-    });
+		PublicDependencyModuleNames.AddRange(new string[] {
+			"Core",
+			"CoreUObject",
+			"Engine",
+			"InputCore",
+			"EnhancedInput",
+            "AIModule",
+			"StateTreeModule",
+			"GameplayStateTreeModule",
+			"UMG"
+		});
 
     PrivateDependencyModuleNames.AddRange(new string[] { });
 

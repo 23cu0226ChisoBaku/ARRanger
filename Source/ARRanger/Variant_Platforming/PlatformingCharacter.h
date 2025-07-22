@@ -142,7 +142,7 @@ protected:
 	uint8 bHasWallJumped : 1;
 	uint8 bHasDoubleJumped : 1;
 	uint8 bHasDashed : 1;
-	uint8 bIsDashing : 1;
+	uint8 isDashed : 1;
 
 	/** timer for wall jump input reset */
 	FTimerHandle WallJumpTimer;

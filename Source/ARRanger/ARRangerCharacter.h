@@ -1,96 +1,232 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
-
 #pragma once
 
+#include "AttackData.h"
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "Logging/LogMacros.h"
+
 #include "ARRangerCharacter.generated.h"
 
-class USpringArmComponent;
+class UAnimMontage;
 class UCameraComponent;
+class USkeletalMesh;
+class USpringArmComponent;
 class UInputAction;
+
 struct FInputActionValue;
 
 DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);
 
+// プレイヤーの変身状態(引力、斥力)
+UENUM(BlueprintType)
+enum class EGravityType : uint8
+{
+	Attractive,
+	Repulsive
+};
+
 /**
- *  A simple player-controllable third person character
- *  Implements a controllable orbiting camera
+ *  シンプルでプレイヤーが操作可能な三人称視点キャラクター
+ *  制御可能な軌道カメラの実装
  */
 UCLASS(abstract)
 class AARRangerCharacter : public ACharacter
 {
 	GENERATED_BODY()
 
-	/** Camera boom positioning the camera behind the character */
+	/** カメラをキャラクターの背後に配置するカメラブーム */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	USpringArmComponent* CameraBoom;
 
-	/** Follow camera */
+	/** フォローカメラ */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	UCameraComponent* FollowCamera;
 	
 protected:
+	virtual void BeginPlay() override;
 
-	/** Jump Input Action */
+	// ジャンプアクション
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
 	UInputAction* JumpAction;
 
-	/** Move Input Action */
+	// 移動アクション
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
 	UInputAction* MoveAction;
 
-	/** Look Input Action */
+	// 視点回転アクション(ゲームパッド)
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
 	UInputAction* LookAction;
 
-	/** Mouse Look Input Action */
+	// 視点回転アクション(マウス)
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
 	UInputAction* MouseLookAction;
 
+	// ロックオンアクション
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	class UInputAction* LockOnAction;
+
+	// ロックオン時ターゲット切り替えアクション(次のターゲット)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	class UInputAction* SwitchTargetRightAction;
+
+	// ロックオン時ターゲット切り替えアクション(前のターゲット)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	class UInputAction* SwitchTargetLeftAction;
+
+	// パンチアクション
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	class UInputAction* PunchAction;
+
+	// キックアクション
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	class UInputAction* KickAction;
+
+	// 変身アクション
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	class UInputAction* TransformAction;
+
 public:
 
-	/** Constructor */
+	// コンストラクタ
 	AARRangerCharacter();	
 
 protected:
 
-	/** Initialize input action bindings */
+	// 入力アクションのバインディングを初期化する
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 protected:
 
-	/** Called for movement input */
+	// 移動入力のために呼び出される
 	void Move(const FInputActionValue& Value);
 
-	/** Called for looking input */
+	// 入力を求める
 	void Look(const FInputActionValue& Value);
+
+private:
+	// ロックオン中フラグ
+	bool bIsLockedOn;
+
+	// ロックオン時敵切り替えの可能フラグ
+	bool isAbleToSwitchTarget;
+
+	// もともとのカメラとプレイヤーの距離
+	float DefaultArmLength;
+
+	// ダッシュ中に近づける距離
+	float DashArmLength; 
+
+	// 補間速度
+	float ArmLengthInterpSpeed; 
+
+	// ロックオン切替関数
+	void ToggleLockOn();
+
+	// 十字ボタン右を押した際に呼び出される
+	void SwitchTargetRight();
+
+	// 十字ボタン左を押した際に呼び出される
+	void SwitchTargetLeft();
+
+	// ロックオン時ターゲット切り替え関数(引数によって前後に切り替え)
+	void SwitchTarget(bool isPressedRight);
+
+	// ロックオン可能な敵を検索
+	AActor* FindNearestEnemy(AActor* IgnoreActor = nullptr);
+
+	// パンチの際に呼び出される
+	void Punch();
+
+	// キックの際に呼び出される
+	void Kick();
+
+	// 攻撃アニメーションの再生用関数
+	void PlayAttackMontage(const FAttackData& Attack);
+
+	// 当たり判定の処理
+	void AttackHit(const FAttackData& Attack);
+
+	// 変身の際に呼び出される
+	void Transform();
 
 public:
 
-	/** Handles move inputs from either controls or UI interfaces */
+	// コントロールまたはUIインターフェースからの移動入力を処理する
 	UFUNCTION(BlueprintCallable, Category="Input")
 	virtual void DoMove(float Right, float Forward);
 
-	/** Handles look inputs from either controls or UI interfaces */
+	// コントロールまたはUIインターフェースからのルック入力を処理する
 	UFUNCTION(BlueprintCallable, Category="Input")
 	virtual void DoLook(float Yaw, float Pitch);
 
-	/** Handles jump pressed inputs from either controls or UI interfaces */
+	// コントロールまたはUIインターフェースのどちらからでも、押されたジャンプ入力を処理する
 	UFUNCTION(BlueprintCallable, Category="Input")
 	virtual void DoJumpStart();
 
-	/** Handles jump pressed inputs from either controls or UI interfaces */
+	// コントロールまたはUIインターフェースのどちらからでも、押されたジャンプ入力を処理する
 	UFUNCTION(BlueprintCallable, Category="Input")
 	virtual void DoJumpEnd();
 
-public:
+	// パンチのAnimNotifyの通知を受け取る
+	UFUNCTION(BlueprintCallable)
+	void PunchHitNotify();
 
-	/** Returns CameraBoom subobject **/
+	// キックのAnimNotifyの通知を受け取る
+	UFUNCTION(BlueprintCallable)
+	void KickHitNotify();
+
+	// 攻撃が終わった際のコールバック
+	UFUNCTION()
+	void OnAttackMontageEnded(UAnimMontage* Montage, bool IsInterrupted);
+
+	// 引力用プレイヤーメッシュ
+	UPROPERTY(EditAnywhere, Category = "PlayerMesh")
+	USkeletalMesh* AttractiveMesh;
+
+	// 斥力用プレイヤーメッシュ
+	UPROPERTY(EditAnywhere, Category = "PlayerMesh")
+	USkeletalMesh* RepulsiveMesh;
+
+	// ロックオン対象
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	AActor* LockedOnTarget;
+
+	// ロックオン可能距離
+	UPROPERTY(EditAnywhere, Category = "LockOn")
+	float maxLockOnDistance;
+
+	// ダッシュ中フラグ
+	UPROPERTY(BlueprintReadWrite)
+	bool isDashed;
+
+	// ダッシュ時カメラが切り替わる入力の閾値（押し込み時）
+	float dashStartThreshold;
+
+	// 少し入力を緩めたらダッシュを解除する用の数値
+	float dashEndThreshold;    
+
+	// パンチデータ（Blueprintから設定）
+	UPROPERTY(EditAnywhere, Category = "Attack")
+	FAttackData PunchData;
+
+	// キックデータ（Blueprintから設定）
+	UPROPERTY(EditAnywhere, Category = "Attack")
+	FAttackData KickData;
+
+	// 攻撃中フラグ
+	UPROPERTY(BlueprintReadOnly)
+	bool isAttacked;
+
+	// 現在のプレイヤーの変身状態
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gravity")
+	EGravityType CurrentGravityType;
+
+public:
+	virtual void Tick(float DeltaTime) override;
+
+	// CameraBoomサブオブジェクトを返す
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 
-	/** Returns FollowCamera subobject **/
+	// FollowCameraサブオブジェクトを返す
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
 };
-
