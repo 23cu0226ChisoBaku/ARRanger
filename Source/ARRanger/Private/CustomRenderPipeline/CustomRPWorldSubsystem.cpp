@@ -13,7 +13,7 @@ void UCustomRPWorldSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 
   ExaggerationSceneViewExtension = FSceneViewExtensions::NewExtension<FMangeExaggerationStyleSVExtension>(this);
 
-  GetWorld()->GetWorldSettings()->SetTimeDilation(0.2f);
+  // GetWorld()->GetWorldSettings()->SetTimeDilation(0.2f);
 }
 
 void UCustomRPWorldSubsystem::Deinitialize()
@@ -22,5 +22,5 @@ void UCustomRPWorldSubsystem::Deinitialize()
 
   ExaggerationSceneViewExtension->Invalidate();
 
-  GetWorld()->GetWorldSettings()->SetTimeDilation(1.f);
+  // GetWorld()->GetWorldSettings()->SetTimeDilation(1.f);
 }
