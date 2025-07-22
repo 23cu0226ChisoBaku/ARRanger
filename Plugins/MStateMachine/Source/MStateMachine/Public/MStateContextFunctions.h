@@ -6,6 +6,7 @@
 
 #include "MStateContextFunctions.generated.h"
 
+/**前方宣言 */
 struct FStateTransitionParameters;
 struct FStateTickParameters;
 

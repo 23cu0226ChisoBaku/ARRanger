@@ -6,7 +6,10 @@
 
 #include "MBlueprintStateInstance.generated.h"
 
-UCLASS(Blueprintable, BlueprintType)
+/**
+ * ブループリントステートインスタンス
+ */
+UCLASS(Abstract, Blueprintable, BlueprintType)
 class UMBlueprintStateInstance : public UMStateInstance
 {
 	GENERATED_BODY()
@@ -18,13 +21,22 @@ class UMBlueprintStateInstance : public UMStateInstance
 
     /**End UObject Interface */
     
-  public:
+  protected:
+    /**
+     * ステートに入るブループリントイベント
+     */
     UFUNCTION(BlueprintImplementableEvent, Category = "MState|Instance", meta = (DisplayName = "EnterState"))
     MSTATEMACHINE_API void K2_BlueprintEnterState(const FStateTransitionParameters& TransParams);
 
+    /**
+     * ステートを更新するブループリントイベント
+     */
     UFUNCTION(BlueprintImplementableEvent, Category = "MState|Instance", meta = (DisplayName = "TickState"))
     MSTATEMACHINE_API void K2_BlueprintTickState(const FStateTickParameters& TickParams);
-
+    
+    /**
+     * ステートを抜けるブループリントイベント
+     */
     UFUNCTION(BlueprintImplementableEvent, Category = "MState|Instance", meta = (DisplayName = "ExitState"))
     MSTATEMACHINE_API void K2_BlueprintExitState(const FStateTransitionParameters& TransParams);
 

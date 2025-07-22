@@ -7,7 +7,7 @@
 FMStateContext::FMStateContext()
   : m_weakOwner{nullptr}
   , m_weakController{nullptr}
-  , m_stateMachineComponent{nullptr}
+  , m_weakStateMachineComponent{nullptr}
   , m_bIsValid{false}
 { }
 
@@ -16,6 +16,7 @@ FMStateContext::~FMStateContext()
 
 void FMStateContext::InitializeContext(const FMStateContextInitializeParameters& InitializeParams)
 {
+  // 複数回の初期化を防ぐ
   if (m_bIsValid)
   {
     return;
@@ -23,7 +24,7 @@ void FMStateContext::InitializeContext(const FMStateContextInitializeParameters&
 
   m_weakOwner = InitializeParams.Owner;
   m_weakController = InitializeParams.OwnerController;
-  m_stateMachineComponent = InitializeParams.StateMachineComponent;
+  m_weakStateMachineComponent = InitializeParams.StateMachineComponent;
   m_bIsValid = true;
 }
 
@@ -36,5 +37,10 @@ int32 FMStateContext::GetAvailableTransitionTags(TArray<FGameplayTag>& OutTags) 
 {
   OutTags.Reset();
 
-  return OutTags.Num();
+  if (m_weakStateMachineComponent == nullptr)
+  {
+    return 0;
+  }
+  
+  return m_weakStateMachineComponent->GetAvailableTransitionTags(OutTags); 
 }

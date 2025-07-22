@@ -7,6 +7,9 @@
 
 UWorld* UMBlueprintStateInstance::GetWorld() const
 {
+  /**
+   * ブループリントを操作している時OuterはUPackage
+   */
   const UPackage* package = ::Cast<UPackage>(GetOuter());
   if (package != nullptr)
   {

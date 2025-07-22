@@ -8,8 +8,12 @@
 
 #include "MStateInstance.generated.h"
 
+/**前方宣言 */
 class UMStateMachineComponent;
 
+/**
+ * @brief ステート遷移種類
+ */
 UENUM(BlueprintType)
 enum class EStateTransitionType : uint8
 {
@@ -18,22 +22,39 @@ enum class EStateTransitionType : uint8
 };
 
 /**
- * 
+ * @brief ステート遷移パラメーター
  */
 USTRUCT(BlueprintType)
 struct FStateTransitionParameters
 {
   GENERATED_BODY()
 
+  /**
+   * @brief 遷移タグ
+   * 
+   * Enterの場合は遷移する前のステートのタグ
+   * 
+   * Exitの場合は遷移する先のステートのタグ
+   */
   UPROPERTY(BlueprintReadOnly)
   FGameplayTag TransitionTag = FGameplayTag::EmptyTag;
 
+  /**
+   * @brief 遷移状態
+   */
   UPROPERTY(BlueprintReadOnly)
   EStateTransitionType Transition = EStateTransitionType::Enter;
 
+  /**
+   * @brief コンテキスト
+   */
   TSharedPtr<class FMStateContext, ESPMode::NotThreadSafe> Context;
 };
 
+
+/**
+ * @brief ステート更新パラメーター
+ */
 USTRUCT(BlueprintType)
 struct FStateTickParameters
 {
@@ -42,25 +63,44 @@ struct FStateTickParameters
   UPROPERTY(BlueprintReadOnly)
   float DeltaTime = 0.0f;
 
+  /**
+   * @brief コンテキスト
+   */
   TSharedPtr<class FMStateContext, ESPMode::NotThreadSafe> Context;
 };
 
+
+/**
+ * ステート初期化パラメータ
+ */
 struct FStateInitializationParameters
 {
+  /**
+   * @brief ステートを持つActor
+   */
   TObjectPtr<AActor> OwnerActor;
 
+  /**
+   * @brief このステートを管理するステートマシンコンポーネント
+   */
   TObjectPtr<UMStateMachineComponent> OwnerStateMachineComponent;
 };
 
+
+/**
+ * @brief ステート解放パラメーター
+ */
 struct FStateUninitializationParameters
 {
-
+  // TODO: 拡張する可能性がある
 };
 
 
 
-
-UCLASS(Abstract, BlueprintType)
+/**
+ * ステートインスタンス
+ */
+UCLASS(Abstract, MinimalAPI)
 class UMStateInstance : public UObject
 {
 	GENERATED_BODY()
@@ -68,19 +108,52 @@ class UMStateInstance : public UObject
 public:
 	UMStateInstance(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
-  MSTATEMACHINE_API void InitializeState(const FStateInitializationParameters& InitParams);
-  MSTATEMACHINE_API void UninitializeState(const FStateUninitializationParameters& UninitParams);
+  /**
+   * @brief ステートを初期化する
+   * 
+   * @param InitParams 初期化パラメーター
+   */
+  void InitializeState(const FStateInitializationParameters& InitParams);
 
-public:
-	MSTATEMACHINE_API void EnterState(const FStateTransitionParameters& TransParams);
-	MSTATEMACHINE_API void TickState(const FStateTickParameters& TickParams);
-	MSTATEMACHINE_API void ExitState(const FStateTransitionParameters& TransParams);
+  /**
+   * @brief ステートを解放する
+   * 
+   * @param UninitParams 解放パラメーター
+   */
+  void UninitializeState(const FStateUninitializationParameters& UninitParams);
+
+  /**
+   * @brief ステートに入る
+   * 
+   * @param TransParams ステート遷移パラメーター
+   */
+	void EnterState(const FStateTransitionParameters& TransParams);
+
+  /**
+   * @brief ステートを更新
+   * 
+   * @param TickParams ステート更新パラメーター
+   */
+	void TickState(const FStateTickParameters& TickParams);
+
+  /**
+   * @brief ステートを抜ける
+   * 
+   * @param TransParams ステート遷移パラメーター
+   */
+	void ExitState(const FStateTransitionParameters& TransParams);
   
 protected:
+
+  /**
+   * ステートインスタンス実装メソッド
+   * 子クラスで必要なメソッドをオーバーライド
+   */
+
+  MSTATEMACHINE_API virtual void OnInitializeState(const FStateInitializationParameters& InitParams) { };
+  MSTATEMACHINE_API virtual void OnUninitializeState(const FStateUninitializationParameters& UninitParams) { };
   MSTATEMACHINE_API virtual void OnEnterState(const FStateTransitionParameters& TransParams) { };
   MSTATEMACHINE_API virtual void OnTickState(const FStateTickParameters& TickParams) { };
   MSTATEMACHINE_API virtual void OnExitState(const FStateTransitionParameters& TransParams) { };
-  MSTATEMACHINE_API virtual void OnInitializeState(const FStateInitializationParameters& InitParams) { };
-  MSTATEMACHINE_API virtual void OnUninitializeState(const FStateUninitializationParameters& UninitParams) { };
 	
 };

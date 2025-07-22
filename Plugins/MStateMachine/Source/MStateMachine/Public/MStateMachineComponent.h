@@ -8,16 +8,24 @@
 
 #include "MStateMachineComponent.generated.h"
 
+/**前方宣言 */
 class UMStateInstance;
 class UMStateDefinition;
 class FMStateContext;
 
+/**
+ * ステートを抜ける理由列挙
+ */
 enum class EStateExitReason
 {
   Transition,
   Uninitialize
 };
 
+
+/**
+ * ステートハンドル
+ */
 USTRUCT(BlueprintType)
 struct FMStateHandle
 {
@@ -26,23 +34,38 @@ struct FMStateHandle
   friend class UMStateMachineComponent;
 
   MSTATEMACHINE_API FMStateHandle();
+  MSTATEMACHINE_API FMStateHandle(UMStateInstance* State, UActorComponent* OwnerComp, const FGameplayTag& StateTag);
 
-
-  MSTATEMACHINE_API FMStateHandle(
-                UMStateInstance* state,
-                UActorComponent* ownerComp,
-                const FGameplayTag& stateTag
-              );
-
+  /**
+   * @brief Handle有効化チェック
+   * 
+   * @return インスタンス、コンポーネント、タグがすべて有効値だったらtrue、それ以外はfalseを返す
+   */
   MSTATEMACHINE_API bool IsValid() const;
+
+  /**
+   * @brief ステートタグを取得
+   * 
+   * @return タグが無効だったらFGameplayTag::EmptyTagを返す
+   */
   MSTATEMACHINE_API FGameplayTag GetStateTag() const;
   
 private:
+  /**ステートインスタンス弱参照 */
+
   TWeakObjectPtr<UMStateInstance> m_state;
+  
+  /**Ownerコンポーネント弱参照 */
   TWeakObjectPtr<UActorComponent> m_ownerComp;
+  
+  /**ステートタグ */
   FGameplayTag m_stateTag;
 };
 
+
+/**
+ * ステートインスタンスリストオブジェクト
+ */
 USTRUCT()
 struct FMStateMachineStateListEntry
 {
@@ -51,30 +74,38 @@ struct FMStateMachineStateListEntry
   friend struct FMStateMachineStateList;
   friend class UMStateMachineComponent;
 
-  FMStateMachineStateListEntry()
-    : State(nullptr)
-    , StateDefinition(nullptr)
-  {
-  }
+  FMStateMachineStateListEntry();
 
 private:
+
+  /**ステートインスタンス */
   UPROPERTY()
   TObjectPtr<UMStateInstance> State;
 
+  /**ステート定義アセット */
   UPROPERTY()
   TObjectPtr<const UMStateDefinition> StateDefinition;
 
 };
 
+
+/**
+ * ステートインスタンスリスト
+ */
 USTRUCT()
 struct FMStateMachineStateList
 {
   GENERATED_BODY()
+  
+  friend class UMStateMachineComponent;
 
 public:
   FMStateMachineStateList();
   FMStateMachineStateList(UMStateMachineComponent* OwnerComp);
 
+  /**
+   * @brief 
+   */
   FMStateHandle AddEntry(TSubclassOf<UMStateDefinition>);
   void RemoveEntry(FMStateHandle);
 
@@ -85,7 +116,6 @@ public:
 
 private:
 
-  friend class UMStateMachineComponent;
 
   UPROPERTY()
   TArray<FMStateMachineStateListEntry> Entries;
@@ -166,7 +196,10 @@ public:
   UFUNCTION(BlueprintPure, Category = "MStateMachine")
   MSTATEMACHINE_API FGameplayTag GetStateTagByInstance(const UMStateInstance* StateInstance) const;
 
-  MSTATEMACHINE_API FMStateContext* GetContext() const { return m_context.Get(); }
+  FMStateContext* GetContext() const { return m_context.Get(); }
+
+  int32 GetAvailableTransitionTags(TArray<FGameplayTag>& OutTags) const;
+
 
 private:
   void EnterStateInternal(const UMStateInstance* PreviousStateInstance, UMStateInstance* NextStateInstance);

@@ -2,27 +2,47 @@
 
 #pragma once
 
+/**前方宣言 */
 class UObject;
 class AController;
 class UMStateMachineComponent;
 struct FGameplayTag;
 
+
+/**
+ * ステートコンテキスト初期化パラメータ
+ */
 struct FMStateContextInitializeParameters
 {
+  /**
+   * ステートOwner
+   */
   TObjectPtr<UObject> Owner;
 
+  /**
+   * ステートOwnerのController
+   * 
+   * Maybe nullptr
+   */
   TObjectPtr<AController> OwnerController;
 
+  /**
+   * このステートコンテキストを管理するステートマシンコンポーネント
+   */
   TObjectPtr<const UMStateMachineComponent> StateMachineComponent;
 };
 
+
+/**
+ * ステートコンテキスト
+ */
 class FMStateContext
 {
   friend class UMStateMachineComponent;
 
   public:
     MSTATEMACHINE_API FMStateContext();
-    MSTATEMACHINE_API ~FMStateContext();
+    MSTATEMACHINE_API virtual ~FMStateContext();
 
   public:
 
@@ -30,23 +50,48 @@ class FMStateContext
     
     AController* GetOwnerController() const { return m_weakController.Get();}
     
-    const UMStateMachineComponent* GetStateMachineComponent() const { return m_stateMachineComponent; }
+    const UMStateMachineComponent* GetStateMachineComponent() const { return m_weakStateMachineComponent.Get(); }
     
     bool IsValid() const { return m_bIsValid; }
     
     MSTATEMACHINE_API UWorld* GetWorld() const;
     
+    /**
+     * @brief 今のステートを抜けれるTransition tagを取得
+     * 
+     * @param OutTags Transition tag
+     * 
+     * @return 取得できたタグの数
+     */
     MSTATEMACHINE_API int32 GetAvailableTransitionTags(TArray<FGameplayTag>& OutTags) const;
   
   private:
-    MSTATEMACHINE_API void InitializeContext(const FMStateContextInitializeParameters& InitializeParams);
+
+    /**
+     * @brief コンテキストを初期化
+     * 
+     * @param InitParams 初期化パラメータ 
+     */
+    void InitializeContext(const FMStateContextInitializeParameters& InitParams);
+
+  protected:
+
+    /**
+     * @brief コンテキストを初期化した後のコールバック
+     * 
+     * @param InitParams 初期化パラメータ 
+     */
+    MSTATEMACHINE_API virtual void OnInitializeContext(const FMStateContextInitializeParameters& InitParams) {}
 
   private:
+    /**Owner弱参照 */
     TWeakObjectPtr<UObject> m_weakOwner;
-    
+
+    /**Owner Controller弱参照 */
     TWeakObjectPtr<AController> m_weakController;
 
-    const UMStateMachineComponent* m_stateMachineComponent;
+    /**ステートマシンコンポネント弱参照 */
+    TWeakObjectPtr<const UMStateMachineComponent> m_weakStateMachineComponent;
 
     bool m_bIsValid : 1;
 };
