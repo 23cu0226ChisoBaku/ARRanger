@@ -8,13 +8,22 @@
 #include "ARRangerCharacter.generated.h"
 
 class UAnimMontage;
-class USpringArmComponent;
 class UCameraComponent;
+class USkeletalMesh;
+class USpringArmComponent;
 class UInputAction;
 
 struct FInputActionValue;
 
 DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);
+
+// プレイヤーの変身状態(引力、斥力)
+UENUM(BlueprintType)
+enum class EGravityType : uint8
+{
+	Attractive,
+	Repulsive
+};
 
 /**
  *  シンプルでプレイヤーが操作可能な三人称視点キャラクター
@@ -71,6 +80,10 @@ protected:
 	// キックアクション
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	class UInputAction* KickAction;
+
+	// 変身アクション
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	class UInputAction* TransformAction;
 
 public:
 
@@ -133,6 +146,9 @@ private:
 	// 当たり判定の処理
 	void AttackHit(const FAttackData& Attack);
 
+	// 変身の際に呼び出される
+	void Transform();
+
 public:
 
 	// コントロールまたはUIインターフェースからの移動入力を処理する
@@ -163,6 +179,14 @@ public:
 	UFUNCTION()
 	void OnAttackMontageEnded(UAnimMontage* Montage, bool IsInterrupted);
 
+	// 引力用プレイヤーメッシュ
+	UPROPERTY(EditAnywhere, Category = "PlayerMesh")
+	USkeletalMesh* AttractiveMesh;
+
+	// 斥力用プレイヤーメッシュ
+	UPROPERTY(EditAnywhere, Category = "PlayerMesh")
+	USkeletalMesh* RepulsiveMesh;
+
 	// ロックオン対象
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	AActor* LockedOnTarget;
@@ -192,6 +216,10 @@ public:
 	// 攻撃中フラグ
 	UPROPERTY(BlueprintReadOnly)
 	bool isAttacked;
+
+	// 現在のプレイヤーの変身状態
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gravity")
+	EGravityType CurrentGravityType;
 
 public:
 	virtual void Tick(float DeltaTime) override;
