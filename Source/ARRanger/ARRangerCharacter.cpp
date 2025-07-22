@@ -27,6 +27,8 @@ AARRangerCharacter::AARRangerCharacter()
 	, dashEndThreshold(0.7f)
 	, isAttacked(false)
 	, isAbleToSwitchTarget(false)
+	, isAttractingEnemy(false)
+	, isStrongAttack(false)
 {
 	// カプセルのサイズを設定する
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
@@ -106,7 +108,7 @@ void AARRangerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 		EnhancedInputComponent->BindAction(SwitchTargetLeftAction, ETriggerEvent::Triggered, this, &AARRangerCharacter::SwitchTargetLeft);
 
 		// パンチ
-		EnhancedInputComponent->BindAction(PunchAction, ETriggerEvent::Started, this, &AARRangerCharacter::Punch);
+		EnhancedInputComponent->BindAction(PunchAction, ETriggerEvent::Started, this, &AARRangerCharacter::StartPunch);
 
 		// キック
 		EnhancedInputComponent->BindAction(KickAction, ETriggerEvent::Started, this, &AARRangerCharacter::Kick);
@@ -196,6 +198,30 @@ void AARRangerCharacter::Tick(float DeltaTime)
 
 			Controller->SetControlRotation(NewControlRot);
 		}
+	}
+
+	if (isAttractingEnemy && LockedOnTarget && IsValid(LockedOnTarget))
+	{
+		FVector PlayerLocation = GetActorLocation();
+		FVector EnemyLocation = LockedOnTarget->GetActorLocation();
+		FVector Direction = (PlayerLocation - EnemyLocation);
+		float Distance = Direction.Size();
+
+		// 引き寄せ終了距離
+		const float MinDistance = 150.0f;
+
+		// 引き寄せが完了したらパンチを行う
+		if (Distance <= MinDistance)
+		{
+			isAttractingEnemy = false;
+			PlayAttackMontage(PunchData); 
+			return;
+		}
+
+		// 徐々に近づける（吸引スピード調整）
+		float AttractionSpeed = 800.f;
+		FVector NewLocation = EnemyLocation + Direction.GetSafeNormal() * AttractionSpeed * DeltaTime;
+		LockedOnTarget->SetActorLocation(NewLocation);
 	}
 }
 
@@ -396,8 +422,27 @@ AActor* AARRangerCharacter::FindNearestEnemy(AActor* IgnoreActor)
 	return NearestEnemy;
 }
 
-void AARRangerCharacter::Punch()
+void AARRangerCharacter::StartPunch()
 {
+	// アニメーション再生（引き寄せ）
+	if (PunchData.Montage_AR && !GetMesh()->GetAnimInstance()->Montage_IsPlaying(PunchData.Montage_AR))
+	{
+		GetMesh()->GetAnimInstance()->Montage_Play(PunchData.Montage_AR);
+	}
+
+	if (CurrentGravityType == EGravityType::Attractive && bIsLockedOn && LockedOnTarget)
+	{
+		// すでに引き寄せ中なら多重処理防止
+		if (!isAttractingEnemy)
+		{
+			isAttractingEnemy = true;
+			isStrongAttack = true;
+		}
+		return;
+	}
+
+	// 通常パンチ
+	isStrongAttack = false;
 	PlayAttackMontage(PunchData);
 }
 
@@ -418,13 +463,30 @@ void AARRangerCharacter::KickHitNotify()
 }
 void AARRangerCharacter::PlayAttackMontage(const FAttackData& Attack)
 {
-	if (!Attack.Montage || isAttacked) return;
+	// Nullチェック・攻撃中チェック
+	if (!Attack.Montage_Normal || !Attack.Montage_Normal || isAttacked)
+	{
+		return;
+	}
 
 	UAnimInstance* Anim = GetMesh()->GetAnimInstance();
-	if (!Anim || Anim->Montage_IsPlaying(Attack.Montage)) return;
+	// 再生中は処理しない
+	if (!Anim || Anim->Montage_IsPlaying(Attack.Montage_Normal) || Anim->Montage_IsPlaying(Attack.Montage_Strong))
+	{
+		return;
+	}
 
 	isAttacked = true;
-	Anim->Montage_Play(Attack.Montage);
+
+	// 強攻撃フラグが立っていれば、強攻撃アニメーションを再生
+	if (isStrongAttack)
+	{
+		Anim->Montage_Play(Attack.Montage_Strong);
+	}
+	else
+	{
+		Anim->Montage_Play(Attack.Montage_Normal);
+	}
 }
 
 void AARRangerCharacter::AttackHit(const FAttackData& Attack)
@@ -432,6 +494,7 @@ void AARRangerCharacter::AttackHit(const FAttackData& Attack)
 	FVector Origin = GetActorLocation() + GetActorForwardVector() * 100.f;
 	TArray<AActor*> HitActors;
 
+	// 当たり判定を作成
 	bool bHit = UKismetSystemLibrary::SphereOverlapActors(
 		this,
 		Origin,
@@ -445,8 +508,11 @@ void AARRangerCharacter::AttackHit(const FAttackData& Attack)
 		HitActors
 	);
 
-	if (!bHit) return;
-
+	if (!bHit)
+	{
+		return;
+	}
+		
 	for (AActor* HitActor : HitActors)
 	{
 		if (HitActor->ActorHasTag(Attack.TargetTag))
@@ -459,7 +525,15 @@ void AARRangerCharacter::AttackHit(const FAttackData& Attack)
 				FVector LaunchDir = GetActorForwardVector() + FVector(0, 0, 0.2f);
 				LaunchDir.Normalize();
 
-				Enemy->ReceiveDamage(Attack.Damage, LaunchDir, bWillBeKilled);
+				// 強攻撃フラグが立っていればダメージを上乗せ
+				if (isStrongAttack)
+				{
+					Enemy->ReceiveDamage(Attack.Damage + Attack.DamageModifier, LaunchDir, bWillBeKilled);
+				}
+				else
+				{
+					Enemy->ReceiveDamage(Attack.Damage, LaunchDir, bWillBeKilled);
+				}
 			}
 		}
 	}

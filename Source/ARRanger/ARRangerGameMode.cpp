@@ -14,18 +14,6 @@ void AARRangerGameMode::BeginPlay()
 {
 	Super::BeginPlay();
 
-	UGameInstance* GameInstance = GetGameInstance();
-	if (GameInstance)
-	{
-		FString OutError;
-		ULocalPlayer* NewPlayer = GameInstance->CreateLocalPlayer(1, OutError, true);
-
-		if (!NewPlayer)
-		{
-			UE_LOG(LogTemp, Warning, TEXT("2P‚Ìì¬‚É¸”s: %s"), *OutError);
-		}
-	}
-
 	// ƒ^ƒO•t‚«‚Ì“G‚ğ‚·‚×‚Äæ“¾
 	TArray<AActor*> FoundEnemies;
 	UGameplayStatics::GetAllActorsWithTag(GetWorld(), FName("Enemy"), FoundEnemies);
@@ -35,7 +23,7 @@ void AARRangerGameMode::BeginPlay()
 
 void AARRangerGameMode::OnEnemyKilled()
 {
-	EnemyCount--;
+	--EnemyCount;
 
 	UE_LOG(LogTemp, Warning, TEXT("Enemy Count: %d"), EnemyCount);
 

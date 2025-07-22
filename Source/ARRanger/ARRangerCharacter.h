@@ -135,7 +135,7 @@ private:
 	AActor* FindNearestEnemy(AActor* IgnoreActor = nullptr);
 
 	// パンチの際に呼び出される
-	void Punch();
+	void StartPunch();
 
 	// キックの際に呼び出される
 	void Kick();
@@ -148,6 +148,18 @@ private:
 
 	// 変身の際に呼び出される
 	void Transform();
+
+	// ダッシュ時カメラが切り替わる入力の閾値（押し込み時）
+	float dashStartThreshold;
+
+	// 少し入力を緩めたらダッシュを解除する用の数値
+	float dashEndThreshold;
+
+	// 敵を引き寄せ中のフラグ
+	bool isAttractingEnemy;
+
+	// 強い攻撃かどうかのフラグ
+	bool isStrongAttack;
 
 public:
 
@@ -198,12 +210,6 @@ public:
 	// ダッシュ中フラグ
 	UPROPERTY(BlueprintReadWrite)
 	bool isDashed;
-
-	// ダッシュ時カメラが切り替わる入力の閾値（押し込み時）
-	float dashStartThreshold;
-
-	// 少し入力を緩めたらダッシュを解除する用の数値
-	float dashEndThreshold;    
 
 	// パンチデータ（Blueprintから設定）
 	UPROPERTY(EditAnywhere, Category = "Attack")
