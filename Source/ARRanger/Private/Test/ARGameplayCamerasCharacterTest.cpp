@@ -102,15 +102,6 @@ Super::Tick(DeltaTime);
 		isDashed = false;
 	}
 
-	// ダッシュ時にカメラをプレイヤーに近づける
-	// const float TargetArmLength = isDashed ? DashArmLength : DefaultArmLength;
-	// CameraBoom->TargetArmLength = FMath::FInterpTo(
-	// 	CameraBoom->TargetArmLength,
-	// 	TargetArmLength,
-	// 	DeltaTime,
-	// 	ArmLengthInterpSpeed
-	// );
-
 	// ロックオン時の処理
 	if (bIsLockedOn && LockedOnTarget)
 	{
@@ -225,12 +216,14 @@ void AARGameplayCamerasCharacterTest::DoMove(float Right, float Forward)
 
 		// どちらを向いているか調べる
 		const FRotator Rotation = GetController()->GetControlRotation();
-		const FRotator YawRotation(0, Rotation.Yaw, 0);
 
 		// 前方ベクトルの取得
-    const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+    const FVector ForwardDirection = FRotator(0.0, Rotation.Yaw, 0.0).Vector();
+		const FVector RightDirection = FRotationMatrix(FRotator(0.0, Rotation.Yaw, Rotation.Roll)).GetScaledAxis(EAxis::Y);
 
-		const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+    // Debug Forward and Right
+    UE_LOG(LogTemp, Warning, TEXT("Forward Direction: X:[%f], Y:[%f], Z:[%f]"), ForwardDirection.X, ForwardDirection.Y, ForwardDirection.Z);
+    UE_LOG(LogTemp, Warning, TEXT("Right Direction: X:[%f], Y:[%f], Z:[%f]"), RightDirection.X, RightDirection.Y, RightDirection.Z);
 
 		// Add Movement
 		AddMovementInput(ForwardDirection, Forward);
