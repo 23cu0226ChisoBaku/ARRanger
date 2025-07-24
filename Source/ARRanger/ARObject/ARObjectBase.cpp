@@ -2,8 +2,8 @@
 // 斥力引力の干渉を受けるオブジェクトのベースクラス
 //*************************************************
 
-#include "ARObjectComponent.h"
 #include "ARObject/ARObjectBase.h"
+#include "ARObjectComponent.h"
 
 /*
 * コンストラクタ
