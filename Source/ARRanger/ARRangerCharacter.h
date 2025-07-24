@@ -53,6 +53,10 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
 	UInputAction* MoveAction;
 
+	// 山内
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	UInputAction* ClimbAction;
+
 	// 視点回転アクション(ゲームパッド)
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
 	UInputAction* LookAction;
@@ -105,10 +109,14 @@ protected:
 
 private:
 	// ロックオン中フラグ
-	bool bIsLockedOn;
+	bool isLockedOn;
 
 	// ロックオン時敵切り替えの可能フラグ
 	bool isAbleToSwitchTarget;
+
+	// 山内
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Climeb", meta = (AllowPrivateAccess = "true"))
+	bool isClimb;
 
 	// もともとのカメラとプレイヤーの距離
 	float DefaultArmLength;
@@ -166,6 +174,10 @@ public:
 	// コントロールまたはUIインターフェースからの移動入力を処理する
 	UFUNCTION(BlueprintCallable, Category="Input")
 	virtual void DoMove(float Right, float Forward);
+
+	// 山内
+	UFUNCTION(BlueprintCallable, Category = "Input")
+	void DoClimb(float Right, float Up);
 
 	// コントロールまたはUIインターフェースからのルック入力を処理する
 	UFUNCTION(BlueprintCallable, Category="Input")
@@ -235,4 +247,7 @@ public:
 
 	// FollowCameraサブオブジェクトを返す
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
+
+	// 現在のプレイヤーのモードを取得
+	EGravityType GetCurrentGravityType();
 };

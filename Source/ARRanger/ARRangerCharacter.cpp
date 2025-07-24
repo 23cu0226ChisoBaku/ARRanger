@@ -29,6 +29,7 @@ AARRangerCharacter::AARRangerCharacter()
 	, isAbleToSwitchTarget(false)
 	, isAttractingEnemy(false)
 	, isStrongAttack(false)
+	, isClimb(false) /*山内*/ 
 {
 	// カプセルのサイズを設定する
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
@@ -163,7 +164,7 @@ void AARRangerCharacter::Tick(float DeltaTime)
 	);
 
 	// ロックオン時の処理
-	if (bIsLockedOn && LockedOnTarget)
+	if (isLockedOn && LockedOnTarget)
 	{
 		FVector ToTarget = LockedOnTarget->GetActorLocation() - GetActorLocation();
 		FRotator TargetRotation = FRotationMatrix::MakeFromX(ToTarget).Rotator();
@@ -182,7 +183,7 @@ void AARRangerCharacter::Tick(float DeltaTime)
 			else
 			{
 				LockedOnTarget = nullptr;
-				bIsLockedOn = false;
+				isLockedOn = false;
 			}
 		}
 		// キャラクター本体を回転させる
@@ -230,8 +231,15 @@ void AARRangerCharacter::Move(const FInputActionValue& Value)
 	// 入力はVector2D
 	FVector2D MovementVector = Value.Get<FVector2D>();
 
-	// 入力をルーティングする
-	DoMove(MovementVector.X, MovementVector.Y);
+	// 山内
+	if (isClimb)
+	{
+		// 山内
+		DoClimb(MovementVector.X, MovementVector.Y);
+		return;
+	}
+		// 入力をルーティングする
+		DoMove(MovementVector.X, MovementVector.Y);
 }
 
 void AARRangerCharacter::Look(const FInputActionValue& Value)
@@ -243,12 +251,27 @@ void AARRangerCharacter::Look(const FInputActionValue& Value)
 	DoLook(LookAxisVector.X, LookAxisVector.Y);
 }
 
+// 山内
+void AARRangerCharacter::DoClimb(float Right, float Up)
+{
+	if (GetController() != nullptr)
+	{
+		// どちらを向いているか調べる
+		FRotator YawRotation(0, GetActorRotation().Yaw, 0);
+
+		FVector RightDir = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+
+		AddMovementInput(FVector::UpVector, Up);
+		AddMovementInput(RightDir, Right);
+	}
+}
+
 void AARRangerCharacter::DoMove(float Right, float Forward)
 {
 	if (GetController() != nullptr)
 	{
 		// 攻撃中は移動しない
-		if (isAttacked)
+		if (isAttacked || isStrongAttack)
 		{
 			return;
 		}
@@ -282,7 +305,7 @@ void AARRangerCharacter::DoLook(float Yaw, float Pitch)
 void AARRangerCharacter::DoJumpStart()
 {
 	// 攻撃中はジャンプしない
-	if (isAttacked)
+	if (isAttacked || isStrongAttack)
 	{
 		return;
 	}
@@ -299,12 +322,12 @@ void AARRangerCharacter::DoJumpEnd()
 
 void AARRangerCharacter::ToggleLockOn()
 {
-	if (bIsLockedOn)
+	if (isLockedOn)
 	{
 		// ロックオン解除
 		UE_LOG(LogTemp, Warning, TEXT("Lock off"));
 		LockedOnTarget = nullptr;
-		bIsLockedOn = false;
+		isLockedOn = false;
 	}
 	else
 	{
@@ -314,7 +337,7 @@ void AARRangerCharacter::ToggleLockOn()
 		if (LockedOnTarget)
 		{
 			UE_LOG(LogTemp, Warning, TEXT("Locked on to: %s"), *LockedOnTarget->GetName());
-			bIsLockedOn = true;
+			isLockedOn = true;
 		}
 		else
 		{
@@ -338,7 +361,7 @@ void AARRangerCharacter::SwitchTargetLeft()
 void AARRangerCharacter::SwitchTarget(bool isPressedRight)
 {
 	// 非ロックオン時は処理しない
-	if (!bIsLockedOn)
+	if (!isLockedOn)
 	{
 		return;
 	}
@@ -424,19 +447,19 @@ AActor* AARRangerCharacter::FindNearestEnemy(AActor* IgnoreActor)
 
 void AARRangerCharacter::StartPunch()
 {
-	// アニメーション再生（引き寄せ）
-	if (PunchData.Montage_AR && !GetMesh()->GetAnimInstance()->Montage_IsPlaying(PunchData.Montage_AR))
+	// 引力状態勝つロックオン状態の時に処理
+	if (CurrentGravityType == EGravityType::Attractive && isLockedOn && LockedOnTarget)
 	{
-		GetMesh()->GetAnimInstance()->Montage_Play(PunchData.Montage_AR);
-	}
-
-	if (CurrentGravityType == EGravityType::Attractive && bIsLockedOn && LockedOnTarget)
-	{
-		// すでに引き寄せ中なら多重処理防止
 		if (!isAttractingEnemy)
 		{
+			// 引き寄せフラグと強攻撃フラグを立てる
 			isAttractingEnemy = true;
 			isStrongAttack = true;
+
+			if (PunchData.Montage_AR && !GetMesh()->GetAnimInstance()->Montage_IsPlaying(PunchData.Montage_AR))
+			{
+				GetMesh()->GetAnimInstance()->Montage_Play(PunchData.Montage_AR);
+			}
 		}
 		return;
 	}
@@ -464,7 +487,7 @@ void AARRangerCharacter::KickHitNotify()
 void AARRangerCharacter::PlayAttackMontage(const FAttackData& Attack)
 {
 	// Nullチェック・攻撃中チェック
-	if (!Attack.Montage_Normal || !Attack.Montage_Normal || isAttacked)
+	if (!Attack.Montage_Normal || !Attack.Montage_Strong || isAttacked)
 	{
 		return;
 	}
@@ -542,10 +565,17 @@ void AARRangerCharacter::AttackHit(const FAttackData& Attack)
 void AARRangerCharacter::OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted)
 {
 	isAttacked = false;
+	isStrongAttack = false;
 }
 
 void AARRangerCharacter::Transform()
 {
+	// 攻撃中は処理しない
+	if (isAttacked)
+	{
+		return;
+	}
+
 	// モード変更（引力 or 斥力）
 	CurrentGravityType = (CurrentGravityType == EGravityType::Attractive)
 		? EGravityType::Repulsive
@@ -560,4 +590,9 @@ void AARRangerCharacter::Transform()
 	{
 		GetMesh()->SetSkeletalMesh(NewMesh);
 	}
+}
+
+EGravityType AARRangerCharacter::GetCurrentGravityType()
+{
+	return CurrentGravityType;
 }
