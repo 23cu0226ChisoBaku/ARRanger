@@ -46,7 +46,6 @@ class ARRANGER_API AARTestObserverGameModeBase : public AGameModeBase
     
     TMap< EState, TSharedPtr< ARRanger::INotifyHandlerInterface > > Handlers;
 
-    UPROPERTY()
     TArray< TWeakInterfacePtr < IObservableSubjectInterface > > Subjects;
 	
 };

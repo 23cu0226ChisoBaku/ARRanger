@@ -396,15 +396,8 @@ void AARGameplayCamerasCharacterTest::KickHitNotify()
 }
 void AARGameplayCamerasCharacterTest::PlayAttackMontage(const FAttackData& Attack)
 {
-	if (!Attack.Montage || isAttacked) return;
 
-	UAnimInstance* Anim = GetMesh()->GetAnimInstance();
-	if (!Anim || Anim->Montage_IsPlaying(Attack.Montage)) return;
-
-	isAttacked = true;
-	Anim->Montage_Play(Attack.Montage);
 }
-
 void AARGameplayCamerasCharacterTest::AttackHit(const FAttackData& Attack)
 {
 	FVector Origin = GetActorLocation() + GetActorForwardVector() * 100.f;
