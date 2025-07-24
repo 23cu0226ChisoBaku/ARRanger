@@ -1,49 +1,68 @@
-	// Œ»İ‚ÌƒXƒe[ƒg‚Í‚Ç‚Ìƒ^ƒO‚ğ‚Á‚Ä‚¢‚ÄA‚Ç‚Ìó‘Ô‚É‘JˆÚ‚Å‚«‚ÄA‚Ç‚ñ‚È“®ìiƒCƒ“ƒXƒ^ƒ“ƒXj‚ğ‚·‚é‚©‚ğ‚Ü‚Æ‚ß‚½ƒNƒ‰ƒX
+// Fill out your copyright notice in the Description page of Project Settings.
 
-	#pragma once
+#pragma once
 
-	// UObject ‚ğŒp³‚·‚é‚ªADLLiƒ‚ƒWƒ…[ƒ‹jŠÔ‚ÅƒGƒNƒXƒ|[ƒg‚µ‚È‚¢ƒNƒ‰ƒXE\‘¢‘Ì‚ğ’è‹`‚·‚é‚½‚ß‚ÌŠî–{ƒwƒbƒ_[
-	#include "UObject/NoExportTypes.h"
-	#include "GameplayTagContainer.h"
+#include "UObject/NoExportTypes.h"
+#include "GameplayTagContainer.h"
 
-	#include "MStateDefinition.generated.h"
+#include "MStateDefinition.generated.h"
 
-	class UMStateInstance;
+/**å‰æ–¹å®£è¨€ */
+class UMStateInstance;
 
-	// \‘¢‘Ì‚ª Blueprint “à‚Å‚àu•Ï”v‚Æ‚µ‚Äg‚¦‚é
-	// ƒXƒe[ƒg‚Ì‘JˆÚî•ñ‚ğ‚Ü‚Æ‚ß‚é‚½‚ß‚ÌƒNƒ‰ƒX
-	USTRUCT(BlueprintType)
-	struct FMStateTransitionInfo
-	{
-		GENERATED_BODY()
+/**
+ * ã‚¹ãƒ†ãƒ¼ãƒˆã‚¿ã‚°æƒ…å ±
+ */
+USTRUCT(BlueprintType)
+struct FMStateTagInfo
+{
+	GENERATED_BODY()
 
-	public:
-		FString ToString() const;
+public:
+  /**
+   * @brief ç¾åœ¨ã®ã‚¹ãƒ†ãƒ¼ãƒˆã‚¿ã‚°ã‚’è¿”ã™
+   * 
+   * @return StateTagæ–‡å­—åˆ—
+   */
+	FString ToString() const;
 
-		UPROPERTY(EditAnywhere, Category = "MState|Transition")
-		FGameplayTag StateTag;
+  /**
+   * ã‚¹ãƒ†ãƒ¼ãƒˆã‚¿ã‚°
+   */
+	UPROPERTY(EditAnywhere, Category = "MState|Transition")
+	FGameplayTag StateTag;
 
-		UPROPERTY(EditAnywhere, Category = "MState|Transition")
-		TSet<FGameplayTag> NextTransitionTags;
-	};
+  /**
+   * é·ç§»ã§ãã‚‹ã‚¹ãƒ†ãƒ¼ãƒˆã®ã‚¿ã‚°ã‚³ãƒ³ãƒ†ãƒŠ
+   */
+	UPROPERTY(EditAnywhere, Category = "MState|Transition")
+	TSet<FGameplayTag> NextTransitionTags;
 
-	// Blueprint ‚Ì•Ï”‚Æ‚µ‚Äg‚¦‚é
-	// Blueprintƒx[ƒXƒNƒ‰ƒX‚Æ‚µ‚ÄŒp³‰Â”\
-	// Blueprint ‚Å‚±‚ÌƒNƒ‰ƒX‚ÌƒIƒuƒWƒFƒNƒg‚ª Šù’è‚Å Consti•ÏX•s‰Âj ˆµ‚¢
-	// ƒCƒ“ƒXƒ^ƒ“ƒX‰»‚Å‚«‚È‚¢’ŠÛƒNƒ‰ƒX
-	// Œ»İ‚Ìó‘Ô‚Í‚Ç‚ñ‚ÈƒCƒ“ƒXƒ^ƒ“ƒX‚ÅA‚Ç‚±‚É‘JˆÚ‚Å‚«‚é‚©‚È‚Ç‚ğ‚Ü‚Æ‚ß‚½ó‘Ô’è‹`ƒNƒ‰ƒX
-	UCLASS(BlueprintType, Blueprintable, Const, Abstract)
-	class MSTATEMACHINE_API UMStateDefinition : public UObject
-	{
-		GENERATED_BODY()
+};
 
-	public:
-		UMStateDefinition();
+
+/**
+ * ã‚¹ãƒ†ãƒ¼ãƒˆå®šç¾©ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆ
+ */
+UCLASS(BlueprintType, Blueprintable, Const, Abstract)
+class MSTATEMACHINE_API UMStateDefinition : public UObject
+{
+	GENERATED_BODY()
+
+public:
+	UMStateDefinition();
 	
-	public:
-		UPROPERTY(EditDefaultsOnly, Category = "MState|Definition")
-		TSubclassOf<UMStateInstance> InstanceType;
+public:
 
-		UPROPERTY(EditDefaultsOnly, Category = "MState|Definition")
-		FMStateTransitionInfo TransitionInfo;
-	};
+  /**
+   * ã‚¹ãƒ†ãƒ¼ãƒˆã‚¤ãƒ³ã‚¹ã‚¿ãƒ³ã‚¹ã‚¯ãƒ©ã‚¹
+   */
+	UPROPERTY(EditDefaultsOnly, Category = "MState|Definition")
+	TSubclassOf<UMStateInstance> InstanceType;
+
+  /**
+   * ã‚¹ãƒ†ãƒ¼ãƒˆã‚¿ã‚°æƒ…å ±
+   */
+	UPROPERTY(EditDefaultsOnly, Category = "MState|Definition")
+	FMStateTagInfo TagInfo;
+};

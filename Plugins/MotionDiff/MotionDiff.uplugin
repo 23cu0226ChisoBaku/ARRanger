@@ -18,7 +18,11 @@
 		{
 			"Name": "MotionDiff",
 			"Type": "Runtime",
-			"LoadingPhase": "Default"
+			"LoadingPhase": "Default",
+      "AdditionalDependencies": [
+        "ProceduralMeshComponent",
+        "AssetRegistry"
+      ]
 		}
 	]
 }

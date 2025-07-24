@@ -2,146 +2,133 @@
 
 #pragma once
 
-// UActorComponent ‚ğg—p‚·‚é‚½‚ß‚ÌƒCƒ“ƒNƒ‹[ƒh
-// UE ‚ÌƒRƒ“ƒ|[ƒlƒ“ƒg‚×[ƒXİŒv‚ÌŠî–{ƒNƒ‰ƒX
-// ƒAƒNƒ^[‚É‹@”\‚ğ’Ç‰Á‚·‚éuƒRƒ“ƒ|[ƒlƒ“ƒgv‚ğ’è‹`Eg—p‚·‚é‚½‚ß
 #include "Components/ActorComponent.h"
-
-// GamePlay Tags ‚ğg‚¤‚½‚ß‚ÌƒCƒ“ƒNƒ‹[ƒh
-// ƒ^ƒO‚ğg‚Á‚Äó‘Ô‚âƒJƒeƒSƒŠ‚ğ_“î‚ÉŠÇ—‚Å‚«‚é
-// ó‘Ô‚â‘®«‚ğ•\‚·uƒQ[ƒ€ƒvƒŒƒCƒ^ƒOv‚ğg—p‚·‚é‚½‚ß
 #include "GameplayTagContainer.h"
-
-// LogMState ‚Æ LogMStateMachine ‚Æ‚¢‚¤ƒƒOƒJƒeƒSƒŠÀ‘Ìi’è‹`j‚ğs‚Á‚Ä‚¢‚é
 #include "MStateMachineLogChannels.h"
 
-// “Áê‚ÈƒvƒŠƒvƒƒZƒbƒTƒfƒBƒŒƒNƒeƒBƒu
-// Unreal Engine ‚Ì ƒŠƒtƒŒƒNƒVƒ‡ƒ“‹@”\iUCLASS/USTRUCT/UENUM ‚È‚Çj‚ğ³‚µ‚­g‚¤‚½‚ß
-// UCLASS(), USTRUCT(), UENUM() ‚È‚Ç‚Ìƒ}ƒNƒ‚ğg‚Á‚Ä‚¢‚éê‡A‚±‚Ì .generated.h ‚ğ•K‚¸ ƒNƒ‰ƒXéŒ¾‚Ì’¼‘O‚ÉƒCƒ“ƒNƒ‹[ƒh‚·‚é•K—v‚ª‚ ‚é
 #include "MStateMachineComponent.generated.h"
 
+/**å‰æ–¹å®£è¨€ */
 class UMStateInstance;
 class UMStateDefinition;
+class FMStateContext;
 
-// FMStateHandle ‚Æ‚¢‚¤ \‘¢‘Ì‚ğƒuƒ‹[ƒvƒŠƒ“ƒg‚©‚çg‚¦‚éi•Ï”‚Æ‚µ‚Ä‚Ä‚é‚æ‚¤‚É‚·‚éj
+/**
+ * ã‚¹ãƒ†ãƒ¼ãƒˆã‚’æŠœã‘ã‚‹ç†ç”±åˆ—æŒ™
+ */
+enum class EStateExitReason
+{
+  Transition,
+  Uninitialize
+};
+
+
+/**
+ * ã‚¹ãƒ†ãƒ¼ãƒˆãƒãƒ³ãƒ‰ãƒ«
+ */
 USTRUCT(BlueprintType)
 struct FMStateHandle
 {
-	GENERATED_BODY()
-	
-	friend class UMStateMachineComponent;
+  GENERATED_BODY()
+  
+  friend class UMStateMachineComponent;
 
-	// FMStateHandle \‘¢‘Ì‚Ì ƒfƒtƒHƒ‹ƒgƒRƒ“ƒXƒgƒ‰ƒNƒ^ ‚Ì’è‹`
-	// ‰Šú’l‚ğ–¾¦“I‚Éİ’è‚·‚éƒRƒ“ƒXƒgƒ‰ƒNƒ^
-	
-	// ƒRƒ“ƒXƒgƒ‰ƒNƒ^
-	// nullptr ‚É‚µ‚Ä‚¨‚­‚±‚Æ‚ÅA–¢‰Šú‰»‚Ìƒ|ƒCƒ“ƒ^QÆ‚É‚æ‚éƒNƒ‰ƒbƒVƒ…i–ì—Çƒ|ƒCƒ“ƒ^j‚ğ–h‚®
-	// FGameplayTag::EmptyTag ‚ğg‚¤‚±‚Æ‚Åu‚±‚Ìƒnƒ“ƒhƒ‹‚É‚Í‚Ü‚¾ƒ^ƒO‚ªİ’è‚³‚ê‚Ä‚¢‚È‚¢v‚±‚Æ‚ğ–¾¦‚Å‚«‚éB
-	// ‰Šú‰»‚ğ–¾Šm‚É‚·‚é‚±‚Æ‚ÅAŒã‚Ì IsValid() ‚È‚Ç‚Ìƒ`ƒFƒbƒN‚ª‚µ‚â‚·‚­‚È‚éB
-	FMStateHandle()
-		: m_state(nullptr)						
-		, m_ownerComp(nullptr)
-		, m_stateTag(FGameplayTag::EmptyTag)
-	{
-	}
+  MSTATEMACHINE_API FMStateHandle();
+  MSTATEMACHINE_API FMStateHandle(UMStateInstance* State, UActorComponent* OwnerComp, const FGameplayTag& StateTag);
 
-	// ƒRƒ“ƒXƒgƒ‰ƒNƒ^
-	// w’è‚³‚ê‚½’l‚Åƒnƒ“ƒhƒ‹\‘¢‘Ì‚ğ‰Šú‰»
-	FMStateHandle(
-		UMStateInstance* state,
-		UActorComponent* ownerComp,
-		const FGameplayTag& stateTag
-							 )
-		: m_state(state)
-		, m_ownerComp(ownerComp)
-		, m_stateTag(stateTag)
-	{
-	}
+  /**
+   * @brief Handleæœ‰åŠ¹åŒ–ãƒã‚§ãƒƒã‚¯
+   * 
+   * @return ã‚¤ãƒ³ã‚¹ã‚¿ãƒ³ã‚¹ã€ã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆã€ã‚¿ã‚°ãŒã™ã¹ã¦æœ‰åŠ¹å€¤ã ã£ãŸã‚‰trueã€ãã‚Œä»¥å¤–ã¯falseã‚’è¿”ã™
+   */
+  MSTATEMACHINE_API bool IsValid() const;
 
-	// —LŒø‚Å‚ ‚é‚©Šm”F‚·‚éŠÖ”
-	bool IsValid() const;
-	// ƒXƒe[ƒg‚Ìƒ^ƒO‚ğæ“¾‚·‚éŠÖ”
-	// FGameplayTag‚ÍUE‚Å•W€—pˆÓ‚³‚ê‚Ä‚¢‚é\‘¢‘Ì
-	FGameplayTag GetStateTag() const;
-	
+  /**
+   * @brief ã‚¹ãƒ†ãƒ¼ãƒˆã‚¿ã‚°ã‚’å–å¾—
+   * 
+   * @return ã‚¿ã‚°ãŒç„¡åŠ¹ã ã£ãŸã‚‰FGameplayTag::EmptyTagã‚’è¿”ã™
+   */
+  MSTATEMACHINE_API FGameplayTag GetStateTag() const;
+  
 private:
-	// TWeakObjectPtr ‚Æ‚Í
-	// Á–Å‚Ì‰Â”\«‚ª‚ ‚é UObject ‚ğˆÀ‘S‚ÉQÆ‚µ‚½‚¢‚Æ‚«‚Ég‚¤ƒXƒ}[ƒgƒ|ƒCƒ“ƒ^
-	// GC ‚Åíœ‚³‚ê‚½‚©‚ğƒ`ƒFƒbƒN‚Å‚«‚éEƒIƒuƒWƒFƒNƒg‚ª‚Ü‚¾¶‚«‚Ä‚¢‚ê‚ÎƒAƒNƒZƒX‚Å‚«‚é
-	TWeakObjectPtr<UMStateInstance> m_state;		// ƒXƒe[ƒg•ÛŠÇ—p
-	TWeakObjectPtr<UActorComponent> m_ownerComp;	// ƒI[ƒi[ƒRƒ“ƒ|ƒlƒ“ƒg•ÛŠÇ—p
-	FGameplayTag m_stateTag;						// ƒXƒe[ƒg‚Ìƒ^ƒO
+  /**ã‚¹ãƒ†ãƒ¼ãƒˆã‚¤ãƒ³ã‚¹ã‚¿ãƒ³ã‚¹å¼±å‚ç…§ */
+
+  TWeakObjectPtr<UMStateInstance> m_state;
+  
+  /**Ownerã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆå¼±å‚ç…§ */
+  TWeakObjectPtr<UActorComponent> m_ownerComp;
+  
+  /**ã‚¹ãƒ†ãƒ¼ãƒˆã‚¿ã‚° */
+  FGameplayTag m_stateTag;
 };
 
 
-// ‚±‚Ì\‘¢‘Ì‚ğ Unreal ‚ÌƒŠƒtƒŒƒNƒVƒ‡ƒ“ƒVƒXƒeƒ€‚É“o˜^‚·‚é
-// iƒVƒŠƒAƒ‰ƒCƒYEƒGƒfƒBƒ^‚ÅQÆ‚Å‚«‚éj
+/**
+ * ã‚¹ãƒ†ãƒ¼ãƒˆã‚¤ãƒ³ã‚¹ã‚¿ãƒ³ã‚¹ãƒªã‚¹ãƒˆã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆ
+ */
 USTRUCT()
 struct FMStateMachineStateListEntry
 {
-	GENERATED_BODY()
+  GENERATED_BODY()
 
-	// ƒXƒe[ƒgƒ}ƒVƒ“‚ª‚Âó‘Ôˆê——
-	friend struct FMStateMachineStateList;
-	friend class UMStateMachineComponent;
+  friend struct FMStateMachineStateList;
+  friend class UMStateMachineComponent;
 
-	FMStateMachineStateListEntry()
-		: State(nullptr)
-		, StateDefinition(nullptr)	// ƒXƒe[ƒg‚Ì’è‹`
-	{
-	}
+  FMStateMachineStateListEntry();
 
 private:
-	// TObject = GC ‘ÎÛ
-	// TObjectPtrFCG‚É‘Î‚µ‚ÄˆÀ‘S‚ÈéŒ¾
-	UPROPERTY()
-	TObjectPtr<UMStateInstance> State;
 
-	UPROPERTY()
-	TObjectPtr<const UMStateDefinition> StateDefinition;
+  /**ã‚¹ãƒ†ãƒ¼ãƒˆã‚¤ãƒ³ã‚¹ã‚¿ãƒ³ã‚¹ */
+  UPROPERTY()
+  TObjectPtr<UMStateInstance> State;
+
+  /**ã‚¹ãƒ†ãƒ¼ãƒˆå®šç¾©ã‚¢ã‚»ãƒƒãƒˆ */
+  UPROPERTY()
+  TObjectPtr<const UMStateDefinition> StateDefinition;
+
 };
 
-// ƒXƒe[ƒg‚Ìó‘Ô‚ğŠÇ—‚·‚é
+
+/**
+ * ã‚¹ãƒ†ãƒ¼ãƒˆã‚¤ãƒ³ã‚¹ã‚¿ãƒ³ã‚¹ãƒªã‚¹ãƒˆ
+ */
 USTRUCT()
 struct FMStateMachineStateList
 {
-	GENERATED_BODY()
+  GENERATED_BODY()
+  
+  friend class UMStateMachineComponent;
 
-	// ƒXƒe[ƒg
 public:
-	// ƒRƒ“ƒXƒgƒ‰ƒNƒ^
-	FMStateMachineStateList()
-		: Entries{}
-		, OwnerComponent(nullptr)
-	{
-	}
+  FMStateMachineStateList();
+  FMStateMachineStateList(UMStateMachineComponent* OwnerComp);
 
-	// ƒRƒ“ƒXƒgƒ‰ƒNƒ^
-	FMStateMachineStateList(UActorComponent* ownerComp)
-		: Entries{}
-		, OwnerComponent(ownerComp)
-	{
-	}
+  /**
+   * @brief 
+   */
+  FMStateHandle AddEntry(TSubclassOf<UMStateDefinition>);
+  void RemoveEntry(FMStateHandle);
 
-	// ŠÖ”éŒ¾	
-	FMStateHandle AddEntry(TSubclassOf<UMStateDefinition>);
-	void RemoveEntry(FMStateHandle);
-
-	// ŠÖ”éŒ¾
-	UMStateInstance* SwitchState(const UMStateInstance* currentStateInstance, FGameplayTag);
-	bool ContainsStateTag(const FGameplayTag&) const;
-	UMStateInstance* GetStateByTag(const FGameplayTag&) const; 
-	FGameplayTag GetTagByState(const UMStateInstance*) const;
+  UMStateInstance* SwitchState(const UMStateInstance* currentStateInstance, FGameplayTag);
+  bool ContainsStateTag(const FGameplayTag&) const;
+  UMStateInstance* GetStateByTag(const FGameplayTag&) const; 
+  FGameplayTag GetTagByState(const UMStateInstance*) const;
 
 private:
 
-	friend class UMStateMachineComponent;
 
-	UPROPERTY()
-	TArray<FMStateMachineStateListEntry> Entries;
+  UPROPERTY()
+  TArray<FMStateMachineStateListEntry> Entries;
 
-	UPROPERTY()
-	TObjectPtr<UActorComponent> OwnerComponent;
+  UPROPERTY()
+  TObjectPtr<UMStateMachineComponent> OwnerComponent;
+};
+
+struct FStateMachineInitializationParameters
+{
+  TObjectPtr<UObject> Owner;
+
+  TObjectPtr<AController> OwnerController;
 };
 
 
@@ -149,79 +136,89 @@ private:
 
 
 
-// ó‘Ô‘JˆÚƒXƒe[ƒgƒ}ƒVƒ“‚ğŠÇ—‚·‚é ActorComponent 
+
+
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
-class MSTATEMACHINE_API UMStateMachineComponent : public UActorComponent
+class UMStateMachineComponent : public UActorComponent
 {
-	GENERATED_BODY()
+  GENERATED_BODY()
 
 public:	
-	UMStateMachineComponent(const FObjectInitializer& = FObjectInitializer::Get());
+  MSTATEMACHINE_API UMStateMachineComponent(const FObjectInitializer& = FObjectInitializer::Get());
 
 protected:
-	virtual void BeginPlay() override;
+  MSTATEMACHINE_API virtual void BeginPlay() override;
 
 public:	
 
-	// Ü‚è‚½‚½‚ß‚é‚æ‚¤‚É region‚µ‚Ä‚é
-	//---UActorComponent Interface
-	#pragma region UActorComponent Interface
-	// ƒRƒ“ƒ|[ƒlƒ“ƒg‚ª‰Šú‰»‚³‚ê‚é‚Æ‚«‚ÉŒÄ‚Î‚ê‚éŠÖ”(BeginPlay() ‚æ‚è‚à‘‚­ŒÄ‚Î‚ê‚é)
-	virtual void InitializeComponent() override;
-	// –ˆƒtƒŒ[ƒ€ˆ—
-	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
-	// ƒRƒ“ƒ|[ƒlƒ“ƒg‚ÌI—¹‚ÉŒÄ‚Î‚ê‚é
-	virtual void UninitializeComponent() override;
-	#pragma endregion UActorComponent Interface
-	//---End of UActorComponent Interface
+  //---UActorComponent Interface
+  #pragma region UActorComponent Interface
 
-	// ƒXƒe[ƒg‚Ì Ticki–ˆƒtƒŒ[ƒ€XVj‚ğŠJn
-	UFUNCTION(BlueprintCallable, Category = "MStateMachine")
-	void StartTickState();
+  MSTATEMACHINE_API virtual void InitializeComponent() override;
+  MSTATEMACHINE_API virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+  MSTATEMACHINE_API virtual void UninitializeComponent() override;
 
-	// ƒXƒe[ƒg‚Ì Tick ‚ğ’â~
-	UFUNCTION(BlueprintCallable, Category = "MStateMachine")
-	void StopTickState();
+  #pragma endregion UActorComponent Interface
+  //---End of UActorComponent Interface
 
-	// ŠJnó‘Ô‚ğw’è‚·‚é
-	UFUNCTION(BlueprintCallable, Category = "MStateMachine")
-	void SetEntryState(const FGameplayTag& EntryStateTag);
+  MSTATEMACHINE_API void Initialize(const FStateMachineInitializationParameters& Params);
+  
+  UFUNCTION(BlueprintCallable, Category = "MStateMachine")
+  MSTATEMACHINE_API void StartTickState();
 
-	// V‚µ‚¢ƒXƒe[ƒg‚ğ’Ç‰Á‚µ‚Ä FMStateHandle ‚ğ•Ô‚·
-	UFUNCTION(BlueprintCallable, Category = "MStateMachine")
-	FMStateHandle AddNewState(TSubclassOf<UMStateDefinition> StateDefClass);
+  UFUNCTION(BlueprintCallable, Category = "MStateMachine")
+  MSTATEMACHINE_API void StopTickState();
 
-	// •¡”ƒXƒe[ƒg‚ğ‚Ü‚Æ‚ß‚Ä’Ç‰Á
-	UFUNCTION(BlueprintCallable, Category = "MStateMachine")
-	TArray<FMStateHandle> AddStates(const TArray<TSubclassOf<UMStateDefinition>>& StateDefClasses);
+  UFUNCTION(BlueprintCallable, Category = "MStateMachine")
+  MSTATEMACHINE_API void SetEntryState(const FGameplayTag& EntryStateTag);
 
-	// “Á’è‚ÌƒXƒe[ƒg‚ğíœ
-	UFUNCTION(BlueprintCallable, Category = "MStateMachine")
-	void RemoveState(FMStateHandle StateHandle);
+  UFUNCTION(BlueprintCallable, Category = "MStateMachine")
+  MSTATEMACHINE_API FMStateHandle AddNewState(TSubclassOf<UMStateDefinition> StateDefClass);
 
-	// w’è‚³‚ê‚½ƒ^ƒO‚ÌƒXƒe[ƒg‚É‘JˆÚ
-	UFUNCTION(BlueprintCallable, Category = "MStateMachine")
-	bool SwitchNextState(const FGameplayTag& NextStateTag);
+  UFUNCTION(BlueprintCallable, Category = "MStateMachine")
+  MSTATEMACHINE_API TArray<FMStateHandle> AddStates(const TArray<TSubclassOf<UMStateDefinition>>& StateDefClasses);
 
-	// w’è‚³‚ê‚½ƒ^ƒO‚ÌƒXƒe[ƒg‚ª‚ ‚é‚©‚ğ”»’è
-	UFUNCTION(BlueprintCallable, Category = "MStateMachine|Data")
-	bool ContainsStateTag(const FGameplayTag& Tag) const;
+  UFUNCTION(BlueprintCallable, Category = "MStateMachine")
+  MSTATEMACHINE_API void RemoveState(FMStateHandle StateHandle);
 
-	// Œ»İ‚Ìó‘Ô‚©‚ç‚»‚Ìƒ^ƒO‚É‘JˆÚ‚Å‚«‚é‚©
-	UFUNCTION(BlueprintPure, Category = "MStateMachine")
-	bool CanSwitchToNext(const FGameplayTag& NextStateTag) const;
+  UFUNCTION(BlueprintCallable, Category = "MStateMachine")
+  MSTATEMACHINE_API bool SwitchNextState(const FGameplayTag& NextStateTag);
 
-	// Œ»İ‚ÌƒXƒe[ƒgƒ^ƒO‚ğæ“¾
-	UFUNCTION(BlueprintPure, Category = "MStateMachine")
-	FGameplayTag GetCurrentStateTag() const;
+  UFUNCTION(BlueprintCallable, Category = "MStateMachine|Data")
+  MSTATEMACHINE_API bool ContainsStateTag(const FGameplayTag& Tag) const;
+
+  UFUNCTION(BlueprintPure, Category = "MStateMachine")
+  MSTATEMACHINE_API bool CanSwitchToNext(const FGameplayTag& NextStateTag) const;
+
+  UFUNCTION(BlueprintPure, Category = "MStateMachine")
+  MSTATEMACHINE_API FGameplayTag GetCurrentStateTag() const;
+
+  UFUNCTION(BlueprintPure, Category = "MStateMachine")
+  MSTATEMACHINE_API FGameplayTag GetStateTagByInstance(const UMStateInstance* StateInstance) const;
+
+  FMStateContext* GetContext() const { return m_context.Get(); }
+
+  int32 GetAvailableTransitionTags(TArray<FGameplayTag>& OutTags) const;
+
 
 private:
-	UPROPERTY()
-	FMStateMachineStateList m_stateList;	// ƒXƒe[ƒgˆê——
+  void EnterStateInternal(const UMStateInstance* PreviousStateInstance, UMStateInstance* NextStateInstance);
+  void TickStateInternal(UMStateInstance* CurrentStateInstance, float DeltaTime);
+  void ExitStateInternal(UMStateInstance* StateInstance, const UMStateInstance* NextStateInstance, const EStateExitReason Reason = EStateExitReason::Transition);
 
-	UPROPERTY()
-	TObjectPtr<UMStateInstance> m_currentState;	// Œ»İ—LŒø‚È UMStateInstance
+private:
+  UPROPERTY()
+  FMStateMachineStateList m_stateList;
 
-	uint8 m_bIsStateMachineStarted : 1;	// ƒXƒe[ƒgƒ}ƒVƒ“‚ªŠJn‚³‚ê‚Ä‚¢‚é‚©i1bit ƒtƒ‰ƒOj
-	uint8 m_bCanTickStateMachine : 1;	// Tickˆ—‚ª—LŒø‚©‚Ç‚¤‚©
+  UPROPERTY()
+  TObjectPtr<UMStateInstance> m_currentState;
+
+  UPROPERTY(EditAnywhere)
+  bool bAutoInitializeContext;
+
+  TSharedPtr<FMStateContext, ESPMode::NotThreadSafe> m_context;
+
+  uint8 m_bIsStateMachineStarted : 1;
+  uint8 m_bCanTickStateMachine : 1;
+    
 };

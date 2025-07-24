@@ -1,31 +1,36 @@
-// ステートの本体
-// K2_：C++から呼び出されるBlueprint実装用の関数に使われる UEの命名規則 
+// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "MStateInstance.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(MStateInstance)
 
-UMStateInstance::UMStateInstance(const FObjectInitializer& objectInitializer)
-  : Super(objectInitializer)
+UMStateInstance::UMStateInstance(const FObjectInitializer& ObjectInitializer)
+  : Super(ObjectInitializer)
 {
 }
 
-void UMStateInstance::BeginDestroy()
+void UMStateInstance::InitializeState(const FStateInitializationParameters& InitParams)
 {
-  Super::BeginDestroy();
+  OnInitializeState(InitParams);
 }
 
-void UMStateInstance::EntryState()
+void UMStateInstance::UninitializeState(const FStateUninitializationParameters& UninitParams)
 {
-  K2_EntryState();
+  OnUninitializeState(UninitParams);
 }
 
-void UMStateInstance::TickState(float inDeltaTime)
+void UMStateInstance::EnterState(const FStateTransitionParameters& TransParams)
 {
-  K2_TickState(inDeltaTime);
+  OnEnterState(TransParams);
 }
 
-void UMStateInstance::ExitState()
+void UMStateInstance::TickState(const FStateTickParameters& TickParams)
 {
-  K2_ExitState();
+  OnTickState(TickParams);
 }
+
+void UMStateInstance::ExitState(const FStateTransitionParameters& TransParams)
+{
+  OnExitState(TransParams);
+}
+

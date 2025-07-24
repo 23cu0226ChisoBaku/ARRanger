@@ -1,4 +1,4 @@
-// 現在のステートはどのタグを持っていて、どの状態に遷移できて、どんな動作（インスタンス）をするかをまとめたクラス
+// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "MStateDefinition.h"
 
@@ -6,15 +6,12 @@
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(MStateDefinition)
 
-// FMStateTransitionInfoが持つStateTagのステートを文字列で返す関数
-FString FMStateTransitionInfo::ToString() const
+FString FMStateTagInfo::ToString() const
 {
-	return StateTag.IsValid()? StateTag.ToString() : FGameplayTag::EmptyTag.ToString();
+  return StateTag.ToString();
 }
 
-// コンストラクタ
 UMStateDefinition::UMStateDefinition()
 {
-	// 状態に合わせた挙動を指定している。
-	InstanceType = UMStateInstance::StaticClass();
+  InstanceType = UMStateInstance::StaticClass();
 }

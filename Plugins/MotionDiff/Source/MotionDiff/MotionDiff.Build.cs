@@ -18,14 +18,18 @@ public class MotionDiff : ModuleRules
 		PrivateIncludePaths.AddRange(
 			new string[] {
 				// ... add other private include paths required here ...
+        "MotionDiff",
 			}
 			);
 			
 		
 		PublicDependencyModuleNames.AddRange(
 			new string[]
-			{
-				"Core",
+      {
+        "Core",
+        "ProceduralMeshComponent",
+        "MeshDescription",
+        "StaticMeshDescription",
 				// ... add other public dependencies that you statically link with here ...
 			}
 			);
@@ -33,13 +37,15 @@ public class MotionDiff : ModuleRules
 		
 		PrivateDependencyModuleNames.AddRange(
 			new string[]
-			{
-				"CoreUObject",
-				"Engine",
-				"Slate",
-				"SlateCore",
+      {
+        "CoreUObject",
+        "Engine",
+        "Slate",
+        "SlateCore",
+        "AssetRegistry",
+
 				// ... add private dependencies that you statically link with here ...	
-			}
+      }
 			);
 		
 		

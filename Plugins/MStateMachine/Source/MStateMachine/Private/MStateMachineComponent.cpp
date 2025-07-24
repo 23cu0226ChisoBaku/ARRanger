@@ -4,39 +4,64 @@
 
 #include "MStateInstance.h"
 #include "MStateDefinition.h"
+#include "MStateMachineLogChannels.h"
 #include "GameplayTagContainer.h"
+#include "MStateContext.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(MStateMachineComponent)
+
+FMStateHandle::FMStateHandle()
+  : m_state(nullptr)
+  , m_ownerComp(nullptr)
+  , m_stateTag(FGameplayTag::EmptyTag)
+{ }
+
+FMStateHandle::FMStateHandle(UMStateInstance* State, UActorComponent* OwnerComp, const FGameplayTag& StateTag)
+  : m_state(State)
+  , m_ownerComp(OwnerComp)
+  , m_stateTag(StateTag)
+{ }
 
 bool FMStateHandle::IsValid() const
 {
   return m_state.IsValid() && m_ownerComp.IsValid() && m_stateTag.IsValid();
 }
 
-// 現在のステートを返す関数
 FGameplayTag FMStateHandle::GetStateTag() const
 {
 	return m_stateTag;
 }
 
-// 新しいステートを追加する関数
+FMStateMachineStateListEntry::FMStateMachineStateListEntry()
+  : State(nullptr)
+  , StateDefinition(nullptr)
+{
+}
+
+FMStateMachineStateList::FMStateMachineStateList()
+  : Entries{}
+  , OwnerComponent{nullptr}
+{ }
+
+FMStateMachineStateList::FMStateMachineStateList(UMStateMachineComponent* OwnerComp)
+  : Entries{}
+  , OwnerComponent{OwnerComp}
+{ 
+  check(OwnerComponent != nullptr);
+}
+
 FMStateHandle FMStateMachineStateList::AddEntry(TSubclassOf<UMStateDefinition> stateDef)
 {
 	check(stateDef != nullptr);
 	check(OwnerComponent != nullptr);
 
-	// デフォルトオブジェクトを取得 
-	// Class Default Objectを使うことでテンプレート的に中身を参照できる
 	const UMStateDefinition* mStateDefCDO = GetDefault<UMStateDefinition>(stateDef);
-
-	// 引数で渡されたステートが既に存在するかチェック
-	if (ContainsStateTag(mStateDefCDO->TransitionInfo.StateTag))
+	if (ContainsStateTag(mStateDefCDO->TagInfo.StateTag))
 	{
-		UE_LOG(LogMStateMachine, Warning, TEXT("State Tag [%s] already exists"), *mStateDefCDO->TransitionInfo.ToString());
+		UE_LOG(LogMStateMachine, Warning, TEXT("State Tag [%s] already exists"), *mStateDefCDO->TagInfo.ToString());
 		return FMStateHandle{};
 	}
 
-	// インスタンス(挙動)を記述したクラスを指定する
 	TSubclassOf<UMStateInstance> instanceType = mStateDefCDO->InstanceType;
 	if (instanceType == nullptr)
 	{
@@ -45,46 +70,44 @@ FMStateHandle FMStateMachineStateList::AddEntry(TSubclassOf<UMStateDefinition> s
 
 	FMStateMachineStateListEntry newEntry;
 
-	// インスタンスの実体を作成
 	UMStateInstance* stateInstance = NewObject<UMStateInstance>(OwnerComponent->GetOwner(), instanceType);
 
-	// リストを登録
+  FStateInitializationParameters initParams;
+  initParams.OwnerActor = OwnerComponent->GetOwner();
+  initParams.OwnerStateMachineComponent = OwnerComponent;
+  stateInstance->InitializeState(initParams);
+
 	newEntry.State = stateInstance;
 	newEntry.StateDefinition = mStateDefCDO;
+
 	Entries.Emplace(newEntry);
 
-	// ステートハンドルを返す
-	// 状態を切り替えたり、削除したりするための識別子
-	return FMStateHandle(stateInstance, OwnerComponent, mStateDefCDO->TransitionInfo.StateTag);
+	return FMStateHandle(stateInstance, OwnerComponent, mStateDefCDO->TagInfo.StateTag);
 }
 
-// 指定したステートをステートリストから削除する関数
 void FMStateMachineStateList::RemoveEntry(FMStateHandle removeStateHandle)
 {
-	// 存在するかどうかチェック
 	if (!removeStateHandle.IsValid())
 	{
 		UE_LOG(LogMStateMachine, Warning, TEXT("State Handle is invalid, Can not remove"));
 		return;
 	}
 
-	// タグでステートを探して削除する
 	for (auto entryIt = Entries.CreateIterator(); entryIt; ++entryIt)
 	{
 		const FMStateMachineStateListEntry& entry = *entryIt;
-		if (entry.StateDefinition->TransitionInfo.StateTag == removeStateHandle.GetStateTag())
+		if (entry.StateDefinition->TagInfo.StateTag == removeStateHandle.GetStateTag())
 		{
+      FStateUninitializationParameters params;
+      entryIt->State->UninitializeState(params);
 			entryIt.RemoveCurrent();
 			break;
 		}
 	}
-
 }
 
-// 現在のステートから指定したタグのステートに切り替えられるか判断する関数
 UMStateInstance* FMStateMachineStateList::SwitchState(const UMStateInstance* currentStateInstance, FGameplayTag nextStateTag)
 {
-	// ステートタグが存在するかチェック
 	UMStateInstance* nextState = nullptr;
 	if (!nextStateTag.IsValid())
 	{
@@ -92,16 +115,15 @@ UMStateInstance* FMStateMachineStateList::SwitchState(const UMStateInstance* cur
 		return nextState;
 	}
 
-	// 現在のステートから指定されたステートへの遷移が許可されているかチェック
 	FGameplayTag currentStateTag = GetTagByState(currentStateInstance);
 	if (currentStateTag.IsValid())
 	{
 		for (auto entryIt = Entries.CreateIterator(); entryIt; ++entryIt)
 		{
 			const FMStateMachineStateListEntry& entry = *entryIt;
-			if (entry.StateDefinition->TransitionInfo.StateTag == currentStateTag)
+			if (entry.StateDefinition->TagInfo.StateTag == currentStateTag)
 			{
-				if (!entry.StateDefinition->TransitionInfo.NextTransitionTags.Contains(nextStateTag))
+				if (!entry.StateDefinition->TagInfo.NextTransitionTags.Contains(nextStateTag))
 				{
 					UE_LOG(LogMStateMachine, Error, TEXT("Can not Switch to next State [%s]"), *nextStateTag.ToString());
 					return nextState;
@@ -110,28 +132,24 @@ UMStateInstance* FMStateMachineStateList::SwitchState(const UMStateInstance* cur
 		}
 	}
 
-	// 切り替えるステートをセット
 	nextState = GetStateByTag(nextStateTag);
-	// 切り替えるステートが存在するかチェック
 	if (nextState == nullptr)
 	{
 		UE_LOG(LogMStateMachine, Error, TEXT("State machine does not contains Gameplay Tag [%s]"), *nextStateTag.ToString());
 	}
 
-	// 切り替えるステートを返す
 	return nextState;
+
 }
 
-// ステートマシンの状態リスト内に、指定された FGameplayTag を持つステートがすでに存在するかどうかを調べる関数
 bool FMStateMachineStateList::ContainsStateTag(const FGameplayTag& tag) const
 {
 	bool isContain = false;
 
-	// CreateConstIterator() とは UEで標準用意されているイテレータ(リストと配列)を作成する関数
 	for (auto entryIt = Entries.CreateConstIterator(); entryIt; ++entryIt)
 	{
 		const FMStateMachineStateListEntry& entry = *entryIt;
-		if (entry.StateDefinition->TransitionInfo.StateTag == tag)
+		if (entry.StateDefinition->TagInfo.StateTag == tag)
 		{
 			isContain = true;
 			break;
@@ -141,7 +159,6 @@ bool FMStateMachineStateList::ContainsStateTag(const FGameplayTag& tag) const
 	return isContain;
 }
 
-// タグからステートを取得する関数
 UMStateInstance* FMStateMachineStateList::GetStateByTag(const FGameplayTag& tag) const
 {
 	UMStateInstance* foundState = nullptr;
@@ -149,7 +166,7 @@ UMStateInstance* FMStateMachineStateList::GetStateByTag(const FGameplayTag& tag)
 	for (auto entryIt = Entries.CreateConstIterator(); entryIt; ++entryIt)
 	{
 		const FMStateMachineStateListEntry& entry = *entryIt;
-		if (entry.StateDefinition->TransitionInfo.StateTag == tag)
+		if (entry.StateDefinition->TagInfo.StateTag == tag)
 		{
 			foundState = entry.State;
 			break;
@@ -159,9 +176,13 @@ UMStateInstance* FMStateMachineStateList::GetStateByTag(const FGameplayTag& tag)
 	return foundState;
 }
 
-// ステートからタグを取得する関数
 FGameplayTag FMStateMachineStateList::GetTagByState(const UMStateInstance* stateInstance) const
 {
+  if (stateInstance == nullptr)
+  {
+    return FGameplayTag::EmptyTag;
+  }
+ 
 	FGameplayTag foundTag = FGameplayTag::EmptyTag;
 
 	for (auto entryIt = Entries.CreateConstIterator(); entryIt; ++entryIt)
@@ -169,7 +190,7 @@ FGameplayTag FMStateMachineStateList::GetTagByState(const UMStateInstance* state
 		const FMStateMachineStateListEntry& entry = *entryIt;
 		if (entry.State == stateInstance)
 		{
-			foundTag = entry.StateDefinition->TransitionInfo.StateTag;
+			foundTag = entry.StateDefinition->TagInfo.StateTag;
 			break;
 		}
 	}
@@ -177,10 +198,9 @@ FGameplayTag FMStateMachineStateList::GetTagByState(const UMStateInstance* state
 	return foundTag;
 }
 
-// UActorComponent の処理
-UMStateMachineComponent::UMStateMachineComponent(const FObjectInitializer& objectInitializer)
-	: Super(objectInitializer)
-	, m_stateList(this)
+UMStateMachineComponent::UMStateMachineComponent(const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer)
+	, m_stateList{this}
 	, m_bIsStateMachineStarted(false)
 	, m_bCanTickStateMachine(false)
 {
@@ -196,6 +216,25 @@ void UMStateMachineComponent::BeginPlay()
 void UMStateMachineComponent::InitializeComponent()
 {
 	Super::InitializeComponent();
+
+  if (bAutoInitializeContext)
+  {
+    APawn* ownerPawn = ::Cast<APawn>(GetOwner());
+    if (ownerPawn != nullptr)
+    {
+      FStateMachineInitializationParameters params;
+
+      params.Owner = ::StaticCast<UObject*>(ownerPawn);
+      params.OwnerController = ownerPawn->GetController();
+
+      Initialize(params);
+    }
+
+    if (m_context == nullptr)
+    {
+      UE_LOG(LogMStateMachine, Error, TEXT("Failed to initialize context automatically because owner:{%s} of [%s] is not a pawn.\n Please call Initialize MANUALLY!!!"), *GetNameSafe(GetOwner()), *GetNameSafe(this));
+    }
+  }
 }
 // Called every frame
 void UMStateMachineComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
@@ -204,32 +243,46 @@ void UMStateMachineComponent::TickComponent(float DeltaTime, ELevelTick TickType
 
 	if (m_bCanTickStateMachine)
 	{
-		if (m_currentState != nullptr)
-		{
-			m_currentState->TickState(DeltaTime);
-		}
+    TickStateInternal(m_currentState, DeltaTime);
 	}
-
 }
 
-// ステート終了処理
 void UMStateMachineComponent::UninitializeComponent()
 {
-	if (m_currentState != nullptr)
-	{
-		m_currentState->ExitState();
-		m_currentState = nullptr;
-	}
+  ExitStateInternal(m_currentState, nullptr, EStateExitReason::Uninitialize);
+  m_currentState = nullptr;
+
+  for (auto& entry : m_stateList.Entries)
+  {
+    if (entry.State != nullptr)
+    {
+      FStateUninitializationParameters params;
+      entry.State->UninitializeState(params);
+    }
+  }
 
 	m_stateList.Entries.Empty();
-
-	m_bCanTickStateMachine = false;
-	m_bIsStateMachineStarted = false;
 
 	Super::UninitializeComponent();
 }
 
-// ステートのTick処理を稼働させる関数
+void UMStateMachineComponent::Initialize(const FStateMachineInitializationParameters& Params)
+{
+  if (m_context != nullptr)
+  {
+    return;
+  }
+
+  m_context = ::MakeShared<FMStateContext, ESPMode::NotThreadSafe>();
+
+  FMStateContextInitializeParameters ctxInitParams;
+  ctxInitParams.Owner = Params.Owner;
+  ctxInitParams.OwnerController = Params.OwnerController;
+  ctxInitParams.StateMachineComponent = this;
+
+  m_context->InitializeContext(ctxInitParams);
+}
+
 void UMStateMachineComponent::StartTickState()
 {
 	if (m_bCanTickStateMachine)
@@ -245,12 +298,11 @@ void UMStateMachineComponent::StartTickState()
 	}
 
 	SetComponentTickEnabled(true);
-	m_bCanTickStateMachine = true;
 
+	m_bCanTickStateMachine = true;
 	m_bIsStateMachineStarted = true;
 }
 
-// ステートのTick処理を止める関数
 void UMStateMachineComponent::StopTickState()
 {
 	if (!m_bCanTickStateMachine || !m_bIsStateMachineStarted)
@@ -263,7 +315,6 @@ void UMStateMachineComponent::StopTickState()
 	m_bCanTickStateMachine = false;
 }
 
-// 初期ステートをセットする関数
 void UMStateMachineComponent::SetEntryState(const FGameplayTag& EntryStateTag)
 {
 	if (m_bIsStateMachineStarted)
@@ -275,7 +326,6 @@ void UMStateMachineComponent::SetEntryState(const FGameplayTag& EntryStateTag)
 	m_currentState = m_stateList.GetStateByTag(EntryStateTag);
 }
 
-// ステートリストに新しいステートを追加する関数
 FMStateHandle UMStateMachineComponent::AddNewState(TSubclassOf<UMStateDefinition> StateDefClass)
 {
 	check(StateDefClass != nullptr)
@@ -284,57 +334,50 @@ FMStateHandle UMStateMachineComponent::AddNewState(TSubclassOf<UMStateDefinition
 	
 }
 
-// 複数のステートをまとめて登録してそれぞれのハンドルを返す関数
 TArray<FMStateHandle> UMStateMachineComponent::AddStates(const TArray<TSubclassOf<UMStateDefinition>>& StateDefClasses)
 {
 	TArray<FMStateHandle> handles{};
+  handles.Reset(StateDefClasses.Num());
+
 	for (const TSubclassOf<UMStateDefinition>& stateDefClass : StateDefClasses)
 	{
 		check(stateDefClass != nullptr);
-		FMStateHandle handle = m_stateList.AddEntry(stateDefClass);
 
-		if (handle.IsValid())
-		{
-			handles.Emplace(handle);
-		}
+    handles.Emplace(m_stateList.AddEntry(stateDefClass));	
 	}
 
 	return handles;
 }
 
-// ステートをリストから削除
 void UMStateMachineComponent::RemoveState(FMStateHandle StateHandle)
 {
 	m_stateList.RemoveEntry(StateHandle);
 }
 
-// 現在のステートから指定したタグのステートに切り替える関数
 bool UMStateMachineComponent::SwitchNextState(const FGameplayTag& NextStateTag)
 {
 	UMStateInstance* nextState = m_stateList.SwitchState(m_currentState, NextStateTag);
-	if (nextState == nullptr || m_currentState == nextState)
+	if ((nextState == nullptr) || (m_currentState == nextState))
 	{
 		return false;
 	}
 
-	if (m_currentState != nullptr)
-	{
-		m_currentState->ExitState();
-	}
+  // Exit current state
+  ExitStateInternal(m_currentState, nextState);
+	
+  // Enter next state
+  EnterStateInternal(m_currentState, nextState);
 
-	m_currentState = nextState;
-	m_currentState->EntryState();
+  m_currentState = nextState;
 
 	return true;
 }
 
-// 指定したステートがステートマシンに存在するか見る関数
 bool UMStateMachineComponent::ContainsStateTag(const FGameplayTag& Tag) const
 {
 	return m_stateList.ContainsStateTag(Tag);
 }
 
-// 次の切り替えステートが切り替えられるか返す関数
 bool UMStateMachineComponent::CanSwitchToNext(const FGameplayTag& NextStateTag) const
 {
 	bool bCanSwitch = false;
@@ -343,7 +386,7 @@ bool UMStateMachineComponent::CanSwitchToNext(const FGameplayTag& NextStateTag) 
 		const FMStateMachineStateListEntry& entry = *entryIt;
 		if (entry.State == m_currentState)
 		{
-			bCanSwitch = entry.StateDefinition->TransitionInfo.NextTransitionTags.Contains(NextStateTag);
+			bCanSwitch = entry.StateDefinition->TagInfo.NextTransitionTags.Contains(NextStateTag);
 			break;
 		}
 	}
@@ -351,15 +394,92 @@ bool UMStateMachineComponent::CanSwitchToNext(const FGameplayTag& NextStateTag) 
 	return bCanSwitch;
 }
 
-// 現在のステートのタグを取得する関数
 FGameplayTag UMStateMachineComponent::GetCurrentStateTag() const
 {
-	if (m_currentState == nullptr)
-	{
-		return FGameplayTag::EmptyTag;
-	}
-
-	return m_stateList.GetTagByState(m_currentState);
+	return GetStateTagByInstance(m_currentState);
 }
 
+FGameplayTag UMStateMachineComponent::GetStateTagByInstance(const UMStateInstance* StateInstance) const
+{
+  return m_stateList.GetTagByState(StateInstance);
+}
+
+int32 UMStateMachineComponent::GetAvailableTransitionTags(TArray<FGameplayTag>& OutTags) const
+{
+  OutTags.Reset();
+
+  for(const auto& entry : m_stateList.Entries)
+  {
+    if (entry.State == m_currentState)
+    {
+      const TSet<FGameplayTag>& transitionTags = entry.StateDefinition->TagInfo.NextTransitionTags;
+      OutTags.Reset(transitionTags.Num());
+      
+      for (const FGameplayTag& tag : transitionTags)
+      {
+        OutTags.AddUnique(tag);
+      }
+      break;
+    }
+  }
+
+  return OutTags.Num();
+}
+
+void UMStateMachineComponent::EnterStateInternal(const UMStateInstance* PreviousStateInstance, UMStateInstance* NextStateInstance)
+{
+  check((NextStateInstance != nullptr));
+  
+  FStateTransitionParameters params;
+  params.TransitionTag = GetStateTagByInstance(PreviousStateInstance);
+  params.Transition = EStateTransitionType::Enter;
+  params.Context = m_context;
+
+  // First run c++ implementation then run blueprint implementation
+  NextStateInstance->EnterState(params);
+}
+
+void UMStateMachineComponent::TickStateInternal(UMStateInstance* StateInstance, float DeltaTime)
+{
+  check(StateInstance != nullptr);
+
+  FStateTickParameters params;
+  params.DeltaTime = DeltaTime;
+  params.Context = m_context;
+
+  // First run c++ implementation then run blueprint implementation
+  StateInstance->TickState(params);
+}
+
+void UMStateMachineComponent::ExitStateInternal(UMStateInstance* PreviousStateInstance, const UMStateInstance* NextStateInstance, const EStateExitReason Reason)
+{
+  if (PreviousStateInstance == nullptr)
+  {
+    return;
+  }
+
+  FStateTransitionParameters params;
+
+  using enum EStateExitReason;
+  switch (Reason)
+  {
+    case Transition:
+    {
+      params.TransitionTag = GetStateTagByInstance(NextStateInstance);
+    }
+    break;
+    
+    case Uninitialize:
+    default:
+    {
+      params.TransitionTag = FGameplayTag::EmptyTag;
+    }
+    break;
+  }  
+
+  params.Transition = EStateTransitionType::Exit;
+  params.Context = m_context;
+
+  PreviousStateInstance->ExitState(params);
+}
 
