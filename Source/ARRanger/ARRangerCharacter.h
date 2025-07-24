@@ -53,6 +53,10 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
 	UInputAction* MoveAction;
 
+	// 山内
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	UInputAction* ClimbAction;
+
 	// 視点回転アクション(ゲームパッド)
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
 	UInputAction* LookAction;
@@ -105,10 +109,14 @@ protected:
 
 private:
 	// ロックオン中フラグ
-	bool bIsLockedOn;
+	bool isLockedOn;
 
 	// ロックオン時敵切り替えの可能フラグ
 	bool isAbleToSwitchTarget;
+
+	// 山内
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Climeb", meta = (AllowPrivateAccess = "true"))
+	bool isClimb;
 
 	// もともとのカメラとプレイヤーの距離
 	float DefaultArmLength;
@@ -135,7 +143,7 @@ private:
 	AActor* FindNearestEnemy(AActor* IgnoreActor = nullptr);
 
 	// パンチの際に呼び出される
-	void Punch();
+	void StartPunch();
 
 	// キックの際に呼び出される
 	void Kick();
@@ -149,11 +157,27 @@ private:
 	// 変身の際に呼び出される
 	void Transform();
 
+	// ダッシュ時カメラが切り替わる入力の閾値（押し込み時）
+	float dashStartThreshold;
+
+	// 少し入力を緩めたらダッシュを解除する用の数値
+	float dashEndThreshold;
+
+	// 敵を引き寄せ中のフラグ
+	bool isAttractingEnemy;
+
+	// 強い攻撃かどうかのフラグ
+	bool isStrongAttack;
+
 public:
 
 	// コントロールまたはUIインターフェースからの移動入力を処理する
 	UFUNCTION(BlueprintCallable, Category="Input")
 	virtual void DoMove(float Right, float Forward);
+
+	// 山内
+	UFUNCTION(BlueprintCallable, Category = "Input")
+	void DoClimb(float Right, float Up);
 
 	// コントロールまたはUIインターフェースからのルック入力を処理する
 	UFUNCTION(BlueprintCallable, Category="Input")
@@ -199,12 +223,6 @@ public:
 	UPROPERTY(BlueprintReadWrite)
 	bool isDashed;
 
-	// ダッシュ時カメラが切り替わる入力の閾値（押し込み時）
-	float dashStartThreshold;
-
-	// 少し入力を緩めたらダッシュを解除する用の数値
-	float dashEndThreshold;    
-
 	// パンチデータ（Blueprintから設定）
 	UPROPERTY(EditAnywhere, Category = "Attack")
 	FAttackData PunchData;
@@ -229,4 +247,7 @@ public:
 
 	// FollowCameraサブオブジェクトを返す
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
+
+	// 現在のプレイヤーのモードを取得
+	EGravityType GetCurrentGravityType();
 };
