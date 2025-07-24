@@ -52,16 +52,6 @@ AARRangerCharacter::AARRangerCharacter()
 	GetCharacterMovement()->BrakingDecelerationWalking = 2000.f;
 	GetCharacterMovement()->BrakingDecelerationFalling = 1500.0f;
 
-	// カメラブームを作る（衝突があった場合、プレイヤーの方に引き寄せられる）
-	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
-	CameraBoom->SetupAttachment(RootComponent);
-	CameraBoom->TargetArmLength = 400.0f;
-	CameraBoom->bUsePawnControlRotation = true;
-
-	// フォローカメラの作成
-	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
-	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
-	FollowCamera->bUsePawnControlRotation = false;
 
 	// 注: Meshコンポーネント (Characterから継承) のスケルタルメッシュとアニメーションブループリントの参照は、
     // ThirdPersonCharacterという名前の派生ブループリントアセットに設定される (C++ でのコンテンツの直接参照を避けるため)。
@@ -153,15 +143,6 @@ void AARRangerCharacter::Tick(float DeltaTime)
 	{
 		isDashed = false;
 	}
-
-	// ダッシュ時にカメラをプレイヤーに近づける
-	const float TargetArmLength = isDashed ? DashArmLength : DefaultArmLength;
-	CameraBoom->TargetArmLength = FMath::FInterpTo(
-		CameraBoom->TargetArmLength,
-		TargetArmLength,
-		DeltaTime,
-		ArmLengthInterpSpeed
-	);
 
 	// ロックオン時の処理
 	if (isLockedOn && LockedOnTarget)

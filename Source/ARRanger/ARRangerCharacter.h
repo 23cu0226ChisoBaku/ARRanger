@@ -8,9 +8,7 @@
 #include "ARRangerCharacter.generated.h"
 
 class UAnimMontage;
-class UCameraComponent;
 class USkeletalMesh;
-class USpringArmComponent;
 class UInputAction;
 
 struct FInputActionValue;
@@ -34,13 +32,6 @@ class AARRangerCharacter : public ACharacter
 {
 	GENERATED_BODY()
 
-	/** カメラをキャラクターの背後に配置するカメラブーム */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
-	USpringArmComponent* CameraBoom;
-
-	/** フォローカメラ */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
-	UCameraComponent* FollowCamera;
 	
 protected:
 	virtual void BeginPlay() override;
@@ -203,6 +194,12 @@ public:
 	UFUNCTION()
 	void OnAttackMontageEnded(UAnimMontage* Montage, bool IsInterrupted);
 
+	UFUNCTION(BlueprintPure, Category = "AR|Player")
+	float GetDefaultArmLength() const { return DefaultArmLength; }
+
+	UFUNCTION(BlueprintPure, Category = "AR|Player")
+	float GetDashArmLength() const { return DashArmLength; }
+
 	// 引力用プレイヤーメッシュ
 	UPROPERTY(EditAnywhere, Category = "PlayerMesh")
 	USkeletalMesh* AttractiveMesh;
@@ -242,11 +239,6 @@ public:
 public:
 	virtual void Tick(float DeltaTime) override;
 
-	// CameraBoomサブオブジェクトを返す
-	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
-
-	// FollowCameraサブオブジェクトを返す
-	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
 
 	// 現在のプレイヤーのモードを取得
 	EGravityType GetCurrentGravityType();

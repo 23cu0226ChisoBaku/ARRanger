@@ -1,0 +1,39 @@
+﻿// Fill out your copyright notice in the Description page of Project Settings.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "MeshCapture/MDMeshCapture.h"
+
+#include "MDSkeletalMeshCapture.generated.h"
+
+class USkeletalMeshComponent;
+
+UCLASS()
+class MOTIONDIFF_API UMDSkeletalMeshCapture : public UMDMeshCapture
+{
+  GENERATED_BODY()
+
+  public:
+    UMDSkeletalMeshCapture(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
+    virtual void CaptureMesh(UMeshComponent* MeshComponent) override;
+    virtual void Reset() override;
+    virtual void ShowSnapshots() override;
+    virtual void HideSnapshots() override;
+    virtual FString GetCaptureName() const override;
+    virtual void RefreshMeshState() override;
+
+  protected:
+    virtual void SnapshotMesh(FMDMeshSnapshot& Snapshot, const int32 LODIndex) override;
+
+  private:
+    virtual FMDMeshCaptureProxy* CreateMeshCaptureProxy() override;
+    virtual void DestroyMeshCaptureProxy(FMDMeshCaptureProxy* MeshCaptureProxy) override;
+
+  private:
+    UPROPERTY()
+    TObjectPtr<USkeletalMeshComponent> m_skeletalMeshComp;
+
+    UPROPERTY()
+    TArray<TObjectPtr<AActor>> m_snapshotActors;
+};
