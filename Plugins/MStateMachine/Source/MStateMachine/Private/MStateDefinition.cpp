@@ -6,9 +6,9 @@
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(MStateDefinition)
 
-FString FMStateTransitionInfo::ToString() const
+FString FMStateTagInfo::ToString() const
 {
-  return StateTag.IsValid()? StateTag.ToString() : FGameplayTag::EmptyTag.ToString();
+  return StateTag.ToString();
 }
 
 UMStateDefinition::UMStateDefinition()

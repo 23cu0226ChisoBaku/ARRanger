@@ -1,0 +1,11 @@
+﻿# .editorconfit for MotionDiff
+
+root = false
+
+[*.cpp]
+indent_style = space
+indent_size = 2
+
+[*.h]
+indent_style = space
+indent_size = 2
