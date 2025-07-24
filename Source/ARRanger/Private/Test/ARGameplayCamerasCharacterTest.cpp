@@ -92,16 +92,6 @@ Super::Tick(DeltaTime);
 		}
 	}
 
-	// ヒステリシスによるダッシュ判定
-	if (!isDashed && InputMagnitude > dashStartThreshold)
-	{
-		isDashed = true;
-	}
-	else if (isDashed && InputMagnitude < dashEndThreshold)
-	{
-		isDashed = false;
-	}
-
 	// ロックオン時の処理
 	if (bIsLockedOn && LockedOnTarget)
 	{

@@ -1,19 +1,18 @@
 ﻿#pragma once
 
-#ifndef _AR_PLAYER_NOTIFY_HANDLER_
-#define _AR_PLAYER_NOTIFY_HANDLER_
+#ifndef _TEST_NOTIFY_HANDLER_
+#define _TEST_NOTIFY_HANDLER_
 
 #include "PlayerObservation/INotifyHandlerInterface.h"
-
 #include "PlayerObservation/ObserverListRootNode.h"
 
-namespace ARRanger::Player
+namespace ARRanger::Test
 {
-  class FPlayerNotifyHandler : public ARRanger::INotifyHandlerInterface
+  struct FTestNotifyHandler : public ARRanger::INotifyHandlerInterface
   {
     public:
-      FPlayerNotifyHandler() = default;
-      ~FPlayerNotifyHandler() = default;
+      FTestNotifyHandler() = default;
+      ~FTestNotifyHandler() = default;
 
     /**Start INotifyHandlerInterface interface */
 
@@ -27,8 +26,7 @@ namespace ARRanger::Player
       ARRanger::FObserverListRootNode DashObserverRoot;
       ARRanger::FObserverListRootNode JumpObserverRoot;
       ARRanger::FObserverListRootNode AttackObserverRoot;
-  
   };
 }
 
-#endif // _AR_PLAYER_NOTIFY_HANDLER_
+#endif // _TEST_NOTIFY_HANDLER_
