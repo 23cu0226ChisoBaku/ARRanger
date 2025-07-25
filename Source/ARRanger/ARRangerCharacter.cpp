@@ -235,16 +235,16 @@ void AARRangerCharacter::Look(const FInputActionValue& Value)
 // 山内
 void AARRangerCharacter::DoClimb(float Right, float Up)
 {
-	if (GetController() != nullptr)
-	{
-		// どちらを向いているか調べる
-		FRotator YawRotation(0, GetActorRotation().Yaw, 0);
+	//if (GetController() != nullptr)
+	//{
+	//	// どちらを向いているか調べる
+	//	FRotator YawRotation(0, GetActorRotation().Yaw, 0);
 
-		FVector RightDir = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+	//	FVector RightDir = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 
-		AddMovementInput(FVector::UpVector, Up);
-		AddMovementInput(RightDir, Right);
-	}
+	//	AddMovementInput(FVector::UpVector, Up);
+	//	AddMovementInput(RightDir, Right);
+	//}
 }
 
 void AARRangerCharacter::DoMove(float Right, float Forward)
