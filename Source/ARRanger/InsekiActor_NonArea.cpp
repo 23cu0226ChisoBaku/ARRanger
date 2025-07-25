@@ -86,9 +86,29 @@ void AInsekiActor_NonArea::OnHit(UPrimitiveComponent* HitComponent, AActor* Othe
 		// 真上から落ちてきた場合
 		if (ImpactDirection.Z > 0.7f)
 		{
-			// プレイヤーをLaunch(Yは無視して上に飛ばす)
-			FVector LaunchVelocity = FVector(0.f, 0.f, 1200.f);
-			player->LaunchCharacter(LaunchVelocity, true, true);
+			// プレイヤーの進行方向（速度ベクトル）を取得
+			FVector Velocity = player->GetVelocity();
+
+			// 入力があるかどうかチェック（移動しているか）
+			if (Velocity.SizeSquared() > KINDA_SMALL_NUMBER)
+			{
+				// 前方向（進行方向）に向かってジャンプ
+				FVector ForwardDir = Velocity.GetSafeNormal();
+
+				// より高く＆爆発的に飛ばす
+				FVector LaunchVelocity = ForwardDir * 1200.f + FVector(0.f, 0.f, 800.f);
+				player->LaunchCharacter(LaunchVelocity, true, true);
+
+				UE_LOG(LogTemp, Warning, TEXT("Repulsion forward launch: %s"), *LaunchVelocity.ToString());
+			}
+			else
+			{
+				// 動いてなければ真上に爆発ジャンプ
+				FVector LaunchVelocity = FVector(0.f, 0.f, 1400.f);
+				player->LaunchCharacter(LaunchVelocity, true, true);
+
+				UE_LOG(LogTemp, Warning, TEXT("Repulsion vertical launch only (no input)"));
+			}
 		}
 		else
 		{
