@@ -15,7 +15,7 @@ struct FInputActionValue;
 
 DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);
 
-// ѓvѓЊѓCѓ„Ѓ[‚М•ПђgЏу‘Ф(€ш—НЃAђЛ—Н)
+// гѓ—гѓ¬г‚¤гѓ¤гѓјгЃ®е¤‰иє«зЉ¶ж…‹(еј•еЉ›гЂЃж–ҐеЉ›)
 UENUM(BlueprintType)
 enum class EGravityType : uint8
 {
@@ -24,8 +24,8 @@ enum class EGravityType : uint8
 };
 
 /**
- *  ѓVѓ“ѓvѓ‹‚ЕѓvѓЊѓCѓ„Ѓ[‚Є‘ЂЌм‰В”\‚ИЋOђlЏМЋ‹“_ѓLѓѓѓ‰ѓNѓ^Ѓ[
- *  ђ§Њд‰В”\‚И‹O“№ѓJѓЃѓ‰‚МЋА‘•
+ *  г‚·гѓігѓ—гѓ«гЃ§гѓ—гѓ¬г‚¤гѓ¤гѓјгЃЊж“ЌдЅњеЏЇиѓЅгЃЄдё‰дєєз§°и¦–з‚№г‚­гѓЈгѓ©г‚Їг‚їгѓј
+ *  е€¶еѕЎеЏЇиѓЅгЃЄи»ЊйЃ“г‚«гѓЎгѓ©гЃ®е®џиЈ…
  */
 UCLASS(abstract)
 class AARRangerCharacter : public ACharacter
@@ -36,161 +36,161 @@ class AARRangerCharacter : public ACharacter
 protected:
 	virtual void BeginPlay() override;
 
-	// ѓWѓѓѓ“ѓvѓAѓNѓVѓ‡ѓ“
+	// г‚ёгѓЈгѓігѓ—г‚ўг‚Їг‚·гѓ§гѓі
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
 	UInputAction* JumpAction;
 
-	// €Ъ“®ѓAѓNѓVѓ‡ѓ“
+	// з§»е‹•г‚ўг‚Їг‚·гѓ§гѓі
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
 	UInputAction* MoveAction;
 
-	// ЋR“а
+	// е±±е†…
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	UInputAction* ClimbAction;
 
-	// Ћ‹“_‰с“]ѓAѓNѓVѓ‡ѓ“(ѓQЃ[ѓЂѓpѓbѓh)
+	// и¦–з‚№е›ћи»ўг‚ўг‚Їг‚·гѓ§гѓі(г‚Ігѓјгѓ гѓ‘гѓѓгѓ‰)
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
 	UInputAction* LookAction;
 
-	// Ћ‹“_‰с“]ѓAѓNѓVѓ‡ѓ“(ѓ}ѓEѓX)
+	// и¦–з‚№е›ћи»ўг‚ўг‚Їг‚·гѓ§гѓі(гѓћг‚¦г‚№)
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
 	UInputAction* MouseLookAction;
 
-	// ѓЌѓbѓNѓIѓ“ѓAѓNѓVѓ‡ѓ“
+	// гѓ­гѓѓг‚Їг‚Єгѓіг‚ўг‚Їг‚·гѓ§гѓі
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	class UInputAction* LockOnAction;
 
-	// ѓЌѓbѓNѓIѓ“Ћћѓ^Ѓ[ѓQѓbѓgђШ‚и‘Ц‚¦ѓAѓNѓVѓ‡ѓ“(Ћџ‚Мѓ^Ѓ[ѓQѓbѓg)
+	// гѓ­гѓѓг‚Їг‚Єгѓіж™‚г‚їгѓјг‚Ігѓѓгѓ€е€‡г‚Љж›їгЃ€г‚ўг‚Їг‚·гѓ§гѓі(ж¬ЎгЃ®г‚їгѓјг‚Ігѓѓгѓ€)
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	class UInputAction* SwitchTargetRightAction;
 
-	// ѓЌѓbѓNѓIѓ“Ћћѓ^Ѓ[ѓQѓbѓgђШ‚и‘Ц‚¦ѓAѓNѓVѓ‡ѓ“(‘O‚Мѓ^Ѓ[ѓQѓbѓg)
+	// гѓ­гѓѓг‚Їг‚Єгѓіж™‚г‚їгѓјг‚Ігѓѓгѓ€е€‡г‚Љж›їгЃ€г‚ўг‚Їг‚·гѓ§гѓі(е‰ЌгЃ®г‚їгѓјг‚Ігѓѓгѓ€)
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	class UInputAction* SwitchTargetLeftAction;
 
-	// ѓpѓ“ѓ`ѓAѓNѓVѓ‡ѓ“
+	// гѓ‘гѓігѓЃг‚ўг‚Їг‚·гѓ§гѓі
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	class UInputAction* PunchAction;
 
-	// ѓLѓbѓNѓAѓNѓVѓ‡ѓ“
+	// г‚­гѓѓг‚Їг‚ўг‚Їг‚·гѓ§гѓі
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	class UInputAction* KickAction;
 
-	// •ПђgѓAѓNѓVѓ‡ѓ“
+	// е¤‰иє«г‚ўг‚Їг‚·гѓ§гѓі
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	class UInputAction* TransformAction;
 
 public:
 
-	// ѓRѓ“ѓXѓgѓ‰ѓNѓ^
+	// г‚ігѓіг‚№гѓ€гѓ©г‚Їг‚ї
 	AARRangerCharacter();	
 
 protected:
 
-	// “ь—НѓAѓNѓVѓ‡ѓ“‚МѓoѓCѓ“ѓfѓBѓ“ѓO‚рЏ‰Љъ‰»‚·‚й
+	// е…ҐеЉ›г‚ўг‚Їг‚·гѓ§гѓігЃ®гѓђг‚¤гѓігѓ‡г‚Јгѓіг‚°г‚’е€ќжњџеЊ–гЃ™г‚‹
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 protected:
 
-	// €Ъ“®“ь—Н‚М‚Ѕ‚Я‚ЙЊД‚СЏo‚і‚к‚й
+	// з§»е‹•е…ҐеЉ›гЃ®гЃџг‚ЃгЃ«е‘јгЃіе‡єгЃ•г‚Њг‚‹
 	void Move(const FInputActionValue& Value);
 
-	// “ь—Н‚р‹Ѓ‚Я‚й
+	// е…ҐеЉ›г‚’ж±‚г‚Ѓг‚‹
 	void Look(const FInputActionValue& Value);
 
 private:
-	// ѓЌѓbѓNѓIѓ“’†ѓtѓ‰ѓO
+	// гѓ­гѓѓг‚Їг‚Єгѓідё­гѓ•гѓ©г‚°
 	bool isLockedOn;
 
-	// ѓЌѓbѓNѓIѓ“Ћћ“GђШ‚и‘Ц‚¦‚М‰В”\ѓtѓ‰ѓO
+	// гѓ­гѓѓг‚Їг‚Єгѓіж™‚ж•µе€‡г‚Љж›їгЃ€гЃ®еЏЇиѓЅгѓ•гѓ©г‚°
 	bool isAbleToSwitchTarget;
 
-	// ЋR“а
+	// е±±е†…
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Climeb", meta = (AllowPrivateAccess = "true"))
 	bool isClimb;
 
-	// ‚а‚Ж‚а‚Ж‚МѓJѓЃѓ‰‚ЖѓvѓЊѓCѓ„Ѓ[‚М‹——Ј
+	// г‚‚гЃЁг‚‚гЃЁгЃ®г‚«гѓЎгѓ©гЃЁгѓ—гѓ¬г‚¤гѓ¤гѓјгЃ®и·ќй›ў
 	float DefaultArmLength;
 
-	// ѓ_ѓbѓVѓ…’†‚Й‹Я‚Г‚Ї‚й‹——Ј
+	// гѓЂгѓѓг‚·гѓҐдё­гЃ«иї‘гЃҐгЃ‘г‚‹и·ќй›ў
 	float DashArmLength; 
 
-	// •вЉФ‘¬“x
+	// иЈњй–“йЂџеє¦
 	float ArmLengthInterpSpeed; 
 
-	// ѓЌѓbѓNѓIѓ“ђШ‘ЦЉЦђ”
+	// гѓ­гѓѓг‚Їг‚Єгѓіе€‡ж›їй–ўж•°
 	void ToggleLockOn();
 
-	// Џ\Ћљѓ{ѓ^ѓ“‰E‚р‰џ‚µ‚ЅЌЫ‚ЙЊД‚СЏo‚і‚к‚й
+	// еЌЃе­—гѓњг‚їгѓіеЏіг‚’жЉјгЃ—гЃџйљ›гЃ«е‘јгЃіе‡єгЃ•г‚Њг‚‹
 	void SwitchTargetRight();
 
-	// Џ\Ћљѓ{ѓ^ѓ“Ќ¶‚р‰џ‚µ‚ЅЌЫ‚ЙЊД‚СЏo‚і‚к‚й
+	// еЌЃе­—гѓњг‚їгѓіе·¦г‚’жЉјгЃ—гЃџйљ›гЃ«е‘јгЃіе‡єгЃ•г‚Њг‚‹
 	void SwitchTargetLeft();
 
-	// ѓЌѓbѓNѓIѓ“Ћћѓ^Ѓ[ѓQѓbѓgђШ‚и‘Ц‚¦ЉЦђ”(€шђ”‚Й‚ж‚Б‚Д‘OЊг‚ЙђШ‚и‘Ц‚¦)
+	// гѓ­гѓѓг‚Їг‚Єгѓіж™‚г‚їгѓјг‚Ігѓѓгѓ€е€‡г‚Љж›їгЃ€й–ўж•°(еј•ж•°гЃ«г‚€гЃЈгЃ¦е‰ЌеѕЊгЃ«е€‡г‚Љж›їгЃ€)
 	void SwitchTarget(bool isPressedRight);
 
-	// ѓЌѓbѓNѓIѓ“‰В”\‚И“G‚рЊџЌх
+	// гѓ­гѓѓг‚Їг‚ЄгѓіеЏЇиѓЅгЃЄж•µг‚’ж¤њзґў
 	AActor* FindNearestEnemy(AActor* IgnoreActor = nullptr);
 
-	// ѓpѓ“ѓ`‚МЌЫ‚ЙЊД‚СЏo‚і‚к‚й
+	// гѓ‘гѓігѓЃгЃ®йљ›гЃ«е‘јгЃіе‡єгЃ•г‚Њг‚‹
 	void StartPunch();
 
-	// ѓLѓbѓN‚МЌЫ‚ЙЊД‚СЏo‚і‚к‚й
+	// г‚­гѓѓг‚ЇгЃ®йљ›гЃ«е‘јгЃіе‡єгЃ•г‚Њг‚‹
 	void Kick();
 
-	// ЌUЊ‚ѓAѓjѓЃЃ[ѓVѓ‡ѓ“‚МЌДђ¶—pЉЦђ”
+	// ж”»ж’ѓг‚ўгѓ‹гѓЎгѓјг‚·гѓ§гѓігЃ®е†Ќз”џз”Ёй–ўж•°
 	void PlayAttackMontage(const FAttackData& Attack);
 
-	// “–‚Ѕ‚и”»’и‚МЏ€—ќ
+	// еЅ“гЃџг‚Ље€¤е®љгЃ®е‡¦зђ†
 	void AttackHit(const FAttackData& Attack);
 
-	// •Пђg‚МЌЫ‚ЙЊД‚СЏo‚і‚к‚й
+	// е¤‰иє«гЃ®йљ›гЃ«е‘јгЃіе‡єгЃ•г‚Њг‚‹
 	void Transform();
 
-	// ѓ_ѓbѓVѓ…ЋћѓJѓЃѓ‰‚ЄђШ‚и‘Ц‚н‚й“ь—Н‚Ми‡’lЃi‰џ‚µЌћ‚ЭЋћЃj
+	// гѓЂгѓѓг‚·гѓҐж™‚г‚«гѓЎгѓ©гЃЊе€‡г‚Љж›їг‚Џг‚‹е…ҐеЉ›гЃ®й–ѕеЂ¤пј€жЉјгЃ—иѕјгЃїж™‚пј‰
 	float dashStartThreshold;
 
-	// Џ­‚µ“ь—Н‚рЉЙ‚Я‚Ѕ‚зѓ_ѓbѓVѓ…‚р‰рЏњ‚·‚й—p‚Мђ”’l
+	// е°‘гЃ—е…ҐеЉ›г‚’з·©г‚ЃгЃџг‚‰гѓЂгѓѓг‚·гѓҐг‚’и§Јй™¤гЃ™г‚‹з”ЁгЃ®ж•°еЂ¤
 	float dashEndThreshold;
 
-	// “G‚р€ш‚«Љс‚№’†‚Мѓtѓ‰ѓO
+	// ж•µг‚’еј•гЃЌеЇ„гЃ›дё­гЃ®гѓ•гѓ©г‚°
 	bool isAttractingEnemy;
 
-	// ‹­‚ўЌUЊ‚‚©‚З‚¤‚©‚Мѓtѓ‰ѓO
+	// еј·гЃ„ж”»ж’ѓгЃ‹гЃ©гЃ†гЃ‹гЃ®гѓ•гѓ©г‚°
 	bool isStrongAttack;
 
 public:
 
-	// ѓRѓ“ѓgѓЌЃ[ѓ‹‚Ь‚Ѕ‚НUIѓCѓ“ѓ^Ѓ[ѓtѓFЃ[ѓX‚©‚з‚М€Ъ“®“ь—Н‚рЏ€—ќ‚·‚й
+	// г‚ігѓігѓ€гѓ­гѓјгѓ«гЃѕгЃџгЃЇUIг‚¤гѓіг‚їгѓјгѓ•г‚§гѓјг‚№гЃ‹г‚‰гЃ®з§»е‹•е…ҐеЉ›г‚’е‡¦зђ†гЃ™г‚‹
 	UFUNCTION(BlueprintCallable, Category="Input")
 	virtual void DoMove(float Right, float Forward);
 
-	// ЋR“а
+	// е±±е†…
 	UFUNCTION(BlueprintCallable, Category = "Input")
 	void DoClimb(float Right, float Up);
 
-	// ѓRѓ“ѓgѓЌЃ[ѓ‹‚Ь‚Ѕ‚НUIѓCѓ“ѓ^Ѓ[ѓtѓFЃ[ѓX‚©‚з‚Мѓ‹ѓbѓN“ь—Н‚рЏ€—ќ‚·‚й
+	// г‚ігѓігѓ€гѓ­гѓјгѓ«гЃѕгЃџгЃЇUIг‚¤гѓіг‚їгѓјгѓ•г‚§гѓјг‚№гЃ‹г‚‰гЃ®гѓ«гѓѓг‚Їе…ҐеЉ›г‚’е‡¦зђ†гЃ™г‚‹
 	UFUNCTION(BlueprintCallable, Category="Input")
 	virtual void DoLook(float Yaw, float Pitch);
 
-	// ѓRѓ“ѓgѓЌЃ[ѓ‹‚Ь‚Ѕ‚НUIѓCѓ“ѓ^Ѓ[ѓtѓFЃ[ѓX‚М‚З‚ї‚з‚©‚з‚Е‚аЃA‰џ‚і‚к‚ЅѓWѓѓѓ“ѓv“ь—Н‚рЏ€—ќ‚·‚й
+	// г‚ігѓігѓ€гѓ­гѓјгѓ«гЃѕгЃџгЃЇUIг‚¤гѓіг‚їгѓјгѓ•г‚§гѓјг‚№гЃ®гЃ©гЃЎг‚‰гЃ‹г‚‰гЃ§г‚‚гЂЃжЉјгЃ•г‚ЊгЃџг‚ёгѓЈгѓігѓ—е…ҐеЉ›г‚’е‡¦зђ†гЃ™г‚‹
 	UFUNCTION(BlueprintCallable, Category="Input")
 	virtual void DoJumpStart();
 
-	// ѓRѓ“ѓgѓЌЃ[ѓ‹‚Ь‚Ѕ‚НUIѓCѓ“ѓ^Ѓ[ѓtѓFЃ[ѓX‚М‚З‚ї‚з‚©‚з‚Е‚аЃA‰џ‚і‚к‚ЅѓWѓѓѓ“ѓv“ь—Н‚рЏ€—ќ‚·‚й
+	// г‚ігѓігѓ€гѓ­гѓјгѓ«гЃѕгЃџгЃЇUIг‚¤гѓіг‚їгѓјгѓ•г‚§гѓјг‚№гЃ®гЃ©гЃЎг‚‰гЃ‹г‚‰гЃ§г‚‚гЂЃжЉјгЃ•г‚ЊгЃџг‚ёгѓЈгѓігѓ—е…ҐеЉ›г‚’е‡¦зђ†гЃ™г‚‹
 	UFUNCTION(BlueprintCallable, Category="Input")
 	virtual void DoJumpEnd();
 
-	// ѓpѓ“ѓ`‚МAnimNotify‚М’К’m‚рЋу‚ЇЋж‚й
+	// гѓ‘гѓігѓЃгЃ®AnimNotifyгЃ®йЂљзџҐг‚’еЏ—гЃ‘еЏ–г‚‹
 	UFUNCTION(BlueprintCallable)
 	void PunchHitNotify();
 
-	// ѓLѓbѓN‚МAnimNotify‚М’К’m‚рЋу‚ЇЋж‚й
+	// г‚­гѓѓг‚ЇгЃ®AnimNotifyгЃ®йЂљзџҐг‚’еЏ—гЃ‘еЏ–г‚‹
 	UFUNCTION(BlueprintCallable)
 	void KickHitNotify();
 
-	// ЌUЊ‚‚ЄЏI‚н‚Б‚ЅЌЫ‚МѓRЃ[ѓ‹ѓoѓbѓN
+	// ж”»ж’ѓгЃЊзµ‚г‚ЏгЃЈгЃџйљ›гЃ®г‚ігѓјгѓ«гѓђгѓѓг‚Ї
 	UFUNCTION()
 	void OnAttackMontageEnded(UAnimMontage* Montage, bool IsInterrupted);
 
@@ -200,39 +200,39 @@ public:
 	UFUNCTION(BlueprintPure, Category = "AR|Player")
 	float GetDashArmLength() const { return DashArmLength; }
 
-	// €ш—Н—pѓvѓЊѓCѓ„Ѓ[ѓЃѓbѓVѓ…
+	// еј•еЉ›з”Ёгѓ—гѓ¬г‚¤гѓ¤гѓјгѓЎгѓѓг‚·гѓҐ
 	UPROPERTY(EditAnywhere, Category = "PlayerMesh")
 	USkeletalMesh* AttractiveMesh;
 
-	// ђЛ—Н—pѓvѓЊѓCѓ„Ѓ[ѓЃѓbѓVѓ…
+	// ж–ҐеЉ›з”Ёгѓ—гѓ¬г‚¤гѓ¤гѓјгѓЎгѓѓг‚·гѓҐ
 	UPROPERTY(EditAnywhere, Category = "PlayerMesh")
 	USkeletalMesh* RepulsiveMesh;
 
-	// ѓЌѓbѓNѓIѓ“‘ОЏЫ
+	// гѓ­гѓѓг‚Їг‚ЄгѓіеЇѕи±Ў
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	AActor* LockedOnTarget;
 
-	// ѓЌѓbѓNѓIѓ“‰В”\‹——Ј
+	// гѓ­гѓѓг‚Їг‚ЄгѓіеЏЇиѓЅи·ќй›ў
 	UPROPERTY(EditAnywhere, Category = "LockOn")
 	float maxLockOnDistance;
 
-	// ѓ_ѓbѓVѓ…’†ѓtѓ‰ѓO
+	// гѓЂгѓѓг‚·гѓҐдё­гѓ•гѓ©г‚°
 	UPROPERTY(BlueprintReadWrite)
 	bool isDashed;
 
-	// ѓpѓ“ѓ`ѓfЃ[ѓ^ЃiBlueprint‚©‚зђЭ’иЃj
+	// гѓ‘гѓігѓЃгѓ‡гѓјг‚їпј€BlueprintгЃ‹г‚‰иЁ­е®љпј‰
 	UPROPERTY(EditAnywhere, Category = "Attack")
 	FAttackData PunchData;
 
-	// ѓLѓbѓNѓfЃ[ѓ^ЃiBlueprint‚©‚зђЭ’иЃj
+	// г‚­гѓѓг‚Їгѓ‡гѓјг‚їпј€BlueprintгЃ‹г‚‰иЁ­е®љпј‰
 	UPROPERTY(EditAnywhere, Category = "Attack")
 	FAttackData KickData;
 
-	// ЌUЊ‚’†ѓtѓ‰ѓO
+	// ж”»ж’ѓдё­гѓ•гѓ©г‚°
 	UPROPERTY(BlueprintReadOnly)
 	bool isAttacked;
 
-	// Њ»ЌЭ‚МѓvѓЊѓCѓ„Ѓ[‚М•ПђgЏу‘Ф
+	// зЏѕењЁгЃ®гѓ—гѓ¬г‚¤гѓ¤гѓјгЃ®е¤‰иє«зЉ¶ж…‹
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gravity")
 	EGravityType CurrentGravityType;
 
@@ -240,6 +240,6 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 
-	// Њ»ЌЭ‚МѓvѓЊѓCѓ„Ѓ[‚Мѓ‚Ѓ[ѓh‚рЋж“ѕ
+	// зЏѕењЁгЃ®гѓ—гѓ¬г‚¤гѓ¤гѓјгЃ®гѓўгѓјгѓ‰г‚’еЏ–еѕ—
 	EGravityType GetCurrentGravityType();
 };

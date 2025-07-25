@@ -29,22 +29,22 @@ AARRangerCharacter::AARRangerCharacter()
 	, isAbleToSwitchTarget(false)
 	, isAttractingEnemy(false)
 	, isStrongAttack(false)
-	, isClimb(false) /*R“à*/ 
+	, isClimb(false) /*å±±å†…*/ 
 {
-	// ƒJƒvƒZƒ‹‚ÌƒTƒCƒY‚ğİ’è‚·‚é
+	// ã‚«ãƒ—ã‚»ãƒ«ã®ã‚µã‚¤ã‚ºã‚’è¨­å®šã™ã‚‹
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
 		
-	// ƒRƒ“ƒgƒ[ƒ‰[‚ª‰ñ“]‚µ‚Ä‚à‰ñ“]‚³‚¹‚È‚¢BƒJƒƒ‰‚É‰e‹¿‚ğ—^‚¦‚é‚¾‚¯‚É‚·‚é
+	// ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ©ãƒ¼ãŒå›è»¢ã—ã¦ã‚‚å›è»¢ã•ã›ãªã„ã€‚ã‚«ãƒ¡ãƒ©ã«å½±éŸ¿ã‚’ä¸ãˆã‚‹ã ã‘ã«ã™ã‚‹
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw = false;
 	bUseControllerRotationRoll = false;
 
-	// ƒLƒƒƒ‰ƒNƒ^[‚Ì“®‚«‚ğİ’è‚·‚é
+	// ã‚­ãƒ£ãƒ©ã‚¯ã‚¿ãƒ¼ã®å‹•ãã‚’è¨­å®šã™ã‚‹
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 	GetCharacterMovement()->RotationRate = FRotator(0.0f, 500.0f, 0.0f);
 
-	// ’: ”½•œŠÔ‚ğ’Zk‚·‚é‚½‚ß‚ÉA‚±‚ê‚ç‚Ì•Ï”‚â‚»‚Ì‘¼‘½‚­‚Ì•Ï”‚ğAÄƒRƒ“ƒpƒCƒ‹‚µ‚Ä’²®‚·‚é‚Ì‚Å‚Í‚È‚­AƒLƒƒƒ‰ƒNƒ^[ƒuƒ‹[ƒvƒŠƒ“ƒg
-    // ‚Å’²®‚·‚é‚±‚Æ‚ª‚Å‚«‚é
+	// æ³¨: åå¾©æ™‚é–“ã‚’çŸ­ç¸®ã™ã‚‹ãŸã‚ã«ã€ã“ã‚Œã‚‰ã®å¤‰æ•°ã‚„ãã®ä»–å¤šãã®å¤‰æ•°ã‚’ã€å†ã‚³ãƒ³ãƒ‘ã‚¤ãƒ«ã—ã¦èª¿æ•´ã™ã‚‹ã®ã§ã¯ãªãã€ã‚­ãƒ£ãƒ©ã‚¯ã‚¿ãƒ¼ãƒ–ãƒ«ãƒ¼ãƒ—ãƒªãƒ³ãƒˆ
+    // ã§èª¿æ•´ã™ã‚‹ã“ã¨ãŒã§ãã‚‹
 	GetCharacterMovement()->JumpZVelocity = 500.f;
 	GetCharacterMovement()->AirControl = 0.35f;
 	GetCharacterMovement()->MaxWalkSpeed = 500.f;
@@ -53,8 +53,8 @@ AARRangerCharacter::AARRangerCharacter()
 	GetCharacterMovement()->BrakingDecelerationFalling = 1500.0f;
 
 
-	// ’: MeshƒRƒ“ƒ|[ƒlƒ“ƒg (Character‚©‚çŒp³) ‚ÌƒXƒPƒ‹ƒ^ƒ‹ƒƒbƒVƒ…‚ÆƒAƒjƒ[ƒVƒ‡ƒ“ƒuƒ‹[ƒvƒŠƒ“ƒg‚ÌQÆ‚ÍA
-    // ThirdPersonCharacter‚Æ‚¢‚¤–¼‘O‚Ì”h¶ƒuƒ‹[ƒvƒŠƒ“ƒgƒAƒZƒbƒg‚Éİ’è‚³‚ê‚é (C++ ‚Å‚ÌƒRƒ“ƒeƒ“ƒc‚Ì’¼ÚQÆ‚ğ”ğ‚¯‚é‚½‚ß)B
+	// æ³¨: Meshã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆ (Characterã‹ã‚‰ç¶™æ‰¿) ã®ã‚¹ã‚±ãƒ«ã‚¿ãƒ«ãƒ¡ãƒƒã‚·ãƒ¥ã¨ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ãƒ–ãƒ«ãƒ¼ãƒ—ãƒªãƒ³ãƒˆã®å‚ç…§ã¯ã€
+    // ThirdPersonCharacterã¨ã„ã†åå‰ã®æ´¾ç”Ÿãƒ–ãƒ«ãƒ¼ãƒ—ãƒªãƒ³ãƒˆã‚¢ã‚»ãƒƒãƒˆã«è¨­å®šã•ã‚Œã‚‹ (C++ ã§ã®ã‚³ãƒ³ãƒ†ãƒ³ãƒ„ã®ç›´æ¥å‚ç…§ã‚’é¿ã‘ã‚‹ãŸã‚)ã€‚
 }
 
 void AARRangerCharacter::BeginPlay()
@@ -64,7 +64,7 @@ void AARRangerCharacter::BeginPlay()
 	if (UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance())
 	{
 		UE_LOG(LogTemp, Warning, TEXT("AnimInstance found! Registering OnMontageEnded"));
-		// UŒ‚ƒAƒjƒ[ƒVƒ‡ƒ“‚ÌI—¹AOnAttackMontageEnded‚ªŒÄ‚Î‚ê‚é‚æ‚¤‚É‚·‚é
+		// æ”»æ’ƒã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã®çµ‚äº†æ™‚ã€OnAttackMontageEndedãŒå‘¼ã°ã‚Œã‚‹ã‚ˆã†ã«ã™ã‚‹
 		AnimInstance->OnMontageEnded.AddDynamic(this, &AARRangerCharacter::OnAttackMontageEnded);
 	}
 	else
@@ -75,36 +75,36 @@ void AARRangerCharacter::BeginPlay()
 
 void AARRangerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
-	// ƒAƒNƒVƒ‡ƒ“ƒoƒCƒ“ƒfƒBƒ“ƒO‚Ìİ’è
+	// ã‚¢ã‚¯ã‚·ãƒ§ãƒ³ãƒã‚¤ãƒ³ãƒ‡ã‚£ãƒ³ã‚°ã®è¨­å®š
 	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent)) {
 		
-		// ƒWƒƒƒ“ƒv
+		// ã‚¸ãƒ£ãƒ³ãƒ—
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &AARRangerCharacter::DoJumpStart);
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &AARRangerCharacter::DoJumpEnd);
 
-		// ˆÚ“®
+		// ç§»å‹•
 		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AARRangerCharacter::Move);
 		EnhancedInputComponent->BindAction(MouseLookAction, ETriggerEvent::Triggered, this, &AARRangerCharacter::Look);
 
-		// ‹“_ˆÚ“®
+		// è¦–ç‚¹ç§»å‹•
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AARRangerCharacter::Look);
 
-		// ƒƒbƒNƒIƒ“
+		// ãƒ­ãƒƒã‚¯ã‚ªãƒ³
 		EnhancedInputComponent->BindAction(LockOnAction, ETriggerEvent::Triggered, this, &AARRangerCharacter::ToggleLockOn);
 
-		// ƒƒbƒNƒIƒ“ƒ^[ƒQƒbƒgØ‚è‘Ö‚¦(Ÿ‚Ìƒ^[ƒQƒbƒg)
+		// ãƒ­ãƒƒã‚¯ã‚ªãƒ³æ™‚ã‚¿ãƒ¼ã‚²ãƒƒãƒˆåˆ‡ã‚Šæ›¿ãˆ(æ¬¡ã®ã‚¿ãƒ¼ã‚²ãƒƒãƒˆ)
 		EnhancedInputComponent->BindAction(SwitchTargetRightAction, ETriggerEvent::Triggered, this, &AARRangerCharacter::SwitchTargetRight);
 
-		// ƒƒbƒNƒIƒ“ƒ^[ƒQƒbƒgØ‚è‘Ö‚¦(‘O‚Ìƒ^[ƒQƒbƒg)
+		// ãƒ­ãƒƒã‚¯ã‚ªãƒ³æ™‚ã‚¿ãƒ¼ã‚²ãƒƒãƒˆåˆ‡ã‚Šæ›¿ãˆ(å‰ã®ã‚¿ãƒ¼ã‚²ãƒƒãƒˆ)
 		EnhancedInputComponent->BindAction(SwitchTargetLeftAction, ETriggerEvent::Triggered, this, &AARRangerCharacter::SwitchTargetLeft);
 
-		// ƒpƒ“ƒ`
+		// ãƒ‘ãƒ³ãƒ
 		EnhancedInputComponent->BindAction(PunchAction, ETriggerEvent::Started, this, &AARRangerCharacter::StartPunch);
 
-		// ƒLƒbƒN
+		// ã‚­ãƒƒã‚¯
 		EnhancedInputComponent->BindAction(KickAction, ETriggerEvent::Started, this, &AARRangerCharacter::Kick);
 
-		// •Ïg
+		// å¤‰èº«
 		EnhancedInputComponent->BindAction(TransformAction, ETriggerEvent::Started, this, &AARRangerCharacter::Transform);
 	}
 	else
@@ -117,7 +117,7 @@ void AARRangerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	// –ˆƒtƒŒ[ƒ€“ü—Í‹­“x‚ğƒ`ƒFƒbƒN‚µ‚ÄisDashed‚ğXV
+	// æ¯ãƒ•ãƒ¬ãƒ¼ãƒ å…¥åŠ›å¼·åº¦ã‚’ãƒã‚§ãƒƒã‚¯ã—ã¦isDashedã‚’æ›´æ–°
 	float InputMagnitude = 0.f;
 	if (APlayerController* PC = Cast<APlayerController>(GetController()))
 	{
@@ -134,7 +134,7 @@ void AARRangerCharacter::Tick(float DeltaTime)
 		}
 	}
 
-	// ƒqƒXƒeƒŠƒVƒX‚É‚æ‚éƒ_ƒbƒVƒ…”»’è
+	// ãƒ’ã‚¹ãƒ†ãƒªã‚·ã‚¹ã«ã‚ˆã‚‹ãƒ€ãƒƒã‚·ãƒ¥åˆ¤å®š
 	if (!isDashed && InputMagnitude > dashStartThreshold)
 	{
 		isDashed = true;
@@ -144,7 +144,7 @@ void AARRangerCharacter::Tick(float DeltaTime)
 		isDashed = false;
 	}
 
-	// ƒƒbƒNƒIƒ“‚Ìˆ—
+	// ãƒ­ãƒƒã‚¯ã‚ªãƒ³æ™‚ã®å‡¦ç†
 	if (isLockedOn && LockedOnTarget)
 	{
 		FVector ToTarget = LockedOnTarget->GetActorLocation() - GetActorLocation();
@@ -155,27 +155,27 @@ void AARRangerCharacter::Tick(float DeltaTime)
 		if (!IsValid(LockedOnTarget) || LockedOnTarget->IsActorBeingDestroyed())
 		{
 			AActor* NewTarget = FindNearestEnemy(LockedOnTarget);
-			// ƒƒbƒNƒIƒ“‚µ‚½“G‚ğ“|‚µ‚½ŒãA‹ß‚­‚É“G‚ª‚¢‚ê‚Î‚»‚¿‚ç‚ÉƒƒbƒNƒIƒ“‚·‚é
+			// ãƒ­ãƒƒã‚¯ã‚ªãƒ³ã—ãŸæ•µã‚’å€’ã—ãŸå¾Œã€è¿‘ãã«æ•µãŒã„ã‚Œã°ãã¡ã‚‰ã«ãƒ­ãƒƒã‚¯ã‚ªãƒ³ã™ã‚‹
 			if (NewTarget)
 			{
 				LockedOnTarget = NewTarget;
 			}
-			// ‚¢‚È‚¯‚ê‚ÎƒƒbƒNƒIƒ“‚ğ‰ğœ
+			// ã„ãªã‘ã‚Œã°ãƒ­ãƒƒã‚¯ã‚ªãƒ³ã‚’è§£é™¤
 			else
 			{
 				LockedOnTarget = nullptr;
 				isLockedOn = false;
 			}
 		}
-		// ƒLƒƒƒ‰ƒNƒ^[–{‘Ì‚ğ‰ñ“]‚³‚¹‚é
+		// ã‚­ãƒ£ãƒ©ã‚¯ã‚¿ãƒ¼æœ¬ä½“ã‚’å›è»¢ã•ã›ã‚‹
 		SetActorRotation(TargetRotation);
 
-		// ƒJƒƒ‰iƒRƒ“ƒgƒ[ƒ‰[j‚à“¯‚¶•ûŒü‚Ö‰ñ“]‚³‚¹‚é
+		// ã‚«ãƒ¡ãƒ©ï¼ˆã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ©ãƒ¼ï¼‰ã‚‚åŒã˜æ–¹å‘ã¸å›è»¢ã•ã›ã‚‹
 		if (Controller)
 		{
 			FRotator CurrentControlRot = Controller->GetControlRotation();
 
-			// ƒXƒ€[ƒY‚É•âŠÔ
+			// ã‚¹ãƒ ãƒ¼ã‚ºã«è£œé–“
 			FRotator NewControlRot = FMath::RInterpTo(CurrentControlRot, TargetRotation, DeltaTime, 5.0f);
 
 			Controller->SetControlRotation(NewControlRot);
@@ -189,10 +189,10 @@ void AARRangerCharacter::Tick(float DeltaTime)
 		FVector Direction = (PlayerLocation - EnemyLocation);
 		float Distance = Direction.Size();
 
-		// ˆø‚«Šñ‚¹I—¹‹——£
+		// å¼•ãå¯„ã›çµ‚äº†è·é›¢
 		const float MinDistance = 150.0f;
 
-		// ˆø‚«Šñ‚¹‚ªŠ®—¹‚µ‚½‚çƒpƒ“ƒ`‚ğs‚¤
+		// å¼•ãå¯„ã›ãŒå®Œäº†ã—ãŸã‚‰ãƒ‘ãƒ³ãƒã‚’è¡Œã†
 		if (Distance <= MinDistance)
 		{
 			isAttractingEnemy = false;
@@ -200,7 +200,7 @@ void AARRangerCharacter::Tick(float DeltaTime)
 			return;
 		}
 
-		// ™X‚É‹ß‚Ã‚¯‚éi‹zˆøƒXƒs[ƒh’²®j
+		// å¾ã€…ã«è¿‘ã¥ã‘ã‚‹ï¼ˆå¸å¼•ã‚¹ãƒ”ãƒ¼ãƒ‰èª¿æ•´ï¼‰
 		float AttractionSpeed = 800.f;
 		FVector NewLocation = EnemyLocation + Direction.GetSafeNormal() * AttractionSpeed * DeltaTime;
 		LockedOnTarget->SetActorLocation(NewLocation);
@@ -209,35 +209,35 @@ void AARRangerCharacter::Tick(float DeltaTime)
 
 void AARRangerCharacter::Move(const FInputActionValue& Value)
 {
-	// “ü—Í‚ÍVector2D
+	// å…¥åŠ›ã¯Vector2D
 	FVector2D MovementVector = Value.Get<FVector2D>();
 
-	// R“à
+	// å±±å†…
 	if (isClimb)
 	{
-		// R“à
+		// å±±å†…
 		DoClimb(MovementVector.X, MovementVector.Y);
 		return;
 	}
-		// “ü—Í‚ğƒ‹[ƒeƒBƒ“ƒO‚·‚é
+		// å…¥åŠ›ã‚’ãƒ«ãƒ¼ãƒ†ã‚£ãƒ³ã‚°ã™ã‚‹
 		DoMove(MovementVector.X, MovementVector.Y);
 }
 
 void AARRangerCharacter::Look(const FInputActionValue& Value)
 {
-	// “ü—Í‚ÍVector2D
+	// å…¥åŠ›ã¯Vector2D
 	FVector2D LookAxisVector = Value.Get<FVector2D>();
 
-	// “ü—Í‚ğƒ‹[ƒeƒBƒ“ƒO‚·‚é
+	// å…¥åŠ›ã‚’ãƒ«ãƒ¼ãƒ†ã‚£ãƒ³ã‚°ã™ã‚‹
 	DoLook(LookAxisVector.X, LookAxisVector.Y);
 }
 
-// R“à
+// å±±å†…
 void AARRangerCharacter::DoClimb(float Right, float Up)
 {
 	if (GetController() != nullptr)
 	{
-		// ‚Ç‚¿‚ç‚ğŒü‚¢‚Ä‚¢‚é‚©’²‚×‚é
+		// ã©ã¡ã‚‰ã‚’å‘ã„ã¦ã„ã‚‹ã‹èª¿ã¹ã‚‹
 		FRotator YawRotation(0, GetActorRotation().Yaw, 0);
 
 		FVector RightDir = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
@@ -251,20 +251,20 @@ void AARRangerCharacter::DoMove(float Right, float Forward)
 {
 	if (GetController() != nullptr)
 	{
-		// UŒ‚’†‚ÍˆÚ“®‚µ‚È‚¢
+		// æ”»æ’ƒä¸­ã¯ç§»å‹•ã—ãªã„
 		if (isAttacked || isStrongAttack)
 		{
 			return;
 		}
 
-		// ‚Ç‚¿‚ç‚ğŒü‚¢‚Ä‚¢‚é‚©’²‚×‚é
+		// ã©ã¡ã‚‰ã‚’å‘ã„ã¦ã„ã‚‹ã‹èª¿ã¹ã‚‹
 		const FRotator Rotation = GetController()->GetControlRotation();
 		const FRotator YawRotation(0, Rotation.Yaw, 0);
 
-		// ‘O•ûƒxƒNƒgƒ‹‚Ìæ“¾
+		// å‰æ–¹ãƒ™ã‚¯ãƒˆãƒ«ã®å–å¾—
 		const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
 
-		// ‰E•ûŒüƒxƒNƒgƒ‹‚Ìæ“¾
+		// å³æ–¹å‘ãƒ™ã‚¯ãƒˆãƒ«ã®å–å¾—
 		const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 
 		// Add Movement
@@ -277,7 +277,7 @@ void AARRangerCharacter::DoLook(float Yaw, float Pitch)
 {
 	if (GetController() != nullptr)
 	{
-		// ƒRƒ“ƒgƒ[ƒ‰[‚Éƒˆ[‚Æƒsƒbƒ`‚Ì“ü—Í‚ğ’Ç‰Á‚·‚é
+		// ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ©ãƒ¼ã«ãƒ¨ãƒ¼ã¨ãƒ”ãƒƒãƒã®å…¥åŠ›ã‚’è¿½åŠ ã™ã‚‹
 		AddControllerYawInput(Yaw);
 		AddControllerPitchInput(Pitch);
 	}
@@ -285,19 +285,19 @@ void AARRangerCharacter::DoLook(float Yaw, float Pitch)
 
 void AARRangerCharacter::DoJumpStart()
 {
-	// UŒ‚’†‚ÍƒWƒƒƒ“ƒv‚µ‚È‚¢
+	// æ”»æ’ƒä¸­ã¯ã‚¸ãƒ£ãƒ³ãƒ—ã—ãªã„
 	if (isAttacked || isStrongAttack)
 	{
 		return;
 	}
 
-	// ƒLƒƒƒ‰ƒNƒ^[‚ªƒWƒƒƒ“ƒv‚·‚é‡}
+	// ã‚­ãƒ£ãƒ©ã‚¯ã‚¿ãƒ¼ãŒã‚¸ãƒ£ãƒ³ãƒ—ã™ã‚‹åˆå›³
 	Jump();
 }
 
 void AARRangerCharacter::DoJumpEnd()
 {
-	// ƒLƒƒƒ‰ƒNƒ^[‚ªƒWƒƒƒ“ƒv‚ğ‚â‚ß‚é‡}
+	// ã‚­ãƒ£ãƒ©ã‚¯ã‚¿ãƒ¼ãŒã‚¸ãƒ£ãƒ³ãƒ—ã‚’ã‚„ã‚ã‚‹åˆå›³
 	StopJumping();
 }
 
@@ -305,7 +305,7 @@ void AARRangerCharacter::ToggleLockOn()
 {
 	if (isLockedOn)
 	{
-		// ƒƒbƒNƒIƒ“‰ğœ
+		// ãƒ­ãƒƒã‚¯ã‚ªãƒ³è§£é™¤
 		UE_LOG(LogTemp, Warning, TEXT("Lock off"));
 		LockedOnTarget = nullptr;
 		isLockedOn = false;
@@ -313,7 +313,7 @@ void AARRangerCharacter::ToggleLockOn()
 	else
 	{
 		UE_LOG(LogTemp, Warning, TEXT("LockOoooooooooon"));
-		// Å‚à‹ß‚¢“G‚ğæ“¾
+		// æœ€ã‚‚è¿‘ã„æ•µã‚’å–å¾—
 		LockedOnTarget = FindNearestEnemy();
 		if (LockedOnTarget)
 		{
@@ -329,25 +329,25 @@ void AARRangerCharacter::ToggleLockOn()
 
 void AARRangerCharacter::SwitchTargetRight()
 {
-	// Ÿ‚Ìƒ^[ƒQƒbƒg‚Ö
+	// æ¬¡ã®ã‚¿ãƒ¼ã‚²ãƒƒãƒˆã¸
 	SwitchTarget(true); 
 }
 
 void AARRangerCharacter::SwitchTargetLeft()
 {
-	// ‘O‚Ìƒ^[ƒQƒbƒg‚Ö
+	// å‰ã®ã‚¿ãƒ¼ã‚²ãƒƒãƒˆã¸
 	SwitchTarget(false); 
 }
 
 void AARRangerCharacter::SwitchTarget(bool isPressedRight)
 {
-	// ”ñƒƒbƒNƒIƒ“‚Íˆ—‚µ‚È‚¢
+	// éãƒ­ãƒƒã‚¯ã‚ªãƒ³æ™‚ã¯å‡¦ç†ã—ãªã„
 	if (!isLockedOn)
 	{
 		return;
 	}
 		
-	// “G‚ªƒ[ƒ‹ƒh‚É•¡”‘Ì‚¢‚È‚¢‚Æ‚«‚Íˆ—‚µ‚È‚¢
+	// æ•µãŒãƒ¯ãƒ¼ãƒ«ãƒ‰ã«è¤‡æ•°ä½“ã„ãªã„ã¨ãã¯å‡¦ç†ã—ãªã„
 	TArray<AActor*> Enemies;
 	UGameplayStatics::GetAllActorsWithTag(GetWorld(), FName("Enemy"), Enemies);
 	if (Enemies.Num() <= 1)
@@ -360,7 +360,7 @@ void AARRangerCharacter::SwitchTarget(bool isPressedRight)
 		return;
 	}
 
-	// ©g‚ÌˆÊ’u‚ğæ“¾
+	// è‡ªèº«ã®ä½ç½®ã‚’å–å¾—
 	const FVector MyLocation = GetActorLocation();
 
 	const int32 EnemyCount = Enemies.Num();
@@ -369,12 +369,12 @@ void AARRangerCharacter::SwitchTarget(bool isPressedRight)
 
 	while (Checked < EnemyCount)
 	{
-		// Ÿ‚ÌƒCƒ“ƒfƒbƒNƒX‚ğŒˆ’è
+		// æ¬¡ã®ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ã‚’æ±ºå®š
 		Index = isPressedRight
 			? (Index + 1) % EnemyCount
 			: (Index - 1 + EnemyCount) % EnemyCount;
 
-		// ©•ª©g‚É–ß‚Á‚½‚çI—¹
+		// è‡ªåˆ†è‡ªèº«ã«æˆ»ã£ãŸã‚‰çµ‚äº†
 		if (Index == CurrentIndex)
 		{
 			break;
@@ -428,12 +428,12 @@ AActor* AARRangerCharacter::FindNearestEnemy(AActor* IgnoreActor)
 
 void AARRangerCharacter::StartPunch()
 {
-	// ˆø—Íó‘ÔŸ‚ÂƒƒbƒNƒIƒ“ó‘Ô‚Ì‚Éˆ—
+	// å¼•åŠ›çŠ¶æ…‹å‹ã¤ãƒ­ãƒƒã‚¯ã‚ªãƒ³çŠ¶æ…‹ã®æ™‚ã«å‡¦ç†
 	if (CurrentGravityType == EGravityType::Attractive && isLockedOn && LockedOnTarget)
 	{
 		if (!isAttractingEnemy)
 		{
-			// ˆø‚«Šñ‚¹ƒtƒ‰ƒO‚Æ‹­UŒ‚ƒtƒ‰ƒO‚ğ—§‚Ä‚é
+			// å¼•ãå¯„ã›ãƒ•ãƒ©ã‚°ã¨å¼·æ”»æ’ƒãƒ•ãƒ©ã‚°ã‚’ç«‹ã¦ã‚‹
 			isAttractingEnemy = true;
 			isStrongAttack = true;
 
@@ -445,7 +445,7 @@ void AARRangerCharacter::StartPunch()
 		return;
 	}
 
-	// ’Êíƒpƒ“ƒ`
+	// é€šå¸¸ãƒ‘ãƒ³ãƒ
 	isStrongAttack = false;
 	PlayAttackMontage(PunchData);
 }
@@ -467,14 +467,14 @@ void AARRangerCharacter::KickHitNotify()
 }
 void AARRangerCharacter::PlayAttackMontage(const FAttackData& Attack)
 {
-	// Nullƒ`ƒFƒbƒNEUŒ‚’†ƒ`ƒFƒbƒN
+	// Nullãƒã‚§ãƒƒã‚¯ãƒ»æ”»æ’ƒä¸­ãƒã‚§ãƒƒã‚¯
 	if (!Attack.Montage_Normal || !Attack.Montage_Strong || isAttacked)
 	{
 		return;
 	}
 
 	UAnimInstance* Anim = GetMesh()->GetAnimInstance();
-	// Ä¶’†‚Íˆ—‚µ‚È‚¢
+	// å†ç”Ÿä¸­ã¯å‡¦ç†ã—ãªã„
 	if (!Anim || Anim->Montage_IsPlaying(Attack.Montage_Normal) || Anim->Montage_IsPlaying(Attack.Montage_Strong))
 	{
 		return;
@@ -482,7 +482,7 @@ void AARRangerCharacter::PlayAttackMontage(const FAttackData& Attack)
 
 	isAttacked = true;
 
-	// ‹­UŒ‚ƒtƒ‰ƒO‚ª—§‚Á‚Ä‚¢‚ê‚ÎA‹­UŒ‚ƒAƒjƒ[ƒVƒ‡ƒ“‚ğÄ¶
+	// å¼·æ”»æ’ƒãƒ•ãƒ©ã‚°ãŒç«‹ã£ã¦ã„ã‚Œã°ã€å¼·æ”»æ’ƒã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã‚’å†ç”Ÿ
 	if (isStrongAttack)
 	{
 		Anim->Montage_Play(Attack.Montage_Strong);
@@ -498,7 +498,7 @@ void AARRangerCharacter::AttackHit(const FAttackData& Attack)
 	FVector Origin = GetActorLocation() + GetActorForwardVector() * 100.f;
 	TArray<AActor*> HitActors;
 
-	// “–‚½‚è”»’è‚ğì¬
+	// å½“ãŸã‚Šåˆ¤å®šã‚’ä½œæˆ
 	bool bHit = UKismetSystemLibrary::SphereOverlapActors(
 		this,
 		Origin,
@@ -529,7 +529,7 @@ void AARRangerCharacter::AttackHit(const FAttackData& Attack)
 				FVector LaunchDir = GetActorForwardVector() + FVector(0, 0, 0.2f);
 				LaunchDir.Normalize();
 
-				// ‹­UŒ‚ƒtƒ‰ƒO‚ª—§‚Á‚Ä‚¢‚ê‚Îƒ_ƒ[ƒW‚ğãæ‚¹
+				// å¼·æ”»æ’ƒãƒ•ãƒ©ã‚°ãŒç«‹ã£ã¦ã„ã‚Œã°ãƒ€ãƒ¡ãƒ¼ã‚¸ã‚’ä¸Šä¹—ã›
 				if (isStrongAttack)
 				{
 					Enemy->ReceiveDamage(Attack.Damage + Attack.DamageModifier, LaunchDir, bWillBeKilled);
@@ -551,18 +551,18 @@ void AARRangerCharacter::OnAttackMontageEnded(UAnimMontage* Montage, bool bInter
 
 void AARRangerCharacter::Transform()
 {
-	// UŒ‚’†‚Íˆ—‚µ‚È‚¢
+	// æ”»æ’ƒä¸­ã¯å‡¦ç†ã—ãªã„
 	if (isAttacked)
 	{
 		return;
 	}
 
-	// ƒ‚[ƒh•ÏXiˆø—Í or Ë—Íj
+	// ãƒ¢ãƒ¼ãƒ‰å¤‰æ›´ï¼ˆå¼•åŠ› or æ–¥åŠ›ï¼‰
 	CurrentGravityType = (CurrentGravityType == EGravityType::Attractive)
 		? EGravityType::Repulsive
 		: EGravityType::Attractive;
 
-	// ƒ‚ƒfƒ‹Ø‚è‘Ö‚¦
+	// ãƒ¢ãƒ‡ãƒ«åˆ‡ã‚Šæ›¿ãˆ
 	USkeletalMesh* NewMesh = (CurrentGravityType == EGravityType::Repulsive)
 		? RepulsiveMesh
 		: AttractiveMesh;
