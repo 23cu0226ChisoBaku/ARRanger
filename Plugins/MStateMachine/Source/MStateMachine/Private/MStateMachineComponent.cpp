@@ -85,9 +85,9 @@ FMStateHandle FMStateMachineStateList::AddEntry(TSubclassOf<UMStateDefinition> s
 	return FMStateHandle(stateInstance, OwnerComponent, mStateDefCDO->TagInfo.StateTag);
 }
 
-void FMStateMachineStateList::RemoveEntry(FMStateHandle removeStateHandle)
+void FMStateMachineStateList::RemoveEntry(const FMStateHandle& RemoveStateHandle)
 {
-	if (!removeStateHandle.IsValid())
+	if (!RemoveStateHandle.IsValid())
 	{
 		UE_LOG(LogMStateMachine, Warning, TEXT("State Handle is invalid, Can not remove"));
 		return;
@@ -96,7 +96,7 @@ void FMStateMachineStateList::RemoveEntry(FMStateHandle removeStateHandle)
 	for (auto entryIt = Entries.CreateIterator(); entryIt; ++entryIt)
 	{
 		const FMStateMachineStateListEntry& entry = *entryIt;
-		if (entry.StateDefinition->TagInfo.StateTag == removeStateHandle.GetStateTag())
+		if (entry.StateDefinition->TagInfo.StateTag == RemoveStateHandle.GetStateTag())
 		{
       FStateUninitializationParameters params;
       entryIt->State->UninitializeState(params);
@@ -106,16 +106,16 @@ void FMStateMachineStateList::RemoveEntry(FMStateHandle removeStateHandle)
 	}
 }
 
-UMStateInstance* FMStateMachineStateList::SwitchState(const UMStateInstance* currentStateInstance, FGameplayTag nextStateTag)
+UMStateInstance* FMStateMachineStateList::TrySwitchState(const UMStateInstance* CurrentStateInstance, const FGameplayTag& NextStateTag)
 {
 	UMStateInstance* nextState = nullptr;
-	if (!nextStateTag.IsValid())
+	if (!NextStateTag.IsValid())
 	{
 		UE_LOG(LogMStateMachine, Error, TEXT("Next state Gameplay Tag Is Invalid"));
 		return nextState;
 	}
 
-	FGameplayTag currentStateTag = GetTagByState(currentStateInstance);
+	FGameplayTag currentStateTag = GetTagByState(CurrentStateInstance);
 	if (currentStateTag.IsValid())
 	{
 		for (auto entryIt = Entries.CreateIterator(); entryIt; ++entryIt)
@@ -123,19 +123,19 @@ UMStateInstance* FMStateMachineStateList::SwitchState(const UMStateInstance* cur
 			const FMStateMachineStateListEntry& entry = *entryIt;
 			if (entry.StateDefinition->TagInfo.StateTag == currentStateTag)
 			{
-				if (!entry.StateDefinition->TagInfo.NextTransitionTags.Contains(nextStateTag))
+				if (!entry.StateDefinition->TagInfo.NextTransitionTags.Contains(NextStateTag))
 				{
-					UE_LOG(LogMStateMachine, Error, TEXT("Can not Switch to next State [%s]"), *nextStateTag.ToString());
+					UE_LOG(LogMStateMachine, Error, TEXT("Can not Switch to next State [%s]"), *NextStateTag.ToString());
 					return nextState;
 				}	
 			}
 		}
 	}
 
-	nextState = GetStateByTag(nextStateTag);
+	nextState = GetStateByTag(NextStateTag);
 	if (nextState == nullptr)
 	{
-		UE_LOG(LogMStateMachine, Error, TEXT("State machine does not contains Gameplay Tag [%s]"), *nextStateTag.ToString());
+		UE_LOG(LogMStateMachine, Error, TEXT("State machine does not contains Gameplay Tag [%s]"), *NextStateTag.ToString());
 	}
 
 	return nextState;
@@ -356,7 +356,7 @@ void UMStateMachineComponent::RemoveState(FMStateHandle StateHandle)
 
 bool UMStateMachineComponent::SwitchNextState(const FGameplayTag& NextStateTag)
 {
-	UMStateInstance* nextState = m_stateList.SwitchState(m_currentState, NextStateTag);
+	UMStateInstance* nextState = m_stateList.TrySwitchState(m_currentState, NextStateTag);
 	if ((nextState == nullptr) || (m_currentState == nextState))
 	{
 		return false;

@@ -101,29 +101,73 @@ struct FMStateMachineStateList
 
 public:
   FMStateMachineStateList();
-  FMStateMachineStateList(UMStateMachineComponent* OwnerComp);
+  explicit FMStateMachineStateList(UMStateMachineComponent* OwnerComp);
 
   /**
-   * @brief 
+   * @brief 新しいステートエントリーを追加
+   * 
+   * @param DefinitionClass 初期化するのに使うUMStateDefinitionのUClass及び子クラスのUClass
+   * 
+   * @return 追加成功したら有効なHandleを返し、それ以外の場合は無効なHandle
    */
-  FMStateHandle AddEntry(TSubclassOf<UMStateDefinition>);
-  void RemoveEntry(FMStateHandle);
+  FMStateHandle AddEntry(TSubclassOf<UMStateDefinition> DefinitionClass);
 
-  UMStateInstance* SwitchState(const UMStateInstance* currentStateInstance, FGameplayTag);
-  bool ContainsStateTag(const FGameplayTag&) const;
-  UMStateInstance* GetStateByTag(const FGameplayTag&) const; 
-  FGameplayTag GetTagByState(const UMStateInstance*) const;
+  /**
+   * @brief 既存のステートエントリーを削除
+   * 
+   * @param ステートハンドル
+   */
+  void RemoveEntry(const FMStateHandle& Handle);
+
+  /**
+   * @brief ステートの切り替えを試みる
+   * 
+   * @param CurrentStateInstance 現在のステート
+   * @param NextStateTag 次のステートのタグ
+   * 
+   * @return 成功したら次のステートインスタンスのポインターを返す、それ以外はnullptr
+   */
+  UMStateInstance* TrySwitchState(const UMStateInstance* CurrentStateInstance, const FGameplayTag& NextStateTag);
+
+  /**
+   * @brief 特定のステートタグが存在しますかを確認する
+   * 
+   * @param StateTag 調べるタグ
+   * 
+   * @return 存在したらtrue、それ以外false
+   */
+  bool ContainsStateTag(const FGameplayTag& StateTag) const;
+
+  /**
+   * @brief タグでステートインスタンスを取得
+   * 
+   * @param StateTag タグ
+   * 
+   * @return 見つかったら有効なインスタンスポインターを返す、それ以外はnullptr
+   */
+  UMStateInstance* GetStateByTag(const FGameplayTag& StateTag) const; 
+  
+  /**
+   * @brief ステートインスタンスでタグを取得する
+   * 
+   * @param StateInstance ステートインスタンスポインター
+   * 
+   * @return 有効なインスタンスポインターかつ実在すればステートのタグを返す、それ以外はFGameplayTag::EmptyTag
+   */
+  FGameplayTag GetTagByState(const UMStateInstance* StateInstance) const;
 
 private:
 
+  UPROPERTY()
+  TArray<FMStateMachineStateListEntry> Entries;       // ステートエントリーコンテナ
 
   UPROPERTY()
-  TArray<FMStateMachineStateListEntry> Entries;
-
-  UPROPERTY()
-  TObjectPtr<UMStateMachineComponent> OwnerComponent;
+  TObjectPtr<UMStateMachineComponent> OwnerComponent; // ステートを持つステートマシンコンポーネントポインター
 };
 
+/**
+ * ステートマシン初期化パラメータ
+ */
 struct FStateMachineInitializationParameters
 {
   TObjectPtr<UObject> Owner;
@@ -132,12 +176,9 @@ struct FStateMachineInitializationParameters
 };
 
 
-
-
-
-
-
-
+/**
+ * ステートマシンコンポーネント
+ */
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class UMStateMachineComponent : public UActorComponent
 {
