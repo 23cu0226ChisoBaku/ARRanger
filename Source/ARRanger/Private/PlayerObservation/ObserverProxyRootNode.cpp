@@ -11,11 +11,10 @@ namespace ARRanger
 
   TSharedPtr<FObserverProxyNode> FObserverProxyRootNode::MakeNode(const TDelegate<void()>& NodeEvent)
   {
-
-    FObserverProxyNode* newNodePtr = new FObserverProxyNode{};
+    TSharedPtr<FObserverProxyNode> newNodePtr = ::MakeShared<FObserverProxyNode>(FObserverProxyNode::PrivateToken{});
     newNodePtr->InitializeNode(NodeEvent);
 
-    return TSharedPtr<FObserverProxyNode>{newNodePtr};
+    return newNodePtr;
   }
 
   void FObserverProxyRootNode::PushNodeBack(const TSharedPtr<FObserverProxyNode>& Node)
