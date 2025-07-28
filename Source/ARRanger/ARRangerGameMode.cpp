@@ -1,5 +1,6 @@
 #include "ARRangerGameMode.h"
 
+#include "Blueprint/UserWidget.h"
 #include "Engine/World.h"
 #include "Engine/GameInstance.h"
 #include "GameFramework/PlayerController.h"
@@ -55,13 +56,6 @@ void AARRangerGameMode::HandleGameClear()
 		PC->SetShowMouseCursor(true);
 	}
 
-	// UI•\Ž¦
-	if (GameClearWidgetClass)
-	{
-		UUserWidget* ClearWidget = CreateWidget<UUserWidget>(GetWorld(), GameClearWidgetClass);
-		if (ClearWidget)
-		{
-			ClearWidget->AddToViewport();
-		}
-	}
+	// ƒŒƒxƒ‹‘JˆÚ
+	UGameplayStatics::OpenLevel(this, FName("GameClear"));
 }

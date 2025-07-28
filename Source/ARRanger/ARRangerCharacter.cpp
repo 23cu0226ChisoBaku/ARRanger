@@ -257,6 +257,12 @@ void AARRangerCharacter::DoMove(float Right, float Forward)
 			return;
 		}
 
+		// ダッシュ時に効果音再生
+		/*if (isDashed)
+		{
+			GetNotifyHandlerRef()->OnDash();
+		}*/
+
 		// どちらを向いているか調べる
 		const FRotator Rotation = GetController()->GetControlRotation();
 		const FRotator YawRotation(0, Rotation.Yaw, 0);
@@ -293,6 +299,8 @@ void AARRangerCharacter::DoJumpStart()
 
 	// キャラクターがジャンプする合図
 	Jump();
+	// 効果音再生
+	//GetNotifyHandlerRef()->OnJump();
 }
 
 void AARRangerCharacter::DoJumpEnd()
@@ -524,6 +532,9 @@ void AARRangerCharacter::AttackHit(const FAttackData& Attack)
 			AEnemy* Enemy = Cast<AEnemy>(HitActor);
 			if (Enemy && !Enemy->isDead)
 			{
+				// 効果音再生
+				//GetNotifyHandlerRef()->OnAttack();
+
 				const bool bWillBeKilled = (Enemy->currentHP - Attack.Damage <= 0);
 
 				FVector LaunchDir = GetActorForwardVector() + FVector(0, 0, 0.2f);

@@ -4,6 +4,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "Logging/LogMacros.h"
+#include "PlayerObservation/IObservableSubjectInterface.h"
 
 #include "ARRangerCharacter.generated.h"
 
@@ -28,7 +29,7 @@ enum class EGravityType : uint8
  *  §Œä‰Â”\‚È‹O“¹ƒJƒƒ‰‚ÌÀ‘•
  */
 UCLASS(abstract)
-class AARRangerCharacter : public ACharacter
+class AARRangerCharacter : public ACharacter, public IObservableSubjectInterface
 {
 	GENERATED_BODY()
 
