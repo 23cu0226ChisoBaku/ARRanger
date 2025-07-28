@@ -7,7 +7,7 @@ namespace ARRanger
 {
   class FObserverProxyRootNode;
 
-  class FObserverListNode
+  class FObserverListNode : public TSharedFromThis<FObserverListNode>
   {
     friend class FObserverListRootNode;
 

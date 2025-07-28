@@ -9,7 +9,7 @@ namespace ARRanger::Test
 
   void FTestNotifyHandler::OnJump()
   {
-
+    JumpObserverRoot.Evaluate();
   }
 
   void FTestNotifyHandler::OnAttack()
