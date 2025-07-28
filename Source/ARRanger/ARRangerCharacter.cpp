@@ -500,7 +500,6 @@ void AARRangerCharacter::PunchHitNotify()
 	notifyHandler->OnAttack();
 }
 
-
 void AARRangerCharacter::Kick()
 {
 	PlayAttackMontage(KickData);
@@ -514,6 +513,7 @@ void AARRangerCharacter::KickHitNotify()
 	TSharedRef<ARRanger::INotifyHandlerInterface> notifyHandler = GetNotifyHandlerRef();
 	notifyHandler->OnAttack();
 }
+
 void AARRangerCharacter::PlayAttackMontage(const FAttackData& Attack)
 {
 	// Nullチェック・攻撃中チェック

@@ -33,4 +33,7 @@ public:
 	* コンストラクタ
 	*/
 	AARObjectBase();
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	EARType CurrentARType;
 };

@@ -251,6 +251,7 @@ public:
 
 
 	// 現在のプレイヤーのモードを取得
+	UFUNCTION(BlueprintCallable)
 	EARType GetCurrentARType();
 
 	// 麦

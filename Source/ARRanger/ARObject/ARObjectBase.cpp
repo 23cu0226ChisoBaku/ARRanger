@@ -10,6 +10,7 @@
 */
 AARObjectBase::AARObjectBase()
 	: _pARObjectComponent(nullptr)
+	, CurrentARType(EARType::None)
 {
 	PrimaryActorTick.bCanEverTick = false;
 

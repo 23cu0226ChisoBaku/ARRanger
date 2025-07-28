@@ -5,7 +5,7 @@
 /*
 * ライントレースを行い、引力斥力を付与できるオブジェクトを取得する関数
 */
-AActor* ULineTraceSingleARObjectComponent::TraceForARObject(const FVector& Start, const FVector& End, UWorld* World)
+AActor* ULineTraceSingleARObjectComponent::TraceForARObject(const FVector& Start, const FVector& End)
 {
     FHitResult HitResult;
 
@@ -13,7 +13,7 @@ AActor* ULineTraceSingleARObjectComponent::TraceForARObject(const FVector& Start
     Params.AddIgnoredActor(GetOwner()); 
     Params.bReturnPhysicalMaterial = false;
 
-    bool bHit = World->LineTraceSingleByChannel(
+    bool bHit = GetOwner()->GetWorld()->LineTraceSingleByChannel(
         HitResult,
         Start,
         End,
@@ -35,13 +35,13 @@ AActor* ULineTraceSingleARObjectComponent::TraceForARObject(const FVector& Start
         else
         {
             // 取得したオブジェクトがInterfaceをもっていなかった
-            UE_LOG(LogTemp, Warning, TEXT("Hit actor does not implement IARObjectInterface: %s"), *HitActor->GetName());
+            //UE_LOG(LogTemp, Warning, TEXT("Hit actor does not implement IARObjectInterface: %s"), *HitActor->GetName());
         }
     }
     else
     {
         // オブジェクトを検知できなかった
-        UE_LOG(LogTemp, Warning, TEXT("No actor hit during line trace."));
+        //UE_LOG(LogTemp, Warning, TEXT("No actor hit during line trace."));
     }
 
     return nullptr;

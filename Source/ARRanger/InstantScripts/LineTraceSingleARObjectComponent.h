@@ -28,5 +28,5 @@ public:
 
 	// レイキャストを行い、インターフェースを実装しているオブジェクトを取得
 	UFUNCTION(BlueprintCallable, Category = "Raycast")
-	AActor* TraceForARObject(const FVector& Start, const FVector& End, UWorld* World);
+	AActor* TraceForARObject(const FVector& Start, const FVector& End);
 };
