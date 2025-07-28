@@ -129,13 +129,13 @@ void AInsekiGameMode::OnEnemyKilled()
 		UE_LOG(LogTemp, Warning, TEXT("Game Clear!"));
 
 		APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0);
-		if (PC && GameClearWidgetClass)
+		if (PC)
 		{
 			PC->SetShowMouseCursor(true);
 			PC->SetInputMode(FInputModeUIOnly());
 
-			UUserWidget* Widget = CreateWidget(PC, GameClearWidgetClass);
-			if (Widget) Widget->AddToViewport();
+            // レベル遷移
+            UGameplayStatics::OpenLevel(this, FName("GameClear"));
 		}
 	}
 }
