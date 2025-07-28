@@ -134,8 +134,23 @@ void AInsekiGameMode::OnEnemyKilled()
 			PC->SetShowMouseCursor(true);
 			PC->SetInputMode(FInputModeUIOnly());
 
-            // レベル遷移
-            UGameplayStatics::OpenLevel(this, FName("GameClear"));
+            FTimerHandle ClearTimerHandle;
+            GetWorldTimerManager().SetTimer(ClearTimerHandle, this, &AInsekiGameMode::HandleGameClear, 3.0f, false);
 		}
 	}
+}
+
+void AInsekiGameMode::HandleGameClear()
+{
+    // プレイヤー操作停止
+    APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0);
+    if (PC)
+    {
+        PC->SetIgnoreMoveInput(true);
+        PC->SetIgnoreLookInput(true);
+        PC->SetShowMouseCursor(true);
+    }
+
+    // レベル遷移
+    UGameplayStatics::OpenLevel(this, FName("GameClear"));
 }

@@ -476,8 +476,8 @@ void AARRangerCharacter::PunchHitNotify()
 	AttackHit(PunchData);
 
   // 麦
-  TSharedRef<ARRanger::INotifyHandlerInterface> notifyHandler = GetNotifyHandlerRef();
-  notifyHandler->OnAttack();
+  //TSharedRef<ARRanger::INotifyHandlerInterface> notifyHandler = GetNotifyHandlerRef();
+  //notifyHandler->OnAttack();
 }
 
 
@@ -491,8 +491,8 @@ void AARRangerCharacter::KickHitNotify()
 	AttackHit(KickData);
 
   // 麦
-  TSharedRef<ARRanger::INotifyHandlerInterface> notifyHandler = GetNotifyHandlerRef();
-  notifyHandler->OnAttack();
+  //TSharedRef<ARRanger::INotifyHandlerInterface> notifyHandler = GetNotifyHandlerRef();
+  //notifyHandler->OnAttack();
 }
 void AARRangerCharacter::PlayAttackMontage(const FAttackData& Attack)
 {
@@ -553,6 +553,9 @@ void AARRangerCharacter::AttackHit(const FAttackData& Attack)
 			AEnemy* Enemy = Cast<AEnemy>(HitActor);
 			if (Enemy && !Enemy->isDead)
 			{
+				TSharedRef<ARRanger::INotifyHandlerInterface> notifyHandler = GetNotifyHandlerRef();
+				notifyHandler->OnAttack();
+
 				const bool bWillBeKilled = (Enemy->currentHP - Attack.Damage <= 0);
 
 				FVector LaunchDir = GetActorForwardVector() + FVector(0, 0, 0.2f);
