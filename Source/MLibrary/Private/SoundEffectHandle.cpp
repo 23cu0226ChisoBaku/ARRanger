@@ -49,11 +49,6 @@ FSoundEffectHandle::~FSoundEffectHandle()
   m_audioComponent.Reset();
 }
 
-bool IsEqual(const FSoundEffectHandle& lhs, const FSoundEffectHandle& rhs)
-{
-  return (lhs.m_uniqueID == rhs.m_uniqueID) && (lhs.m_audioComponent == rhs.m_audioComponent);
-}
-
 bool FSoundEffectHandle::IsValid() const
 {
   return m_uniqueID != INVALID_HANDLE_ID && 

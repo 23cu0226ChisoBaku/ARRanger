@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Engine/DataTable.h"
 #include "Subsystems/GameInstanceSubsystem.h"
 #include "Tickable.h"
 #include "IAudioPlayer.h"
@@ -10,6 +11,18 @@
 
 class UAudioComponent;
 class USoundBase;
+
+USTRUCT(BlueprintType, DisplayName = "AR Sound Meta Data")
+struct FARSoundMetaData : public FTableRowBase
+{
+  GENERATED_BODY()
+
+  UPROPERTY(EditAnywhere)
+  FString SoundID;
+
+  UPROPERTY(EditAnywhere)
+  TSoftObjectPtr<USoundBase> SoundAsset;
+};
 
 UCLASS()
 class ARRANGER_API UARAudioSystem : public UGameInstanceSubsystem ,
@@ -46,7 +59,8 @@ class ARRANGER_API UARAudioSystem : public UGameInstanceSubsystem ,
   private:
     UAudioComponent* PlaySE3DImpl(const FString& SEName, float Pitch, const FVector& Location);
     UAudioComponent* PlaySEImpl(const FString& SEName, float Pitch);
-    UAudioComponent* PlayBGMImpl(const FString& SEName, float Pitch);
+    void PlayBGMImpl(const FString& SEName, float Pitch);
+    void SwitchBGM(USoundBase* NewBGMAsset);
 
     UPROPERTY()
     TMap< FString, TSoftObjectPtr< USoundBase > > m_bgmBuffer;
@@ -60,5 +74,5 @@ class ARRANGER_API UARAudioSystem : public UGameInstanceSubsystem ,
   private:
     TArray<FSoundEffectHandle> m_seHandles;
 
-    
+    TArray<const FSoundEffectHandle*> m_requestRemoveHandles;
 };

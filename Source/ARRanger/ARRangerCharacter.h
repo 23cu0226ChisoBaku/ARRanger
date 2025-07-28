@@ -4,7 +4,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "Logging/LogMacros.h"
-
+#include "PlayerObservation/IObservableSubjectInterface.h"
 #include "Interface/IARTypeInterface.h"
 
 #include "ARRangerCharacter.generated.h"
@@ -22,20 +22,24 @@ DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);
  *  制御可能な軌道カメラの実装
  */
 UCLASS(abstract)
-class AARRangerCharacter : public ACharacter
+class AARRangerCharacter : public ACharacter,
+                           public IObservableSubjectInterface
 {
 	GENERATED_BODY()
 
 	
-protected:
+	protected:
 	virtual void BeginPlay() override;
 
+	// 麦
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+
 	// ジャンプアクション
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	UInputAction* JumpAction;
 
 	// 移動アクション
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	UInputAction* MoveAction;
 
 	// 山内　引力付与アクション 
@@ -47,11 +51,11 @@ protected:
 	UInputAction* AttachRepulsionAction;
 
 	// 視点回転アクション(ゲームパッド)
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	UInputAction* LookAction;
 
 	// 視点回転アクション(マウス)
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	UInputAction* MouseLookAction;
 
 	// ロックオンアクション
@@ -81,7 +85,7 @@ protected:
 public:
 
 	// コンストラクタ
-	AARRangerCharacter();	
+	AARRangerCharacter();
 
 protected:
 
@@ -111,10 +115,10 @@ private:
 	float DefaultArmLength;
 
 	// ダッシュ中に近づける距離
-	float DashArmLength; 
+	float DashArmLength;
 
 	// 補間速度
-	float ArmLengthInterpSpeed; 
+	float ArmLengthInterpSpeed;
 
 	// ロックオン切替関数
 	void ToggleLockOn();
@@ -161,7 +165,7 @@ private:
 public:
 
 	// コントロールまたはUIインターフェースからの移動入力を処理する
-	UFUNCTION(BlueprintCallable, Category="Input")
+	UFUNCTION(BlueprintCallable, Category = "Input")
 	virtual void DoMove(float Right, float Forward);
 
 	// 山内
@@ -177,15 +181,15 @@ public:
 	void DoAttachRepulsion();
 
 	// コントロールまたはUIインターフェースからのルック入力を処理する
-	UFUNCTION(BlueprintCallable, Category="Input")
+	UFUNCTION(BlueprintCallable, Category = "Input")
 	virtual void DoLook(float Yaw, float Pitch);
 
 	// コントロールまたはUIインターフェースのどちらからでも、押されたジャンプ入力を処理する
-	UFUNCTION(BlueprintCallable, Category="Input")
+	UFUNCTION(BlueprintCallable, Category = "Input")
 	virtual void DoJumpStart();
 
 	// コントロールまたはUIインターフェースのどちらからでも、押されたジャンプ入力を処理する
-	UFUNCTION(BlueprintCallable, Category="Input")
+	UFUNCTION(BlueprintCallable, Category = "Input")
 	virtual void DoJumpEnd();
 
 	// パンチのAnimNotifyの通知を受け取る
@@ -248,4 +252,13 @@ public:
 
 	// 現在のプレイヤーのモードを取得
 	EARType GetCurrentARType();
+
+	// 麦
+	bool bIsJumping = false;
+
+	UFUNCTION()
+	void LandedToGround(const FHitResult& Hit)
+	{
+		bIsJumping = false;
+	}
 };

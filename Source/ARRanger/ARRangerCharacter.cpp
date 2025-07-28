@@ -33,7 +33,7 @@ AARRangerCharacter::AARRangerCharacter()
 {
 	// カプセルのサイズを設定する
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
-		
+
 	// コントローラーが回転しても回転させない。カメラに影響を与えるだけにする
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw = false;
@@ -44,7 +44,7 @@ AARRangerCharacter::AARRangerCharacter()
 	GetCharacterMovement()->RotationRate = FRotator(0.0f, 500.0f, 0.0f);
 
 	// 注: 反復時間を短縮するために、これらの変数やその他多くの変数を、再コンパイルして調整するのではなく、キャラクターブループリント
-    // で調整することができる
+	// で調整することができる
 	GetCharacterMovement()->JumpZVelocity = 500.f;
 	GetCharacterMovement()->AirControl = 0.35f;
 	GetCharacterMovement()->MaxWalkSpeed = 500.f;
@@ -54,7 +54,7 @@ AARRangerCharacter::AARRangerCharacter()
 
 
 	// 注: Meshコンポーネント (Characterから継承) のスケルタルメッシュとアニメーションブループリントの参照は、
-    // ThirdPersonCharacterという名前の派生ブループリントアセットに設定される (C++ でのコンテンツの直接参照を避けるため)。
+	// ThirdPersonCharacterという名前の派生ブループリントアセットに設定される (C++ でのコンテンツの直接参照を避けるため)。
 }
 
 void AARRangerCharacter::BeginPlay()
@@ -71,13 +71,24 @@ void AARRangerCharacter::BeginPlay()
 	{
 		UE_LOG(LogTemp, Error, TEXT("NO AnimInstance at BeginPlay!"));
 	}
+
+  // 麦
+  LandedDelegate.AddDynamic(this, &AARRangerCharacter::LandedToGround);
+}
+
+// 麦
+void AARRangerCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+  // 麦
+  LandedDelegate.RemoveDynamic(this, &AARRangerCharacter::LandedToGround);
+  Super::EndPlay(EndPlayReason);
 }
 
 void AARRangerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	// アクションバインディングの設定
 	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent)) {
-		
+
 		// ジャンプ
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &AARRangerCharacter::DoJumpStart);
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &AARRangerCharacter::DoJumpEnd);
@@ -120,6 +131,7 @@ void AARRangerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 void AARRangerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
 
 	// 毎フレーム入力強度をチェックしてisDashedを更新
 	float InputMagnitude = 0.f;
@@ -200,7 +212,7 @@ void AARRangerCharacter::Tick(float DeltaTime)
 		if (Distance <= MinDistance)
 		{
 			isAttractingEnemy = false;
-			PlayAttackMontage(PunchData); 
+			PlayAttackMontage(PunchData);
 			return;
 		}
 
@@ -223,8 +235,8 @@ void AARRangerCharacter::Move(const FInputActionValue& Value)
 		DoClimb(MovementVector.X, MovementVector.Y);
 		return;
 	}
-		// 入力をルーティングする
-		DoMove(MovementVector.X, MovementVector.Y);
+	// 入力をルーティングする
+	DoMove(MovementVector.X, MovementVector.Y);
 }
 
 void AARRangerCharacter::Look(const FInputActionValue& Value)
@@ -311,6 +323,15 @@ void AARRangerCharacter::DoJumpStart()
 		return;
 	}
 
+	// 麦
+	if (!bIsJumping)
+	{
+	TSharedRef<ARRanger::INotifyHandlerInterface> notifyHandler = GetNotifyHandlerRef();
+	notifyHandler->OnJump();
+	bIsJumping = true;
+	}
+
+
 	// キャラクターがジャンプする合図
 	Jump();
 }
@@ -350,13 +371,13 @@ void AARRangerCharacter::ToggleLockOn()
 void AARRangerCharacter::SwitchTargetRight()
 {
 	// 次のターゲットへ
-	SwitchTarget(true); 
+	SwitchTarget(true);
 }
 
 void AARRangerCharacter::SwitchTargetLeft()
 {
 	// 前のターゲットへ
-	SwitchTarget(false); 
+	SwitchTarget(false);
 }
 
 void AARRangerCharacter::SwitchTarget(bool isPressedRight)
@@ -473,6 +494,10 @@ void AARRangerCharacter::StartPunch()
 void AARRangerCharacter::PunchHitNotify()
 {
 	AttackHit(PunchData);
+
+	// 麦
+	TSharedRef<ARRanger::INotifyHandlerInterface> notifyHandler = GetNotifyHandlerRef();
+	notifyHandler->OnAttack();
 }
 
 
@@ -484,6 +509,10 @@ void AARRangerCharacter::Kick()
 void AARRangerCharacter::KickHitNotify()
 {
 	AttackHit(KickData);
+
+	// 麦
+	TSharedRef<ARRanger::INotifyHandlerInterface> notifyHandler = GetNotifyHandlerRef();
+	notifyHandler->OnAttack();
 }
 void AARRangerCharacter::PlayAttackMontage(const FAttackData& Attack)
 {
