@@ -12,7 +12,9 @@ AARObjectBase::AARObjectBase()
 	: _pARObjectComponent(nullptr)
 {
 	PrimaryActorTick.bCanEverTick = false;
-	_pARObjectComponent = CreateDefaultSubobject<UARObjectComponent>(TEXT("ARObjectComponent"));
+
+	// 引力斥力の挙動コンポーネントを生成。
+	_pARObjectComponent = CreateDefaultSubobject<UARObjectComponent>(TEXT("Successfully created the ARObjectComponent."));
 	if (!_pARObjectComponent){UE_LOG(LogTemp, Warning, TEXT("Failed to correctly create _pARObjectComponent!"));}
 }
 
