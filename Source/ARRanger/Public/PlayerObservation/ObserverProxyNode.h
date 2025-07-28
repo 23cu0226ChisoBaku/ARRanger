@@ -7,7 +7,7 @@
 
 namespace ARRanger
 {
-  class FObserverProxyNode
+  class FObserverProxyNode : public TSharedFromThis<FObserverProxyNode>
   {
     // TODO Remove this if it becomes a devired class of FObserverProxyNode
     friend class FObserverProxyRootNode;

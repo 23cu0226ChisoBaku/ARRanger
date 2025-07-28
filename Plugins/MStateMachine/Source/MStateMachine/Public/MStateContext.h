@@ -47,11 +47,8 @@ class FMStateContext
   public:
 
     UObject* GetOwner() const { return m_weakOwner.Get(); }
-    
-    AController* GetOwnerController() const { return m_weakController.Get();}
-    
-    const UMStateMachineComponent* GetStateMachineComponent() const { return m_weakStateMachineComponent.Get(); }
-    
+    AController* GetOwnerController() const { return m_weakController.Get();} 
+    const UMStateMachineComponent* GetStateMachineComponent() const { return m_weakStateMachineComponent.Get(); } 
     bool IsValid() const { return m_bIsValid; }
     
     MSTATEMACHINE_API UWorld* GetWorld() const;
