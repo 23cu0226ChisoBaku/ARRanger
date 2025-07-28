@@ -21,7 +21,10 @@ namespace ARRanger
       return;
     }
 
-    m_nextNodePtr = ::MakeShared<FObserverListNode>(*NextListNodePtr);
+    if (NextListNodePtr != nullptr)
+    {
+      m_nextNodePtr = NextListNodePtr->AsShared();
+    }
 
     m_proxyRootNodePtr = ::MakeShared<FObserverProxyRootNode>();
   }

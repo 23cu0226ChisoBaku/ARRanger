@@ -2,12 +2,13 @@
 
 
 #include "Test/TestNotifyHandlerActor.h"
+#include "PlayerObservation/INotifyHandlerInterface.h"
 
 // Sets default values
 ATestNotifyHandlerActor::ATestNotifyHandlerActor()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
 
 }
 
@@ -25,3 +26,9 @@ void ATestNotifyHandlerActor::Tick(float DeltaTime)
 
 }
 
+
+void ATestNotifyHandlerActor::TestJumpEvent()
+{
+  auto eventHandler = GetNotifyHandlerRef();
+  eventHandler->OnJump();
+}

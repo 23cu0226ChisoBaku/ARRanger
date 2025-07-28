@@ -69,8 +69,16 @@ namespace ARRanger
   {
     if (m_rootNode.IsValid())
     {
-      TSharedPtr<FObserverProxyNode> tempPtr = TSharedPtr<FObserverProxyNode>{m_rootNode->GetNextNode()};
-      m_rootNode = tempPtr;
+      FObserverProxyNode* nextNodeTemp = m_rootNode->GetNextNode();
+      if (nextNodeTemp != nullptr)
+      {
+        TSharedPtr<FObserverProxyNode> tempSharedPtr = nextNodeTemp->AsShared();
+        m_rootNode = tempSharedPtr;
+      }
+      else
+      {
+        m_rootNode.Reset();
+      }
     }
   }
 

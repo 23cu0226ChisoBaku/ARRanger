@@ -2,12 +2,13 @@
 
 #pragma once
 
-#include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "PlayerObservation/IObservableSubjectInterface.h"
 #include "TestNotifyHandlerActor.generated.h"
 
 UCLASS()
-class ARRANGER_API ATestNotifyHandlerActor : public AActor
+class ARRANGER_API ATestNotifyHandlerActor : public AActor,
+                                             public IObservableSubjectInterface
 {
 	GENERATED_BODY()
 	
@@ -22,5 +23,8 @@ protected:
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+
+  UFUNCTION(BlueprintCallable, Category = "ARRanger|UnitTest|PlayerObservation")
+  void TestJumpEvent();
 
 };
