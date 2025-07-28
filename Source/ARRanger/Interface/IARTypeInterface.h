@@ -12,4 +12,3 @@ enum class EARType : uint8
 	Attraction = 1,  // ˆø—Íó‘Ô
 	Repulsion  = 2,  // Ë—Íó‘Ô
 };
-
