@@ -9,15 +9,16 @@ public class ARRanger : ModuleRules
     PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
 		PublicDependencyModuleNames.AddRange(new string[] {
-			"Core",
-			"CoreUObject",
-			"Engine",
-			"InputCore",
-			"EnhancedInput",
+      "Core",
+      "CoreUObject",
+      "Engine",
+      "InputCore",
+      "EnhancedInput",
             "AIModule",
-			"StateTreeModule",
-			"GameplayStateTreeModule",
-			"UMG"
+      "StateTreeModule",
+      "GameplayStateTreeModule",
+      "UMG",
+      "MLibrary"
 		});
 
     PrivateDependencyModuleNames.AddRange(new string[] { });
@@ -32,8 +33,9 @@ public class ARRanger : ModuleRules
       "ARRanger/Variant_SideScrolling/AI"
     });
 
-    PrivateIncludePaths.AddRange(new string[] { 
+    PrivateIncludePaths.AddRange(new string[] {
       "ARRanger/Public/CameraWork",
+      "MLibrary/Public",
     });
 
 		// Uncomment if you are using Slate UI

@@ -2,7 +2,15 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameModeBase.h"
+
 #include "InsekiGameMode.generated.h"
+
+// éº¦
+namespace ARRanger
+{
+  struct INotifyHandlerInterface;
+}
+class IObservableSubjectInterface;
 
 UCLASS()
 class ARRANGER_API AInsekiGameMode : public AGameModeBase
@@ -12,15 +20,27 @@ class ARRANGER_API AInsekiGameMode : public AGameModeBase
 protected:
 	virtual void BeginPlay() override;
 
+private:
+  void InitializeObserver();
+
 public:
-	// “G‚ª€‚ñ‚¾‚Æ‚«‚ÉŒÄ‚Ño‚³‚ê‚é
+	// ï¿½Gï¿½ï¿½ï¿½ï¿½ï¿½ñ‚¾‚Æ‚ï¿½ï¿½ÉŒÄ‚Ñoï¿½ï¿½ï¿½ï¿½ï¿½
 	void OnEnemyKilled();
 
-	// “G‚Ì”
+	// ï¿½Gï¿½Ìï¿½
 	UPROPERTY(EditAnywhere, Category = "Game")
 	int32 EnemyCount;
 
-	// ƒQ[ƒ€ƒNƒŠƒA‚Ìƒ†[ƒU[ƒEƒBƒWƒFƒbƒg
+	// ï¿½Qï¿½[ï¿½ï¿½ï¿½Nï¿½ï¿½ï¿½Aï¿½Ìƒï¿½ï¿½[ï¿½Uï¿½[ï¿½Eï¿½Bï¿½Wï¿½Fï¿½bï¿½g
 	UPROPERTY(EditAnywhere, Category = "UI")
 	TSubclassOf<UUserWidget> GameClearWidgetClass;
+
+  // éº¦
+  UPROPERTY(EditDefaultsOnly, Category = "AR|Test|SoundData", meta = (RequiredAssetDataTags = "RowStructure=/Script/ARRanger.ARSoundMetaData"))
+  TObjectPtr<UDataTable> SoundEffectData;
+
+  // éº¦
+private:
+  TSharedPtr<ARRanger::INotifyHandlerInterface> NotifyHandler;
+  TArray< TWeakInterfacePtr< IObservableSubjectInterface > > Subjects;
 };
