@@ -38,13 +38,13 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
 	UInputAction* MoveAction;
 
-	// 山内
+	// 山内　引力付与アクション 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
-	UInputAction* ClimbAction;
+	UInputAction* AttachAttractionAction;
 
-	// 山内
+	// 山内　斥力付与アクション
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
-	UInputAction* AttachARAction;
+	UInputAction* AttachRepulsionAction;
 
 	// 視点回転アクション(ゲームパッド)
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
@@ -167,6 +167,14 @@ public:
 	// 山内
 	UFUNCTION(BlueprintCallable, Category = "Input")
 	void DoClimb(float Right, float Up);
+
+	// 山内
+	UFUNCTION(BlueprintCallable, Category = "Input")
+	void DoAttachAttraction();
+
+	// 山内
+	UFUNCTION(BlueprintCallable, Category = "Input")
+	void DoAttachRepulsion();
 
 	// コントロールまたはUIインターフェースからのルック入力を処理する
 	UFUNCTION(BlueprintCallable, Category="Input")

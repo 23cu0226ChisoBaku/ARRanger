@@ -98,6 +98,10 @@ void AARRangerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 		// ロックオン時ターゲット切り替え(前のターゲット)
 		EnhancedInputComponent->BindAction(SwitchTargetLeftAction, ETriggerEvent::Triggered, this, &AARRangerCharacter::SwitchTargetLeft);
 
+		// 引力斥力の付与　山内
+		EnhancedInputComponent->BindAction(AttachAttractionAction, ETriggerEvent::Triggered, this, &AARRangerCharacter::DoAttachAttraction);
+		EnhancedInputComponent->BindAction(AttachRepulsionAction, ETriggerEvent::Triggered, this, &AARRangerCharacter::DoAttachRepulsion);
+
 		// パンチ
 		EnhancedInputComponent->BindAction(PunchAction, ETriggerEvent::Started, this, &AARRangerCharacter::StartPunch);
 
@@ -245,6 +249,22 @@ void AARRangerCharacter::DoClimb(float Right, float Up)
 	//	AddMovementInput(FVector::UpVector, Up);
 	//	AddMovementInput(RightDir, Right);
 	//}
+}
+
+/*
+* 山内
+*/
+void AARRangerCharacter::DoAttachAttraction()
+{
+	UE_LOG(LogTemp, Warning, TEXT("ARCharacter DoAttachAttraction"));;
+}
+
+/*
+* 山内
+*/
+void AARRangerCharacter::DoAttachRepulsion()
+{
+	UE_LOG(LogTemp, Warning, TEXT("ARCharacter DoAttachRepulsion"));;
 }
 
 void AARRangerCharacter::DoMove(float Right, float Forward)

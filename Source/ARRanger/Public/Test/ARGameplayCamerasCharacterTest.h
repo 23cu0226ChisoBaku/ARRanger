@@ -154,7 +154,7 @@ public:
 	bool isAttacked;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gravity")
-	EGravityType CurrentGravityType;
+	EARType CurrentARType;
 
 public:
 	virtual void Tick(float DeltaTime) override;

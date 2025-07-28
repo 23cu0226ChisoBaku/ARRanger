@@ -2,51 +2,54 @@
 
 #include "InstantScripts/LineTraceSingleARObjectComponent.h"
 
-
-void ULineTraceSingleARObjectComponent::PerformRaycast()
+/*
+* ライントレースを行い、引力斥力を付与できるオブジェクトを取得する関数
+*/
+AActor* ULineTraceSingleARObjectComponent::TraceForARObject(const FVector& Start, const FVector& End, UWorld* World)
 {
-    // 開始位置（コンポーネントの親アクターの位置）
-    FVector Start = GetOwner()->GetActorLocation();
-
-    // 方向（親アクターの前方ベクトル）
-    FVector ForwardVector = GetOwner()->GetActorForwardVector();
-    FVector End = Start + (ForwardVector * LineTraceLength);
-
-    // 衝突設定
-    FCollisionQueryParams CollisionParams;
-    CollisionParams.AddIgnoredActor(GetOwner());  // レイがコンポーネントの親アクターを無視するように設定
-
-    // 取得結果
     FHitResult HitResult;
 
-    // レイキャストを実行
-    bool bHit = GetWorld()->LineTraceSingleByChannel(
+    FCollisionQueryParams Params;
+    Params.AddIgnoredActor(GetOwner()); 
+    Params.bReturnPhysicalMaterial = false;
+
+    bool bHit = World->LineTraceSingleByChannel(
         HitResult,
         Start,
         End,
-        ECC_Visibility,
-        CollisionParams
+        ECC_Visibility, 
+        Params
     );
 
-    if (bHit)
+    if (bHit && HitResult.GetActor())
     {
-        /*ライントレースで検知したオブジェクトを保持*/ 
         AActor* HitActor = HitResult.GetActor();
 
-        /*ヒットしたオブジェクトがインターフェースを実装しているかをチェック*/ 
-        if (HitActor && HitActor->Implements<IARObjectInterface>())
+        // IARObjectInterface を実装しているかチェック
+        if (HitActor->GetClass()->ImplementsInterface(UARObjectInterface::StaticClass()))
         {
-            // インターフェースをキャスト
-            IARObjectInterface* InterfaceActor = Cast<IARObjectInterface>(HitActor);
-            if (InterfaceActor)
-            {
-                // インターフェース関数を呼び出す
-                //InterfaceActor->SetNewARType();
-            }
+            // オブジェクト名をログに出力
+            UE_LOG(LogTemp, Log, TEXT("Hit ARObject: %s"), *HitActor->GetName());
+            return HitActor;
+        }
+        else
+        {
+            // 取得したオブジェクトがInterfaceをもっていなかった
+            UE_LOG(LogTemp, Warning, TEXT("Hit actor does not implement IARObjectInterface: %s"), *HitActor->GetName());
         }
     }
+    else
+    {
+        // オブジェクトを検知できなかった
+        UE_LOG(LogTemp, Warning, TEXT("No actor hit during line trace."));
+    }
+
+    return nullptr;
 }
 
+/*
+* ULineTraceSingleARObjectComponent Lifecycle Functions
+*/
 ULineTraceSingleARObjectComponent::ULineTraceSingleARObjectComponent()
     : LineTraceLength(1000.0f)
 {
@@ -62,4 +65,3 @@ void ULineTraceSingleARObjectComponent::TickComponent(float DeltaTime, ELevelTic
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 }
-
