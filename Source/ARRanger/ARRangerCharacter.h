@@ -5,6 +5,8 @@
 #include "GameFramework/Character.h"
 #include "Logging/LogMacros.h"
 
+#include "Interface/IARTypeInterface.h"
+
 #include "ARRangerCharacter.generated.h"
 
 class UAnimMontage;
@@ -14,14 +16,6 @@ class UInputAction;
 struct FInputActionValue;
 
 DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);
-
-// プレイヤーの変身状態(引力、斥力)
-UENUM(BlueprintType)
-enum class EGravityType : uint8
-{
-	Attractive,
-	Repulsive
-};
 
 /**
  *  シンプルでプレイヤーが操作可能な三人称視点キャラクター
@@ -238,12 +232,12 @@ public:
 
 	// 現在のプレイヤーの変身状態
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gravity")
-	EGravityType CurrentGravityType;
+	EARType CurrentARType;
 
 public:
 	virtual void Tick(float DeltaTime) override;
 
 
 	// 現在のプレイヤーのモードを取得
-	EGravityType GetCurrentGravityType();
+	EARType GetCurrentARType();
 };

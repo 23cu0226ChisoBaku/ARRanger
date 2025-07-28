@@ -43,6 +43,14 @@ void AARObjectBase::OnRepulsion()
 /*
 * Œ»Ý‚Ìó‘Ô‚ðŽæ“¾‚·‚éŠÖ”(ARComponent‚É‚ ‚é•Ï”‚ðŽ‚Á‚Ä‚­‚é)
 */
+void AARObjectBase::SetNewARType(EARType newType) const
+{
+	if (_pARObjectComponent) {_pARObjectComponent->SetARType(newType);}
+}
+
+/*
+* Œ»Ý‚Ìó‘Ô‚ðŽæ“¾‚·‚éŠÖ”(ARComponent‚É‚ ‚é•Ï”‚ðŽ‚Á‚Ä‚­‚é)
+*/
 EARType AARObjectBase::GetCurrentARType() const
 {
 	return _pARObjectComponent ? _pARObjectComponent->GetCurrentARType() : EARType::None;

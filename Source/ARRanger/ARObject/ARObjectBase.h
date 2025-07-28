@@ -24,6 +24,9 @@ public:
 	virtual void OnRepulsion() override;
 
 	UFUNCTION(BlueprintCallable, Category = "Attractable")
+	void SetNewARType(EARType newType) const;
+
+	UFUNCTION(BlueprintCallable, Category = "Attractable")
 	EARType GetCurrentARType() const;
 
 	/*

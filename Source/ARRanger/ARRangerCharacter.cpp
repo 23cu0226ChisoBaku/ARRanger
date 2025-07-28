@@ -429,7 +429,7 @@ AActor* AARRangerCharacter::FindNearestEnemy(AActor* IgnoreActor)
 void AARRangerCharacter::StartPunch()
 {
 	// 引力状態勝つロックオン状態の時に処理
-	if (CurrentGravityType == EGravityType::Attractive && isLockedOn && LockedOnTarget)
+	if (CurrentARType == EARType::Attraction && isLockedOn && LockedOnTarget)
 	{
 		if (!isAttractingEnemy)
 		{
@@ -558,12 +558,12 @@ void AARRangerCharacter::Transform()
 	}
 
 	// モード変更（引力 or 斥力）
-	CurrentGravityType = (CurrentGravityType == EGravityType::Attractive)
-		? EGravityType::Repulsive
-		: EGravityType::Attractive;
+	CurrentARType = (CurrentARType == EARType::Attraction)
+		? EARType::Repulsion
+		: EARType::Attraction;
 
 	// モデル切り替え
-	USkeletalMesh* NewMesh = (CurrentGravityType == EGravityType::Repulsive)
+	USkeletalMesh* NewMesh = (CurrentARType == EARType::Repulsion)
 		? RepulsiveMesh
 		: AttractiveMesh;
 
@@ -573,7 +573,7 @@ void AARRangerCharacter::Transform()
 	}
 }
 
-EGravityType AARRangerCharacter::GetCurrentGravityType()
+EARType AARRangerCharacter::GetCurrentARType()
 {
-	return CurrentGravityType;
+	return CurrentARType;
 }

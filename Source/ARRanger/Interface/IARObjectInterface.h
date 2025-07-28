@@ -28,7 +28,6 @@ class IARObjectInterface
 public:
 	virtual void OnAttraction() = 0;	// ˆø—Íˆ—
 	virtual void OnRepulsion() = 0;		// Ë—Íˆ—
-	virtual EARType GetCurrentARType() const = 0;				// Œ»İ‚Ìó‘Ô‚ğæ“¾‚·‚éŠÖ”
-	virtual EARType SetNewARType(EARType newType) const = 0;	// V‚µ‚¢ó‘Ô‚ğİ’è‚·‚éŠÖ”
-
+	virtual void SetNewARType(EARType newType) const = 0;	// V‚µ‚¢ó‘Ô‚ğİ’è‚·‚éŠÖ”
+	virtual EARType GetCurrentARType() const = 0;			// Œ»İ‚Ìó‘Ô‚ğæ“¾‚·‚éŠÖ”
 };
