@@ -18,21 +18,44 @@ Encoding : UTF-8
 #include "SoundEffectHandle.h"
 #include "Components/AudioComponent.h"
 
+#include <atomic>
+
+namespace
+{
+  std::atomic<int64> gHandleID = 0;
+
+  constexpr int64 INVALID_HANDLE_ID = -1;
+}
+
+const FSoundEffectHandle FSoundEffectHandle::InvalidHandle = FSoundEffectHandle{}; 
+
 FSoundEffectHandle::FSoundEffectHandle()
-  : UniqueIdentifier{}
-  , AudioComponent(nullptr)
+  : m_uniqueID{INVALID_HANDLE_ID}
+  , m_audioComponent{nullptr}
 {}
-FSoundEffectHandle::FSoundEffectHandle(const FString& identifierStr, UAudioComponent* audioComp)
-  : UniqueIdentifier(identifierStr)
-  , AudioComponent(audioComp)
-{}
+
+FSoundEffectHandle::FSoundEffectHandle(UAudioComponent* audioComp)
+  : m_uniqueID{INVALID_HANDLE_ID}
+  , m_audioComponent{audioComp}
+{
+  if (audioComp != nullptr)
+  {
+    m_uniqueID = gHandleID++;
+  }
+}
+
 FSoundEffectHandle::~FSoundEffectHandle()
 {
-  UniqueIdentifier.Invalidate();
-  AudioComponent.Reset();
+  m_audioComponent.Reset();
 }
 
 bool IsEqual(const FSoundEffectHandle& lhs, const FSoundEffectHandle& rhs)
 {
-  return (lhs.UniqueIdentifier == rhs.UniqueIdentifier) && (lhs.AudioComponent == rhs.AudioComponent);
+  return (lhs.m_uniqueID == rhs.m_uniqueID) && (lhs.m_audioComponent == rhs.m_audioComponent);
+}
+
+bool FSoundEffectHandle::IsValid() const
+{
+  return m_uniqueID != INVALID_HANDLE_ID && 
+         m_audioComponent.IsValid();
 }
