@@ -17,15 +17,16 @@ Encoding : UTF-8
 
 #pragma once
 
-#ifndef M_LIB_ZEROMEMORY
-#define M_LIB_ZEROMEMORY
+#ifndef _MLIBRARY_ZEROMEMORY_
+#define _MLIBRARY_ZEROMEMORY_
 
 #define ZeroMemory(src,size)      \
         {                         \
           memset(src, 0, size);   \
         }
 
-#define ZeroMemory_Class()  ZeroMemory(this, sizeof(this))
+#define ZeroMemory_Class()  ZeroMemory(this, sizeof(*this))
         
-#endif
+#endif // _MLIBRARY_ZEROMEMORY_
+
 

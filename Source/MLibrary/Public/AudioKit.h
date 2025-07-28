@@ -19,7 +19,6 @@ Encoding : UTF-8
 #ifndef MLIBRARY_AUDIO_KIT
 #define MLIBRARY_AUDIO_KIT
 
-#include "CoreMinimal.h"
 #include "SoundEffectHandle.h"
 #include "UObject/WeakInterfacePtr.h"
 
@@ -27,62 +26,65 @@ class IAudioPlayer;
 
 namespace MLibrary
 {
-  namespace UE::Audio
+namespace UE::Audio
+{
+  class AudioKit
   {
-    class MLIBRARY_API AudioKit
-    {
-      // インスタンス生成禁止
-      private:
-        AudioKit() = delete;
-        ~AudioKit() = delete;
+    public:
 
-      public:
-        ///
-        /// @brief              オーディオプレイヤーアタッチする
-        /// @param IAudioPlayer オーディオプレイヤーインターフェース
-        ///
-        static void AssignAudioPlayer(IAudioPlayer*);
-        static void DetachAudioPlayer();
-        ///
-        /// @brief              サウンドエフェクトを3D空間で再生
-        /// @param seName       サウンドエフェクトの名前
-        /// @param volume       ボリューム
-        /// @param location     再生座標
-        /// @return             再生するエフェクトハンドル
-        ///
-        static FSoundEffectHandle PlaySE3D(const FString& seName, float volume = 1.0f, const FVector& location = FVector::ZeroVector);
-        ///
-        /// @brief              サウンドエフェクトを再生 
-        /// @param seName       サウンドエフェクトの名前
-        /// @param volume       ボリューム
-        /// @return             再生するエフェクトハンドル
-        /// 
-        static FSoundEffectHandle PlaySE(const FString& seName, float volume = 1.0f);
-        ///
-        /// @brief              サウンドエフェクトの再生を中止
-        /// @param              エフェクトハンドル
-        /// @return             再生中止成功  ->  true
-        ///                     再生中止失敗  ->  false
-        ///
-        static bool StopSE(const FSoundEffectHandle& seHandle);
-        ///
-        /// @brief              BGMを再生     
-        /// @param bgmName      BGM名前
-        /// @param volume       ボリューム
-        ///
-        static void PlayBGM(const FString& bgmName, float volume = 1.0f);
-        ///
-        /// @brief              BGMの再生を中止  
-        /// @return             再生中止成功  ->  true
-        ///                     再生中止失敗  ->  false
-        ///
-        static bool StopBGM();
+      /**
+       * @brief              オーディオプレイヤーアタッチする
+       * @param IAudioPlayer オーディオプレイヤーインターフェース
+       */
+      MLIBRARY_API static void AssignAudioPlayer(IAudioPlayer* AudioPlayerPtr);
+      MLIBRARY_API static void DetachAudioPlayer();
+      ///
+      /// @brief              サウンドエフェクトを3D空間で再生
+      /// @param seName       サウンドエフェクトの名前
+      /// @param volume       ボリューム
+      /// @param location     再生座標
+      /// @return             再生するエフェクトハンドル
+      ///
+      MLIBRARY_API static FSoundEffectHandle PlaySE3D(const FString& seName, float pitch = 1.0f, const FVector& location = FVector::ZeroVector);
+      ///
+      /// @brief              サウンドエフェクトを再生 
+      /// @param seName       サウンドエフェクトの名前
+      /// @param volume       ボリューム
+      /// @return             再生するエフェクトハンドル
+      /// 
+      MLIBRARY_API static FSoundEffectHandle PlaySE(const FString& seName, float pitch = 1.0f);
+      ///
+      /// @brief              サウンドエフェクトの再生を中止
+      /// @param              エフェクトハンドル
+      /// @return             再生中止成功  ->  true
+      ///                     再生中止失敗  ->  false
+      ///
+      MLIBRARY_API static bool StopSE(const FSoundEffectHandle& seHandle);
+      ///
+      /// @brief              BGMを再生     
+      /// @param bgmName      BGM名前
+      /// @param volume       ボリューム
+      ///
+      MLIBRARY_API static void PlayBGM(const FString& bgmName, float volume = 1.0f);
+      ///
+      /// @brief              BGMの再生を中止  
+      /// @return             再生中止成功  ->  true
+      ///                     再生中止失敗  ->  false
+      ///
+      MLIBRARY_API static bool StopBGM();
 
-      private:
-        // オーディオプレイヤーインターフェース
-        static TWeakInterfacePtr<IAudioPlayer> m_audioPlayer;
-    };
-  }
+    private:
+      // オーディオプレイヤーインターフェース
+      static TWeakInterfacePtr<IAudioPlayer> m_audioPlayer;
+
+    // インスタンス生成禁止
+    public:
+      AudioKit() = delete;
+      ~AudioKit() = delete;
+  };
 }
+}
+
+using MAudioKit = MLibrary::UE::Audio::AudioKit; 
 
 #endif
