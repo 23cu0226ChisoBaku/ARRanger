@@ -2,7 +2,7 @@
 
 namespace ARRanger
 {
-  FObserverProxyNode::FObserverProxyNode(const TSharedPtr<FObserverProxyNode>& NextNodePtr)
+  FObserverProxyNode::FObserverProxyNode(FObserverProxyNode::PrivateToken Token, const TSharedPtr<FObserverProxyNode>& NextNodePtr)
     : m_next(NextNodePtr)
     , m_proxy{}
   { }

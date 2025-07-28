@@ -30,9 +30,7 @@ class FSoundEffectHandle
     MLIBRARY_API ~FSoundEffectHandle();
 
     MLIBRARY_API bool IsValid() const;
-    MLIBRARY_API friend bool IsEqual(const FSoundEffectHandle&, const FSoundEffectHandle&);
-    
-    bool operator==(const FSoundEffectHandle& rhs) { return IsEqual(*this, rhs); }
+    friend bool operator==(const FSoundEffectHandle& Lhs, const FSoundEffectHandle& Rhs);
     UAudioComponent* operator->() const { return m_audioComponent.Get(); }
 
   private:
@@ -41,5 +39,10 @@ class FSoundEffectHandle
     /// @brief	SE再生に使うAudioComponentへのポインタ
     TWeakObjectPtr<UAudioComponent> m_audioComponent;
 };
+
+inline bool operator==(const FSoundEffectHandle& Lhs, const FSoundEffectHandle& Rhs)
+{
+  return (Lhs.m_uniqueID == Rhs.m_uniqueID) && (Lhs.m_audioComponent == Rhs.m_audioComponent);
+}
 
 #endif // _MLIBRARY_SE_HANDLE_

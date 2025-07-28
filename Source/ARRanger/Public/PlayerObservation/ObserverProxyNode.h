@@ -12,8 +12,11 @@ namespace ARRanger
     // TODO Remove this if it becomes a devired class of FObserverProxyNode
     friend class FObserverProxyRootNode;
 
-    protected:
-      explicit FObserverProxyNode(const TSharedPtr<FObserverProxyNode>& NextNodePtr = nullptr);
+    private:
+      struct PrivateToken {};
+
+    public:
+      explicit FObserverProxyNode(PrivateToken Token, const TSharedPtr<FObserverProxyNode>& NextNodePtr = nullptr);
 
     public:
       virtual ~FObserverProxyNode() = default;
