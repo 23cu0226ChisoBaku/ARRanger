@@ -126,10 +126,10 @@ public:
 	void OnAttackMontageEnded(UAnimMontage* Montage, bool IsInterrupted);
 
 	UPROPERTY(EditAnywhere, Category = "PlayerMesh")
-	USkeletalMesh* AttractiveMesh;
+	USkeletalMesh* AttractionMesh;
 
 	UPROPERTY(EditAnywhere, Category = "PlayerMesh")
-	USkeletalMesh* RepulsiveMesh;
+	USkeletalMesh* RepulsionMesh;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	AActor* LockedOnTarget;

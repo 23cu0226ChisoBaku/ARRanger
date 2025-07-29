@@ -212,11 +212,11 @@ public:
 
 	// 引力用プレイヤーメッシュ
 	UPROPERTY(EditAnywhere, Category = "PlayerMesh")
-	USkeletalMesh* AttractiveMesh;
+	USkeletalMesh* AttractionMesh;
 
 	// 斥力用プレイヤーメッシュ
 	UPROPERTY(EditAnywhere, Category = "PlayerMesh")
-	USkeletalMesh* RepulsiveMesh;
+	USkeletalMesh* RepulsionMesh;
 
 	// ロックオン対象
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)

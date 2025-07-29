@@ -259,6 +259,23 @@ void AARRangerCharacter::DoClimb(float Right, float Up)
 	}
 }
 
+/*
+* 山内
+*/
+void AARRangerCharacter::DoAttachAttraction()
+{
+
+}
+
+/*
+* 山内
+*/
+void AARRangerCharacter::DoAttachRepulsion()
+{
+
+}
+
+
 void AARRangerCharacter::DoMove(float Right, float Forward)
 {
 	if (GetController() != nullptr)
@@ -450,7 +467,7 @@ AActor* AARRangerCharacter::FindNearestEnemy(AActor* IgnoreActor)
 void AARRangerCharacter::StartPunch()
 {
 	// ���͏�ԏ����b�N�I����Ԃ̎��ɏ���
-	if (CurrentGravityType == EGravityType::Attractive && isLockedOn && LockedOnTarget)
+	if (CurrentARType == EARType::Attraction && isLockedOn && LockedOnTarget)
 	{
 		if (!isAttractingEnemy)
 		{
@@ -590,14 +607,14 @@ void AARRangerCharacter::Transform()
 	}
 
 	// ���[�h�ύX�i���� or �˗́j
-	CurrentGravityType = (CurrentGravityType == EGravityType::Attractive)
-		? EGravityType::Repulsive
-		: EGravityType::Attractive;
+	CurrentARType = (CurrentARType == EARType::Attraction)
+		? EARType::Repulsion
+		: EARType::Attraction;
 
 	// ���f���؂�ւ�
-	USkeletalMesh* NewMesh = (CurrentGravityType == EGravityType::Repulsive)
-		? RepulsiveMesh
-		: AttractiveMesh;
+	USkeletalMesh* NewMesh = (CurrentARType == EARType::Repulsion)
+		? RepulsionMesh
+		: AttractionMesh;
 
 	if (NewMesh)
 	{
@@ -605,7 +622,7 @@ void AARRangerCharacter::Transform()
 	}
 }
 
-EGravityType AARRangerCharacter::GetCurrentGravityType()
+EARType AARRangerCharacter::GetCurrentARType()
 {
-	return CurrentGravityType;
+	return CurrentARType;
 }

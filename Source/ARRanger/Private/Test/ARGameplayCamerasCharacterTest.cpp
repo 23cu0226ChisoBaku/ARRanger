@@ -450,8 +450,8 @@ void AARGameplayCamerasCharacterTest::Transform()
 
 	// モデル切り替え
 	USkeletalMesh* NewMesh = (CurrentARType == EARType::Repulsion)
-		? RepulsiveMesh
-		: AttractiveMesh;
+		? RepulsionMesh
+		: AttractionMesh;
 
 	if (NewMesh)
 	{
