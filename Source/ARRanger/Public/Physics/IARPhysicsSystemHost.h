@@ -29,6 +29,4 @@ class ARRANGER_API IARPhysicsSystemHost
 public:
   void Physics_PushTask(IARMagnetizableInterface* InSource, IARMagnetizableInterface* InTarget);
 
-private:
-  FARPhysicsEngine& Internal_GetPhysicsEngine() const;
 };

@@ -6,20 +6,11 @@
 // Add default functionality here for any IARPhysicsSystemHost functions that are not pure virtual.
 void IARPhysicsSystemHost::Physics_PushTask(IARMagnetizableInterface* InSource, IARMagnetizableInterface* InTarget)
 {
-  EnsurePhysicsEngine();
+  //EnsurePhysicsEngine();
 
   FARPhysicsRequest request;
   request.Source = InSource;
   request.Target = InTarget;
-  s_physicsEngine->RequestPhysicsProcess(request);
+  //s_physicsEngine->RequestPhysicsProcess(request);
 }
 
-void IARPhysicsSystemHost::EnsurePhysicsEngine()
-{
-  if (s_physicsEngine.IsValid())
-  {
-    return;
-  }
-
-  s_physicsEngine = ::MakeShared<FARPhysicsEngine>();
-}
