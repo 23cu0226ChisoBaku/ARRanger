@@ -5,6 +5,7 @@
 #pragma once
 
 #include "Interface/IARObjectInterface.h"
+#include "Public/IARMagnetizableInterface.h"
 #include "ARObjectBase.generated.h"
 
 // 前方宣言
@@ -24,10 +25,16 @@ public:
 	virtual void OnRepulsion() override;
 
 	UFUNCTION(BlueprintCallable, Category = "Attractable")
+	void SetNewARType(EARType newType) const;
+
+	UFUNCTION(BlueprintCallable, Category = "Attractable")
 	EARType GetCurrentARType() const;
 
 	/*
 	* コンストラクタ
 	*/
 	AARObjectBase();
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	EARType CurrentARType;
 };
