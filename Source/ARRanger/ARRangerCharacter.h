@@ -3,6 +3,7 @@
 #include "AttackData.h"
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "InsekiClimbingObject.h"
 #include "Logging/LogMacros.h"
 #include "PlayerObservation/IObservableSubjectInterface.h"
 
@@ -85,6 +86,10 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	class UInputAction* TransformAction;
 
+	// 引力クライムフラグ
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	bool isClimbed;
+
 public:
 
 	// �R���X�g���N�^
@@ -164,6 +169,26 @@ private:
 
 	// �����U�����ǂ����̃t���O
 	bool isStrongAttack;
+
+	// 現在歩いているオブジェクトの表面
+	UPROPERTY()
+	AInsekiClimbingObject* currentClimbSurface;
+
+	// 引力クライムオブジェクトに触れた際に呼び出される
+	UFUNCTION()
+	void OnClimbSurfaceOverlap(
+		UPrimitiveComponent* OverlappedComp,
+		AActor* OtherActor,
+		UPrimitiveComponent* OtherComp,
+		int32 OtherBodyIndex,
+		bool bFromSweep,
+		const FHitResult& SweepResult);
+
+	// 引力クライムを開始する際に呼び出される
+	void StartClimbing(AInsekiClimbingObject* ClimbActor);
+
+	// 引力クライムをやめる際に呼び出される
+	void StopClimbing();
 
 public:
 

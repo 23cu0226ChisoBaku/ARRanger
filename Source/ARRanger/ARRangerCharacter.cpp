@@ -2,6 +2,7 @@
 
 #include "AttackData.h"
 #include "Camera/CameraComponent.h"
+#include "Components/BoxComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Enemy.h"
 #include "Engine/LocalPlayer.h"
@@ -12,6 +13,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "InputActionValue.h"
 #include "Kismet/GameplayStatics.h"
+#include "Kismet/KismetMathLibrary.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "PunchCameraShake.h"
 
@@ -29,7 +31,9 @@ AARRangerCharacter::AARRangerCharacter()
 	, isAbleToSwitchTarget(false)
 	, isAttractingEnemy(false)
 	, isStrongAttack(false)
-	, isClimb(false) /*�R��*/ 
+	, currentClimbSurface(nullptr)
+	, isClimb(false)
+	, isClimbed(false)
 {
 	// �J�v�Z���̃T�C�Y��ݒ肷��
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
@@ -70,6 +74,21 @@ void AARRangerCharacter::BeginPlay()
 	else
 	{
 		UE_LOG(LogTemp, Error, TEXT("NO AnimInstance at BeginPlay!"));
+	}
+
+	// ワールド内のInsekiClimbingObjectをすべて取得し、バインドする（デモ用）
+	TArray<AActor*> ClimbSurfaces;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AInsekiClimbingObject::StaticClass(), ClimbSurfaces);
+
+	for (AActor* Actor : ClimbSurfaces)
+	{
+		if (AInsekiClimbingObject* ClimbObjects = Cast<AInsekiClimbingObject>(Actor))
+		{
+			if (ClimbObjects->ClimbTrigger)
+			{
+				ClimbObjects->ClimbTrigger->OnComponentBeginOverlap.AddDynamic(this, &AARRangerCharacter::OnClimbSurfaceOverlap);
+			}
+		}
 	}
 
   // 麦
@@ -217,6 +236,31 @@ void AARRangerCharacter::Tick(float DeltaTime)
 		FVector NewLocation = EnemyLocation + Direction.GetSafeNormal() * AttractionSpeed * DeltaTime;
 		LockedOnTarget->SetActorLocation(NewLocation);
 	}
+
+	// 引力クライム中に処理
+	if (isClimbed)
+	{
+		// 1. 壁の法線（＝接地面の上方向）
+		const FVector WallNormal = currentClimbSurface->GetActorUpVector();
+
+		// 2. キャラの足の方向（下方向）を壁に押し付ける：足裏が壁に接するように回転
+		const FVector CharacterDown = -GetActorUpVector();
+		const FQuat AlignQuat = FQuat::FindBetweenNormals(CharacterDown, WallNormal);
+		const FQuat TargetQuat = AlignQuat * GetActorQuat();
+		SetActorRotation(TargetQuat.GetNormalized());
+
+		// 3. 入力取得
+		const float MoveX = GetInputAxisValue("MoveRight");
+		const float MoveY = GetInputAxisValue("MoveForward");
+
+		// 4. 壁面に沿ったForward（上方向）とRight（横方向）を再計算
+		const FVector Forward = FVector::CrossProduct(GetActorRightVector(), WallNormal).GetSafeNormal();
+		const FVector Right = FVector::CrossProduct(WallNormal, Forward).GetSafeNormal();
+
+		// 5. 入力方向に応じて移動
+		const FVector ClimbDirection = (Forward * MoveY + Right * MoveX).GetSafeNormal();
+		AddMovementInput(ClimbDirection, 1.0f);
+	}
 }
 
 void AARRangerCharacter::Move(const FInputActionValue& Value)
@@ -257,6 +301,71 @@ void AARRangerCharacter::DoClimb(float Right, float Up)
 		AddMovementInput(FVector::UpVector, Up);
 		AddMovementInput(RightDir, Right);
 	}
+}
+
+void AARRangerCharacter::OnClimbSurfaceOverlap(
+	UPrimitiveComponent* OverlappedComp,
+	AActor* OtherActor,
+	UPrimitiveComponent* OtherComp,
+	int32 OtherBodyIndex,
+	bool bFromSweep,
+	const FHitResult& SweepResult)
+{
+	if (OtherActor == this)
+	{
+		AInsekiClimbingObject* Surface = Cast<AInsekiClimbingObject>(OverlappedComp->GetOwner());
+		if (Surface)
+		{
+			StartClimbing(Surface);
+		}
+	}
+}
+
+void AARRangerCharacter::StartClimbing(AInsekiClimbingObject* ClimbActor)
+{
+	// クライム中でない、引力クライムオブジェクトに触れていない、または引力状態でないなら処理しない
+	if (isClimbed || !ClimbActor || CurrentGravityType != EGravityType::Attractive)
+	{
+		return;
+	}
+		
+	// 引力クライムフラグを上げる
+	isClimbed = true;
+	currentClimbSurface = ClimbActor;
+
+	// 重力は無視する
+	GetCharacterMovement()->SetMovementMode(MOVE_Flying);
+	GetCharacterMovement()->StopMovementImmediately();
+
+	// SurfaceNormalをキャラクターのUpベクトルにする
+	const FVector SurfaceNormal = currentClimbSurface->GetActorUpVector();
+
+	// キャラクターの前方向を、プレイヤーの視点方向or入力方向から得る
+	const FVector Forward = FVector::CrossProduct(GetActorRightVector(), SurfaceNormal);
+	FRotator NewRot = UKismetMathLibrary::MakeRotFromXZ(Forward, SurfaceNormal);
+	SetActorRotation(NewRot);
+
+	// 位置補正のため壁に押し付ける
+	float HalfHeight = GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
+	const FVector AttachLocation = GetActorLocation() - SurfaceNormal * (HalfHeight - 1.f);
+	SetActorLocation(AttachLocation);
+}
+
+void AARRangerCharacter::StopClimbing()
+{
+	// 引力クライム中でないなら処理しない
+	if (!isClimbed)
+	{
+		return;
+	}
+		
+	// 引力クライムフラグを下げる
+	isClimbed = false;
+	currentClimbSurface = nullptr;
+
+	// 回転を元に戻す
+	SetActorRotation(FRotator(0.f, GetActorRotation().Yaw, 0.f));
+	GetCharacterMovement()->SetMovementMode(MOVE_Falling);
 }
 
 void AARRangerCharacter::DoMove(float Right, float Forward)
@@ -301,6 +410,12 @@ void AARRangerCharacter::DoJumpStart()
 	if (isAttacked || isStrongAttack)
 	{
 		return;
+	}
+
+	// 引力クライムを解除
+	if (isClimbed)
+	{
+		StopClimbing();
 	}
 
   // 麦
@@ -474,12 +589,7 @@ void AARRangerCharacter::StartPunch()
 void AARRangerCharacter::PunchHitNotify()
 {
 	AttackHit(PunchData);
-
-  // 麦
-  //TSharedRef<ARRanger::INotifyHandlerInterface> notifyHandler = GetNotifyHandlerRef();
-  //notifyHandler->OnAttack();
 }
-
 
 void AARRangerCharacter::Kick()
 {
@@ -489,11 +599,8 @@ void AARRangerCharacter::Kick()
 void AARRangerCharacter::KickHitNotify()
 {
 	AttackHit(KickData);
-
-  // 麦
-  //TSharedRef<ARRanger::INotifyHandlerInterface> notifyHandler = GetNotifyHandlerRef();
-  //notifyHandler->OnAttack();
 }
+
 void AARRangerCharacter::PlayAttackMontage(const FAttackData& Attack)
 {
 	// Null�`�F�b�N�E�U�����`�F�b�N

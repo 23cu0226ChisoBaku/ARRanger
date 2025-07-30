@@ -1,9 +1,8 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+
 #include "InsekiClimbingObject.generated.h"
 
 UCLASS()
@@ -12,15 +11,19 @@ class ARRANGER_API AInsekiClimbingObject : public AActor
 	GENERATED_BODY()
 	
 public:	
-	// Sets default values for this actor's properties
 	AInsekiClimbingObject();
 
+    // クライム判定用コリジョン
+    UPROPERTY(VisibleAnywhere)
+    class UBoxComponent* ClimbTrigger;
+
+    // クライム面の法線（上下方向を定義）
+    UFUNCTION(BlueprintCallable)
+    FVector GetClimbNormal();
+
 protected:
-	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
 public:	
-	// Called every frame
 	virtual void Tick(float DeltaTime) override;
-
 };

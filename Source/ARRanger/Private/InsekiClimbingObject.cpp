@@ -1,27 +1,31 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "InsekiClimbingObject.h"
 
-// Sets default values
-AInsekiClimbingObject::AInsekiClimbingObject()
-{
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
+#include "Components/BoxComponent.h"
 
+AInsekiClimbingObject::AInsekiClimbingObject()
+	: ClimbTrigger(nullptr)
+{
+	PrimaryActorTick.bCanEverTick = false;
+
+	ClimbTrigger = CreateDefaultSubobject<UBoxComponent>(TEXT("ClimbTrigger"));
+	RootComponent = ClimbTrigger;
+
+	ClimbTrigger->SetCollisionProfileName(TEXT("Trigger"));
+	ClimbTrigger->SetGenerateOverlapEvents(true);
 }
 
-// Called when the game starts or when spawned
 void AInsekiClimbingObject::BeginPlay()
 {
 	Super::BeginPlay();
-	
 }
 
-// Called every frame
 void AInsekiClimbingObject::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
 }
 
+FVector AInsekiClimbingObject::GetClimbNormal()
+{
+	// デフォルトでは上向き
+	return GetActorUpVector();
+}
