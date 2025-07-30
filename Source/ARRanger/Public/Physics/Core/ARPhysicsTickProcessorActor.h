@@ -43,7 +43,7 @@ public:
 	// Sets default values for this actor's properties
 	AARPhysicsTickProcessorActor();
 
-  void OnSpawnActor(const TSharedPtr<FARPhysicsEngine>& Engine);
+  void OnSpawnActor(const TSharedPtr<FARPhysicsEngine>& PhysicsEngine) {}
 
 protected:
 	// Called when the game starts or when spawned
@@ -54,7 +54,7 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 public:
-  bool IsBelongTo(const FARPhysicsEngine* PhysicsEngine) const;
+  bool IsBelongTo(const FARPhysicsEngine* PhysicsEngine) const { return false;}
 
 private:
   TWeakPtr<FARPhysicsEngine> OwningPhysicsEngine;

@@ -6,6 +6,8 @@
 
 #include "IARPhysicsSystemHost.generated.h"
 
+class IARMagnetizableInterface;
+
 // This class does not need to be modified.
 UINTERFACE(MinimalAPI)
 class UARPhysicsSystemHost : public UInterface
@@ -25,12 +27,8 @@ class ARRANGER_API IARPhysicsSystemHost
 
 	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
-  void AddPhysicsTask();
-
-  void EnsurePhysicsEngine();
-
-  bool IsPhysicsEngineAvailable() const;
+  void Physics_PushTask(IARMagnetizableInterface* InSource, IARMagnetizableInterface* InTarget);
 
 private:
-  static TWeakPtr<FARPhysicsEngine> s_physicsEngine;
+  FARPhysicsEngine& Internal_GetPhysicsEngine() const;
 };

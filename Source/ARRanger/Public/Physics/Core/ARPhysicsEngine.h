@@ -26,14 +26,14 @@ class FARPhysicsEngine : public TSharedFromThis<FARPhysicsEngine>
   public:
     ARRANGER_API FARPhysicsEngine();
     ARRANGER_API ~FARPhysicsEngine();
-    
+
     ARRANGER_API void InitializePhysicsEngine(const FARPhysicsEngineInitializationParameters& Parameters);
     ARRANGER_API void DeinitializePhysicsEngine();
     ARRANGER_API void RequestPhysicsProcess(const FARPhysicsRequest& Request);
     ARRANGER_API PhysicsEngineProxyPtr GetProxy() const { return m_proxy.Get(); }
 
   private:
-  AARPhysicsTickProcessorActor* InitializePhysicsTickProcessorActor(UWorld* World, TSubclassOf<AARPhysicsTickProcessorActor> Subclass);
+    void InitializePhysicsTickProcessorActor(UWorld* World, TSubclassOf<AARPhysicsTickProcessorActor> Subclass);
     TSharedPtr<FARPhysicsEngineProxy> MakePhysicsEngineProxy() const;
 
   private:

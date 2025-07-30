@@ -6,6 +6,8 @@
 #include "Physics/Core/ARPhysicsEngineProxy.h"
 #include "Physics/Core/ARPhysicsTickProcessorActor.h"
 
+#include "IARMagnetizableInterface.h"
+
 FARPhysicsEngine::FARPhysicsEngine()
   : m_proxy{nullptr}
   , m_tickProcessorActor{nullptr}
@@ -53,6 +55,7 @@ void FARPhysicsEngine::RequestPhysicsProcess(const FARPhysicsRequest& Request)
   PhysicsEngineProxyPtr proxyPtr = GetProxy();
   if (proxyPtr != nullptr)
   {
+    
   }
 }
 
@@ -61,11 +64,11 @@ TSharedPtr<FARPhysicsEngineProxy> FARPhysicsEngine::MakePhysicsEngineProxy() con
   return ::MakeShared<FARPhysicsEngineProxy>();
 }
 
-AARPhysicsTickProcessorActor* FARPhysicsEngine::InitializePhysicsTickProcessorActor(UWorld* World, TSubclassOf<AARPhysicsTickProcessorActor> Subclass)
+void FARPhysicsEngine::InitializePhysicsTickProcessorActor(UWorld* World, TSubclassOf<AARPhysicsTickProcessorActor> Subclass)
 {
   if ((World == nullptr) || (Subclass == nullptr))
   {
-    return nullptr;
+    return;
   }
 
   AARPhysicsTickProcessorActor* spawnedActor = World->SpawnActorDeferred<AARPhysicsTickProcessorActor>(Subclass, FTransform::Identity);
