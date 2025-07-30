@@ -5,6 +5,7 @@
 #pragma once
 
 #include "Interface/IARObjectInterface.h"
+#include "Public/IARMagnetizableInterface.h"
 #include "ARObjectBase.generated.h"
 
 // ‘O•ûéŒ¾

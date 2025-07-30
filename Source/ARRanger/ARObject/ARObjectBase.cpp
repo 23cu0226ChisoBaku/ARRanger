@@ -13,10 +13,6 @@ AARObjectBase::AARObjectBase()
 	, CurrentARType(EARType::None)
 {
 	PrimaryActorTick.bCanEverTick = false;
-
-	// 引力斥力の挙動コンポーネントを生成。
-	_pARObjectComponent = CreateDefaultSubobject<UARObjectComponent>(TEXT("Successfully created the ARObjectComponent."));
-	if (!_pARObjectComponent){UE_LOG(LogTemp, Warning, TEXT("Failed to correctly create _pARObjectComponent!"));}
 }
 
 /*
