@@ -1,5 +1,5 @@
 //*************************************************
-// Ë—Íˆø—Í‚ÌŠ±Â‚ğó‚¯‚éƒIƒuƒWƒFƒNƒg‚Ìƒx[ƒXƒNƒ‰ƒX
+// æ–¥åŠ›å¼•åŠ›ã®å¹²æ¸‰ã‚’å—ã‘ã‚‹ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã®ãƒ™ãƒ¼ã‚¹ã‚¯ãƒ©ã‚¹
 //*************************************************
 
 #pragma once
@@ -8,7 +8,7 @@
 #include "Public/IARMagnetizableInterface.h"
 #include "ARObjectBase.generated.h"
 
-// ‘O•ûéŒ¾
+// å‰æ–¹å®£è¨€
 class UARObjectComponent;
 
 UCLASS()
@@ -31,7 +31,7 @@ public:
 	EARType GetCurrentARType() const;
 
 	/*
-	* ƒRƒ“ƒXƒgƒ‰ƒNƒ^
+	* ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
 	*/
 	AARObjectBase();
 

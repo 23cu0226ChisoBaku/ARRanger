@@ -1,5 +1,5 @@
 //*************************************************
-// �˗͈��͂̊����󂯂�I�u�W�F�N�g�̃x�[�X�N���X
+// 斥力引力の干渉を受けるオブジェクトのベースクラス
 //*************************************************
 
 #pragma once
@@ -33,8 +33,8 @@ public:
 private:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
-	USceneComponent* _pRootComponent;		// ���W�̍�
+	USceneComponent* _pRootComponent;		// 座標の根
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components", meta = (AllowPrivateAccess = "true"))
-	UPrimitiveComponent* _pMagneticField;	// ����͈�
+	UPrimitiveComponent* _pMagneticField;	// 磁場範囲
 
 };

@@ -1,27 +1,27 @@
 //*************************************************
-// Ë—Íˆø—Í‚ÌŠ±Â‚ğó‚¯‚éƒIƒuƒWƒFƒNƒg‚Ìƒx[ƒXƒNƒ‰ƒX
+// æ–¥åŠ›å¼•åŠ›ã®å¹²æ¸‰ã‚’å—ã‘ã‚‹ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã®ãƒ™ãƒ¼ã‚¹ã‚¯ãƒ©ã‚¹
 //*************************************************
 
 #include "ARObject/MagnetizableActor.h"
 #include "Components/CapsuleComponent.h"
 
 /*
-* @brief ƒRƒ“ƒXƒgƒ‰ƒNƒ^
+* @brief ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
 */
 ARRANGER_API AMagnetizableActor::AMagnetizableActor()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
-	// RootiSceneComponentj‚ğì¬
+	// Rootï¼ˆSceneComponentï¼‰ã‚’ä½œæˆ
 	_pRootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("RootComponent"));
 	RootComponent = _pRootComponent;
 
-	// ƒJƒvƒZƒ‹ƒRƒ“ƒ|[ƒlƒ“ƒg‚ğì¬
+	// ã‚«ãƒ—ã‚»ãƒ«ã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆã‚’ä½œæˆ
 	_pMagneticField = CreateDefaultSubobject<UCapsuleComponent>(TEXT("CapsuleComponent"));
 }
 
 /*
-* @brief –ˆƒtƒŒ[ƒ€ˆ—
+* @brief æ¯ãƒ•ãƒ¬ãƒ¼ãƒ å‡¦ç†
 */
 ARRANGER_API void AMagnetizableActor::BeginPlay()
 {
@@ -29,7 +29,7 @@ ARRANGER_API void AMagnetizableActor::BeginPlay()
 }
 
 /*
-* @brief ƒQ[ƒ€ƒvƒŒƒCŠJnŒã‚Éˆê“x‚¾‚¯ŒÄ‚Î‚ê‚éˆ—
+* @brief ã‚²ãƒ¼ãƒ ãƒ—ãƒ¬ã‚¤é–‹å§‹å¾Œã«ä¸€åº¦ã ã‘å‘¼ã°ã‚Œã‚‹å‡¦ç†
 */
 ARRANGER_API void AMagnetizableActor::Tick(float DeltaTime)
 {
@@ -37,20 +37,19 @@ ARRANGER_API void AMagnetizableActor::Tick(float DeltaTime)
 }
 
 /*
-* ˆø—Íó‘Ô‚Éİ’è‚·‚éŠÖ”
+* å¼•åŠ›çŠ¶æ…‹ã«è¨­å®šã™ã‚‹é–¢æ•°
 */
 ARRANGER_API void AMagnetizableActor::OnAttraction()
 {
-	// ‹¤’Êˆ—;
+	// å…±é€šå‡¦ç†;
 	if (GEngine) { GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, TEXT("OnAttraction Invoke")); }
 }
 
 /*
-* Ë—Íó‘Ô‚Éİ’è‚·‚éŠÖ”
+* æ–¥åŠ›çŠ¶æ…‹ã«è¨­å®šã™ã‚‹é–¢æ•°
 */
 ARRANGER_API void AMagnetizableActor::OnRepulsion()
 {
-	// ‹¤’Êˆ—;
+	// å…±é€šå‡¦ç†;
 	if (GEngine) { GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, TEXT("OnRepulsion Invoke")); }
 }
-

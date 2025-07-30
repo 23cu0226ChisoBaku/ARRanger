@@ -1,5 +1,5 @@
 //*************************************************
-// Ë—ÍEˆø—Í‚Ì¥‹C«¿‚ğŠÇ—‚·‚éƒCƒ“ƒ^[ƒtƒF[ƒX
+// æ–¥åŠ›ãƒ»å¼•åŠ›ã®ç£æ°—æ€§è³ªã‚’ç®¡ç†ã™ã‚‹ã‚¤ãƒ³ã‚¿ãƒ¼ãƒ•ã‚§ãƒ¼ã‚¹
 //*************************************************
 
 #pragma once
@@ -9,7 +9,7 @@
 #include "IARMagnetizableInterface.generated.h"
 
 /**
- * UObjectê–å‚ÌƒCƒ“ƒ^[ƒtƒF[ƒX
+ * UObjectå°‚é–€ã®ã‚¤ãƒ³ã‚¿ãƒ¼ãƒ•ã‚§ãƒ¼ã‚¹
  */
 UINTERFACE(MinimalAPI)
 class UARMagnetizableInterface : public UInterface
@@ -19,18 +19,18 @@ class UARMagnetizableInterface : public UInterface
 
 
 /*
-* Ë—Íˆø—Íó‘Ô(¥«)
+* æ–¥åŠ›å¼•åŠ›çŠ¶æ…‹(ç£æ€§)
 */
 
 enum class EARMagnetismType : uint8
 {
-	None = 0,		// ‰½‚à‚È‚¢ó‘Ô(ƒfƒtƒHƒ‹ƒg’l)
-	Attraction = 1, // ˆø—Íó‘Ô
-	Repulsion = 2,  // Ë—Íó‘Ô
+	None = 0,		// ä½•ã‚‚ãªã„çŠ¶æ…‹(ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆå€¤)
+	Attraction = 1, // å¼•åŠ›çŠ¶æ…‹
+	Repulsion = 2,  // æ–¥åŠ›çŠ¶æ…‹
 };
 
 /**
- * ¥«‚ğŠÇ—‚·‚éƒCƒ“ƒ^[ƒtƒF[ƒX
+ * ç£æ€§ã‚’ç®¡ç†ã™ã‚‹ã‚¤ãƒ³ã‚¿ãƒ¼ãƒ•ã‚§ãƒ¼ã‚¹
  */
 class IARMagnetizableInterface
 {
@@ -39,33 +39,33 @@ class IARMagnetizableInterface
 public:
 
 	/*
-	* @brief ˆø—Í‚Ì¥«‚ğ•Û‚µ‚Ä‚¢‚é‚Ìˆ—
+	* @brief å¼•åŠ›ã®ç£æ€§ã‚’ä¿æŒã—ã¦ã„ã‚‹æ™‚ã®å‡¦ç†
 	*/
 	ARRANGER_API virtual void OnAttraction() = 0;
 
 	/*
-	* @brief Ë—Í‚Ì¥«‚ğ•Û‚µ‚Ä‚¢‚é‚Ìˆ—
+	* @brief æ–¥åŠ›ã®ç£æ€§ã‚’ä¿æŒã—ã¦ã„ã‚‹æ™‚ã®å‡¦ç†
 	*/
 	ARRANGER_API virtual void OnRepulsion() = 0;
 
 	/*
-	* @brief ƒAƒNƒ^[‚ğæ“¾‚·‚é‚½‚ß‚ÌŠÖ”
+	* @brief ã‚¢ã‚¯ã‚¿ãƒ¼ã‚’å–å¾—ã™ã‚‹ãŸã‚ã®é–¢æ•°
 	* 
-	* @return ƒAƒNƒ^[ƒ|ƒCƒ“ƒ^
+	* @return ã‚¢ã‚¯ã‚¿ãƒ¼ãƒã‚¤ãƒ³ã‚¿
 	*/
 	ARRANGER_API virtual AActor* GetActor() const = 0;
 
 	/*
-	* @brief V‚µ‚¢¥«‚É•Ï‰»‚³‚¹‚é
+	* @brief æ–°ã—ã„ç£æ€§ã«å¤‰åŒ–ã•ã›ã‚‹
 	*
-	* @return •Ï‰»æ‚Ì¥«
+	* @return å¤‰åŒ–å…ˆã®ç£æ€§
 	*/
 	void SetMagnetismType(EARMagnetismType newARMagnetismType) { Type = newARMagnetismType; }
 	
 	/*
-	* @brief Œ»İ‚Ì¥«‚ğæ“¾‚·‚é
+	* @brief ç¾åœ¨ã®ç£æ€§ã‚’å–å¾—ã™ã‚‹
 	* 
-	* @return Œ»İ‚Ì¥«
+	* @return ç¾åœ¨ã®ç£æ€§
 	*/
 	EARMagnetismType GetMagnetismType() const { return Type; }
 
@@ -73,4 +73,3 @@ private:
 
 	EARMagnetismType Type = EARMagnetismType::None;
 };
-
