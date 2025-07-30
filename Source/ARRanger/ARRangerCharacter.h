@@ -5,6 +5,7 @@
 #include "GameFramework/Character.h"
 #include "Logging/LogMacros.h"
 #include "PlayerObservation/IObservableSubjectInterface.h"
+#include "Interface/IARTypeInterface.h"
 
 #include "ARRangerCharacter.generated.h"
 
@@ -16,17 +17,9 @@ struct FInputActionValue;
 
 DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);
 
-// �v���C���[�̕ϐg���(���́A�˗�)
-UENUM(BlueprintType)
-enum class EGravityType : uint8
-{
-	Attractive,
-	Repulsive
-};
-
 /**
- *  �V���v���Ńv���C���[������\�ȎO�l�̎��_�L�����N�^�[
- *  ����\�ȋO���J�����̎���
+ *  シンプルでプレイヤーが操作可能な三人称視点キャラクター
+ *  制御可能な軌道カメラの実装
  */
 UCLASS(abstract)
 class AARRangerCharacter : public ACharacter,
@@ -35,167 +28,179 @@ class AARRangerCharacter : public ACharacter,
 	GENERATED_BODY()
 
 	
-protected:
+	protected:
 	virtual void BeginPlay() override;
 
-  // 麦
-  virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+	// 麦
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
-	// �W�����v�A�N�V����
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
+	// ジャンプアクション
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	UInputAction* JumpAction;
 
-	// �ړ��A�N�V����
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
+	// 移動アクション
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	UInputAction* MoveAction;
 
-	// �R��
+	// 山内　引力付与アクション 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
-	UInputAction* ClimbAction;
+	UInputAction* AttachAttractionAction;
 
-	// ���_��]�A�N�V����(�Q�[���p�b�h)
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
+	// 山内　斥力付与アクション
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	UInputAction* AttachRepulsionAction;
+
+	// 視点回転アクション(ゲームパッド)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	UInputAction* LookAction;
 
-	// ���_��]�A�N�V����(�}�E�X)
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
+	// 視点回転アクション(マウス)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	UInputAction* MouseLookAction;
 
-	// ���b�N�I���A�N�V����
+	// ロックオンアクション
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	class UInputAction* LockOnAction;
 
-	// ���b�N�I�����^�[�Q�b�g�؂�ւ��A�N�V����(���̃^�[�Q�b�g)
+	// ロックオン時ターゲット切り替えアクション(次のターゲット)
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	class UInputAction* SwitchTargetRightAction;
 
-	// ���b�N�I�����^�[�Q�b�g�؂�ւ��A�N�V����(�O�̃^�[�Q�b�g)
+	// ロックオン時ターゲット切り替えアクション(前のターゲット)
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	class UInputAction* SwitchTargetLeftAction;
 
-	// �p���`�A�N�V����
+	// パンチアクション
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	class UInputAction* PunchAction;
 
-	// �L�b�N�A�N�V����
+	// キックアクション
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	class UInputAction* KickAction;
 
-	// �ϐg�A�N�V����
+	// 変身アクション
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	class UInputAction* TransformAction;
 
 public:
 
-	// �R���X�g���N�^
-	AARRangerCharacter();	
+	// コンストラクタ
+	AARRangerCharacter();
 
 protected:
 
-	// ���̓A�N�V�����̃o�C���f�B���O������������
+	// 入力アクションのバインディングを初期化する
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 protected:
 
-	// �ړ����͂̂��߂ɌĂяo�����
+	// 移動入力のために呼び出される
 	void Move(const FInputActionValue& Value);
 
-	// ���͂����߂�
+	// 入力を求める
 	void Look(const FInputActionValue& Value);
 
 private:
-	// ���b�N�I�����t���O
+	// ロックオン中フラグ
 	bool isLockedOn;
 
-	// ���b�N�I�����G�؂�ւ��̉\�t���O
+	// ロックオン時敵切り替えの可能フラグ
 	bool isAbleToSwitchTarget;
 
-	// �R��
+	// 山内
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Climeb", meta = (AllowPrivateAccess = "true"))
 	bool isClimb;
 
-	// ���Ƃ��Ƃ̃J�����ƃv���C���[�̋���
+	// もともとのカメラとプレイヤーの距離
 	float DefaultArmLength;
 
-	// �_�b�V�����ɋ߂Â��鋗��
-	float DashArmLength; 
+	// ダッシュ中に近づける距離
+	float DashArmLength;
 
-	// ��ԑ��x
-	float ArmLengthInterpSpeed; 
+	// 補間速度
+	float ArmLengthInterpSpeed;
 
-	// ���b�N�I���ؑ֊֐�
+	// ロックオン切替関数
 	void ToggleLockOn();
 
-	// �\���{�^���E���������ۂɌĂяo�����
+	// 十字ボタン右を押した際に呼び出される
 	void SwitchTargetRight();
 
-	// �\���{�^�������������ۂɌĂяo�����
+	// 十字ボタン左を押した際に呼び出される
 	void SwitchTargetLeft();
 
-	// ���b�N�I�����^�[�Q�b�g�؂�ւ��֐�(�����ɂ���đO��ɐ؂�ւ�)
+	// ロックオン時ターゲット切り替え関数(引数によって前後に切り替え)
 	void SwitchTarget(bool isPressedRight);
 
-	// ���b�N�I���\�ȓG������
+	// ロックオン可能な敵を検索
 	AActor* FindNearestEnemy(AActor* IgnoreActor = nullptr);
 
-	// �p���`�̍ۂɌĂяo�����
+	// パンチの際に呼び出される
 	void StartPunch();
 
-	// �L�b�N�̍ۂɌĂяo�����
+	// キックの際に呼び出される
 	void Kick();
 
-	// �U���A�j���[�V�����̍Đ��p�֐�
+	// 攻撃アニメーションの再生用関数
 	void PlayAttackMontage(const FAttackData& Attack);
 
-	// �����蔻��̏���
+	// 当たり判定の処理
 	void AttackHit(const FAttackData& Attack);
 
-	// �ϐg�̍ۂɌĂяo�����
+	// 変身の際に呼び出される
 	void Transform();
 
-	// �_�b�V�����J�������؂�ւ����͂�臒l�i�������ݎ��j
+	// ダッシュ時カメラが切り替わる入力の閾値（押し込み時）
 	float dashStartThreshold;
 
-	// �������͂��ɂ߂���_�b�V������������p�̐��l
+	// 少し入力を緩めたらダッシュを解除する用の数値
 	float dashEndThreshold;
 
-	// �G�������񂹒��̃t���O
+	// 敵を引き寄せ中のフラグ
 	bool isAttractingEnemy;
 
-	// �����U�����ǂ����̃t���O
+	// 強い攻撃かどうかのフラグ
 	bool isStrongAttack;
 
 public:
 
-	// �R���g���[���܂���UI�C���^�[�t�F�[�X����̈ړ����͂���������
-	UFUNCTION(BlueprintCallable, Category="Input")
+	// コントロールまたはUIインターフェースからの移動入力を処理する
+	UFUNCTION(BlueprintCallable, Category = "Input")
 	virtual void DoMove(float Right, float Forward);
 
-	// �R��
+	// 山内
 	UFUNCTION(BlueprintCallable, Category = "Input")
 	void DoClimb(float Right, float Up);
 
-	// �R���g���[���܂���UI�C���^�[�t�F�[�X����̃��b�N���͂���������
-	UFUNCTION(BlueprintCallable, Category="Input")
+	// 山内
+	UFUNCTION(BlueprintCallable, Category = "Input")
+	void DoAttachAttraction();
+
+	// 山内
+	UFUNCTION(BlueprintCallable, Category = "Input")
+	void DoAttachRepulsion();
+
+	// コントロールまたはUIインターフェースからのルック入力を処理する
+	UFUNCTION(BlueprintCallable, Category = "Input")
 	virtual void DoLook(float Yaw, float Pitch);
 
-	// �R���g���[���܂���UI�C���^�[�t�F�[�X�̂ǂ��炩��ł��A�����ꂽ�W�����v���͂���������
-	UFUNCTION(BlueprintCallable, Category="Input")
+	// コントロールまたはUIインターフェースのどちらからでも、押されたジャンプ入力を処理する
+	UFUNCTION(BlueprintCallable, Category = "Input")
 	virtual void DoJumpStart();
 
-	// �R���g���[���܂���UI�C���^�[�t�F�[�X�̂ǂ��炩��ł��A�����ꂽ�W�����v���͂���������
-	UFUNCTION(BlueprintCallable, Category="Input")
+	// コントロールまたはUIインターフェースのどちらからでも、押されたジャンプ入力を処理する
+	UFUNCTION(BlueprintCallable, Category = "Input")
 	virtual void DoJumpEnd();
 
-	// �p���`��AnimNotify�̒ʒm���󂯎��
+	// パンチのAnimNotifyの通知を受け取る
 	UFUNCTION(BlueprintCallable)
 	void PunchHitNotify();
 
-	// �L�b�N��AnimNotify�̒ʒm���󂯎��
+	// キックのAnimNotifyの通知を受け取る
 	UFUNCTION(BlueprintCallable)
 	void KickHitNotify();
 
-	// �U�����I������ۂ̃R�[���o�b�N
+	// 攻撃が終わった際のコールバック
 	UFUNCTION()
 	void OnAttackMontageEnded(UAnimMontage* Montage, bool IsInterrupted);
 
@@ -205,55 +210,56 @@ public:
 	UFUNCTION(BlueprintPure, Category = "AR|Player")
 	float GetDashArmLength() const { return DashArmLength; }
 
-	// ���͗p�v���C���[���b�V��
+	// 引力用プレイヤーメッシュ
 	UPROPERTY(EditAnywhere, Category = "PlayerMesh")
-	USkeletalMesh* AttractiveMesh;
+	USkeletalMesh* AttractionMesh;
 
-	// �˗͗p�v���C���[���b�V��
+	// 斥力用プレイヤーメッシュ
 	UPROPERTY(EditAnywhere, Category = "PlayerMesh")
-	USkeletalMesh* RepulsiveMesh;
+	USkeletalMesh* RepulsionMesh;
 
-	// ���b�N�I���Ώ�
+	// ロックオン対象
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	AActor* LockedOnTarget;
 
-	// ���b�N�I���\����
+	// ロックオン可能距離
 	UPROPERTY(EditAnywhere, Category = "LockOn")
 	float maxLockOnDistance;
 
-	// �_�b�V�����t���O
+	// ダッシュ中フラグ
 	UPROPERTY(BlueprintReadWrite)
 	bool isDashed;
 
-	// �p���`�f�[�^�iBlueprint����ݒ�j
+	// パンチデータ（Blueprintから設定）
 	UPROPERTY(EditAnywhere, Category = "Attack")
 	FAttackData PunchData;
 
-	// �L�b�N�f�[�^�iBlueprint����ݒ�j
+	// キックデータ（Blueprintから設定）
 	UPROPERTY(EditAnywhere, Category = "Attack")
 	FAttackData KickData;
 
-	// �U�����t���O
+	// 攻撃中フラグ
 	UPROPERTY(BlueprintReadOnly)
 	bool isAttacked;
 
-	// ���݂̃v���C���[�̕ϐg���
+	// 現在のプレイヤーの変身状態
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gravity")
-	EGravityType CurrentGravityType;
+	EARType CurrentARType;
 
 public:
 	virtual void Tick(float DeltaTime) override;
 
 
-	// ���݂̃v���C���[�̃��[�h���擾
-	EGravityType GetCurrentGravityType();
+	// 現在のプレイヤーのモードを取得
+	UFUNCTION(BlueprintCallable)
+	EARType GetCurrentARType();
 
-  // 麦
-  bool bIsJumping = false;
+	// 麦
+	bool bIsJumping = false;
 
-  UFUNCTION()
-  void LandedToGround(const FHitResult& Hit)
-  {
-    bIsJumping = false;
-  }
+	UFUNCTION()
+	void LandedToGround(const FHitResult& Hit)
+	{
+		bIsJumping = false;
+	}
 };

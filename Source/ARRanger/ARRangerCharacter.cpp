@@ -259,6 +259,23 @@ void AARRangerCharacter::DoClimb(float Right, float Up)
 	}
 }
 
+/*
+* 山内
+*/
+void AARRangerCharacter::DoAttachAttraction()
+{
+
+}
+
+/*
+* 山内
+*/
+void AARRangerCharacter::DoAttachRepulsion()
+{
+
+}
+
+
 void AARRangerCharacter::DoMove(float Right, float Forward)
 {
 	if (GetController() != nullptr)
@@ -450,7 +467,7 @@ AActor* AARRangerCharacter::FindNearestEnemy(AActor* IgnoreActor)
 void AARRangerCharacter::StartPunch()
 {
 	// ���͏�ԏ����b�N�I����Ԃ̎��ɏ���
-	if (CurrentGravityType == EGravityType::Attractive && isLockedOn && LockedOnTarget)
+	if (CurrentARType == EARType::Attraction && isLockedOn && LockedOnTarget)
 	{
 		if (!isAttractingEnemy)
 		{
@@ -476,8 +493,8 @@ void AARRangerCharacter::PunchHitNotify()
 	AttackHit(PunchData);
 
   // 麦
-  TSharedRef<ARRanger::INotifyHandlerInterface> notifyHandler = GetNotifyHandlerRef();
-  notifyHandler->OnAttack();
+  //TSharedRef<ARRanger::INotifyHandlerInterface> notifyHandler = GetNotifyHandlerRef();
+  //notifyHandler->OnAttack();
 }
 
 
@@ -491,8 +508,8 @@ void AARRangerCharacter::KickHitNotify()
 	AttackHit(KickData);
 
   // 麦
-  TSharedRef<ARRanger::INotifyHandlerInterface> notifyHandler = GetNotifyHandlerRef();
-  notifyHandler->OnAttack();
+  //TSharedRef<ARRanger::INotifyHandlerInterface> notifyHandler = GetNotifyHandlerRef();
+  //notifyHandler->OnAttack();
 }
 void AARRangerCharacter::PlayAttackMontage(const FAttackData& Attack)
 {
@@ -553,6 +570,9 @@ void AARRangerCharacter::AttackHit(const FAttackData& Attack)
 			AEnemy* Enemy = Cast<AEnemy>(HitActor);
 			if (Enemy && !Enemy->isDead)
 			{
+				TSharedRef<ARRanger::INotifyHandlerInterface> notifyHandler = GetNotifyHandlerRef();
+				notifyHandler->OnAttack();
+
 				const bool bWillBeKilled = (Enemy->currentHP - Attack.Damage <= 0);
 
 				FVector LaunchDir = GetActorForwardVector() + FVector(0, 0, 0.2f);
@@ -587,14 +607,14 @@ void AARRangerCharacter::Transform()
 	}
 
 	// ���[�h�ύX�i���� or �˗́j
-	CurrentGravityType = (CurrentGravityType == EGravityType::Attractive)
-		? EGravityType::Repulsive
-		: EGravityType::Attractive;
+	CurrentARType = (CurrentARType == EARType::Attraction)
+		? EARType::Repulsion
+		: EARType::Attraction;
 
 	// ���f���؂�ւ�
-	USkeletalMesh* NewMesh = (CurrentGravityType == EGravityType::Repulsive)
-		? RepulsiveMesh
-		: AttractiveMesh;
+	USkeletalMesh* NewMesh = (CurrentARType == EARType::Repulsion)
+		? RepulsionMesh
+		: AttractionMesh;
 
 	if (NewMesh)
 	{
@@ -602,7 +622,7 @@ void AARRangerCharacter::Transform()
 	}
 }
 
-EGravityType AARRangerCharacter::GetCurrentGravityType()
+EARType AARRangerCharacter::GetCurrentARType()
 {
-	return CurrentGravityType;
+	return CurrentARType;
 }

@@ -129,13 +129,28 @@ void AInsekiGameMode::OnEnemyKilled()
 		UE_LOG(LogTemp, Warning, TEXT("Game Clear!"));
 
 		APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0);
-		if (PC && GameClearWidgetClass)
+		if (PC)
 		{
 			PC->SetShowMouseCursor(true);
 			PC->SetInputMode(FInputModeUIOnly());
 
-			UUserWidget* Widget = CreateWidget(PC, GameClearWidgetClass);
-			if (Widget) Widget->AddToViewport();
+            FTimerHandle ClearTimerHandle;
+            GetWorldTimerManager().SetTimer(ClearTimerHandle, this, &AInsekiGameMode::HandleGameClear, 3.0f, false);
 		}
 	}
+}
+
+void AInsekiGameMode::HandleGameClear()
+{
+    // プレイヤー操作停止
+    APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0);
+    if (PC)
+    {
+        PC->SetIgnoreMoveInput(true);
+        PC->SetIgnoreLookInput(true);
+        PC->SetShowMouseCursor(true);
+    }
+
+    // レベル遷移
+    UGameplayStatics::OpenLevel(this, FName("GameClear"));
 }

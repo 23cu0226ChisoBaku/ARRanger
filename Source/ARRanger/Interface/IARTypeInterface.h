@@ -13,3 +13,8 @@ enum class EARType : uint8
 	Repulsion  = 2,  // 斥力状態
 };
 
+/*
+* 内容：新しい状態に変化させる関数
+* 引数：変化先に状態
+*/
+void SetNewARType(EARType newARType);

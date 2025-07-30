@@ -444,14 +444,14 @@ void AARGameplayCamerasCharacterTest::OnAttackMontageEnded(UAnimMontage* Montage
 void AARGameplayCamerasCharacterTest::Transform()
 {
 	// モード変更（引力 or 斥力）
-	CurrentGravityType = (CurrentGravityType == EGravityType::Attractive)
-		? EGravityType::Repulsive
-		: EGravityType::Attractive;
+	CurrentARType = (CurrentARType == EARType::Attraction)
+		? EARType::Repulsion
+		: EARType::Attraction;
 
 	// モデル切り替え
-	USkeletalMesh* NewMesh = (CurrentGravityType == EGravityType::Repulsive)
-		? RepulsiveMesh
-		: AttractiveMesh;
+	USkeletalMesh* NewMesh = (CurrentARType == EARType::Repulsion)
+		? RepulsionMesh
+		: AttractionMesh;
 
 	if (NewMesh)
 	{

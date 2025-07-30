@@ -20,6 +20,9 @@ class ARRANGER_API AInsekiGameMode : public AGameModeBase
 protected:
 	virtual void BeginPlay() override;
 
+	// ゲームクリア時に呼び出される関数
+	void HandleGameClear();
+
 private:
   void InitializeObserver();
 
