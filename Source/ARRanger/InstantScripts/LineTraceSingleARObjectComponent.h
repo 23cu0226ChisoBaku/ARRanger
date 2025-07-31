@@ -46,7 +46,7 @@ public:
 private:
 
 	AActor* _pTargetMagnetizableActor;	// 対象オブジェクト
-	
+
 
 	// オーバーレイマテリアルの設定方法
 	// BPでも可能
