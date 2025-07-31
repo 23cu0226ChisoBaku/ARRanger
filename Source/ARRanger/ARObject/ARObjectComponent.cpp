@@ -1,9 +1,41 @@
 //*************************************************
-// Ë—Íˆø—Í‚Ì‹““®‚ğˆ—‚·‚éƒRƒ“ƒ|[ƒlƒ“ƒg
+// æ–¥åŠ›å¼•åŠ›ã®æŒ™å‹•ã‚’å‡¦ç†ã™ã‚‹ã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆ
 //*************************************************
 
 #include "ARObjectComponent.h"
 
+void UARObjectComponent::TickComponent(float deltaTime, ELevelTick tickType, FActorComponentTickFunction* thisTickFunction)
+{
+	Super::TickComponent(deltaTime, tickType, thisTickFunction);
+
+	/*
+	* å¼•åŠ›å‡¦ç†
+	*/ 
+	if (_CurrentARType == EARType::Attraction)
+	{
+		
+	}
+	/*
+	* æ–¥åŠ›å‡¦ç†
+	*/ 
+	else if (_CurrentARType == EARType::Repulsion)
+	{
+		
+	}
+}
+
+/*
+* æ–°ã—ã„æ–¥åŠ›å¼•åŠ›çŠ¶æ…‹ã‚’è¨­å®šã™ã‚‹é–¢æ•°
+*/
+void UARObjectComponent::SetARType(EARType newType)
+{
+	_CurrentARType = newType;
+}
+
+
+/*
+* ARObjctComponent Lifecycle Functions
+*/
 UARObjectComponent::UARObjectComponent()
 {
 	PrimaryComponentTick.bCanEverTick = true;
@@ -13,26 +45,4 @@ void UARObjectComponent::BeginPlay()
 {
 	Super::BeginPlay();
 	_CurrentARType = EARType::None;
-}
-
-void UARObjectComponent::TickComponent(float deltaTime, ELevelTick tickType, FActorComponentTickFunction* thisTickFunction)
-{
-	Super::TickComponent(deltaTime, tickType, thisTickFunction);
-
-	if (_CurrentARType == EARType::Attraction)
-	{
-		// ˆø—Íˆ—
-	}
-	else if (_CurrentARType == EARType::Repulsion)
-	{
-		// Ë—Íˆ—
-	}
-}
-
-/*
-*  V‚µ‚¢Ë—Íˆø—Íó‘Ô‚ğİ’è‚·‚éŠÖ”
-*/
-void UARObjectComponent::SetARType(EARType newType)
-{
-	_CurrentARType = newType;
 }

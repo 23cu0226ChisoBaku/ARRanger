@@ -70,13 +70,13 @@ void AInsekiActor_NonArea::OnHit(UPrimitiveComponent* HitComponent, AActor* Othe
 	}
 
 	// Ë—Íó‘Ô‚Ì‚Æ‚«‚Ì‚Ý‚Á”ò‚Î‚·
-	if (player->GetCurrentGravityType() == EGravityType::Attractive)
+	if (player->GetCurrentARType() == EARType::Attraction)
 	{
 		// ˆø—Íó‘Ô‚Ìê‡‚Í‚È‚É‚à‚µ‚È‚¢
-		UE_LOG(LogTemp, Warning, TEXT("Player is in Attractive mode: No knockback"));
+		UE_LOG(LogTemp, Warning, TEXT("Player is in Attraction mode: No knockback"));
 		return;
 	}
-	else if (player->GetCurrentGravityType() == EGravityType::Repulsive)
+	else if (player->GetCurrentARType() == EARType::Repulsion)
 	{
 		// ÚG•ûŒü‚ðŽæ“¾
 		FVector ImpactDirection = playerCharacter->GetActorLocation() - GetActorLocation();

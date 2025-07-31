@@ -10,10 +10,9 @@
 */
 AARObjectBase::AARObjectBase()
 	: _pARObjectComponent(nullptr)
+	, CurrentARType(EARType::None)
 {
 	PrimaryActorTick.bCanEverTick = false;
-	_pARObjectComponent = CreateDefaultSubobject<UARObjectComponent>(TEXT("ARObjectComponent"));
-	if (!_pARObjectComponent){UE_LOG(LogTemp, Warning, TEXT("Failed to correctly create _pARObjectComponent!"));}
 }
 
 /*
@@ -36,6 +35,14 @@ void AARObjectBase::OnRepulsion()
 	{
 		_pARObjectComponent->SetARType(EARType::Repulsion);
 	}
+}
+
+/*
+* Œ»Ý‚Ìó‘Ô‚ðŽæ“¾‚·‚éŠÖ”(ARComponent‚É‚ ‚é•Ï”‚ðŽ‚Á‚Ä‚­‚é)
+*/
+void AARObjectBase::SetNewARType(EARType newType) const
+{
+	if (_pARObjectComponent) {_pARObjectComponent->SetARType(newType);}
 }
 
 /*
