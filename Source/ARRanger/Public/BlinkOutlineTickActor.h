@@ -14,7 +14,7 @@ class ARRANGER_API ABlinkOutlineTickActor : public AActor
 public:	
 	ABlinkOutlineTickActor();
 	virtual void Tick(float DeltaTime) override;
+
 protected:
 	virtual void BeginPlay() override;
-
 };

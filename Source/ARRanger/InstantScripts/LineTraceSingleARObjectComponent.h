@@ -33,7 +33,7 @@ public:
 	* @param アウトラインをつける対象のオブジェクトポインタ
 	*/
 	void OnBlinkingOutline(AActor* magnetizableObject);
-	FOnOutlineDelegate OnOutLine;
+	FOnOutlineDelegate OnOutline;
 
 	/*
 	* @brief ライントレースを行って付与できるオブジェクト
@@ -45,7 +45,7 @@ public:
 
 private:
 
-	AActor* _pTargetMagnetizableActor;	// ライントレースを行うオブジェクト
+	AActor* _pTargetMagnetizableActor;	// 対象オブジェクト
 	
 
 	// オーバーレイマテリアルの設定方法

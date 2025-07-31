@@ -50,14 +50,14 @@ void ULineTraceSingleARObjectComponent::TraceForARObject(const FVector& Start, c
 */
 void ULineTraceSingleARObjectComponent::OnBlinkingOutline(AActor* magnetizableObject)
 {
-    if (OnOutLine.IsBound())
+    if (OnOutline.IsBound())
     {
-        OnOutLine.Execute(magnetizableObject);
-        UE_LOG(LogTemp, Log, TEXT("OnOutLine invoke."));
+        OnOutline.Execute(magnetizableObject);
+        UE_LOG(LogTemp, Log, TEXT("OnOutline invoke."));
     }
     else
     {
-        UE_LOG(LogTemp, Log, TEXT("OnOutLine was not bound."));
+        UE_LOG(LogTemp, Log, TEXT("OnOutline was not bound."));
     }
 }
 
