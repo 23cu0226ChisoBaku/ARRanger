@@ -8,25 +8,52 @@
 #include "Interface/IARTypeInterface.h"
 #include "LineTraceSingleARObjectComponent.generated.h"
 
+// デリゲート関数宣言
+DECLARE_DELEGATE_OneParam(FOnOutlineDelegate, AActor*);
+
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class ARRANGER_API ULineTraceSingleARObjectComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
-public:	
-	ULineTraceSingleARObjectComponent();
-
-	// ライントレース用
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Raycast")
-	float LineTraceLength;
-
 protected:
 	virtual void BeginPlay() override;
 
 public:	
+	ULineTraceSingleARObjectComponent();
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
-	// レイキャストを行い、インターフェースを実装しているオブジェクトを取得
-	UFUNCTION(BlueprintCallable, Category = "Raycast")
-	AActor* TraceForARObject(const FVector& Start, const FVector& End);
+	// ライントレース用
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LineTrace")
+	float LineTraceLength;
+
+	/*
+	* @brief アウトラインの処理を呼び出すデリゲート関数
+	* 
+	* @param アウトラインをつける対象のオブジェクトポインタ
+	*/
+	void OnBlinkingOutline(AActor* magnetizableObject);
+	FOnOutlineDelegate OnOutLine;
+
+	/*
+	* @brief ライントレースを行って付与できるオブジェクト
+	*
+	* @param ライントレースを行うための始点と終点
+	*/
+	UFUNCTION(BlueprintCallable, Category = "LineTrace")
+	void TraceForARObject(const FVector& Start, const FVector& End);
+
+private:
+
+	AActor* _pTargetMagnetizableActor;	// ライントレースを行うオブジェクト
+	
+
+	// オーバーレイマテリアルの設定方法
+	// BPでも可能
+	// この処理を持っておくオブジェクトは新しい奴を作る
+	// 対象オブジェクトは、Typeインターフェースを持っているかどうかで判断
+	// 対象のメッシュコンポーネントを取得して保持していたアウトラインマテリアルを適用
+	// FunFun()
+	// 点滅ディレイ = 0,点滅時間、間隔、色は各パラメータで制御
+	// UMeshComponent->SetOverlayMaterial(Material);
 };

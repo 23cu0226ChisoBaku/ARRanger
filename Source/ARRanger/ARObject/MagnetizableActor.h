@@ -23,6 +23,17 @@ public:
 	ARRANGER_API AMagnetizableActor();
 	ARRANGER_API virtual void Tick(float DeltaTime) override;
 
+	UFUNCTION(BlueprintCallable)
+	static void CallAttraction(AMagnetizableActor* Actor)
+	{
+		Actor->OnAttraction();
+	}
+
+	UFUNCTION(BlueprintCallable)
+	static void CallRepulsion(AMagnetizableActor* Actor)
+	{
+		Actor->OnRepulsion();
+	}
 
 	/*Start IARMagnetizableInterface interface*/
 	ARRANGER_API virtual void OnAttraction() override;
@@ -33,7 +44,7 @@ public:
 private:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
-	USceneComponent* _pRootComponent;		// 座標の根
+	USceneComponent* _pRootComponent;		// ピポット
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components", meta = (AllowPrivateAccess = "true"))
 	UPrimitiveComponent* _pMagneticField;	// 磁場範囲
 

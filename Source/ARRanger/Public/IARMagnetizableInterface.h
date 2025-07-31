@@ -21,7 +21,6 @@ class UARMagnetizableInterface : public UInterface
 /*
 * 斥力引力状態(磁性)
 */
-
 enum class EARMagnetismType : uint8
 {
 	None = 0,		// 何もない状態(デフォルト値)

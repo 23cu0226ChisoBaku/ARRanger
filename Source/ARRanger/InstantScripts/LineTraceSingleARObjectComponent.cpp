@@ -5,7 +5,7 @@
 /*
 * ライントレースを行い、引力斥力を付与できるオブジェクトを取得する関数
 */
-AActor* ULineTraceSingleARObjectComponent::TraceForARObject(const FVector& Start, const FVector& End)
+void ULineTraceSingleARObjectComponent::TraceForARObject(const FVector& Start, const FVector& End)
 {
     FHitResult HitResult;
 
@@ -30,7 +30,7 @@ AActor* ULineTraceSingleARObjectComponent::TraceForARObject(const FVector& Start
         {
             // オブジェクト名をログに出力
             UE_LOG(LogTemp, Log, TEXT("Hit ARObject: %s"), *HitActor->GetName());
-            return HitActor;
+            _pTargetMagnetizableActor = HitActor;
         }
         else
         {
@@ -43,15 +43,31 @@ AActor* ULineTraceSingleARObjectComponent::TraceForARObject(const FVector& Start
         // オブジェクトを検知できなかった
         //UE_LOG(LogTemp, Warning, TEXT("No actor hit during line trace."));
     }
-
-    return nullptr;
 }
 
 /*
-* ULineTraceSingleARObjectComponent Lifecycle Functions
+* アウトラインの処理を呼び出すデリゲート関数
+*/
+void ULineTraceSingleARObjectComponent::OnBlinkingOutline(AActor* magnetizableObject)
+{
+    if (OnOutLine.IsBound())
+    {
+        OnOutLine.Execute(magnetizableObject);
+        UE_LOG(LogTemp, Log, TEXT("OnOutLine invoke."));
+    }
+    else
+    {
+        UE_LOG(LogTemp, Log, TEXT("OnOutLine was not bound."));
+    }
+}
+
+
+/*
+* Start ULineTraceSingleARObjectComponent Lifecycle Functions
 */
 ULineTraceSingleARObjectComponent::ULineTraceSingleARObjectComponent()
     : LineTraceLength(1000.0f)
+    , _pTargetMagnetizableActor(nullptr)
 {
 	PrimaryComponentTick.bCanEverTick = true;
 }
@@ -65,3 +81,6 @@ void ULineTraceSingleARObjectComponent::TickComponent(float DeltaTime, ELevelTic
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 }
+/*
+* End ULineTraceSingleARObjectComponent Lifecycle Functions
+*/
