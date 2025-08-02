@@ -43,7 +43,7 @@ public:
 	// Sets default values for this actor's properties
 	AARPhysicsTickProcessorActor();
 
-  void OnSpawnActor(const TSharedPtr<FARPhysicsEngine>& PhysicsEngine) {}
+  void OnSpawnActor(FARPhysicsEngine* PhysicsEnginePtr) { OwningPhysicsEngine = PhysicsEnginePtr;}
 
 protected:
 	// Called when the game starts or when spawned
@@ -52,12 +52,13 @@ protected:
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+  virtual void AsyncPhysicsTickActor(float DeltaTime, float SimTime) override;
 
 public:
   bool IsBelongTo(const FARPhysicsEngine* PhysicsEngine) const { return false;}
 
 private:
-  TWeakPtr<FARPhysicsEngine> OwningPhysicsEngine;
+  FARPhysicsEngine* OwningPhysicsEngine;
 
   TArray<TUniquePtr<FARPhysicsTickFunction>> TickFunctions;
   

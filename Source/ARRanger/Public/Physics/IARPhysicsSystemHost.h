@@ -7,16 +7,18 @@
 #include "IARPhysicsSystemHost.generated.h"
 
 class IARMagnetizableInterface;
+class AARPhysicsTickProcessorActor;
 
 namespace ARRanger::Private
 {
-  struct FARPhysicsInitializer
+  struct FARPhysicsCore
   {
     ARRANGER_API static void InitializeARPhysicsInWorld(UWorld* World);
-    ARRANGER_API static void InitializeARPhysicsInWorldWithActorType(UWorld* World, TSubclassOf<class AARPhysicsTickProcessorActor> Subclass = nullptr);
+    ARRANGER_API static void InitializeARPhysicsInWorldWithActorType(UWorld* World, TSubclassOf<AARPhysicsTickProcessorActor> Subclass = nullptr);
+    ARRANGER_API static void DeinitializeARPhysics();
 
     private:
-      FARPhysicsInitializer() = delete;
+      FARPhysicsCore() = delete;
   };
 }
 
@@ -27,12 +29,6 @@ class UARPhysicsSystemHost : public UInterface
 	GENERATED_BODY()
 };
 
-
-class FARPhysicsEngine;
-
-/**
- * 
- */
 class ARRANGER_API IARPhysicsSystemHost
 {
 	GENERATED_BODY()

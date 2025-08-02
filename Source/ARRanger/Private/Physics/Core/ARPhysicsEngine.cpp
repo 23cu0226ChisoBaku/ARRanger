@@ -8,6 +8,10 @@
 
 #include "IARMagnetizableInterface.h"
 
+#include "Internal/ARLoggingHeader.h"
+
+DEFINE_COUNT_LIMITER_PROPERTY(FARPhysicsEngine)
+
 FARPhysicsEngine::FARPhysicsEngine()
   : m_proxy{nullptr}
   , m_tickProcessorActor{nullptr}
@@ -28,7 +32,7 @@ void FARPhysicsEngine::InitializePhysicsEngine(const FARPhysicsEngineInitializat
   m_proxy = MakePhysicsEngineProxy();
   if (m_proxy.IsValid())
   {
-    m_proxy->Initialize(AsShared());
+    m_proxy->Initialize(this);
   }
   
 }
@@ -49,13 +53,34 @@ void FARPhysicsEngine::RequestPhysicsProcess(const FARPhysicsRequest& Request)
   // FIXME Implement immediately
   if ((Request.Source == nullptr) || (Request.Target == nullptr))
   {
+    AR_LOG(LogARPhysics, Warning, TEXT("Invalid request"));
     return;
   }
 
   PhysicsEngineProxyPtr proxyPtr = GetProxy();
   if (proxyPtr == nullptr)
   {
-    // #error Remove this after new log channel added in project
+    AR_LOG(LogARPhysics, Error, TEXT("Initialize AR physics engine FIRST!"));
+    return;
+  }
+
+  if (Request.IsMagneticForceType())
+  {
+    FARPhysicsSimulationParam simulationParam(*Request.Source, *Request.Target);
+    using enum EPhysicsRequestType;
+    switch (Request.Type)
+    {
+      case RequestAttraction:
+      {
+        proxyPtr->SimulateAttraction(simulationParam);
+      }
+      break;
+      case RequestRepulsion:
+      {
+        proxyPtr->SimulateRepulsion(simulationParam);
+      }
+      break;
+    }
   }
 }
 
@@ -74,7 +99,7 @@ void FARPhysicsEngine::InitializePhysicsTickProcessorActor(UWorld* World, TSubcl
   AARPhysicsTickProcessorActor* spawnedActor = World->SpawnActorDeferred<AARPhysicsTickProcessorActor>(Subclass, FTransform::Identity);
   check(spawnedActor != nullptr);
 
-  spawnedActor->OnSpawnActor(const_cast<FARPhysicsEngine*>(this)->AsShared());
+  spawnedActor->OnSpawnActor(this);
   spawnedActor->FinishSpawning(FTransform::Identity);
 
   m_tickProcessorActor = spawnedActor;

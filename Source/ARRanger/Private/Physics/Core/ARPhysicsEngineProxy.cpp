@@ -1,16 +1,24 @@
 ﻿#include "Physics/Core/ARPhysicsEngineProxy.h"
+#include "IARMagnetizableInterface.h"
+
+#include "Internal/ARLoggingHeader.h"
+
+FARPhysicsSimulationParam::FARPhysicsSimulationParam(IARMagnetizableInterface& InTarget1, IARMagnetizableInterface& InTarget2)
+  : Target1(InTarget1)
+  , Target2(InTarget2)
+{ }
 
 FARPhysicsEngineProxy::FARPhysicsEngineProxy()
   : m_privatePhysicsEngine{nullptr}
-{
-
-}
+{ }
 
 FARPhysicsEngineProxy::~FARPhysicsEngineProxy() = default;
 
-void FARPhysicsEngineProxy::Initialize(const TSharedPtr<FARPhysicsEngine>& OwningPhysicsEngine)
+void FARPhysicsEngineProxy::Initialize(FARPhysicsEngine* OwningPhysicsEnginePtr)
 {
-  OnInitialize(OwningPhysicsEngine);
+  m_privatePhysicsEngine = OwningPhysicsEnginePtr;
+
+  OnInitialize(OwningPhysicsEnginePtr);
 }
 
 void FARPhysicsEngineProxy::SimulateAttraction(const FARPhysicsSimulationParam& SimulationParameter)
@@ -23,17 +31,23 @@ void FARPhysicsEngineProxy::SimulateRepulsion(const FARPhysicsSimulationParam& S
   OnSimulateRepulsion(SimulationParameter);
 }
 
-void FARPhysicsEngineProxy::OnInitialize(const TSharedPtr<FARPhysicsEngine>& OwningPhysicsEngine)
+void FARPhysicsEngineProxy::OnInitialize(FARPhysicsEngine* OwningPhysicsEnginePtr)
 {
-  m_privatePhysicsEngine = OwningPhysicsEngine;
+  // Empty implementation
 }
 
 void FARPhysicsEngineProxy::OnSimulateAttraction(const FARPhysicsSimulationParam& SimulationParameter)
 {
-  // FIXME Implement immediately
+  AR_LOG(LogARPhysics, Log, TEXT("On simulate attraction"));
+
+  SimulationParameter.Target1.OnAttraction();
+  SimulationParameter.Target2.OnAttraction();
 } 
 
 void FARPhysicsEngineProxy::OnSimulateRepulsion(const FARPhysicsSimulationParam& SimulationParameter)
 {
-  // FIXME Implement immediately
+  AR_LOG(LogARPhysics, Log, TEXT("On simulate repulsion"));
+
+  SimulationParameter.Target1.OnRepulsion();
+  SimulationParameter.Target2.OnRepulsion();
 }

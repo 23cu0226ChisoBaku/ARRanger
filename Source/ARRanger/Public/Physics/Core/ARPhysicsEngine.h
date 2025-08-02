@@ -12,10 +12,26 @@ class AARPhysicsTickProcessorActor;
 class UWorld;
 class AARPhysicsTickProcessorActor;
 
+enum class EPhysicsRequestType
+{
+  None,
+  RequestAttraction,
+  RequestRepulsion,
+};
+
 struct FARPhysicsRequest
 {
   IARMagnetizableInterface* Source = nullptr;
+
   IARMagnetizableInterface* Target = nullptr;
+
+  EPhysicsRequestType Type = EPhysicsRequestType::None;
+
+  __forceinline bool IsMagneticForceType() const
+  {
+    using enum EPhysicsRequestType;
+    return Type == RequestAttraction || Type == RequestRepulsion;
+  }
 };
 
 struct FARPhysicsEngineInitializationParameters
@@ -25,9 +41,37 @@ struct FARPhysicsEngineInitializationParameters
   TSubclassOf<AARPhysicsTickProcessorActor> SubclassOfPTPActor;
 };
 
-class FARPhysicsEngine : public TSharedFromThis<FARPhysicsEngine>
+namespace ARRanger::Private
+{
+  template<typename UserType, uint8 MaxSize>
+  class FCountLimiter
+  {
+    public:
+      FCountLimiter();
+      ~FCountLimiter();
+      static uint8 GetMaxSize();
+      static uint8 GetCreatedObjectNum();
+  };
+}
+
+#define DECLARE_COUNT_LIMITER_PROPERTY(UserType, MaxSize) \
+  private: \
+    friend class ARRanger::Private::FCountLimiter<UserType, MaxSize>; \
+    static uint8 NumInstance; \
+  public: \
+    using ARRanger::Private::FCountLimiter<UserType, MaxSize>::GetMaxSize; \
+    using ARRanger::Private::FCountLimiter<UserType, MaxSize>::GetCreatedObjectNum; \
+  private: 
+
+#define DEFINE_COUNT_LIMITER_PROPERTY(UserType) \
+  uint8 UserType::NumInstance = 0;
+
+class FARPhysicsEngine : private ARRanger::Private::FCountLimiter<FARPhysicsEngine, 1>
 {
   using PhysicsEngineProxyPtr = FARPhysicsEngineProxy*;
+
+  // Define this for FCountLimiter
+  DECLARE_COUNT_LIMITER_PROPERTY(FARPhysicsEngine, 1)
 
   public:
     ARRANGER_API FARPhysicsEngine();
@@ -47,5 +91,8 @@ class FARPhysicsEngine : public TSharedFromThis<FARPhysicsEngine>
     TSharedPtr<FARPhysicsEngineProxy> m_proxy;
     TWeakObjectPtr<AARPhysicsTickProcessorActor> m_tickProcessorActor;
 };
+
+// Include FCountLimiter inline file
+#include "Internal/CountLimiterImpl.inl"
 
 #endif // _AR_PHYSICS_ENGINE_

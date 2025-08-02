@@ -20,17 +20,17 @@ class FARPhysicsEngineProxy
     ARRANGER_API FARPhysicsEngineProxy();
     ARRANGER_API virtual ~FARPhysicsEngineProxy();
 
-    ARRANGER_API void Initialize(const TSharedPtr<FARPhysicsEngine>& OwningPhysicsEngine);
+    ARRANGER_API void Initialize(FARPhysicsEngine* OwningPhysicsEnginePtr);
     ARRANGER_API void SimulateAttraction(const FARPhysicsSimulationParam& SimulationParameter);
     ARRANGER_API void SimulateRepulsion(const FARPhysicsSimulationParam& SimulationParameter);
 
   protected:
-    ARRANGER_API virtual void OnInitialize(const TSharedPtr<FARPhysicsEngine>& OwningPhysicsEngine);
+    ARRANGER_API virtual void OnInitialize(FARPhysicsEngine* OwningPhysicsEnginePtr);
     ARRANGER_API virtual void OnSimulateAttraction(const FARPhysicsSimulationParam& SimulationParameter);
     ARRANGER_API virtual void OnSimulateRepulsion(const FARPhysicsSimulationParam& SimulationParameter);
 
   private:
-    TWeakPtr<const FARPhysicsEngine> m_privatePhysicsEngine;
+    FARPhysicsEngine* m_privatePhysicsEngine;
 };
 
 #endif // _AR_PHYSICS_CORE_PHYSICS_ENGINE_PROXY_

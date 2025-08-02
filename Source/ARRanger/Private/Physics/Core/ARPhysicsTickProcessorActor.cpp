@@ -20,7 +20,7 @@ AARPhysicsTickProcessorActor::AARPhysicsTickProcessorActor()
 void AARPhysicsTickProcessorActor::BeginPlay()
 {
   // SpawnActorDeferredを使用して生成するように
-  ensureMsgf(OwningPhysicsEngine.IsValid(), TEXT("Create this Actor by using SpawnActorDeferred"));
+  ensureMsgf(OwningPhysicsEngine != nullptr, TEXT("Create this Actor by using SpawnActorDeferred"));
 
 	Super::BeginPlay();
 	
@@ -33,3 +33,7 @@ void AARPhysicsTickProcessorActor::Tick(float DeltaTime)
 
 }
 
+void AARPhysicsTickProcessorActor::AsyncPhysicsTickActor(float DeltaTime, float SimTime)
+{
+  Super::AsyncPhysicsTickActor(DeltaTime, SimTime);
+}
