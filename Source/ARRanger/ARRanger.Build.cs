@@ -8,7 +8,7 @@ public class ARRanger : ModuleRules
   {
     PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
-		PublicDependencyModuleNames.AddRange(new string[] {
+    PublicDependencyModuleNames.AddRange(new string[] {
       "Core",
       "CoreUObject",
       "Engine",
@@ -19,7 +19,7 @@ public class ARRanger : ModuleRules
       "GameplayStateTreeModule",
       "UMG",
       "MLibrary"
-		});
+    });
 
     PrivateDependencyModuleNames.AddRange(new string[] { });
 
@@ -37,6 +37,9 @@ public class ARRanger : ModuleRules
       "ARRanger/Public/CameraWork",
       "MLibrary/Public",
     });
+
+    // Add PCH to all scripts in this module
+    PrivatePCHHeaderFile = "Private/ARRangerSharedPCH.h";
 
 		// Uncomment if you are using Slate UI
     // PrivateDependencyModuleNames.AddRange(new string[] { "Slate", "SlateCore" });

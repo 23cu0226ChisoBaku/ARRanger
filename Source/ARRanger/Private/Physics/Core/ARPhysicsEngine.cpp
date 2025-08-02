@@ -53,9 +53,9 @@ void FARPhysicsEngine::RequestPhysicsProcess(const FARPhysicsRequest& Request)
   }
 
   PhysicsEngineProxyPtr proxyPtr = GetProxy();
-  if (proxyPtr != nullptr)
+  if (proxyPtr == nullptr)
   {
-    
+    // #error Remove this after new log channel added in project
   }
 }
 
