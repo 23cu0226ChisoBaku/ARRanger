@@ -8,8 +8,8 @@
 #include "Interface/IARTypeInterface.h"
 #include "LineTraceSingleARObjectComponent.generated.h"
 
-// デリゲート関数宣言
-DECLARE_DELEGATE_OneParam(FOnOutlineDelegate, AActor*);
+//// デリゲート関数宣言
+//DECLARE_DELEGATE_OneParam(FOnOutlineDelegate, AActor*);
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class ARRANGER_API ULineTraceSingleARObjectComponent : public UActorComponent
@@ -27,16 +27,21 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LineTrace")
 	float LineTraceLength;
 
-	/*
-	* @brief アウトラインの処理を呼び出すデリゲート関数
-	* 
-	* @param アウトラインをつける対象のオブジェクトポインタ
-	*/
-	void OnBlinkingOutline(AActor* magnetizableObject);
-	FOnOutlineDelegate OnOutline;
+	///*
+	//* @brief アウトラインの処理を呼び出すデリゲート関数
+	//* 
+	//* @param アウトラインをつける対象のオブジェクトポインタ
+	//*/
+	//void OnBlinkingOutline(AActor* magnetizableObject);
+
+	///*
+	//* @brief デリゲート関数を登録する用
+	//*/
+	//void SetBindBlinkingOutline();
+	//FOnOutlineDelegate　
 
 	/*
-	* @brief ライントレースを行って付与できるオブジェクト
+	* @brief ライントレースを行って付与できるオブジェクトを検知
 	*
 	* @param ライントレースを行うための始点と終点
 	*/

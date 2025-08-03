@@ -3,7 +3,9 @@
 #include "InstantScripts/LineTraceSingleARObjectComponent.h"
 
 /*
-* ライントレースを行い、引力斥力を付与できるオブジェクトを取得する関数
+* @brief ライントレースを行って付与できるオブジェクトを検知
+*
+* @param ライントレースを行うための始点と終点
 */
 void ULineTraceSingleARObjectComponent::TraceForARObject(const FVector& Start, const FVector& End)
 {

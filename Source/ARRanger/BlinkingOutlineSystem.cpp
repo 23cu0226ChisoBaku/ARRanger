@@ -4,20 +4,32 @@
 
 #include "BlinkingOutlineSystem.h"
 
-AActor* BlinkingOutlineSystem::CreateTickingActor()
-{
-	UWorld* World = GetWorld();
-	if (World && !TickActor)
+/*
+* @brief アウトラインの点滅処理を行うアクターの生成
+*/
+AActor* BlinkingOutlineSystem::CreateTickingActor(const UWorld* world)
+{	
+	if (!TickActor && world)
 	{
 		FActorSpawnParameters Params;
 		Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-
-		return World->SpawnActor<ABlinkOutlineTickActor>(ABlinkOutlineTickActor::StaticClass(), FVector(0.f), FRotator::ZeroRotator, Params);
+		return world->SpawnActor<ABlinkOutlineTickActor>(ABlinkOutlineTickActor::StaticClass(), FVector(0.f), FRotator::ZeroRotator, Params);
 	}
 
 	return nullptr;
 }
 
-void BlinkingOutlineSystem::RegisterOnOutline();
+/*
+* @brief アウトラインの処理を呼び出すデリゲート関数
+*
+* @param アウトラインをつける対象のオブジェクトポインタ
+*/
+void OnBlinkingOutline(AActor* magnetizableObject)
+{
 
-void BlinkingOutlineSystem::RequestOnBlinkingOutLine();
+}
+
+
+//void BlinkingOutlineSystem::RegisterOnOutline();
+
+//void BlinkingOutlineSystem::RequestOnBlinkingOutLine();

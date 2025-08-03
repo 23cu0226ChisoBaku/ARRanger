@@ -9,21 +9,29 @@
 
 // 前方宣言
 class AActor;
+class UWorld;
 
 class BlinkingOutlineSystem
 {
 	/*
-	* @brief 
+	* @brief アウトラインの点滅処理を行うアクターの生成
 	*/
-	AActor* CreateTickingActor();
+	AActor* CreateTickingActor(const UWorld* world);
 
 	/*
-	* @brief LineTraceSingleARObjectComponent のデリゲート関数に登録する
+	* @brief アウトラインの処理を呼び出すデリゲート関数
+	*
+	* @param アウトラインをつける対象のオブジェクトポインタ
+	*/
+	void OnBlinkingOutline(const AActor* magnetizableObject);
+
+	/*
+	* @brief LineTraceSingleARObjectComponent のデリゲート関数に登録
 	*/
 	void RegisterOnOutline();
 
 	/*
-	* @brief BlinkOutlineTickActor に点滅処理をリクエストする
+	* @brief BlinkOutlineTickActor に点滅処理をリクエスト
 	*/
 	void RequestOnBlinkingOutLine();
 
