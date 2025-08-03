@@ -19,6 +19,19 @@ enum class EPhysicsRequestType
   RequestRepulsion,
 };
 
+enum class EPhysicsTerminationType
+{
+  None,
+  TerminateMagnetic,
+};
+
+enum class EPhysicsRequestFrequency
+{
+  Never,
+  Once,
+  Constantly,
+};
+
 struct FARPhysicsRequest
 {
   IARMagnetizableInterface* Source = nullptr;
@@ -27,11 +40,24 @@ struct FARPhysicsRequest
 
   EPhysicsRequestType Type = EPhysicsRequestType::None;
 
+  EPhysicsRequestFrequency Frequency = EPhysicsRequestFrequency::Never;
+
   __forceinline bool IsMagneticForceType() const
   {
     using enum EPhysicsRequestType;
     return Type == RequestAttraction || Type == RequestRepulsion;
   }
+};
+
+
+
+struct FARPhysicsTermination
+{
+  IARMagnetizableInterface* Source = nullptr;
+
+  IARMagnetizableInterface* Target = nullptr;
+
+  EPhysicsTerminationType Type = EPhysicsTerminationType::None;
 };
 
 struct FARPhysicsEngineInitializationParameters
@@ -80,12 +106,17 @@ class FARPhysicsEngine : private ARRanger::Private::FCountLimiter<FARPhysicsEngi
     ARRANGER_API void InitializePhysicsEngine(const FARPhysicsEngineInitializationParameters& Parameters);
     ARRANGER_API void DeinitializePhysicsEngine();
     ARRANGER_API void RequestPhysicsProcess(const FARPhysicsRequest& Request);
+    ARRANGER_API void TerminatePhysicsProcess(const FARPhysicsTermination& Termination);
     ARRANGER_API PhysicsEngineProxyPtr GetProxy() const { return m_proxy.Get(); }
+
+    AARPhysicsTickProcessorActor* GetPhysicsTickProcessor_Internal() const { return m_tickProcessorActor.Get(); }
 
   protected:
     ARRANGER_API virtual TSharedPtr<FARPhysicsEngineProxy> MakePhysicsEngineProxy() const;
+
   private:
     void InitializePhysicsTickProcessorActor(UWorld* World, TSubclassOf<AARPhysicsTickProcessorActor> Subclass);
+
   private:
 
     TSharedPtr<FARPhysicsEngineProxy> m_proxy;

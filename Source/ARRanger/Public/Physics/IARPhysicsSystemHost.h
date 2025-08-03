@@ -33,7 +33,18 @@ class ARRANGER_API IARPhysicsSystemHost
 {
 	GENERATED_BODY()
 
+  enum EMagneticTaskFrequency
+  {
+    Once,
+    Constantly,
+  };
+
 	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
   void Physics_RequestMagneticTask(IARMagnetizableInterface* InSource, IARMagnetizableInterface* InTarget);
+  void Physics_RequestMagneticTask_Once(IARMagnetizableInterface* InSource, IARMagnetizableInterface* InTarget);
+  void Physics_TerminateMagneticTask(IARMagnetizableInterface* InSource, IARMagnetizableInterface* InTarget);
+
+private:
+  void Physics_RequestMagneticTaskImpl(IARMagnetizableInterface* InSource, IARMagnetizableInterface* InTarget, EMagneticTaskFrequency Frequency);
 };

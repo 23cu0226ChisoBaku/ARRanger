@@ -66,21 +66,65 @@ void FARPhysicsEngine::RequestPhysicsProcess(const FARPhysicsRequest& Request)
 
   if (Request.IsMagneticForceType())
   {
-    FARPhysicsSimulationParam simulationParam(*Request.Source, *Request.Target);
-    using enum EPhysicsRequestType;
-    switch (Request.Type)
+    using enum EPhysicsRequestFrequency;
+    switch (Request.Frequency)
     {
-      case RequestAttraction:
+      case Once:
       {
-        proxyPtr->SimulateAttraction(simulationParam);
+        FARPhysicsSimulationParam simulationParam(*Request.Source, *Request.Target);
+        using enum EPhysicsRequestType;
+        switch (Request.Type)
+        {
+          case RequestAttraction:
+          {
+            proxyPtr->SimulateAttraction(simulationParam);
+          }
+          break;
+          case RequestRepulsion:
+          {
+            proxyPtr->SimulateRepulsion(simulationParam);
+          }
+          break;
+        }
       }
-      break;
-      case RequestRepulsion:
+      case Constantly:
       {
-        proxyPtr->SimulateRepulsion(simulationParam);
+        using enum EPhysicsRequestType;
+        switch (Request.Type)
+        {
+          case RequestAttraction:
+          {
+            m_tickProcessorActor->RegisterMagneticTask(Request.Source, Request.Target, EPhysicsTickType::TickAttraction);
+          }
+          break;
+          case RequestRepulsion:
+          {
+            m_tickProcessorActor->RegisterMagneticTask(Request.Source, Request.Target, EPhysicsTickType::TickRepulsion);
+          }
+          break;
+        }
       }
-      break;
     }
+  }
+}
+
+void FARPhysicsEngine::TerminatePhysicsProcess(const FARPhysicsTermination& Termination)
+{
+  PhysicsEngineProxyPtr proxyPtr = GetProxy();
+  if (proxyPtr == nullptr)
+  {
+    AR_LOG(LogARPhysics, Error, TEXT("Initialize AR physics engine FIRST!"));
+    return;
+  }
+
+  using enum EPhysicsTerminationType;
+  switch (Termination.Type)
+  {
+    case TerminateMagnetic:
+    {
+      m_tickProcessorActor->UnregisterMagneticTask(Termination.Source, Termination.Target);
+    }
+    break;
   }
 }
 

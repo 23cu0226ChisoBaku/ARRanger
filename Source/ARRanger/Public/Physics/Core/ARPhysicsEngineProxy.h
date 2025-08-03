@@ -14,6 +14,12 @@ struct FARPhysicsSimulationParam
   IARMagnetizableInterface& Target2;
 };
 
+struct FARPhysicsCancellationParam
+{
+  const IARMagnetizableInterface* Target1 = nullptr;
+  const IARMagnetizableInterface* Target2 = nullptr;
+};
+
 class FARPhysicsEngineProxy
 {
   public:

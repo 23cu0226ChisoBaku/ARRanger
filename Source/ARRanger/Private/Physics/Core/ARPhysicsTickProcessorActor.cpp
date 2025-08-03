@@ -12,8 +12,8 @@ AARPhysicsTickProcessorActor::AARPhysicsTickProcessorActor()
 	PrimaryActorTick.bCanEverTick = true;
 
   // エンジンの物理演算を行う前に処理する
-  PrimaryActorTick.TickGroup = ETickingGroup::TG_PrePhysics;
-
+  PrimaryActorTick.TickGroup = TG_PrePhysics;
+  bAsyncPhysicsTickEnabled = true;
 }
 
 // Called when the game starts or when spawned
@@ -26,14 +26,44 @@ void AARPhysicsTickProcessorActor::BeginPlay()
 	
 }
 
-// Called every frame
-void AARPhysicsTickProcessorActor::Tick(float DeltaTime)
+void AARPhysicsTickProcessorActor::AsyncPhysicsTickActor(float DeltaTime, float SimTime)
 {
-	Super::Tick(DeltaTime);
+  // 物理演算タスクを実行する
+  ProcessARPhysicsTasks(DeltaTime, SimTime);
+
+  Super::AsyncPhysicsTickActor(DeltaTime, SimTime);
+}
+
+void AARPhysicsTickProcessorActor::ProcessARPhysicsTasks(float DeltaTime, float SimTime)
+{
+  DequeueCancellationTask();
+  EnqueueRequestTask();
+
+  FARPhysicsTickFunctionParameters params;
+  params.DeltaTime = DeltaTime;
+  params.TotalSimTime = SimTime;
+}
+
+void AARPhysicsTickProcessorActor::RegisterMagneticTask(IARMagnetizableInterface* InSource, IARMagnetizableInterface* InTarget, EPhysicsTickType InTickType)
+{
+  if (OwningPhysicsEngine == nullptr)
+  {
+    return;
+  }
 
 }
 
-void AARPhysicsTickProcessorActor::AsyncPhysicsTickActor(float DeltaTime, float SimTime)
+void AARPhysicsTickProcessorActor::UnregisterMagneticTask(IARMagnetizableInterface* InSource, IARMagnetizableInterface* InTarget)
 {
-  Super::AsyncPhysicsTickActor(DeltaTime, SimTime);
+  
+}
+
+void AARPhysicsTickProcessorActor::EnqueueRequestTask()
+{
+
+}
+
+void AARPhysicsTickProcessorActor::DequeueCancellationTask()
+{
+  
 }

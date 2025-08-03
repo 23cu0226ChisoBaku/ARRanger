@@ -52,6 +52,26 @@ using ARRanger::Private::FARPhysicsEngineAccessor;
 
 void IARPhysicsSystemHost::Physics_RequestMagneticTask(IARMagnetizableInterface* InSource, IARMagnetizableInterface* InTarget)
 {
+  Physics_RequestMagneticTaskImpl(InSource, InTarget, EMagneticTaskFrequency::Constantly);
+}
+
+void IARPhysicsSystemHost::Physics_RequestMagneticTask_Once(IARMagnetizableInterface* InSource, IARMagnetizableInterface* InTarget)
+{
+  Physics_RequestMagneticTaskImpl(InSource, InTarget, EMagneticTaskFrequency::Once);
+}
+
+void IARPhysicsSystemHost::Physics_TerminateMagneticTask(IARMagnetizableInterface* InSource, IARMagnetizableInterface* InTarget)
+{
+  FARPhysicsTermination termination;
+  termination.Source = InSource;
+  termination.Target = InTarget;
+  termination.Type = EPhysicsTerminationType::TerminateMagnetic;
+
+  FARPhysicsEngineAccessor::GetEngine().TerminatePhysicsProcess(termination);
+}
+
+void IARPhysicsSystemHost::Physics_RequestMagneticTaskImpl(IARMagnetizableInterface* InSource, IARMagnetizableInterface* InTarget, EMagneticTaskFrequency Frequency)
+{
   if ((InSource == nullptr) || (InTarget == nullptr))
   {
     AR_LOG(LogARPhysics, Error, TEXT("Input is Invalid. Caller:[%s]"), *GetNameSafe(InSource->GetActor()));
@@ -74,6 +94,21 @@ void IARPhysicsSystemHost::Physics_RequestMagneticTask(IARMagnetizableInterface*
   else
   {
     request.Type = EPhysicsRequestType::None;
+  }
+
+  // TODO 二種類のEnumを利用する手間を減らしたい
+  switch (Frequency)
+  {
+    case Once:
+    {
+      request.Frequency = EPhysicsRequestFrequency::Once;
+    }
+    break;
+    case Constantly:
+    {
+      request.Frequency = EPhysicsRequestFrequency::Constantly;
+    }
+    break;
   }
 
   FARPhysicsEngineAccessor::GetEngine().RequestPhysicsProcess(request);
