@@ -113,7 +113,7 @@ private:
 	bool isAbleToSwitchTarget;
 
 	// 山内
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Climeb", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Climb", meta = (AllowPrivateAccess = "true"))
 	bool isClimb;
 
 	// もともとのカメラとプレイヤーの距離
@@ -170,6 +170,9 @@ private:
 	// 現在歩いているオブジェクトの表面
 	UPROPERTY()
 	AInsekiClimbingObject* currentClimbSurface;
+
+	// 壁の法線を保存
+	FVector wallNormal;
 
 	// 引力クライムオブジェクトに触れた際に呼び出される
 	UFUNCTION()
