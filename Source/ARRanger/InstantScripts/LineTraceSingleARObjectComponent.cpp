@@ -1,4 +1,6 @@
-// ARObjectをラインとレースで取得するコンポーネント(即席スクリプト)
+//*************************************************
+// 引力斥力を付与できるオブジェクトを取得するコンポーネント
+//*************************************************
 
 #include "InstantScripts/LineTraceSingleARObjectComponent.h"
 
@@ -46,15 +48,6 @@ void ULineTraceSingleARObjectComponent::TraceForMagnetizableObject(const FVector
         //UE_LOG(LogTemp, Warning, TEXT("No actor hit during line trace."));
     }
 }
-
-// /*
-// * 対象の引力斥力を付与するデリゲート関数
-// */
-// void ULineTraceSingleARObjectComponent::SetTargetmagnetizableObject(AActor* targetMagnetizableObject)
-// {
-//     _pTargetMagnetizableActor = targetMagnetizableObject;
-// }
-
 
 /*
 * Start ULineTraceSingleARObjectComponent Lifecycle Functions

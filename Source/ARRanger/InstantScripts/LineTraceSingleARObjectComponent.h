@@ -1,4 +1,6 @@
-// ARObjectをラインとレースで取得するコンポーネント(即席スクリプト)
+//*************************************************
+// 引力斥力を付与できるオブジェクトを取得するコンポーネント
+//*************************************************
 
 #pragma once
 
@@ -26,13 +28,6 @@ public:
 	// ライントレース用
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LineTrace")
 	float LineTraceLength;
-
-	// /*
-	// * @brief 対象オブジェクトを保持するためのデリゲート関数
-	// * 
-	// * @param アウトラインをつける対象のオブジェクトポインタ
-	// */
-	// void SetTargetMagnetizableObject(AActor* magnetizableObject);
 
 	/*
 	* @brief デリゲート関数を登録する用

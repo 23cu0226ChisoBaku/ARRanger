@@ -4,6 +4,44 @@
 
 #include "Public/BlinkingSystem/BlinkOutlineTickActor.h"
 
+/*
+* @brief 点滅させるアクターを追加する(メッシュコンポーネントを取得する)
+*
+* @param 点滅させるアクター
+*/
+void ABlinkOutlineTickActor::AddBlinkingActor(const AActor* newActor)
+{
+	if (!newActor){ return; }
+
+	UMeshComponent* _pMeshComponent = newActor->FindComponentByClass<UMeshComponent>();
+
+	if (_pMeshComponent || !_pBlinkingActorComponents.Contains(_pMeshComponent)) 
+	{
+		_pBlinkingActorComponents.Add(_pMeshComponent);
+	}
+}
+
+/*
+* @brief 点滅をやめるアクターを配列から除外する(メッシュコンポーネントを除外する)
+*
+* @param 点滅をやめるアクター
+*/
+void ABlinkOutlineTickActor::RemoveBlinkingActor(const AActor* removeActor)
+{
+	if (!removeActor){ return; }
+
+	UMeshComponent* _pMeshComponent = removeActor->FindComponentByClass<UMeshComponent>();
+
+	if (_pMeshComponent) 
+	{
+		_pBlinkingActorComponents.Remove(_pMeshComponent);
+	}
+}
+
+
+/*
+* Start ULineTraceSingleARObjectComponent Lifecycle Functions
+*/
 ABlinkOutlineTickActor::ABlinkOutlineTickActor()
 {
 	PrimaryActorTick.bCanEverTick = true;
@@ -18,38 +56,6 @@ void ABlinkOutlineTickActor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 }
-
 /*
-* @brief 対象オブジェクトをデリゲート関数
-*
-* @param アウトラインをつける対象のオブジェクトポインタ
+* End ULineTraceSingleARObjectComponent Lifecycle Functions
 */
-void ABlinkOutlineTickActor::SetTargetmagnetizableObject(const AActor* magnetizableObject)
-{
-
-}
-
-/*
-* @brief BlinkingOutlineSystem からのリクエストを受け取る
-*/
-void ABlinkOutlineTickActor::HandleRequest()
-{
-	Add
-}
-
-/*
-* @brief 点滅させるアクターを追加する(メッシュコンポーネントを取得する)
-*
-* @param 点滅させるアクター
-*/
-void ABlinkOutlineTickActor::AddBlinkingActor(AActor* newActor)
-{
-	if (!newActor){ return; }
-
-	UMeshComponent* MeshComponent = newActor->FindComponentByClass<UMeshComponent>();
-
-	if (MeshComponent || !_pBlinkingActorComponents.Contains(MeshComponent)) 
-	{
-		_pBlinkingActorComponents.Add(MeshComponent);
-	}
-}

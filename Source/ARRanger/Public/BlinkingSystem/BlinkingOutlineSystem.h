@@ -4,12 +4,10 @@
 
 #pragma once
 
-#include "Public/BlinkingSystem/BlinkOutlineTickActor.h"
-#include "InstantScripts/LineTraceSingleARObjectComponent.h"
-
 // 前方宣言
 class AActor;
 class UWorld;
+class ABlinkOutlineTickActor;
 
 class BlinkingOutlineSystem
 {
@@ -32,14 +30,14 @@ public:
 	* 
 	*  AGameModeBaseを継承しているクラスのStartPlay()関数でバインド
 	*/
-	void SetTargetMagnetizableObject(const AActor* magnetizableObject);
+	void SetTargetMagnetizableObject(const AActor* _pMagnetizableObject);
 
-private:
+private:	
 
 	/*
 	* @brief BlinkOutlineTickActor に点滅処理をリクエスト
 	*/
-	void RequestToBlinkingOutlineTickActor(ABlinkOutlineTickActor tickActor);
+	void AddBlinkingOutlineObject(const AActor* _pMagnetizableObject);
 
 private:
 	ABlinkOutlineTickActor* _pTickActor;	// 点滅処理を駆動するためのアクター
