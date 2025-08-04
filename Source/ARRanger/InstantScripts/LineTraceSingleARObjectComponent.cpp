@@ -1,11 +1,13 @@
-// ARObject‚ğƒ‰ƒCƒ“‚ÆƒŒ[ƒX‚Åæ“¾‚·‚éƒRƒ“ƒ|[ƒlƒ“ƒg(‘¦ÈƒXƒNƒŠƒvƒg)
+// ARObjectã‚’ãƒ©ã‚¤ãƒ³ã¨ãƒ¬ãƒ¼ã‚¹ã§å–å¾—ã™ã‚‹ã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆ(å³å¸­ã‚¹ã‚¯ãƒªãƒ—ãƒˆ)
 
 #include "InstantScripts/LineTraceSingleARObjectComponent.h"
 
 /*
-* ƒ‰ƒCƒ“ƒgƒŒ[ƒX‚ğs‚¢Aˆø—ÍË—Í‚ğ•t—^‚Å‚«‚éƒIƒuƒWƒFƒNƒg‚ğæ“¾‚·‚éŠÖ”
+* @brief ãƒ©ã‚¤ãƒ³ãƒˆãƒ¬ãƒ¼ã‚¹ã‚’è¡Œã£ã¦ä»˜ä¸ã§ãã‚‹ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã‚’æ¤œçŸ¥
+*
+* @param ãƒ©ã‚¤ãƒ³ãƒˆãƒ¬ãƒ¼ã‚¹ã‚’è¡Œã†ãŸã‚ã®å§‹ç‚¹ã¨çµ‚ç‚¹
 */
-AActor* ULineTraceSingleARObjectComponent::TraceForARObject(const FVector& Start, const FVector& End)
+void ULineTraceSingleARObjectComponent::TraceForMagnetizableObject(const FVector& Start, const FVector& End)
 {
     FHitResult HitResult;
 
@@ -25,33 +27,41 @@ AActor* ULineTraceSingleARObjectComponent::TraceForARObject(const FVector& Start
     {
         AActor* HitActor = HitResult.GetActor();
 
-        // IARObjectInterface ‚ğÀ‘•‚µ‚Ä‚¢‚é‚©ƒ`ƒFƒbƒN
+        // IARObjectInterface ã‚’å®Ÿè£…ã—ã¦ã„ã‚‹ã‹ãƒã‚§ãƒƒã‚¯
         if (HitActor->GetClass()->ImplementsInterface(UARObjectInterface::StaticClass()))
         {
-            // ƒIƒuƒWƒFƒNƒg–¼‚ğƒƒO‚Éo—Í
+            // ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆåã‚’ãƒ­ã‚°ã«å‡ºåŠ›
             UE_LOG(LogTemp, Log, TEXT("Hit ARObject: %s"), *HitActor->GetName());
-            return HitActor;
+            _pTargetMagnetizableActor = HitActor;
         }
         else
         {
-            // æ“¾‚µ‚½ƒIƒuƒWƒFƒNƒg‚ªInterface‚ğ‚à‚Á‚Ä‚¢‚È‚©‚Á‚½
+            // å–å¾—ã—ãŸã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆãŒInterfaceã‚’ã‚‚ã£ã¦ã„ãªã‹ã£ãŸ
             //UE_LOG(LogTemp, Warning, TEXT("Hit actor does not implement IARObjectInterface: %s"), *HitActor->GetName());
         }
     }
     else
     {
-        // ƒIƒuƒWƒFƒNƒg‚ğŒŸ’m‚Å‚«‚È‚©‚Á‚½
+        // ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã‚’æ¤œçŸ¥ã§ããªã‹ã£ãŸ
         //UE_LOG(LogTemp, Warning, TEXT("No actor hit during line trace."));
     }
-
-    return nullptr;
 }
 
+// /*
+// * å¯¾è±¡ã®å¼•åŠ›æ–¥åŠ›ã‚’ä»˜ä¸ã™ã‚‹ãƒ‡ãƒªã‚²ãƒ¼ãƒˆé–¢æ•°
+// */
+// void ULineTraceSingleARObjectComponent::SetTargetmagnetizableObject(AActor* targetMagnetizableObject)
+// {
+//     _pTargetMagnetizableActor = targetMagnetizableObject;
+// }
+
+
 /*
-* ULineTraceSingleARObjectComponent Lifecycle Functions
+* Start ULineTraceSingleARObjectComponent Lifecycle Functions
 */
 ULineTraceSingleARObjectComponent::ULineTraceSingleARObjectComponent()
     : LineTraceLength(1000.0f)
+    , _pTargetMagnetizableActor(nullptr)
 {
 	PrimaryComponentTick.bCanEverTick = true;
 }
@@ -65,3 +75,6 @@ void ULineTraceSingleARObjectComponent::TickComponent(float DeltaTime, ELevelTic
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 }
+/*
+* End ULineTraceSingleARObjectComponent Lifecycle Functions
+*/
