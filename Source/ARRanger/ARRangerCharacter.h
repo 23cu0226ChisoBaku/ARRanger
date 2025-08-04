@@ -197,14 +197,6 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Input")
 	void DoClimb(float Right, float Up);
 
-	// 山内
-	UFUNCTION(BlueprintCallable, Category = "Input")
-	void DoAttachAttraction();
-
-	// 山内
-	UFUNCTION(BlueprintCallable, Category = "Input")
-	void DoAttachRepulsion();
-
 	// コントロールまたはUIインターフェースからのルック入力を処理する
 	UFUNCTION(BlueprintCallable, Category = "Input")
 	virtual void DoLook(float Yaw, float Pitch);

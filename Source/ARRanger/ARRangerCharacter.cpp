@@ -309,25 +309,6 @@ void AARRangerCharacter::OnClimbSurfaceOverlap(
 	int32 OtherBodyIndex,
 	bool bFromSweep,
 	const FHitResult& SweepResult)
-{}
-
-/*
-* 山内
-*/
-void AARRangerCharacter::DoAttachAttraction()
-{
-
-}
-
-/*
-* 山内
-*/
-void AARRangerCharacter::DoAttachRepulsion()
-{
-
-}
-
-void AARRangerCharacter::DoMove(float Right, float Forward)
 {
 	if (OtherActor == this)
 	{
@@ -339,10 +320,74 @@ void AARRangerCharacter::DoMove(float Right, float Forward)
 	}
 }
 
+void AARRangerCharacter::DoMove(float Right, float Forward)
+{
+	if (GetController() == nullptr || isAttacked || isStrongAttack)
+	{
+		return;
+	}
+
+	if (!isClimbed)
+	{
+		const FRotator Rotation = GetController()->GetControlRotation();
+		const FRotator YawRotation(0, Rotation.Yaw, 0);
+
+		const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+		const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+
+		AddMovementInput(ForwardDirection, Forward);
+		AddMovementInput(RightDirection, Right);
+	}
+	else
+	{
+		GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Flying);
+
+		// 壁回転処理
+		// 壁があるかを判定
+		const FVector WallNormal = currentClimbSurface->GetActorUpVector().GetSafeNormal();
+		FHitResult HitResult;
+		FVector Start = GetActorLocation();
+		FVector End = Start + WallNormal * 100.0f;
+
+		FCollisionQueryParams Params;
+		Params.AddIgnoredActor(this);
+
+		bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_Visibility, Params);
+		// ライントレースで壁を判定
+		if (bHit)
+		{
+			const FVector X = GetActorUpVector().GetSafeNormal();
+			const FVector Z = HitResult.Normal.GetSafeNormal();
+			const FRotator NewRot = FRotationMatrix::MakeFromXZ(X, Z).Rotator();
+			SetActorRotation(NewRot);
+		}
+		else
+		{
+			// 壁がないのでクライム解除＋ジャンプ処理
+			isClimbed = false;
+			GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Falling);
+
+			// 少し上方向にジャンプさせると自然
+			LaunchCharacter(FVector(0.f, 0.f, 500.f), true, true);
+			return;
+		}
+
+		if (!currentClimbSurface)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("currentClimbSurface is null!"));
+			return;
+		}
+
+		// 壁の向きに対して上下左右に移動
+		AddMovementInput(GetActorForwardVector(), Forward);
+		AddMovementInput(GetActorRightVector(), Right);
+	}
+}
+
 void AARRangerCharacter::StartClimbing(AInsekiClimbingObject* ClimbActor)
 {
 	// クライム中でない、引力クライムオブジェクトに触れていない、または引力状態でないなら処理しない
-	if (isClimbed || !ClimbActor || CurrentGravityType != EGravityType::Attractive)
+	if (isClimbed || !ClimbActor || CurrentARType != EARType::Attraction)
 	{
 		return;
 	}
@@ -384,67 +429,6 @@ void AARRangerCharacter::StopClimbing()
 	// 回転を元に戻す
 	SetActorRotation(FRotator(0.f, GetActorRotation().Yaw, 0.f));
 	GetCharacterMovement()->SetMovementMode(MOVE_Falling);
-}
-
-void AARRangerCharacter::DoMove(float Right, float Forward)
-{
-	if (GetController() == nullptr || isAttacked || isStrongAttack)
-	{
-		return;
-	}
-
-	if (!isClimbed)
-	{
-		const FRotator Rotation = GetController()->GetControlRotation();
-		const FRotator YawRotation(0, Rotation.Yaw, 0);
-
-		const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-		const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
-
-		AddMovementInput(ForwardDirection, Forward);
-		AddMovementInput(RightDirection, Right);
-	}
-	else
-	{
-		GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Flying);
-
-		// 壁回転処理
-		FHitResult HitResult;
-		FVector Start = GetActorLocation();
-		FVector End = Start + GetActorForwardVector() * 100.0f;
-
-		FCollisionQueryParams Params;
-		Params.AddIgnoredActor(this);
-
-		if (GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_Visibility, Params))
-		{
-			const FVector X = GetActorUpVector().GetSafeNormal();
-			const FVector Z = HitResult.Normal.GetSafeNormal();
-			const FRotator NewRot = FRotationMatrix::MakeFromXZ(X, Z).Rotator();
-			SetActorRotation(NewRot);
-		}
-
-		if (!currentClimbSurface)
-		{
-			UE_LOG(LogTemp, Warning, TEXT("currentClimbSurface is null!"));
-			return;
-		}
-
-		// 壁の法線（壁の外向き方向）
-		const FVector WallNormal = -currentClimbSurface->GetActorUpVector().GetSafeNormal();
-
-		// 壁に沿った上方向（ワールドの上と壁法線の外積）
-		const FVector WallUp = FVector::CrossProduct(WallNormal, GetActorRightVector()).GetSafeNormal();
-
-		// 壁に沿った右方向（＝壁の上 × 壁の法線）
-		const FVector WallRight = FVector::CrossProduct(WallUp, WallNormal).GetSafeNormal();
-
-		// 入力に応じた移動ベクトル（壁に沿った上下・左右）
-		const FVector ClimbDirection = (WallUp * Forward + WallRight * Right).GetSafeNormal();
-
-		AddMovementInput(GetActorForwardVector(), Forward);
-		AddMovementInput(GetActorRightVector(), Right);
-	}
 }
 
 void AARRangerCharacter::DoLook(float Yaw, float Pitch)
