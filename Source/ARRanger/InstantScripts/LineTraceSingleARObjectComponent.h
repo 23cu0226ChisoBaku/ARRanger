@@ -27,12 +27,12 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LineTrace")
 	float LineTraceLength;
 
-	///*
-	//* @brief アウトラインの処理を呼び出すデリゲート関数
-	//* 
-	//* @param アウトラインをつける対象のオブジェクトポインタ
-	//*/
-	//void OnBlinkingOutline(AActor* magnetizableObject);
+	/*
+	* @brief 対象オブジェクトを保持するためのデリゲート関数
+	* 
+	* @param アウトラインをつける対象のオブジェクトポインタ
+	*/
+	void SetTargetmagnetizableObject(AActor* magnetizableObject);
 
 	///*
 	//* @brief デリゲート関数を登録する用

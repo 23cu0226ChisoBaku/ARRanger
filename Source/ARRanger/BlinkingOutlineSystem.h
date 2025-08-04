@@ -22,6 +22,8 @@ class BlinkingOutlineSystem
 	* @brief アウトラインの処理を呼び出すデリゲート関数
 	*
 	* @param アウトラインをつける対象のオブジェクトポインタ
+	* 
+	*  AGameModeBaseを継承しているクラスのStartPlay()関数でバインド
 	*/
 	void OnBlinkingOutline(const AActor* magnetizableObject);
 

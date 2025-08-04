@@ -48,19 +48,11 @@ void ULineTraceSingleARObjectComponent::TraceForARObject(const FVector& Start, c
 }
 
 /*
-* アウトラインの処理を呼び出すデリゲート関数
+* 対象の引力斥力を付与するデリゲート関数
 */
-void ULineTraceSingleARObjectComponent::OnBlinkingOutline(AActor* magnetizableObject)
+void ULineTraceSingleARObjectComponent::SetTargetmagnetizableObject(AActor* targetMagnetizableObject)
 {
-    if (OnOutline.IsBound())
-    {
-        OnOutline.Execute(magnetizableObject);
-        UE_LOG(LogTemp, Log, TEXT("OnOutline invoke."));
-    }
-    else
-    {
-        UE_LOG(LogTemp, Log, TEXT("OnOutline was not bound."));
-    }
+    _pTargetMagnetizableActor = targetMagnetizableObject;
 }
 
 
