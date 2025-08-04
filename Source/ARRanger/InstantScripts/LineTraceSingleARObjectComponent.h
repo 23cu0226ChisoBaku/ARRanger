@@ -1,4 +1,4 @@
-// ARObject‚ðƒ‰ƒCƒ“‚ÆƒŒ[ƒX‚ÅŽæ“¾‚·‚éƒRƒ“ƒ|[ƒlƒ“ƒg(‘¦ÈƒXƒNƒŠƒvƒg)
+// ARObjectã‚’ãƒ©ã‚¤ãƒ³ã¨ãƒ¬ãƒ¼ã‚¹ã§å–å¾—ã™ã‚‹ã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆ(å³å¸­ã‚¹ã‚¯ãƒªãƒ—ãƒˆ)
 
 #pragma once
 
@@ -8,8 +8,8 @@
 #include "Interface/IARTypeInterface.h"
 #include "LineTraceSingleARObjectComponent.generated.h"
 
-//// ƒfƒŠƒQ[ƒgŠÖ”éŒ¾
-//DECLARE_DELEGATE_OneParam(FOnOutlineDelegate, AActor*);
+// ãƒ‡ãƒªã‚²ãƒ¼ãƒˆé–¢æ•°å®£è¨€
+DECLARE_DELEGATE_OneParam(FOnOutlineDelegate, AActor*);
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class ARRANGER_API ULineTraceSingleARObjectComponent : public UActorComponent
@@ -23,42 +23,41 @@ public:
 	ULineTraceSingleARObjectComponent();
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
-	// ƒ‰ƒCƒ“ƒgƒŒ[ƒX—p
+	// ãƒ©ã‚¤ãƒ³ãƒˆãƒ¬ãƒ¼ã‚¹ç”¨
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LineTrace")
 	float LineTraceLength;
 
+	// /*
+	// * @brief å¯¾è±¡ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã‚’ä¿æŒã™ã‚‹ãŸã‚ã®ãƒ‡ãƒªã‚²ãƒ¼ãƒˆé–¢æ•°
+	// * 
+	// * @param ã‚¢ã‚¦ãƒˆãƒ©ã‚¤ãƒ³ã‚’ã¤ã‘ã‚‹å¯¾è±¡ã®ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆãƒã‚¤ãƒ³ã‚¿
+	// */
+	// void SetTargetMagnetizableObject(AActor* magnetizableObject);
+
 	/*
-	* @brief ‘ÎÛƒIƒuƒWƒFƒNƒg‚ð•ÛŽ‚·‚é‚½‚ß‚ÌƒfƒŠƒQ[ƒgŠÖ”
-	* 
-	* @param ƒAƒEƒgƒ‰ƒCƒ“‚ð‚Â‚¯‚é‘ÎÛ‚ÌƒIƒuƒWƒFƒNƒgƒ|ƒCƒ“ƒ^
+	* @brief ãƒ‡ãƒªã‚²ãƒ¼ãƒˆé–¢æ•°ã‚’ç™»éŒ²ã™ã‚‹ç”¨
 	*/
-	void SetTargetmagnetizableObject(AActor* magnetizableObject);
-
-	///*
-	//* @brief ƒfƒŠƒQ[ƒgŠÖ”‚ð“o˜^‚·‚é—p
-	//*/
-	//void SetBindBlinkingOutline();
-	//FOnOutlineDelegate@
+	FOnOutlineDelegate SetTargetMagnetizableObject;
 
 	/*
-	* @brief ƒ‰ƒCƒ“ƒgƒŒ[ƒX‚ðs‚Á‚Ä•t—^‚Å‚«‚éƒIƒuƒWƒFƒNƒg‚ðŒŸ’m
+	* @brief ãƒ©ã‚¤ãƒ³ãƒˆãƒ¬ãƒ¼ã‚¹ã‚’è¡Œã£ã¦ä»˜ä¸Žã§ãã‚‹ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã‚’æ¤œçŸ¥
 	*
-	* @param ƒ‰ƒCƒ“ƒgƒŒ[ƒX‚ðs‚¤‚½‚ß‚ÌŽn“_‚ÆI“_
+	* @param ãƒ©ã‚¤ãƒ³ãƒˆãƒ¬ãƒ¼ã‚¹ã‚’è¡Œã†ãŸã‚ã®å§‹ç‚¹ã¨çµ‚ç‚¹
 	*/
 	UFUNCTION(BlueprintCallable, Category = "LineTrace")
-	void TraceForARObject(const FVector& Start, const FVector& End);
+	void TraceForMagnetizableObject(const FVector& Start, const FVector& End);
 
 private:
 
-	AActor* _pTargetMagnetizableActor;	// ‘ÎÛƒIƒuƒWƒFƒNƒg
+	AActor* _pTargetMagnetizableActor;	// å¯¾è±¡ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆ
 
 
-	// ƒI[ƒo[ƒŒƒCƒ}ƒeƒŠƒAƒ‹‚ÌÝ’è•û–@
-	// BP‚Å‚à‰Â”\
-	// ‚±‚Ìˆ—‚ðŽ‚Á‚Ä‚¨‚­ƒIƒuƒWƒFƒNƒg‚ÍV‚µ‚¢“z‚ðì‚é
-	// ‘ÎÛƒIƒuƒWƒFƒNƒg‚ÍATypeƒCƒ“ƒ^[ƒtƒF[ƒX‚ðŽ‚Á‚Ä‚¢‚é‚©‚Ç‚¤‚©‚Å”»’f
-	// ‘ÎÛ‚ÌƒƒbƒVƒ…ƒRƒ“ƒ|[ƒlƒ“ƒg‚ðŽæ“¾‚µ‚Ä•ÛŽ‚µ‚Ä‚¢‚½ƒAƒEƒgƒ‰ƒCƒ“ƒ}ƒeƒŠƒAƒ‹‚ð“K—p
+	// ã‚ªãƒ¼ãƒãƒ¼ãƒ¬ã‚¤ãƒžãƒ†ãƒªã‚¢ãƒ«ã®è¨­å®šæ–¹æ³•
+	// BPã§ã‚‚å¯èƒ½
+	// ã“ã®å‡¦ç†ã‚’æŒã£ã¦ãŠãã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã¯æ–°ã—ã„å¥´ã‚’ä½œã‚‹
+	// å¯¾è±¡ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã¯ã€Typeã‚¤ãƒ³ã‚¿ãƒ¼ãƒ•ã‚§ãƒ¼ã‚¹ã‚’æŒã£ã¦ã„ã‚‹ã‹ã©ã†ã‹ã§åˆ¤æ–­
+	// å¯¾è±¡ã®ãƒ¡ãƒƒã‚·ãƒ¥ã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆã‚’å–å¾—ã—ã¦ä¿æŒã—ã¦ã„ãŸã‚¢ã‚¦ãƒˆãƒ©ã‚¤ãƒ³ãƒžãƒ†ãƒªã‚¢ãƒ«ã‚’é©ç”¨
 	// FunFun()
-	// “_–ÅƒfƒBƒŒƒC = 0,“_–ÅŽžŠÔAŠÔŠuAF‚ÍŠeƒpƒ‰ƒ[ƒ^‚Å§Œä
+	// ç‚¹æ»…ãƒ‡ã‚£ãƒ¬ã‚¤ = 0,ç‚¹æ»…æ™‚é–“ã€é–“éš”ã€è‰²ã¯å„ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ã§åˆ¶å¾¡
 	// UMeshComponent->SetOverlayMaterial(Material);
 };

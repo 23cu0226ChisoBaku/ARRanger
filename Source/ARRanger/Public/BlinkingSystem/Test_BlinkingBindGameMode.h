@@ -8,7 +8,7 @@
 #include "Test_BlinkingBindGameMode.generated.h"
 
 /*
- * BlinkingOutlineSystem ‚ÌŠÖ”‚ğ LineTraceSingleARObjectComponent ‚ÌƒfƒŠƒQ[ƒg‚ÉƒoƒCƒ“ƒh‚·‚é—p‚ÌƒQ[ƒ€ƒ‚[ƒh
+ * BlinkingOutlineSystem ã®é–¢æ•°ã‚’ LineTraceSingleARObjectComponent ã®ãƒ‡ãƒªã‚²ãƒ¼ãƒˆã«ãƒã‚¤ãƒ³ãƒ‰ã™ã‚‹ç”¨ã®ã‚²ãƒ¼ãƒ ãƒ¢ãƒ¼ãƒ‰
  */
 UCLASS()
 class ARRANGER_API ATest_BlinkingBindGameMode : public AGameModeBase

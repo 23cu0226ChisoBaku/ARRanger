@@ -1,9 +1,8 @@
-
-
-#include "BlinkOutlineTickActor.h"
 //*************************************************
-// ƒAƒEƒgƒ‰ƒCƒ“‚Ì“_–Åˆ—‚ğ–ˆƒtƒŒ[ƒ€ˆ—‚·‚éƒAƒNƒ^[
+// ã‚¢ã‚¦ãƒˆãƒ©ã‚¤ãƒ³ã®ç‚¹æ»…å‡¦ç†ã‚’æ¯ãƒ•ãƒ¬ãƒ¼ãƒ å‡¦ç†ã™ã‚‹ã‚¢ã‚¯ã‚¿ãƒ¼
 //*************************************************
+
+#include "Public/BlinkingSystem/BlinkOutlineTickActor.h"
 
 ABlinkOutlineTickActor::ABlinkOutlineTickActor()
 {
@@ -21,19 +20,27 @@ void ABlinkOutlineTickActor::Tick(float DeltaTime)
 }
 
 /*
-* @brief ƒAƒEƒgƒ‰ƒCƒ“‚Ìˆ—‚ğŒÄ‚Ño‚·ƒfƒŠƒQ[ƒgŠÖ”
+* @brief å¯¾è±¡ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã‚’ãƒ‡ãƒªã‚²ãƒ¼ãƒˆé–¢æ•°
 *
-* @param ƒAƒEƒgƒ‰ƒCƒ“‚ğ‚Â‚¯‚é‘ÎÛ‚ÌƒIƒuƒWƒFƒNƒgƒ|ƒCƒ“ƒ^
+* @param ã‚¢ã‚¦ãƒˆãƒ©ã‚¤ãƒ³ã‚’ã¤ã‘ã‚‹å¯¾è±¡ã®ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆãƒã‚¤ãƒ³ã‚¿
 */
-void ABlinkOutlineTickActor::OnBlinkingOutline(AActor* magnetizableObject)
+void ABlinkOutlineTickActor::SetTargetmagnetizableObject(const AActor* magnetizableObject)
 {
 
 }
 
 /*
-* @brief “_–Å‚³‚¹‚éƒAƒNƒ^[‚ğ’Ç‰Á‚·‚é(ƒƒbƒVƒ…ƒRƒ“ƒ|[ƒlƒ“ƒg‚ğæ“¾‚·‚é)
+* @brief BlinkingOutlineSystem ã‹ã‚‰ã®ãƒªã‚¯ã‚¨ã‚¹ãƒˆã‚’å—ã‘å–ã‚‹
+*/
+void ABlinkOutlineTickActor::HandleRequest()
+{
+	Add
+}
+
+/*
+* @brief ç‚¹æ»…ã•ã›ã‚‹ã‚¢ã‚¯ã‚¿ãƒ¼ã‚’è¿½åŠ ã™ã‚‹(ãƒ¡ãƒƒã‚·ãƒ¥ã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆã‚’å–å¾—ã™ã‚‹)
 *
-* @param “_–Å‚³‚¹‚éƒAƒNƒ^[
+* @param ç‚¹æ»…ã•ã›ã‚‹ã‚¢ã‚¯ã‚¿ãƒ¼
 */
 void ABlinkOutlineTickActor::AddBlinkingActor(AActor* newActor)
 {
@@ -46,6 +53,3 @@ void ABlinkOutlineTickActor::AddBlinkingActor(AActor* newActor)
 		_pBlinkingActorComponents.Add(MeshComponent);
 	}
 }
-
-
-
