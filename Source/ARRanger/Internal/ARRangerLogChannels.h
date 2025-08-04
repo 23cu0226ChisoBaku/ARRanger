@@ -7,5 +7,4 @@
 
 ARRANGER_API DECLARE_LOG_CATEGORY_EXTERN(LogARPhysics, Log, All);
 
-
 #endif // _AR_LOG_CHANNELS_

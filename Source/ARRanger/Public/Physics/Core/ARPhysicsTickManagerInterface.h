@@ -5,21 +5,23 @@
 #ifndef _AR_CORE_PHYSICS_TICK_MANAGER_INTERFACE_
 #define _AR_CORE_PHYSICS_TICK_MANAGER_INTERFACE_
 
-struct FARPhysicsTickParameters
+struct FARPhysicsTickParameters;
+enum class EARPhysicsTickType : uint8;
+
+namespace ARRanger::Physics
 {
-  float DeltaTime;
-  
-  float TotalSimTime;
-};
+  class FARPhysicsTickManagerInterface
+  {
+    public:
+      ARRANGER_API virtual ~FARPhysicsTickManagerInterface() = default;
+    
+      ARRANGER_API virtual void ExecuteARPhysicsTick(EARPhysicsTickType TickType, const FARPhysicsTickParameters& Params) = 0;
 
-class FARPhysicsTickManagerInterface
-{
-public:
-	ARRANGER_API virtual ~FARPhysicsTickManagerInterface() = default;
+      ARRANGER_API virtual void DeinitializeTickTasks() = 0; 
+    
+      static ARRANGER_API FARPhysicsTickManagerInterface& Get();
+  };
+}
 
-  ARRANGER_API virtual void ExecuteARPhysicTick(const FARPhysicsTickParameters& Params) = 0;
-
-  static ARRANGER_API FARPhysicsTickManagerInterface& Get();
-};
 
 #endif // _AR_CORE_PHYSICS_TICK_MANAGER_INTERFACE_

@@ -2,52 +2,73 @@
 
 
 #include "Physics/Core/ARPhysicsTickObject.h"
-
-FARPhysicsEvaluationResult::FARPhysicsEvaluationResult(const FVector& InPreviousForce)
-  : PreviousForce(InPreviousForce)
-  , ForceResult{ForceInitToZero}
-{ }
+#include "Physics/Core/ARPhysicsTickManagerInterface.h"
+#include "Internal/ARLoggingHeader.h"
 
 UARPhysicsTickObject::UARPhysicsTickObject()
-  : PreviousExternalForceResult{ForceInitToZero}
-  , EvaluatedExternalForceResult{ForceInitToZero}
-  , bIsTerminated{false}
-  , bIsCurrentFrameEvaluateFinished{false}
+  : PreviousResult{}
+  , Result{}
+  , m_internalData{::MakeUnique<FInternalData>()}
 { }
+
+void UARPhysicsTickObject::TickPhysics(const FARPhysicsTickParameters& TickParams)
+{
+  BeginTickObject();
+
+  Tick(TickParams);
+
+  EndTickObject();
+}
 
 void UARPhysicsTickObject::BeginTickObject()
 {
-  if (!bIsTerminated)
+  if (!m_internalData.IsValid())
   {
-    PreviousExternalForceResult = EvaluatedExternalForceResult;
-    bIsCurrentFrameEvaluateFinished = false;
+    m_internalData.Reset(new FInternalData());
+  }
+
+  if (m_internalData->bIsTerminated)
+  {
+    PreviousResult = Result;
+    m_internalData->bIsEvaluateFinishedCurrentFrame = false;
     OnBeginTickObject();
   }
 }
 
 void UARPhysicsTickObject::Tick(const FARPhysicsTickParameters& TickParams)
 {
-  if (!bIsTerminated && !bIsCurrentFrameEvaluateFinished)
+  check(m_internalData.IsValid());
+  if (!m_internalData->bIsTerminated && !m_internalData->bIsEvaluateFinishedCurrentFrame)
   {
-    FARPhysicsEvaluationResult result{PreviousExternalForceResult};
-    OnTick(TickParams, result);
+    OnTick(TickParams, Result);
+
+    // TODO For blueprint usage
+    // Same as AActor::Tick
+    if (GetClass()->HasAnyClassFlags(CLASS_CompiledFromBlueprint) || !GetClass()->HasAllClassFlags(CLASS_Native))
+    {
+      TickOnBlueprint(TickParams, Result);
+    }
   }
 }
 
-void UARPhysicsTickObject::EndTickObject(const FARPhysicsEvaluationResult& EvaluatedResult)
+void UARPhysicsTickObject::EndTickObject()
 {
-  if (!bIsTerminated && !bIsCurrentFrameEvaluateFinished)
-  {
-    EvaluatedExternalForceResult = EvaluatedResult.ForceResult;
-    bIsCurrentFrameEvaluateFinished = true;
+  check(m_internalData.IsValid());
 
-    OnEndTickObject(EvaluatedResult);
+  if (!m_internalData->bIsTerminated && !m_internalData->bIsEvaluateFinishedCurrentFrame)
+  {
+    m_internalData->bIsEvaluateFinishedCurrentFrame = true;
+
+    OnEndTickObject();
   }
 }
 
 void UARPhysicsTickObject::TerminateTickObject()
 {
-  bIsTerminated = true;
+  if (m_internalData.IsValid())
+  {
+    m_internalData->bIsTerminated = true;
+  }
 }
 
 void UARPhysicsTickObject::BeginDestroy()
@@ -55,4 +76,14 @@ void UARPhysicsTickObject::BeginDestroy()
   TerminateTickObject();
 
   Super::BeginDestroy();
+}
+
+void FARPhysicsTickFunction::ExecuteTick(const FARPhysicsTickParameters& TickParams)
+{
+  if (IsValid(TargetObject) && !TargetObject->IsTerminated())
+  {
+    TargetObject->TickPhysics(TickParams);
+
+    AR_LOG(LogARPhysics, Log, TEXT("Run FARPhysicsTickFunction ExecuteTick"));
+  }
 }

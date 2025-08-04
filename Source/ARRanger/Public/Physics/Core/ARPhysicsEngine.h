@@ -5,6 +5,8 @@
 #ifndef _AR_PHYSICS_ENGINE_
 #define _AR_PHYSICS_ENGINE_
 
+#include "Internal/CountLimiter.h"
+
 /**前方宣言 */
 class IARMagnetizableInterface;
 class FARPhysicsEngineProxy;
@@ -67,31 +69,6 @@ struct FARPhysicsEngineInitializationParameters
   TSubclassOf<AARPhysicsTickProcessorActor> SubclassOfPTPActor;
 };
 
-namespace ARRanger::Private
-{
-  template<typename UserType, uint8 MaxSize>
-  class FCountLimiter
-  {
-    public:
-      FCountLimiter();
-      ~FCountLimiter();
-      static uint8 GetMaxSize();
-      static uint8 GetCreatedObjectNum();
-  };
-}
-
-#define DECLARE_COUNT_LIMITER_PROPERTY(UserType, MaxSize) \
-  private: \
-    friend class ARRanger::Private::FCountLimiter<UserType, MaxSize>; \
-    static uint8 NumInstance; \
-  public: \
-    using ARRanger::Private::FCountLimiter<UserType, MaxSize>::GetMaxSize; \
-    using ARRanger::Private::FCountLimiter<UserType, MaxSize>::GetCreatedObjectNum; \
-  private: 
-
-#define DEFINE_COUNT_LIMITER_PROPERTY(UserType) \
-  uint8 UserType::NumInstance = 0;
-
 class FARPhysicsEngine : private ARRanger::Private::FCountLimiter<FARPhysicsEngine, 1>
 {
   using PhysicsEngineProxyPtr = FARPhysicsEngineProxy*;
@@ -123,7 +100,5 @@ class FARPhysicsEngine : private ARRanger::Private::FCountLimiter<FARPhysicsEngi
     TWeakObjectPtr<AARPhysicsTickProcessorActor> m_tickProcessorActor;
 };
 
-// Include FCountLimiter inline file
-#include "Internal/CountLimiterImpl.inl"
 
 #endif // _AR_PHYSICS_ENGINE_

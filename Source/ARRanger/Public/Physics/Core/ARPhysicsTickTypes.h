@@ -7,6 +7,11 @@
 
 struct FARPhysicsTickParameters;
 
+namespace ARRanger::Physics
+{
+  class FARPhysicsTickTask;
+}
+
 enum class EARPhysicsTickType : uint8
 {
   TT_Magnetic,
@@ -15,11 +20,23 @@ enum class EARPhysicsTickType : uint8
 
 class FARPhysicsTickFunctionInterface
 {
+  friend class FARPhysicsTickManager;
+  friend class ARRanger::Physics::FARPhysicsTickTask;
+
   private:
     enum ETickState_Internal
     { 
       Enabled,
       Disabled,
+    };
+
+    struct FInternalData
+    {
+      FARPhysicsTickTask* PrivateTickTask = nullptr;
+
+      ETickState_Internal TickState = Enabled;
+
+      uint8 bIsRegistered : 1 = false;
     };
 
   public:
@@ -29,8 +46,8 @@ class FARPhysicsTickFunctionInterface
     ARRANGER_API void RegisterPhysicsTickFunction();
     ARRANGER_API void UnregisterPhysicsTickFunction();
     ARRANGER_API void SetEnable(bool bEnabled);
-    bool IsEnabled() const { return m_tickState == ETickState_Internal::Enabled; }
-    bool IsTickFunctionRegistered() const { return bIsRegistered; }
+    bool IsEnabled() const { return m_internalData.IsValid() && m_internalData->TickState == Enabled; }
+    bool IsTickFunctionRegistered() const { return m_internalData.IsValid() && m_internalData->bIsRegistered; }
 
     ARRANGER_API virtual void ExecuteTick(const FARPhysicsTickParameters& Params) = 0;
 
@@ -38,11 +55,11 @@ class FARPhysicsTickFunctionInterface
     EARPhysicsTickType PhysicsTickType;
 
   private:
-    ETickState_Internal m_tickState;
-    uint8 bIsRegistered : 1;
+
+    TUniquePtr<FInternalData> m_internalData;
 };
 
-class FARPhysicsMagneticTickFunction : public FARPhysicsTickFunctionInterface
+class FARPhysicsTickFunction : public FARPhysicsTickFunctionInterface
 {
 
 public:
