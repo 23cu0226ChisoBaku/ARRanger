@@ -265,7 +265,7 @@ void AARRangerCharacter::Tick(float DeltaTime)
 
 		// ライントレースで壁を判定
 		// 壁がないか、または引力クライム中に斥力状態に変身したらクライムを解除
-		if (!bHit || (CurrentARType != EARType::Attraction))
+		if (!bHit || (CurrentARType != EARMagnetismType::Attraction))
 		{
 			// クライム解除＋ジャンプ処理
 			isClimbed = false;
@@ -378,7 +378,7 @@ void AARRangerCharacter::DoMove(float Right, float Forward)
 void AARRangerCharacter::StartClimbing(AInsekiClimbingObject* ClimbActor)
 {
 	// クライム中でない、引力クライムオブジェクトに触れていない、または引力状態でないなら処理しない
-	if (isClimbed || !ClimbActor || CurrentARType != EARType::Attraction)
+	if (isClimbed || !ClimbActor || CurrentARType != EARMagnetismType::Attraction)
 	{
 		return;
 	}
@@ -602,7 +602,7 @@ AActor* AARRangerCharacter::FindNearestEnemy(AActor* IgnoreActor)
 void AARRangerCharacter::StartPunch()
 {
 	// ???????????b?N?I????????????
-	if (CurrentARType == EARType::Attraction && isLockedOn && LockedOnTarget)
+	if (CurrentARType == EARMagnetismType::Attraction && isLockedOn && LockedOnTarget)
 	{
 		if (!isAttractingEnemy)
 		{
@@ -734,12 +734,12 @@ void AARRangerCharacter::Transform()
 	}
 
 	// ???[?h??X?i???? or ???j
-	CurrentARType = (CurrentARType == EARType::Attraction)
-		? EARType::Repulsion
-		: EARType::Attraction;
+	CurrentARType = (CurrentARType == EARMagnetismType::Attraction)
+		? EARMagnetismType::Repulsion
+		: EARMagnetismType::Attraction;
 
 	// ???f???????
-	USkeletalMesh* NewMesh = (CurrentARType == EARType::Repulsion)
+	USkeletalMesh* NewMesh = (CurrentARType == EARMagnetismType::Repulsion)
 		? RepulsionMesh
 		: AttractionMesh;
 
@@ -749,7 +749,7 @@ void AARRangerCharacter::Transform()
 	}
 }
 
-EARType AARRangerCharacter::GetCurrentARType()
+EARMagnetismType AARRangerCharacter::GetCurrentARType()
 {
 	return CurrentARType;
 }

@@ -5,6 +5,30 @@
 #include "Public/BlinkingSystem/BlinkOutlineTickActor.h"
 
 /*
+* Start ULineTraceSingleARObjectComponent Lifecycle Functions
+*/
+ABlinkOutlineTickActor::ABlinkOutlineTickActor()
+{
+	PrimaryActorTick.bCanEverTick = true;
+}
+
+void ABlinkOutlineTickActor::BeginPlay()
+{
+	Super::BeginPlay();
+}
+
+void ABlinkOutlineTickActor::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	//FunFunFunctor()
+}
+/*
+* End ULineTraceSingleARObjectComponent Lifecycle Functions
+*/
+
+
+/*
 * @brief 点滅させるアクターを追加する
 *
 * @param 点滅させるアクター
@@ -41,25 +65,3 @@ void ABlinkOutlineTickActor::RemoveBlinkingActor(AActor* removeActor)
 		m_BlinkingActorComponents.Remove(_pMeshComponent);
 	}
 }
-
-
-/*
-* Start ULineTraceSingleARObjectComponent Lifecycle Functions
-*/
-ABlinkOutlineTickActor::ABlinkOutlineTickActor()
-{
-	PrimaryActorTick.bCanEverTick = true;
-}
-
-void ABlinkOutlineTickActor::BeginPlay()
-{
-	Super::BeginPlay();
-}
-
-void ABlinkOutlineTickActor::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-}
-/*
-* End ULineTraceSingleARObjectComponent Lifecycle Functions
-*/

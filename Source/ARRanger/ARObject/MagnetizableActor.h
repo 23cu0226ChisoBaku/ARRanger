@@ -37,7 +37,7 @@ public:
 	/*Start IARMagnetizableInterface interface*/
 	ARRANGER_API virtual void OnAttraction() override;
 	ARRANGER_API virtual void OnRepulsion() override;
-	ARRANGER_API virtual AActor* GetActor() const override { return (AActor*)this; }
+	ARRANGER_API virtual AActor* GetActor() override { return (AActor*)this; }
 	/*End IARMagnetizableInterface interface*/
 
 private:

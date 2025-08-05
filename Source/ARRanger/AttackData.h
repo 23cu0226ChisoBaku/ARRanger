@@ -8,31 +8,31 @@ struct FAttackData
 {
 	GENERATED_BODY()
 
-	// ’ÊíUŒ‚ƒAƒjƒ[ƒVƒ‡ƒ“ƒ‚ƒ“ƒ^[ƒWƒ…
+	// é€šå¸¸æ”»æ’ƒã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ãƒ¢ãƒ³ã‚¿ãƒ¼ã‚¸ãƒ¥
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	UAnimMontage* Montage_Normal = nullptr;
 
-	// ‹­UŒ‚ƒAƒjƒ[ƒVƒ‡ƒ“ƒ‚ƒ“ƒ^[ƒWƒ…
+	// å¼·æ”»æ’ƒã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ãƒ¢ãƒ³ã‚¿ãƒ¼ã‚¸ãƒ¥
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	UAnimMontage* Montage_Strong = nullptr;
 
-	// ‹­UŒ‚‚Ìˆø—ÍEË—Í‚ÌƒAƒjƒ[ƒVƒ‡ƒ“ƒ‚ƒ“ƒ^[ƒWƒ…(ˆø‚«Šñ‚¹A‚«”ò‚Î‚µ)
+	// å¼·æ”»æ’ƒæ™‚ã®å¼•åŠ›ãƒ»æ–¥åŠ›ã®ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ãƒ¢ãƒ³ã‚¿ãƒ¼ã‚¸ãƒ¥(å¼•ãå¯„ã›ã€å¹ãé£›ã°ã—)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	UAnimMontage* Montage_AR = nullptr;
 
-	// “–‚½‚è”»’è‚Ì”¼Œa
+	// å½“ãŸã‚Šåˆ¤å®šã®åŠå¾„
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float HitRadius = 100.f;
 
-	// ƒ_ƒ[ƒW
+	// ãƒ€ãƒ¡ãƒ¼ã‚¸
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int32 Damage = 10;
 
-	// ‹­UŒ‚—p‚Ìƒ_ƒ[ƒW•â³
+	// å¼·æ”»æ’ƒç”¨ã®ãƒ€ãƒ¡ãƒ¼ã‚¸è£œæ­£
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int32 DamageModifier = 20;
 
-	// UŒ‚‘ÎÛ‚Ìƒ^ƒO
+	// æ”»æ’ƒå¯¾è±¡ã®ã‚¿ã‚°
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FName TargetTag = "Enemy"; 
 };

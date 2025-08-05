@@ -18,10 +18,10 @@ public:
 	*/
 	void CreateTickingActor(UWorld* world);
 
-	/*
-	* @brief LineTraceSingleARObjectComponent のデリゲート関数に登録
-	*/
-	void RegisterDelegateFunction();
+	// /*
+	// * @brief LineTraceSingleARObjectComponent のデリゲート関数に登録
+	// */
+	// void RegisterDelegateFunction();
 
 	/*
 	* @brief アウトラインの処理を呼び出すデリゲート関数

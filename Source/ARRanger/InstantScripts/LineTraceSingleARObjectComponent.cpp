@@ -54,7 +54,7 @@ void ULineTraceSingleARObjectComponent::TraceForMagnetizableObject(const FVector
         AActor* HitActor = HitResult.GetActor();
 
         // IARObjectInterface を実装しているかチェック
-        if (HitActor->GetClass()->ImplementsInterface(UARObjectInterface::StaticClass()))
+        if (HitActor->GetClass()->ImplementsInterface(UARMagnetizableInterface::StaticClass()))
         {
             // オブジェクト名をログに出力
             UE_LOG(LogTemp, Log, TEXT("Hit ARObject: %s"), *HitActor->GetName());
@@ -70,5 +70,19 @@ void ULineTraceSingleARObjectComponent::TraceForMagnetizableObject(const FVector
     {
         // オブジェクトを検知できなかった
         //UE_LOG(LogTemp, Warning, TEXT("No actor hit during line trace."));
+    }
+}
+
+/** 
+ * @brief BPでデリゲートを呼び出す
+ */
+void ULineTraceSingleARObjectComponent::ExecuteSetTargetMagnetizableObject()
+{
+    if(SetTargetMagnetizableObject.IsBound())
+    {
+        if(m_TargetMagnetizableActor)
+        {
+            SetTargetMagnetizableObject.Execute(m_TargetMagnetizableActor);
+        }
     }
 }
