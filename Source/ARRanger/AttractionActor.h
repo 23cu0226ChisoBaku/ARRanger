@@ -1,19 +1,30 @@
 #pragma once
 
-#include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+
+#include "Physics/IARPhysicsSystemHost.h"
+#include "IARMagnetizableInterface.h"
+
 #include "AttractionActor.generated.h"
 
 class UStaticMeshComponent;
 class USphereComponent;
 
 UCLASS()
-class ARRANGER_API AAttractionActor : public AActor
+class ARRANGER_API AAttractionActor : public AActor,
+                                      public IARPhysicsSystemHost,
+                                      public IARMagnetizableInterface
 {
 	GENERATED_BODY()
 
 public:
 	AAttractionActor();
+
+  ARRANGER_API virtual void OnAttraction() override {}
+
+	ARRANGER_API virtual void OnRepulsion() override {}
+
+	virtual AActor* GetActor() const override{ return const_cast<AActor*>(this); };
 
 protected:
 	virtual void BeginPlay() override;
@@ -25,17 +36,7 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite,Category = Inseki, meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<USphereComponent> Sphere;
 
-	UPROPERTY(EditAnywhere, Category = Inseki, meta = (AllowPrivateAccess = "true"))
-	float constProp;
-
-	UPROPERTY(EditAnywhere, Category = Inseki, meta = (AllowPrivateAccess = "true"))
-	float magneticValue;
-
-	bool onStayFlag;
-
-	bool repulsionFlag;
-
-	AActor* playerCharacter;
+  
 
 private:
 	UFUNCTION()
@@ -43,8 +44,5 @@ private:
 
 	UFUNCTION()
 	void OnSphereEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
-
-public:
-	virtual void Tick(float DeltaTime) override;
 
 };

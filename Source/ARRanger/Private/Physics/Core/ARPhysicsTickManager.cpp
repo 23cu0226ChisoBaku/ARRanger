@@ -67,6 +67,14 @@ class FARPhysicsTickManager : public ARRanger::Physics::FARPhysicsTickManagerInt
       m_tickTasks.Reset();
     }
 
+    bool HasTickFunction(FARPhysicsTickFunctionInterface* TickFunction)
+    {
+      check(TickFunction != nullptr);
+
+      FARPhysicsTickTask* task = GetValidTickTask(TickFunction->PhysicsTickType);
+      return ((task != nullptr) && task->HasTickFunction(TickFunction));
+    }
+
   private:
     TMap<EARPhysicsTickType, FARPhysicsTickTask*> m_tickTasks;
 };
@@ -83,6 +91,7 @@ namespace ARRanger::Physics
 #pragma region FARPhysicsTickFunctionInterface implementation
 FARPhysicsTickFunctionInterface::FARPhysicsTickFunctionInterface()
   : PhysicsTickType{EARPhysicsTickType::TT_Magnetic}
+  , Frequency{EARPhysicsTickFrequency::TF_Default}
   , m_internalData{::MakeUnique<FInternalData>()}
 { }
 

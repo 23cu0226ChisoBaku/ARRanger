@@ -18,10 +18,25 @@ enum class EARPhysicsTickType : uint8
   TT_Gravity,
 };
 
+enum class EARPhysicsTickFrequency : uint8
+{
+  /**Tick every time until tick function is disabled */
+  TF_Default,
+
+  /**Only tick once */
+  TF_Once,
+};
+
 class FARPhysicsTickFunctionInterface
 {
   friend class FARPhysicsTickManager;
   friend class ARRanger::Physics::FARPhysicsTickTask;
+
+  
+  public:
+    EARPhysicsTickType PhysicsTickType;
+
+    EARPhysicsTickFrequency Frequency;
 
   private:
     enum ETickState_Internal
@@ -32,7 +47,7 @@ class FARPhysicsTickFunctionInterface
 
     struct FInternalData
     {
-      FARPhysicsTickTask* PrivateTickTask = nullptr;
+      ARRanger::Physics::FARPhysicsTickTask* PrivateTickTask = nullptr;
 
       ETickState_Internal TickState = Enabled;
 
@@ -51,11 +66,7 @@ class FARPhysicsTickFunctionInterface
 
     ARRANGER_API virtual void ExecuteTick(const FARPhysicsTickParameters& Params) = 0;
 
-  public:
-    EARPhysicsTickType PhysicsTickType;
-
   private:
-
     TUniquePtr<FInternalData> m_internalData;
 };
 

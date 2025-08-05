@@ -7,9 +7,19 @@
 
 UARPhysicsTickObject::UARPhysicsTickObject()
   : PreviousResult{}
-  , Result{}
+  , EvaluatedResult{}
   , m_internalData{::MakeUnique<FInternalData>()}
 { }
+
+void UARPhysicsTickObject::RegisterPhysicsTickFunction()
+{
+  check(!m_internalData->bIsTerminated);
+  check(!PrimaryPhysicsTick.IsTickFunctionRegistered());
+
+  PrimaryPhysicsTick.TargetObject = this;
+  PrimaryPhysicsTick.SetEnable(true);
+  PrimaryPhysicsTick.RegisterPhysicsTickFunction();
+}
 
 void UARPhysicsTickObject::TickPhysics(const FARPhysicsTickParameters& TickParams)
 {
@@ -22,14 +32,9 @@ void UARPhysicsTickObject::TickPhysics(const FARPhysicsTickParameters& TickParam
 
 void UARPhysicsTickObject::BeginTickObject()
 {
-  if (!m_internalData.IsValid())
-  {
-    m_internalData.Reset(new FInternalData());
-  }
-
   if (m_internalData->bIsTerminated)
   {
-    PreviousResult = Result;
+    PreviousResult = EvaluatedResult;
     m_internalData->bIsEvaluateFinishedCurrentFrame = false;
     OnBeginTickObject();
   }
@@ -40,14 +45,18 @@ void UARPhysicsTickObject::Tick(const FARPhysicsTickParameters& TickParams)
   check(m_internalData.IsValid());
   if (!m_internalData->bIsTerminated && !m_internalData->bIsEvaluateFinishedCurrentFrame)
   {
-    OnTick(TickParams, Result);
+    FARPhysicsEvaluationResult result{};
+    OnTick(TickParams, result);
 
     // TODO For blueprint usage
     // Same as AActor::Tick
     if (GetClass()->HasAnyClassFlags(CLASS_CompiledFromBlueprint) || !GetClass()->HasAllClassFlags(CLASS_Native))
     {
-      TickOnBlueprint(TickParams, Result);
+      TickOnBlueprint(TickParams, result);
     }
+
+    EvaluatedResult = result;
+    m_internalData->bIsEvaluateFinishedCurrentFrame = true;
   }
 }
 
@@ -57,8 +66,6 @@ void UARPhysicsTickObject::EndTickObject()
 
   if (!m_internalData->bIsTerminated && !m_internalData->bIsEvaluateFinishedCurrentFrame)
   {
-    m_internalData->bIsEvaluateFinishedCurrentFrame = true;
-
     OnEndTickObject();
   }
 }
@@ -69,6 +76,8 @@ void UARPhysicsTickObject::TerminateTickObject()
   {
     m_internalData->bIsTerminated = true;
   }
+
+  PrimaryPhysicsTick.UnregisterPhysicsTickFunction();
 }
 
 void UARPhysicsTickObject::BeginDestroy()

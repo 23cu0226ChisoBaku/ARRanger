@@ -31,6 +31,12 @@ void FARPhysicsTickTask::ExecuteTask(const FARPhysicsTickParameters& TickParams)
   {
     check(tickFunc != nullptr);
     tickFunc->ExecuteTick(TickParams);
+
+    if (tickFunc->Frequency == EARPhysicsTickFrequency::TF_Once)
+    {
+      RemoveTickFunction(tickFunc);
+      tickFunc->m_internalData->bIsRegistered = false;
+    }
   }
 }
 
@@ -47,28 +53,30 @@ void FARPhysicsTickTask::AddTickFunction(FARPhysicsTickFunctionInterface* TickFu
   }
 }
 
-void FARPhysicsTickTask::RemoveTickFunction(FARPhysicsTickFunctionInterface* TickFunction);
+void FARPhysicsTickTask::RemoveTickFunction(FARPhysicsTickFunctionInterface* TickFunction)
 {
   check(TickFunction != nullptr);
+
+  using enum FARPhysicsTickFunctionInterface::ETickState_Internal;
   switch (TickFunction->m_internalData->TickState)
   {
-    case FARPhysicsTickFunctionInterface::ETickState_Internal::Enabled:
+    case Enabled:
     {
       check(m_enabledTickFunctions.Remove(TickFunction) == 1);
     }
     break;
 
-    case FARPhysicsTickFunctionInterface::ETickState_Internal::Disabled:
+    case Disabled:
     {
       check(m_disabledTickFunctions.Remove(TickFunction) == 1);
     }
+    break;
   }
 }
 
 bool FARPhysicsTickTask::HasTickFunction(const FARPhysicsTickFunctionInterface* TickFunction)
 {
-  #error Start here
-  return true;
+  return m_enabledTickFunctions.Contains(TickFunction) || m_disabledTickFunctions.Contains(TickFunction);
 }
 } // namespace ARRanger::Physics
 

@@ -9,40 +9,21 @@
 
 class FARPhysicsEngine;
 class IARMagnetizableInterface;
+class UARMagneticTickObject;
 
-enum class EPhysicsTickType
+enum class EPhysicsRequestType;
+
+USTRUCT()
+struct FARMagneticTickObjectEntry
 {
-  TickAttraction,   // 引力
-  TickRepulsion,    // 斥力
-};
+  GENERATED_BODY()
 
-struct FARPhysicsTickFunctionParameters
-{
-  float DeltaTime;
+  UPROPERTY()
+  TObjectPtr<UARMagneticTickObject> TickObject;
 
-  float TotalSimTime;
-};
+  TArray<TWeakInterfacePtr<IARMagnetizableInterface>> AffectedObjectInterfaces;
 
-struct FARPhysicsTickFunction
-{
-  FARPhysicsTickFunction();
-  FARPhysicsTickFunction(IARMagnetizableInterface* InSource, IARMagnetizableInterface* InTarget, EPhysicsTickType InTickType);
-  void Execute(const FARPhysicsTickFunctionParameters& TickParameter) const;
-  bool IsEqual(IARMagnetizableInterface* Interface1, IARMagnetizableInterface* Interface2) const;
-  bool IsValid() const;
-
-private:
-  TWeakInterfacePtr<IARMagnetizableInterface> Source = nullptr;
-  TWeakInterfacePtr<IARMagnetizableInterface> Target = nullptr;
-  EPhysicsTickType TickType;
-
-  bool bIsAbleToExecute = false;
-};
-
-struct FARPhysicsCancellationHandle
-{
-  IARMagnetizableInterface* Interface1;
-  IARMagnetizableInterface* Interface2;
+  void RegisterAffectedMagnetizedObject() const;
 };
 
 UCLASS()
@@ -54,7 +35,6 @@ class AARPhysicsTickProcessorActor : public AActor
     // Sets default values for this actor's properties
     ARRANGER_API AARPhysicsTickProcessorActor();
 
-  
   protected:
     // Called when the game starts or when spawned
 
@@ -63,19 +43,32 @@ class AARPhysicsTickProcessorActor : public AActor
     ARRANGER_API virtual void AsyncPhysicsTickActor(float DeltaTime, float SimTime) override;
     /**End AActor interface */
 
-    ARRANGER_API virtual void ProcessARPhysicsTasks(float DeltaTime, float SimTime);
+    // TODO May turn these to virtual
+    ARRANGER_API void PreProcessARPhysicsTasks();
+    ARRANGER_API void ProcessARPhysicsTasks(float DeltaTime, float SimTime);
   
   public:
     void OnSpawnActor(FARPhysicsEngine* PhysicsEnginePtr) { OwningPhysicsEngine = PhysicsEnginePtr; }
     bool IsBelongTo(const FARPhysicsEngine* PhysicsEngine) const { return OwningPhysicsEngine == PhysicsEngine; }
-    ARRANGER_API void RegisterMagneticTask(IARMagnetizableInterface* InSource, IARMagnetizableInterface* InTarget, EPhysicsTickType InTickType);
+    ARRANGER_API void RegisterMagneticTask(IARMagnetizableInterface* InSource, IARMagnetizableInterface* InTarget, EPhysicsRequestType InRequestType);
     ARRANGER_API void UnregisterMagneticTask(IARMagnetizableInterface* InSource, IARMagnetizableInterface* InTarget);
 
   private:
-    void EnqueueRequestTask();
-    void DequeueCancellationTask();
+    void RegisterMagneticTarget(IARMagnetizableInterface* InTarget, IARMagnetizableInterface* InAffectedObj, EPhysicsRequestType InRequestType);
+    FARMagneticTickObjectEntry* GetMagneticTickObjectEntry(IARMagnetizableInterface* InTarget);
+    FARMagneticTickObjectEntry* AllocateMagneticTickObject(IARMagnetizableInterface* Target, TSubclassOf<UARMagneticTickObject> MagneticTickObjectClass);
 
   private:
+    TArray<FARMagneticTickObjectEntry> MagneticTickObjectEntries;
+
     FARPhysicsEngine* OwningPhysicsEngine;
+
+    UPROPERTY(EditDefaultsOnly, meta = (AllowPrivateAccess = "true"))
+    TSubclassOf<UARMagneticTickObject> AttractionTickClass;
+
+    UPROPERTY(EditDefaultsOnly, meta = (AllowPrivateAccess = "true"))
+    TSubclassOf<UARMagneticTickObject> RepulsionTickClass;
+
+
 
 };

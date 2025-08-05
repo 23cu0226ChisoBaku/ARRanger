@@ -52,6 +52,9 @@ class UARPhysicsTickObject : public UObject
 {
 	GENERATED_BODY()
 
+  protected:
+    FARPhysicsTickFunction PrimaryPhysicsTick;
+
   private:
     /**
      * @brief 内部データ
@@ -74,11 +77,12 @@ class UARPhysicsTickObject : public UObject
   public:
     ARRANGER_API UARPhysicsTickObject();
 
+    ARRANGER_API void RegisterPhysicsTickFunction();
     ARRANGER_API void TickPhysics(const FARPhysicsTickParameters& TickParams);    
     ARRANGER_API void TerminateTickObject();
     
     FARPhysicsEvaluationResult GetLastFrameResult() const { return PreviousResult; }
-    FARPhysicsEvaluationResult GetEvaluatedResult() const { return Result; }
+    FARPhysicsEvaluationResult GetEvaluatedResult() const { return EvaluatedResult; }
     bool IsCurrentFrameEvaluateFinished() const { return m_internalData.IsValid() && m_internalData->bIsEvaluateFinishedCurrentFrame; }
     bool IsTerminated() const { return m_internalData.IsValid() && m_internalData->bIsTerminated; }
     
@@ -104,7 +108,7 @@ class UARPhysicsTickObject : public UObject
     FARPhysicsEvaluationResult PreviousResult;
 
     UPROPERTY(VisibleAnywhere)
-    FARPhysicsEvaluationResult Result;
+    FARPhysicsEvaluationResult EvaluatedResult;
 
     TUniquePtr<FInternalData> m_internalData;
 };
