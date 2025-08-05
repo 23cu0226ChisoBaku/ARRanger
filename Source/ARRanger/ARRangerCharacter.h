@@ -3,6 +3,7 @@
 #include "AttackData.h"
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "InsekiClimbingObject.h"
 #include "Logging/LogMacros.h"
 #include "PlayerObservation/IObservableSubjectInterface.h"
 #include "Interface/IARTypeInterface.h"
@@ -82,6 +83,10 @@ class AARRangerCharacter : public ACharacter,
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	class UInputAction* TransformAction;
 
+	// 引力クライムフラグ
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	bool isClimbed;
+
 public:
 
 	// コンストラクタ
@@ -108,7 +113,7 @@ private:
 	bool isAbleToSwitchTarget;
 
 	// 山内
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Climeb", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Climb", meta = (AllowPrivateAccess = "true"))
 	bool isClimb;
 
 	// もともとのカメラとプレイヤーの距離
@@ -162,6 +167,29 @@ private:
 	// 強い攻撃かどうかのフラグ
 	bool isStrongAttack;
 
+	// 現在歩いているオブジェクトの表面
+	UPROPERTY()
+	AInsekiClimbingObject* currentClimbSurface;
+
+	// 壁の法線を保存
+	FVector wallNormal;
+
+	// 引力クライムオブジェクトに触れた際に呼び出される
+	UFUNCTION()
+	void OnClimbSurfaceOverlap(
+		UPrimitiveComponent* OverlappedComp,
+		AActor* OtherActor,
+		UPrimitiveComponent* OtherComp,
+		int32 OtherBodyIndex,
+		bool bFromSweep,
+		const FHitResult& SweepResult);
+
+	// 引力クライムを開始する際に呼び出される
+	void StartClimbing(AInsekiClimbingObject* ClimbActor);
+
+	// 引力クライムをやめる際に呼び出される
+	void StopClimbing();
+
 public:
 
 	// コントロールまたはUIインターフェースからの移動入力を処理する
@@ -171,14 +199,6 @@ public:
 	// 山内
 	UFUNCTION(BlueprintCallable, Category = "Input")
 	void DoClimb(float Right, float Up);
-
-	// 山内
-	UFUNCTION(BlueprintCallable, Category = "Input")
-	void DoAttachAttraction();
-
-	// 山内
-	UFUNCTION(BlueprintCallable, Category = "Input")
-	void DoAttachRepulsion();
 
 	// コントロールまたはUIインターフェースからのルック入力を処理する
 	UFUNCTION(BlueprintCallable, Category = "Input")
@@ -246,9 +266,12 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gravity")
 	EARType CurrentARType;
 
+	// 引力クライム時のアニメーションモンタージュ
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gravity")
+	UAnimMontage* Montage_AttractionClimb;
+
 public:
 	virtual void Tick(float DeltaTime) override;
-
 
 	// 現在のプレイヤーのモードを取得
 	UFUNCTION(BlueprintCallable)
