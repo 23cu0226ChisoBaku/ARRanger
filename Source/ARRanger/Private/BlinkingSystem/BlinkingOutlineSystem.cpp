@@ -11,11 +11,11 @@
 */
 void BlinkingOutlineSystem::CreateTickingActor(UWorld* world)
 {	
-	if (!_pTickActor && world)
+	if (!m_TickActor && world)
 	{
 		FActorSpawnParameters Params;
 		Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-		_pTickActor = world->SpawnActor<ABlinkOutlineTickActor>
+		m_TickActor = world->SpawnActor<ABlinkOutlineTickActor>
 			(ABlinkOutlineTickActor::StaticClass(), FVector(0.f), FRotator::ZeroRotator, Params);
 	}
 }
@@ -25,18 +25,18 @@ void BlinkingOutlineSystem::CreateTickingActor(UWorld* world)
 *
 * @param アウトラインをつける対象のオブジェクトポインタ
 */
-void BlinkingOutlineSystem::SetTargetMagnetizableObject(const AActor* _pMagnetizableObject)
+void BlinkingOutlineSystem::SetTargetMagnetizableObjectDelegate(AActor* magnetizableObject)
 {
-	AddBlinkingOutlineObject(_pMagnetizableObject);
+	AddBlinkingOutlineObject(magnetizableObject);
 }
 
 /*
 * @brief BlinkOutlineTickActor に対象のアクターを渡す関数
 */
-void BlinkingOutlineSystem::AddBlinkingOutlineObject(const AActor* _pMagnetizableObject)
+void BlinkingOutlineSystem::AddBlinkingOutlineObject(AActor* magnetizableObject)
 {
-	if(_pTickActor)
+	if(m_TickActor)
 	{
-		_pTickActor->AddBlinkingActor(_pMagnetizableObject);
+		m_TickActor->AddBlinkingActor(magnetizableObject);
 	}
 }

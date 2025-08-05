@@ -5,36 +5,40 @@
 #include "Public/BlinkingSystem/BlinkOutlineTickActor.h"
 
 /*
-* @brief 点滅させるアクターを追加する(メッシュコンポーネントを取得する)
+* @brief 点滅させるアクターを追加する
 *
 * @param 点滅させるアクター
 */
-void ABlinkOutlineTickActor::AddBlinkingActor(const AActor* newActor)
+void ABlinkOutlineTickActor::AddBlinkingActor(AActor* newActor)
 {
 	if (!newActor){ return; }
 
-	UMeshComponent* _pMeshComponent = newActor->FindComponentByClass<UMeshComponent>();
+	m_BlinkingActors.Add(newActor);
 
-	if (_pMeshComponent || !_pBlinkingActorComponents.Contains(_pMeshComponent)) 
+	// 対象アクターのメッシュコンポーネントを保持
+	UMeshComponent* _pMeshComponent = newActor->FindComponentByClass<UMeshComponent>();
+	if (_pMeshComponent || !m_BlinkingActorComponents.Contains(_pMeshComponent)) 
 	{
-		_pBlinkingActorComponents.Add(_pMeshComponent);
+		m_BlinkingActorComponents.Add(_pMeshComponent);
 	}
 }
 
 /*
-* @brief 点滅をやめるアクターを配列から除外する(メッシュコンポーネントを除外する)
+* @brief 点滅をやめるアクターを配列から除外する
 *
 * @param 点滅をやめるアクター
 */
-void ABlinkOutlineTickActor::RemoveBlinkingActor(const AActor* removeActor)
+void ABlinkOutlineTickActor::RemoveBlinkingActor(AActor* removeActor)
 {
 	if (!removeActor){ return; }
 
-	UMeshComponent* _pMeshComponent = removeActor->FindComponentByClass<UMeshComponent>();
+	m_BlinkingActors.Remove(removeActor);
 
+	// 対象アクターのメッシュコンポーネントを除外
+	UMeshComponent* _pMeshComponent = removeActor->FindComponentByClass<UMeshComponent>();
 	if (_pMeshComponent) 
 	{
-		_pBlinkingActorComponents.Remove(_pMeshComponent);
+		m_BlinkingActorComponents.Remove(_pMeshComponent);
 	}
 }
 

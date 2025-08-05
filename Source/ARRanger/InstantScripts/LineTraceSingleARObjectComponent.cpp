@@ -5,6 +5,30 @@
 #include "InstantScripts/LineTraceSingleARObjectComponent.h"
 
 /*
+* Start ULineTraceSingleARObjectComponent Lifecycle Functions
+*/
+ULineTraceSingleARObjectComponent::ULineTraceSingleARObjectComponent()
+    : LineTraceLength(1000.0f)
+    , m_TargetMagnetizableActor(nullptr)
+{
+	PrimaryComponentTick.bCanEverTick = true;
+}
+
+void ULineTraceSingleARObjectComponent::BeginPlay()
+{
+	Super::BeginPlay();	
+}
+
+void ULineTraceSingleARObjectComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+{
+	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+}
+/*
+* End ULineTraceSingleARObjectComponent Lifecycle Functions
+*/
+
+
+/*
 * @brief ライントレースを行って付与できるオブジェクトを検知
 *
 * @param ライントレースを行うための始点と終点
@@ -34,7 +58,7 @@ void ULineTraceSingleARObjectComponent::TraceForMagnetizableObject(const FVector
         {
             // オブジェクト名をログに出力
             UE_LOG(LogTemp, Log, TEXT("Hit ARObject: %s"), *HitActor->GetName());
-            _pTargetMagnetizableActor = HitActor;
+            m_TargetMagnetizableActor = HitActor;
         }
         else
         {
@@ -48,26 +72,3 @@ void ULineTraceSingleARObjectComponent::TraceForMagnetizableObject(const FVector
         //UE_LOG(LogTemp, Warning, TEXT("No actor hit during line trace."));
     }
 }
-
-/*
-* Start ULineTraceSingleARObjectComponent Lifecycle Functions
-*/
-ULineTraceSingleARObjectComponent::ULineTraceSingleARObjectComponent()
-    : LineTraceLength(1000.0f)
-    , _pTargetMagnetizableActor(nullptr)
-{
-	PrimaryComponentTick.bCanEverTick = true;
-}
-
-void ULineTraceSingleARObjectComponent::BeginPlay()
-{
-	Super::BeginPlay();	
-}
-
-void ULineTraceSingleARObjectComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
-{
-	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-}
-/*
-* End ULineTraceSingleARObjectComponent Lifecycle Functions
-*/

@@ -30,16 +30,16 @@ public:
 	* 
 	*  AGameModeBaseを継承しているクラスのStartPlay()関数でバインド
 	*/
-	void SetTargetMagnetizableObject(const AActor* _pMagnetizableObject);
+	void SetTargetMagnetizableObjectDelegate(AActor* magnetizableObject);
 
 private:	
 
 	/*
 	* @brief BlinkOutlineTickActor に点滅処理をリクエスト
 	*/
-	void AddBlinkingOutlineObject(const AActor* _pMagnetizableObject);
+	void AddBlinkingOutlineObject(AActor* magnetizableObject);
 
 private:
-	ABlinkOutlineTickActor* _pTickActor;	// 点滅処理を駆動するためのアクター
+	ABlinkOutlineTickActor* m_TickActor;	// 点滅処理を駆動するためのアクター
 };
 

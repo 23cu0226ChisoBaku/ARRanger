@@ -24,14 +24,14 @@ public:
 	*
 	* @param 点滅させるアクター
 	*/
-	void AddBlinkingActor(const AActor* newActor);
+	void AddBlinkingActor(AActor* newActor);
 
 	/*
 	* @brief 点滅をやめるアクターを配列から除外する(メッシュコンポーネントを除外する)
 	*
 	* @param 点滅をやめるアクター
 	*/
-	void RemoveBlinkingActor(const AActor* removeActor);
+	void RemoveBlinkingActor(AActor* removeActor);
 
 	/*
 	* @brief BlinkingOutlineSystem からのリクエストを受け取る
@@ -39,5 +39,6 @@ public:
 	void HandleRequest();
 
 private:
-	TArray<UMeshComponent*> _pBlinkingActorComponents;
+	TArray<AActor*> m_BlinkingActors;
+	TArray<UMeshComponent*> m_BlinkingActorComponents;
 };

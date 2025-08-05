@@ -11,7 +11,7 @@
 #include "LineTraceSingleARObjectComponent.generated.h"
 
 // デリゲート関数宣言
-DECLARE_DELEGATE_OneParam(FOnOutlineDelegate, AActor*);
+DECLARE_DELEGATE_OneParam(FStaticOnOutlineDelegate, AActor*);
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class ARRANGER_API ULineTraceSingleARObjectComponent : public UActorComponent
@@ -32,7 +32,7 @@ public:
 	/*
 	* @brief デリゲート関数を登録する用
 	*/
-	FOnOutlineDelegate SetTargetMagnetizableObject;
+	FStaticOnOutlineDelegate SetTargetMagnetizableObject;
 
 	/*
 	* @brief ライントレースを行って付与できるオブジェクトを検知
@@ -44,7 +44,7 @@ public:
 
 private:
 
-	AActor* _pTargetMagnetizableActor;	// 対象オブジェクト
+	AActor* m_TargetMagnetizableActor;	// 対象オブジェクト
 
 
 	// オーバーレイマテリアルの設定方法

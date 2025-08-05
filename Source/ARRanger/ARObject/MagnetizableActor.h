@@ -9,7 +9,6 @@
 
 #include "MagnetizableActor.generated.h"
 
-
 UCLASS(Abstract)
 class AMagnetizableActor :  public AActor, 
 							public IARMagnetizableInterface

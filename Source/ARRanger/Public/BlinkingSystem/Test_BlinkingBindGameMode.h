@@ -6,9 +6,11 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameModeBase.h"
-#include "BlinkingOutlineSystem.h"
-#include "InstantScripts/LineTraceSingleARObjectComponent.h"
 #include "Test_BlinkingBindGameMode.generated.h"
+
+// 前方宣言
+class ULineTraceSingleARObjectComponent;
+class BlinkingOutlineSystem;
 
 /*
  * BlinkingOutlineSystem の関数を LineTraceSingleARObjectComponent のデリゲートにバインドする用のゲームモード
@@ -19,4 +21,13 @@ class ARRANGER_API ATest_BlinkingBindGameMode : public AGameModeBase
 	GENERATED_BODY()
 	
 	void StartPlay() override;
+
+	/*
+	 * @brief BlinkingOutlineSystem の関数を LineTraceSingleARObjectComponent のデリゲートにバインド 
+	 */
+	void BindSetTargetMagnetizableObject();
+
+private:
+    ULineTraceSingleARObjectComponent* m_LineTraceComponent;
+    BlinkingOutlineSystem* m_BlinkingOutlineSystem;
 };
