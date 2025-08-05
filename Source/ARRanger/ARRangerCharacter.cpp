@@ -262,15 +262,17 @@ void AARRangerCharacter::Tick(float DeltaTime)
 
 		// デバッグラインで確認
 		DrawDebugLine(GetWorld(), Start, End, bHit ? FColor::Green : FColor::Red, false, 0.1f, 0, 2.0f);
+
 		// ライントレースで壁を判定
-		if (!bHit)
+		// 壁がないか、または引力クライム中に斥力状態に変身したらクライムを解除
+		if (!bHit || (CurrentARType != EARType::Attraction))
 		{
-			// 壁がないのでクライム解除＋ジャンプ処理
+			// クライム解除＋ジャンプ処理
 			isClimbed = false;
 			GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Falling);
 			GetCharacterMovement()->bOrientRotationToMovement = true;
 
-			// 少し上方向にジャンプさせると自然
+			// 少し上方向にジャンプさせる
 			LaunchCharacter(FVector(0.f, 0.f, 500.f), true, true);
 		}
 	}
