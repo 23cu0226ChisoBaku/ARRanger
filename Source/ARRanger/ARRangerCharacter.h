@@ -266,9 +266,12 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gravity")
 	EARType CurrentARType;
 
+	// 引力クライム時のアニメーションモンタージュ
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gravity")
+	UAnimMontage* Montage_AttractionClimb;
+
 public:
 	virtual void Tick(float DeltaTime) override;
-
 
 	// 現在のプレイヤーのモードを取得
 	UFUNCTION(BlueprintCallable)
