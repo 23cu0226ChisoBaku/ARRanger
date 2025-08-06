@@ -5,7 +5,6 @@
 #pragma once
 
 #include "UObject/Interface.h"
-
 #include "IARMagnetizableInterface.generated.h"
 
 /**
@@ -21,6 +20,7 @@ class UARMagnetizableInterface : public UInterface
 /*
 * 斥力引力状態(磁性)
 */
+UENUM()
 enum class EARMagnetismType : uint8
 {
 	None = 0,		// 何もない状態(デフォルト値)
@@ -52,7 +52,7 @@ public:
 	* 
 	* @return アクターポインタ
 	*/
-	ARRANGER_API virtual AActor* GetActor() const = 0;
+	ARRANGER_API virtual AActor* GetActor() = 0;
 
 	/*
 	* @brief 新しい磁性に変化させる

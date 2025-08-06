@@ -1,15 +1,16 @@
-// ARObjectをラインとレースで取得するコンポーネント(即席スクリプト)
+//*************************************************
+// 引力斥力を付与できるオブジェクトを取得するコンポーネント
+//*************************************************
 
 #pragma once
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
-#include "Interface/IARObjectInterface.h"
-#include "Interface/IARTypeInterface.h"
+#include "Public/IARMagnetizableInterface.h"
 #include "LineTraceSingleARObjectComponent.generated.h"
 
 // デリゲート関数宣言
-DECLARE_DELEGATE_OneParam(FOnOutlineDelegate, AActor*);
+DECLARE_DELEGATE_OneParam(FStaticOnOutlineDelegate, AActor*);
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class ARRANGER_API ULineTraceSingleARObjectComponent : public UActorComponent
@@ -26,18 +27,12 @@ public:
 	// ライントレース用
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LineTrace")
 	float LineTraceLength;
-
-	// /*
-	// * @brief 対象オブジェクトを保持するためのデリゲート関数
-	// * 
-	// * @param アウトラインをつける対象のオブジェクトポインタ
-	// */
-	// void SetTargetMagnetizableObject(AActor* magnetizableObject);
+	
 
 	/*
 	* @brief デリゲート関数を登録する用
 	*/
-	FOnOutlineDelegate SetTargetMagnetizableObject;
+	FStaticOnOutlineDelegate SetTargetMagnetizableObject;
 
 	/*
 	* @brief ライントレースを行って付与できるオブジェクトを検知
@@ -47,9 +42,12 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LineTrace")
 	void TraceForMagnetizableObject(const FVector& Start, const FVector& End);
 
+	UFUNCTION(BlueprintCallable)
+	void ExecuteSetTargetMagnetizableObject();
+
 private:
 
-	AActor* _pTargetMagnetizableActor;	// 対象オブジェクト
+	AActor* m_TargetMagnetizableActor;	// 対象オブジェクト
 
 
 	// オーバーレイマテリアルの設定方法

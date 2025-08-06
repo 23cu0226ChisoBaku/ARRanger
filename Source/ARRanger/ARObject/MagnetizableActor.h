@@ -9,7 +9,6 @@
 
 #include "MagnetizableActor.generated.h"
 
-
 UCLASS(Abstract)
 class AMagnetizableActor :  public AActor, 
 							public IARMagnetizableInterface
@@ -23,12 +22,18 @@ public:
 	ARRANGER_API AMagnetizableActor();
 	ARRANGER_API virtual void Tick(float DeltaTime) override;
 
+	/**
+	 * @brief 引力が付与されている状態の挙動
+	 */
 	UFUNCTION(BlueprintCallable)
 	static void CallAttraction(AMagnetizableActor* Actor)
 	{
 		Actor->OnAttraction();
 	}
 
+	/**
+	 * @brief 斥力が付与されている状態の挙動
+	 */
 	UFUNCTION(BlueprintCallable)
 	static void CallRepulsion(AMagnetizableActor* Actor)
 	{
@@ -38,7 +43,7 @@ public:
 	/*Start IARMagnetizableInterface interface*/
 	ARRANGER_API virtual void OnAttraction() override;
 	ARRANGER_API virtual void OnRepulsion() override;
-	ARRANGER_API virtual AActor* GetActor() const override { return (AActor*)this; }
+	ARRANGER_API virtual AActor* GetActor() override { return (AActor*)this; }
 	/*End IARMagnetizableInterface interface*/
 
 private:

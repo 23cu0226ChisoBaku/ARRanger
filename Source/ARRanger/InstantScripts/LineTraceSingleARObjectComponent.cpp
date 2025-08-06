@@ -1,6 +1,32 @@
-// ARObjectをラインとレースで取得するコンポーネント(即席スクリプト)
+//*************************************************
+// 引力斥力を付与できるオブジェクトを取得するコンポーネント
+//*************************************************
 
 #include "InstantScripts/LineTraceSingleARObjectComponent.h"
+
+/*
+* Start ULineTraceSingleARObjectComponent Lifecycle Functions
+*/
+ULineTraceSingleARObjectComponent::ULineTraceSingleARObjectComponent()
+    : LineTraceLength(1000.0f)
+    , m_TargetMagnetizableActor(nullptr)
+{
+	PrimaryComponentTick.bCanEverTick = true;
+}
+
+void ULineTraceSingleARObjectComponent::BeginPlay()
+{
+	Super::BeginPlay();	
+}
+
+void ULineTraceSingleARObjectComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+{
+	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+}
+/*
+* End ULineTraceSingleARObjectComponent Lifecycle Functions
+*/
+
 
 /*
 * @brief ライントレースを行って付与できるオブジェクトを検知
@@ -28,11 +54,11 @@ void ULineTraceSingleARObjectComponent::TraceForMagnetizableObject(const FVector
         AActor* HitActor = HitResult.GetActor();
 
         // IARObjectInterface を実装しているかチェック
-        if (HitActor->GetClass()->ImplementsInterface(UARObjectInterface::StaticClass()))
+        if (HitActor->GetClass()->ImplementsInterface(UARMagnetizableInterface::StaticClass()))
         {
             // オブジェクト名をログに出力
             UE_LOG(LogTemp, Log, TEXT("Hit ARObject: %s"), *HitActor->GetName());
-            _pTargetMagnetizableActor = HitActor;
+            m_TargetMagnetizableActor = HitActor;
         }
         else
         {
@@ -47,34 +73,16 @@ void ULineTraceSingleARObjectComponent::TraceForMagnetizableObject(const FVector
     }
 }
 
-// /*
-// * 対象の引力斥力を付与するデリゲート関数
-// */
-// void ULineTraceSingleARObjectComponent::SetTargetmagnetizableObject(AActor* targetMagnetizableObject)
-// {
-//     _pTargetMagnetizableActor = targetMagnetizableObject;
-// }
-
-
-/*
-* Start ULineTraceSingleARObjectComponent Lifecycle Functions
-*/
-ULineTraceSingleARObjectComponent::ULineTraceSingleARObjectComponent()
-    : LineTraceLength(1000.0f)
-    , _pTargetMagnetizableActor(nullptr)
+/** 
+ * @brief BPでデリゲートを呼び出す
+ */
+void ULineTraceSingleARObjectComponent::ExecuteSetTargetMagnetizableObject()
 {
-	PrimaryComponentTick.bCanEverTick = true;
+    if(SetTargetMagnetizableObject.IsBound())
+    {
+        if(m_TargetMagnetizableActor)
+        {
+            SetTargetMagnetizableObject.Execute(m_TargetMagnetizableActor);
+        }
+    }
 }
-
-void ULineTraceSingleARObjectComponent::BeginPlay()
-{
-	Super::BeginPlay();	
-}
-
-void ULineTraceSingleARObjectComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
-{
-	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-}
-/*
-* End ULineTraceSingleARObjectComponent Lifecycle Functions
-*/

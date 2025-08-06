@@ -13,11 +13,11 @@ AInsekiActor_NonArea::AInsekiActor_NonArea()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
-	// StaticMeshComponent‚ğ’Ç‰Á‚µARootComponent‚Éİ’è‚·‚é
+	// StaticMeshComponentï¿½ï¿½Ç‰ï¿½ï¿½ï¿½ï¿½ARootComponentï¿½Éİ’è‚·ï¿½ï¿½
 	InsekiActorMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMeshComponent"));
 	RootComponent = InsekiActorMesh;
 
-	// CapsuleComponent‚ğ’Ç‰Á‚µACapsuleComponent‚ğRootComponent‚ÉAttach‚·‚é
+	// CapsuleComponentï¿½ï¿½Ç‰ï¿½ï¿½ï¿½ï¿½ACapsuleComponentï¿½ï¿½RootComponentï¿½ï¿½Attachï¿½ï¿½ï¿½ï¿½
 	Capsule = CreateDefaultSubobject<UCapsuleComponent>(TEXT("CapsuleComponent"));
 	Capsule->SetupAttachment(RootComponent);
 }
@@ -26,7 +26,7 @@ void AInsekiActor_NonArea::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// OnHit‚ğBind‚·‚é
+	// OnHitï¿½ï¿½Bindï¿½ï¿½ï¿½ï¿½
 	Capsule->OnComponentHit.AddDynamic(this, &AInsekiActor_NonArea::OnHit);
 
 	TArray<AActor*> FoundActors;
@@ -61,41 +61,41 @@ void AInsekiActor_NonArea::Tick(float DeltaTime)
 
 void AInsekiActor_NonArea::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
-	// ƒvƒŒƒCƒ„[‚ÌŒ»İ‚Ìƒ‚[ƒh‚ğŠm”Fiˆø—Í or Ë—Íj
-	// æ“¾‚Å‚«‚È‚¯‚ê‚Îˆ—‚µ‚È‚¢
+	// ï¿½vï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½[ï¿½ÌŒï¿½ï¿½İ‚Ìƒï¿½ï¿½[ï¿½hï¿½ï¿½ï¿½mï¿½Fï¿½iï¿½ï¿½ï¿½ï¿½ or ï¿½Ë—Íj
+	// ï¿½æ“¾ï¿½Å‚ï¿½ï¿½È‚ï¿½ï¿½ï¿½Îï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È‚ï¿½
 	AARRangerCharacter* player = Cast<AARRangerCharacter>(playerCharacter);
 	if (!player)
 	{
 		return;
 	}
 
-	// Ë—Íó‘Ô‚Ì‚Æ‚«‚Ì‚İ‚Á”ò‚Î‚·
-	if (player->GetCurrentARType() == EARType::Attraction)
+	// ï¿½Ë—Íï¿½Ô‚Ì‚Æ‚ï¿½ï¿½Ì‚İï¿½ï¿½ï¿½ï¿½ï¿½Î‚ï¿½
+	if (player->GetCurrentARType() == EARMagnetismType::Attraction)
 	{
-		// ˆø—Íó‘Ô‚Ìê‡‚Í‚È‚É‚à‚µ‚È‚¢
+		// ï¿½ï¿½ï¿½Íï¿½Ô‚Ìê‡ï¿½Í‚È‚É‚ï¿½ï¿½ï¿½ï¿½È‚ï¿½
 		UE_LOG(LogTemp, Warning, TEXT("Player is in Attraction mode: No knockback"));
 		return;
 	}
-	else if (player->GetCurrentARType() == EARType::Repulsion)
+	else if (player->GetCurrentARType() == EARMagnetismType::Repulsion)
 	{
-		// ÚG•ûŒü‚ğæ“¾
+		// ï¿½ÚGï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½æ“¾
 		FVector ImpactDirection = playerCharacter->GetActorLocation() - GetActorLocation();
 		ImpactDirection.Normalize();
 
-		// ^ã‚©‚ç—ˆ‚Ä‚é‚©‚Ç‚¤‚©”»’è(Z¬•ª‚ª³‚Å\•ª‘å‚«‚¢)
-		// ^ã‚©‚ç—‚¿‚Ä‚«‚½ê‡
+		// ï¿½^ï¿½ã‚©ï¿½ç—ˆï¿½Ä‚é‚©ï¿½Ç‚ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½(Zï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Å\ï¿½ï¿½ï¿½å‚«ï¿½ï¿½)
+		// ï¿½^ï¿½ã‚©ï¿½ç—ï¿½ï¿½ï¿½Ä‚ï¿½ï¿½ï¿½ï¿½ê‡
 		if (ImpactDirection.Z > 0.7f)
 		{
-			// ƒvƒŒƒCƒ„[‚Ìis•ûŒüi‘¬“xƒxƒNƒgƒ‹j‚ğæ“¾
+			// ï¿½vï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½[ï¿½Ìiï¿½sï¿½ï¿½ï¿½ï¿½ï¿½iï¿½ï¿½ï¿½xï¿½xï¿½Nï¿½gï¿½ï¿½ï¿½jï¿½ï¿½ï¿½æ“¾
 			FVector Velocity = player->GetVelocity();
 
-			// “ü—Í‚ª‚ ‚é‚©‚Ç‚¤‚©ƒ`ƒFƒbƒNiˆÚ“®‚µ‚Ä‚¢‚é‚©j
+			// ï¿½ï¿½ï¿½Í‚ï¿½ï¿½ï¿½ï¿½é‚©ï¿½Ç‚ï¿½ï¿½ï¿½ï¿½`ï¿½Fï¿½bï¿½Nï¿½iï¿½Ú“ï¿½ï¿½ï¿½ï¿½Ä‚ï¿½ï¿½é‚©ï¿½j
 			if (Velocity.SizeSquared() > KINDA_SMALL_NUMBER)
 			{
-				// ‘O•ûŒüiis•ûŒüj‚ÉŒü‚©‚Á‚ÄƒWƒƒƒ“ƒv
+				// ï¿½Oï¿½ï¿½ï¿½ï¿½ï¿½iï¿½iï¿½sï¿½ï¿½ï¿½ï¿½ï¿½jï¿½ÉŒï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÄƒWï¿½ï¿½ï¿½ï¿½ï¿½v
 				FVector ForwardDir = Velocity.GetSafeNormal();
 
-				// ‚æ‚è‚‚­•”š”­“I‚É”ò‚Î‚·
+				// ï¿½ï¿½è‚ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Iï¿½É”ï¿½Î‚ï¿½
 				FVector LaunchVelocity = ForwardDir * 1200.f + FVector(0.f, 0.f, 800.f);
 				player->LaunchCharacter(LaunchVelocity, true, true);
 
@@ -103,7 +103,7 @@ void AInsekiActor_NonArea::OnHit(UPrimitiveComponent* HitComponent, AActor* Othe
 			}
 			else
 			{
-				// “®‚¢‚Ä‚È‚¯‚ê‚Î^ã‚É”š”­ƒWƒƒƒ“ƒv
+				// ï¿½ï¿½ï¿½ï¿½ï¿½Ä‚È‚ï¿½ï¿½ï¿½Î^ï¿½ï¿½É”ï¿½ï¿½ï¿½ï¿½Wï¿½ï¿½ï¿½ï¿½ï¿½v
 				FVector LaunchVelocity = FVector(0.f, 0.f, 1400.f);
 				player->LaunchCharacter(LaunchVelocity, true, true);
 
@@ -112,7 +112,7 @@ void AInsekiActor_NonArea::OnHit(UPrimitiveComponent* HitComponent, AActor* Othe
 		}
 		else
 		{
-			// ‰¡‚©‚ç“–‚½‚Á‚½ê‡‚Í‚«”ò‚Î‚µ(Z‚Í­‚µ‚¾‚¯AXY•ûŒü‚É”ò‚Î‚·)
+			// ï¿½ï¿½ï¿½ï¿½ï¿½ç“–ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ê‡ï¿½Íï¿½ï¿½ï¿½ï¿½ï¿½Î‚ï¿½(Zï¿½Íï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½AXYï¿½ï¿½ï¿½ï¿½ï¿½É”ï¿½Î‚ï¿½)
 			FVector HorizontalDir = ImpactDirection;
 			HorizontalDir.Z = 0.f;
 			HorizontalDir.Normalize();

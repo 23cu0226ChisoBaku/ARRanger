@@ -6,7 +6,7 @@
 #include "InsekiClimbingObject.h"
 #include "Logging/LogMacros.h"
 #include "PlayerObservation/IObservableSubjectInterface.h"
-#include "Interface/IARTypeInterface.h"
+#include "Public/IARMagnetizableInterface.h"
 
 #include "ARRangerCharacter.generated.h"
 
@@ -27,7 +27,6 @@ class AARRangerCharacter : public ACharacter,
                            public IObservableSubjectInterface
 {
 	GENERATED_BODY()
-
 	
 	protected:
 	virtual void BeginPlay() override;
@@ -264,7 +263,7 @@ public:
 
 	// 現在のプレイヤーの変身状態
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gravity")
-	EARType CurrentARType;
+	EARMagnetismType CurrentARType;
 
 	// 引力クライム時のアニメーションモンタージュ
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gravity")
@@ -275,7 +274,7 @@ public:
 
 	// 現在のプレイヤーのモードを取得
 	UFUNCTION(BlueprintCallable)
-	EARType GetCurrentARType();
+	EARMagnetismType GetCurrentARType();
 
 	// 麦
 	bool bIsJumping = false;
