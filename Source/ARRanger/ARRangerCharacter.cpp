@@ -34,34 +34,28 @@ AARRangerCharacter::AARRangerCharacter()
 	, isStrongAttack(false)
 	, currentClimbSurface(nullptr)
 	, wallNormal(0.0f, 0.0f, 0.0f)
-	, isClimb(false)
 	, isClimbed(false)
 	, Montage_AttractionClimb(nullptr)
 {
-	// ?J?v?Z????T?C?Y??????
+	// カプセルサイズを設定
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
-		
-	// ?R???g???[???[????]???????]????????B?J??????e????^???????????
+	
+	// コントローラーの回転をオフに
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw = false;
 	bUseControllerRotationRoll = false;
 
-	// ?L?????N?^?[???????????
+	// プレイヤーの回転をオンに
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 	GetCharacterMovement()->RotationRate = FRotator(0.0f, 500.0f, 0.0f);
 
-	// ??: ?????????Z?k???????A????????????????????????A??R???p?C???????????????????A?L?????N?^?[?u???[?v?????g
-    // ????????邱????????
+	// CharacterMovementの値を設定
 	GetCharacterMovement()->JumpZVelocity = 500.f;
 	GetCharacterMovement()->AirControl = 0.35f;
 	GetCharacterMovement()->MaxWalkSpeed = 500.f;
 	GetCharacterMovement()->MinAnalogWalkSpeed = 20.f;
 	GetCharacterMovement()->BrakingDecelerationWalking = 2000.f;
 	GetCharacterMovement()->BrakingDecelerationFalling = 1500.0f;
-
-
-	// ??: Mesh?R???|?[?l???g (Character????p??) ??X?P???^?????b?V????A?j???[?V?????u???[?v?????g??Q???A
-    // ThirdPersonCharacter????????O??h???u???[?v?????g?A?Z?b?g??????? (C++ ???R???e???c?????Q??????????)?B
 }
 
 void AARRangerCharacter::BeginPlay()
@@ -71,7 +65,7 @@ void AARRangerCharacter::BeginPlay()
 	if (UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance())
 	{
 		UE_LOG(LogTemp, Warning, TEXT("AnimInstance found! Registering OnMontageEnded"));
-		// ?U???A?j???[?V??????I?????AOnAttackMontageEnded?????????????
+		// AnimInstanceにバインド
 		AnimInstance->OnMontageEnded.AddDynamic(this, &AARRangerCharacter::OnAttackMontageEnded);
 	}
 	else
@@ -108,36 +102,32 @@ void AARRangerCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
 
 void AARRangerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
-	// ?A?N?V?????o?C???f?B???O????
+	// 各アクションのバインド
 	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent)) {
 		
-		// ?W?????v
+		// ジャンプ
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &AARRangerCharacter::DoJumpStart);
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &AARRangerCharacter::DoJumpEnd);
 
-		// ???
+		// 移動
 		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AARRangerCharacter::Move);
-		EnhancedInputComponent->BindAction(MouseLookAction, ETriggerEvent::Triggered, this, &AARRangerCharacter::Look);
 
-		// ???_???
+		// カメラ回転
+		EnhancedInputComponent->BindAction(MouseLookAction, ETriggerEvent::Triggered, this, &AARRangerCharacter::Look);
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AARRangerCharacter::Look);
 
-		// ???b?N?I??
+		// ロックオン
 		EnhancedInputComponent->BindAction(LockOnAction, ETriggerEvent::Triggered, this, &AARRangerCharacter::ToggleLockOn);
 
-		// ???b?N?I?????^?[?Q?b?g?????(????^?[?Q?b?g)
+		// ターゲット切り替え(右、左)
 		EnhancedInputComponent->BindAction(SwitchTargetRightAction, ETriggerEvent::Triggered, this, &AARRangerCharacter::SwitchTargetRight);
-
-		// ???b?N?I?????^?[?Q?b?g?????(?O??^?[?Q?b?g)
 		EnhancedInputComponent->BindAction(SwitchTargetLeftAction, ETriggerEvent::Triggered, this, &AARRangerCharacter::SwitchTargetLeft);
 
-		// ?p???`
+		// 攻撃(パンチ、キック)
 		EnhancedInputComponent->BindAction(PunchAction, ETriggerEvent::Started, this, &AARRangerCharacter::StartPunch);
-
-		// ?L?b?N
 		EnhancedInputComponent->BindAction(KickAction, ETriggerEvent::Started, this, &AARRangerCharacter::Kick);
 
-		// ??g
+		// 変身
 		EnhancedInputComponent->BindAction(TransformAction, ETriggerEvent::Started, this, &AARRangerCharacter::Transform);
 	}
 	else
@@ -150,8 +140,7 @@ void AARRangerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-
-	// ???t???[????????x???`?F?b?N????isDashed???X?V
+	// 入力値を取得
 	float InputMagnitude = 0.f;
 	if (APlayerController* PC = Cast<APlayerController>(GetController()))
 	{
@@ -168,7 +157,7 @@ void AARRangerCharacter::Tick(float DeltaTime)
 		}
 	}
 
-	// ?q?X?e???V?X????_?b?V??????
+	// ヒステリシスを用いてダッシュ判定
 	if (!isDashed && InputMagnitude > dashStartThreshold)
 	{
 		isDashed = true;
@@ -178,7 +167,7 @@ void AARRangerCharacter::Tick(float DeltaTime)
 		isDashed = false;
 	}
 
-	// ???b?N?I?????????
+	// ロックオン中に処理
 	if (isLockedOn && LockedOnTarget)
 	{
 		FVector ToTarget = LockedOnTarget->GetActorLocation() - GetActorLocation();
@@ -194,25 +183,26 @@ void AARRangerCharacter::Tick(float DeltaTime)
 			UE_LOG(LogTemp, Warning, TEXT("Lost lock-on because target is not visible."))
 		}
 
+		// ロックオン中の敵が消えたら処理
 		if (!IsValid(LockedOnTarget) || LockedOnTarget->IsActorBeingDestroyed())
 		{
 			AActor* NewTarget = FindNearestEnemy(LockedOnTarget);
-			// ???b?N?I???????G??|??????A?????G???????????????b?N?I??????
+			// 新しくターゲットを設定
 			if (NewTarget)
 			{
 				LockedOnTarget = NewTarget;
 			}
-			// ??????????b?N?I????????
+			// いなければロックオン解除
 			else
 			{
 				LockedOnTarget = nullptr;
 				isLockedOn = false;
 			}
 		}
-		// ?L?????N?^?[?{?????]??????
+		// ターゲットに向けて回転
 		SetActorRotation(TargetRotation);
 
-		// ?J?????i?R???g???[???[?j?????????????]??????
+		// コントローラーも回転する
 		if (Controller)
 		{
 			FRotator CurrentControlRot = Controller->GetControlRotation();
@@ -224,6 +214,7 @@ void AARRangerCharacter::Tick(float DeltaTime)
 		}
 	}
 
+	// 引き寄せ中に処理
 	if (isAttractingEnemy && LockedOnTarget && IsValid(LockedOnTarget))
 	{
 		FVector PlayerLocation = GetActorLocation();
@@ -231,10 +222,10 @@ void AARRangerCharacter::Tick(float DeltaTime)
 		FVector Direction = (PlayerLocation - EnemyLocation);
 		float Distance = Direction.Size();
 
-		// ???????I??????
+		// 最低距離を設定
 		const float MinDistance = 150.0f;
 
-		// ??????????????????p???`???s??
+		// 最低距離に達したらパンチ
 		if (Distance <= MinDistance)
 		{
 			isAttractingEnemy = false;
@@ -242,7 +233,7 @@ void AARRangerCharacter::Tick(float DeltaTime)
 			return;
 		}
 
-		// ???X???????i?z???X?s?[?h?????j
+		// 敵を引き寄せる
 		float AttractionSpeed = 800.f;
 		FVector NewLocation = EnemyLocation + Direction.GetSafeNormal() * AttractionSpeed * DeltaTime;
 		LockedOnTarget->SetActorLocation(NewLocation);
@@ -301,43 +292,20 @@ void AARRangerCharacter::Tick(float DeltaTime)
 
 void AARRangerCharacter::Move(const FInputActionValue& Value)
 {
-	// ?????Vector2D
+	// 入力値を取得
 	FVector2D MovementVector = Value.Get<FVector2D>();
-
-	// ?R??
-	if (isClimb)
-	{
-		// ?R??
-		DoClimb(MovementVector.X, MovementVector.Y);
-		return;
-	}
 	
-	// ????????[?e?B???O????
+	// 移動処理
 	DoMove(MovementVector.X, MovementVector.Y);
 }
 
 void AARRangerCharacter::Look(const FInputActionValue& Value)
 {
-	// ?????Vector2D
+	// 入力値を取得
 	FVector2D LookAxisVector = Value.Get<FVector2D>();
 
-	// ????????[?e?B???O????
+	// カメラ回転処理
 	DoLook(LookAxisVector.X, LookAxisVector.Y);
-}
-
-// ?R??
-void AARRangerCharacter::DoClimb(float Right, float Up)
-{
-	if (GetController() != nullptr)
-	{
-		// ????????????????????
-		FRotator YawRotation(0, GetActorRotation().Yaw, 0);
-
-		FVector RightDir = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
-
-		AddMovementInput(FVector::UpVector, Up);
-		AddMovementInput(RightDir, Right);
-	}
 }
 
 void AARRangerCharacter::OnClimbSurfaceOverlap(
@@ -467,7 +435,7 @@ void AARRangerCharacter::DoLook(float Yaw, float Pitch)
 {
 	if (GetController() != nullptr)
 	{
-		// ?R???g???[???[????[??s?b?`????????????
+		// カメラを回転
 		AddControllerYawInput(Yaw);
 		AddControllerPitchInput(Pitch);
 	}
@@ -475,7 +443,7 @@ void AARRangerCharacter::DoLook(float Yaw, float Pitch)
 
 void AARRangerCharacter::DoJumpStart()
 {
-	// ?U??????W?????v?????
+	// 攻撃中は処理しない
 	if (isAttacked || isStrongAttack)
 	{
 		return;
@@ -496,13 +464,13 @@ void AARRangerCharacter::DoJumpStart()
   }
 
 
-	// ?L?????N?^?[???W?????v?????}
+	// ジャンプ処理
 	Jump();
 }
 
 void AARRangerCharacter::DoJumpEnd()
 {
-	// ?L?????N?^?[???W?????v???????}
+	// ジャンプをやめる
 	StopJumping();
 }
 
@@ -583,25 +551,25 @@ void AARRangerCharacter::ToggleLockOn()
 
 void AARRangerCharacter::SwitchTargetRight()
 {
-	// ????^?[?Q?b?g??
+	// ターゲット切り替え処理
 	SwitchTarget(true); 
 }
 
 void AARRangerCharacter::SwitchTargetLeft()
 {
-	// ?O??^?[?Q?b?g??
+	// ターゲット切り替え処理
 	SwitchTarget(false); 
 }
 
 void AARRangerCharacter::SwitchTarget(bool isPressedRight)
 {
-	// ???b?N?I??????????????
+	// ロックオン中でなければ処理しない
 	if (!isLockedOn)
 	{
 		return;
 	}
 		
-	// ?G?????[???h????????????????????????
+	// ワールドの敵を取得(To Do：範囲内の敵を取得に変更する)
 	TArray<AActor*> Enemies;
 	UGameplayStatics::GetAllActorsWithTag(GetWorld(), FName("Enemy"), Enemies);
 	if (Enemies.Num() <= 1)
@@ -614,7 +582,7 @@ void AARRangerCharacter::SwitchTarget(bool isPressedRight)
 		return;
 	}
 
-	// ???g???u???擾
+	// プレイヤーの位置を取得
 	const FVector MyLocation = GetActorLocation();
 
 	const int32 EnemyCount = Enemies.Num();
@@ -623,12 +591,12 @@ void AARRangerCharacter::SwitchTarget(bool isPressedRight)
 
 	while (Checked < EnemyCount)
 	{
-		// ????C???f?b?N?X??????
+		// 敵の数をチェック
 		Index = isPressedRight
 			? (Index + 1) % EnemyCount
 			: (Index - 1 + EnemyCount) % EnemyCount;
 
-		// ???????g????????I??
+		// 現在選択中の敵になったら処理をやめる
 		if (Index == CurrentIndex)
 		{
 			break;
@@ -688,12 +656,12 @@ void AARRangerCharacter::StartPunch()
 		return;
 	}
 
-	// ???????????b?N?I????????????
+	// 引力状態で敵をロックオンしていれば処理
 	if (CurrentARType == EARMagnetismType::Attraction && isLockedOn && LockedOnTarget)
 	{
 		if (!isAttractingEnemy)
 		{
-			// ???????t???O????U???t???O?????
+			// 引き寄せを開始
 			isAttractingEnemy = true;
 			isStrongAttack = true;
 
@@ -705,7 +673,7 @@ void AARRangerCharacter::StartPunch()
 		return;
 	}
 
-	// ???p???`
+	// 通常パンチ処理
 	isStrongAttack = false;
 	PlayAttackMontage(PunchData);
 }
@@ -733,14 +701,14 @@ void AARRangerCharacter::KickHitNotify()
 
 void AARRangerCharacter::PlayAttackMontage(const FAttackData& Attack)
 {
-	// Null?`?F?b?N?E?U?????`?F?b?N
+	// アニメーションがない、または攻撃中は処理しない
 	if (!Attack.Montage_Normal || !Attack.Montage_Strong || isAttacked)
 	{
 		return;
 	}
 
 	UAnimInstance* Anim = GetMesh()->GetAnimInstance();
-	// ???????????????
+	// 攻撃アニメーション再生中は処理しない
 	if (!Anim || Anim->Montage_IsPlaying(Attack.Montage_Normal) || Anim->Montage_IsPlaying(Attack.Montage_Strong))
 	{
 		return;
@@ -748,7 +716,7 @@ void AARRangerCharacter::PlayAttackMontage(const FAttackData& Attack)
 
 	isAttacked = true;
 
-	// ???U???t???O????????????A???U???A?j???[?V?????????
+	// 強攻撃アニメーションを再生するか判断
 	if (isStrongAttack)
 	{
 		Anim->Montage_Play(Attack.Montage_Strong);
@@ -764,7 +732,7 @@ void AARRangerCharacter::AttackHit(const FAttackData& Attack)
 	FVector Origin = GetActorLocation() + GetActorForwardVector() * 100.f;
 	TArray<AActor*> HitActors;
 
-	// ???????????
+	// 当たり判定を作成
 	bool bHit = UKismetSystemLibrary::SphereOverlapActors(
 		this,
 		Origin,
@@ -798,7 +766,7 @@ void AARRangerCharacter::AttackHit(const FAttackData& Attack)
 				FVector LaunchDir = GetActorForwardVector() + FVector(0, 0, 0.2f);
 				LaunchDir.Normalize();
 
-				// ???U???t???O????????????_???[?W?????
+				// ダメージを与える(強攻撃ならダメージを上乗せ)
 				if (isStrongAttack)
 				{
 					Enemy->ReceiveDamage(Attack.Damage + Attack.DamageModifier, LaunchDir, bWillBeKilled);
@@ -826,12 +794,12 @@ void AARRangerCharacter::Transform()
 		return;
 	}
 
-	// ???[?h??X?i???? or ???j
+	// 現在と別のモードに変身
 	CurrentARType = (CurrentARType == EARMagnetismType::Attraction)
 		? EARMagnetismType::Repulsion
 		: EARMagnetismType::Attraction;
 
-	// ???f???????
+	// メッシュを別モードに変更
 	USkeletalMesh* NewMesh = (CurrentARType == EARMagnetismType::Repulsion)
 		? RepulsionMesh
 		: AttractionMesh;

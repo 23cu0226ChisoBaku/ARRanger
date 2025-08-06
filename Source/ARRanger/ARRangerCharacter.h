@@ -111,10 +111,6 @@ private:
 	// ロックオン時敵切り替えの可能フラグ
 	bool isAbleToSwitchTarget;
 
-	// 山内
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Climb", meta = (AllowPrivateAccess = "true"))
-	bool isClimb;
-
 	// もともとのカメラとプレイヤーの距離
 	float DefaultArmLength;
 
@@ -197,10 +193,6 @@ public:
 	// コントロールまたはUIインターフェースからの移動入力を処理する
 	UFUNCTION(BlueprintCallable, Category = "Input")
 	virtual void DoMove(float Right, float Forward);
-
-	// 山内
-	UFUNCTION(BlueprintCallable, Category = "Input")
-	void DoClimb(float Right, float Up);
 
 	// コントロールまたはUIインターフェースからのルック入力を処理する
 	UFUNCTION(BlueprintCallable, Category = "Input")
