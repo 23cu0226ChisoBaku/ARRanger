@@ -4,6 +4,9 @@
 
 #include "Public/BlinkingSystem/BlinkOutlineTickActor.h"
 
+/*
+* Start ULineTraceSingleARObjectComponent Lifecycle Functions
+*/
 ABlinkOutlineTickActor::ABlinkOutlineTickActor()
 {
 	PrimaryActorTick.bCanEverTick = true;
@@ -17,28 +20,16 @@ void ABlinkOutlineTickActor::BeginPlay()
 void ABlinkOutlineTickActor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-}
 
+	//FunFunFunctor()
+}
 /*
-* @brief 対象オブジェクトをデリゲート関数
-*
-* @param アウトラインをつける対象のオブジェクトポインタ
+* End ULineTraceSingleARObjectComponent Lifecycle Functions
 */
-void ABlinkOutlineTickActor::SetTargetmagnetizableObject(const AActor* magnetizableObject)
-{
 
-}
 
 /*
-* @brief BlinkingOutlineSystem からのリクエストを受け取る
-*/
-void ABlinkOutlineTickActor::HandleRequest()
-{
-	Add
-}
-
-/*
-* @brief 点滅させるアクターを追加する(メッシュコンポーネントを取得する)
+* @brief 点滅させるアクターを追加する
 *
 * @param 点滅させるアクター
 */
@@ -46,10 +37,31 @@ void ABlinkOutlineTickActor::AddBlinkingActor(AActor* newActor)
 {
 	if (!newActor){ return; }
 
-	UMeshComponent* MeshComponent = newActor->FindComponentByClass<UMeshComponent>();
+	m_BlinkingActors.Add(newActor);
 
-	if (MeshComponent || !_pBlinkingActorComponents.Contains(MeshComponent)) 
+	// 対象アクターのメッシュコンポーネントを保持
+	UMeshComponent* _pMeshComponent = newActor->FindComponentByClass<UMeshComponent>();
+	if (_pMeshComponent || !m_BlinkingActorComponents.Contains(_pMeshComponent)) 
 	{
-		_pBlinkingActorComponents.Add(MeshComponent);
+		m_BlinkingActorComponents.Add(_pMeshComponent);
+	}
+}
+
+/*
+* @brief 点滅をやめるアクターを配列から除外する
+*
+* @param 点滅をやめるアクター
+*/
+void ABlinkOutlineTickActor::RemoveBlinkingActor(AActor* removeActor)
+{
+	if (!removeActor){ return; }
+
+	m_BlinkingActors.Remove(removeActor);
+
+	// 対象アクターのメッシュコンポーネントを除外
+	UMeshComponent* _pMeshComponent = removeActor->FindComponentByClass<UMeshComponent>();
+	if (_pMeshComponent) 
+	{
+		m_BlinkingActorComponents.Remove(_pMeshComponent);
 	}
 }

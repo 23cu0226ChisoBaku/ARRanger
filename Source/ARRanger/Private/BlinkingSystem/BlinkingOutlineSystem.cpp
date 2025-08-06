@@ -3,38 +3,40 @@
 //*************************************************
 
 #include "Public/BlinkingSystem/BlinkingOutlineSystem.h"
+#include "Public/BlinkingSystem/BlinkOutlineTickActor.h"
+#include "InstantScripts/LineTraceSingleARObjectComponent.h"
 
 /*
 * @brief アウトラインの点滅処理を行うアクターの生成
 */
 void BlinkingOutlineSystem::CreateTickingActor(UWorld* world)
 {	
-	if (!TickActor && world)
+	if (!m_TickActor && world)
 	{
 		FActorSpawnParameters Params;
 		Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-		_pTickActor = world->SpawnActor<ABlinkOutlineTickActor>
+		m_TickActor = world->SpawnActor<ABlinkOutlineTickActor>
 			(ABlinkOutlineTickActor::StaticClass(), FVector(0.f), FRotator::ZeroRotator, Params);
 	}
 }
 
 /*
-* @brief アウトラインの処理を呼び出すデリゲート関数
+* @brief 対象のアクターを設定するデリゲート関数
 *
 * @param アウトラインをつける対象のオブジェクトポインタ
 */
-void SetTargetMagnetizableObject(AActor* magnetizableObject)
+void BlinkingOutlineSystem::SetTargetMagnetizableObjectDelegate(AActor* magnetizableObject)
 {
-
+	AddBlinkingOutlineObject(magnetizableObject);
 }
 
 /*
-* @brief BlinkOutlineTickActor に点滅処理をリクエスト
+* @brief BlinkOutlineTickActor に対象のアクターを渡す関数
 */
-void BlinkingOutlineSystem::void RequestToBlinkingOutlineTickActor(ABlinkOutlineTickActor tickActor)
+void BlinkingOutlineSystem::AddBlinkingOutlineObject(AActor* magnetizableObject)
 {
-	if(_pTickActor)
+	if(m_TickActor)
 	{
-		_pTickActor->
+		m_TickActor->AddBlinkingActor(magnetizableObject);
 	}
 }

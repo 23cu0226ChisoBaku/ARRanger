@@ -1,163 +1,163 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// // Fill out your copyright notice in the Description page of Project Settings.
 
-#pragma once
-
-
-#include "AttackData.h"
-#include "GameFramework/Character.h"
-#include "ARRangerCharacter.h"
-
-#include "ARGameplayCamerasCharacterTest.generated.h"
-
-class UAnimMontage;
-class UCameraComponent;
-class USkeletalMesh;
-class USpringArmComponent;
-class UInputAction;
-
-struct FInputActionValue;
-
-UCLASS()
-class ARRANGER_API AARGameplayCamerasCharacterTest : public ACharacter
-{
-	GENERATED_BODY()
-
-protected:
-	virtual void BeginPlay() override;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
-	UInputAction* JumpAction;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
-	UInputAction* MoveAction;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
-	UInputAction* LookAction;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
-	UInputAction* MouseLookAction;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
-	class UInputAction* LockOnAction;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
-	class UInputAction* SwitchTargetRightAction;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
-	class UInputAction* SwitchTargetLeftAction;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
-	class UInputAction* PunchAction;
+// #pragma once
 
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
-	class UInputAction* KickAction;
+// #include "AttackData.h"
+// #include "GameFramework/Character.h"
+// #include "ARRangerCharacter.h"
+
+// #include "ARGameplayCamerasCharacterTest.generated.h"
+
+// class UAnimMontage;
+// class UCameraComponent;
+// class USkeletalMesh;
+// class USpringArmComponent;
+// class UInputAction;
+
+// struct FInputActionValue;
+
+// UCLASS()
+// class ARRANGER_API AARGameplayCamerasCharacterTest : public ACharacter
+// {
+// 	GENERATED_BODY()
+
+// protected:
+// 	virtual void BeginPlay() override;
+
+// 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
+// 	UInputAction* JumpAction;
+
+// 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
+// 	UInputAction* MoveAction;
+
+// 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
+// 	UInputAction* LookAction;
+
+// 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
+// 	UInputAction* MouseLookAction;
+
+// 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+// 	class UInputAction* LockOnAction;
+
+// 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+// 	class UInputAction* SwitchTargetRightAction;
+
+// 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+// 	class UInputAction* SwitchTargetLeftAction;
+
+// 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+// 	class UInputAction* PunchAction;
 
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
-	class UInputAction* TransformAction;
+// 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+// 	class UInputAction* KickAction;
 
-public:
 
-	AARGameplayCamerasCharacterTest();	
+// 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+// 	class UInputAction* TransformAction;
 
-protected:
+// public:
 
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+// 	AARGameplayCamerasCharacterTest();	
 
-protected:
+// protected:
 
-	void Move(const FInputActionValue& Value);
+// 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-	void Look(const FInputActionValue& Value);
+// protected:
 
-private:
-	bool bIsLockedOn;
+// 	void Move(const FInputActionValue& Value);
 
-	bool isAbleToSwitchTarget;
+// 	void Look(const FInputActionValue& Value);
 
-	float DefaultArmLength;
+// private:
+// 	bool bIsLockedOn;
 
-	float DashArmLength; 
+// 	bool isAbleToSwitchTarget;
 
-	float ArmLengthInterpSpeed; 
+// 	float DefaultArmLength;
 
-	void ToggleLockOn();
+// 	float DashArmLength; 
 
-	void SwitchTargetRight();
+// 	float ArmLengthInterpSpeed; 
 
-	void SwitchTargetLeft();
+// 	void ToggleLockOn();
 
-	void SwitchTarget(bool isPressedRight);
+// 	void SwitchTargetRight();
 
-	AActor* FindNearestEnemy(AActor* IgnoreActor = nullptr);
+// 	void SwitchTargetLeft();
 
-	void Punch();
+// 	void SwitchTarget(bool isPressedRight);
 
-	void Kick();
+// 	AActor* FindNearestEnemy(AActor* IgnoreActor = nullptr);
 
-	void PlayAttackMontage(const FAttackData& Attack);
+// 	void Punch();
 
-	void AttackHit(const FAttackData& Attack);
+// 	void Kick();
 
-	void Transform();
+// 	void PlayAttackMontage(const FAttackData& Attack);
 
-public:
+// 	void AttackHit(const FAttackData& Attack);
 
-	UFUNCTION(BlueprintCallable, Category="Input")
-	virtual void DoMove(float Right, float Forward);
+// 	void Transform();
 
-	UFUNCTION(BlueprintCallable, Category="Input")
-	virtual void DoLook(float Yaw, float Pitch);
+// public:
 
-	UFUNCTION(BlueprintCallable, Category="Input")
-	virtual void DoJumpStart();
+// 	UFUNCTION(BlueprintCallable, Category="Input")
+// 	virtual void DoMove(float Right, float Forward);
+
+// 	UFUNCTION(BlueprintCallable, Category="Input")
+// 	virtual void DoLook(float Yaw, float Pitch);
+
+// 	UFUNCTION(BlueprintCallable, Category="Input")
+// 	virtual void DoJumpStart();
 	
-	UFUNCTION(BlueprintCallable, Category="Input")
-	virtual void DoJumpEnd();
+// 	UFUNCTION(BlueprintCallable, Category="Input")
+// 	virtual void DoJumpEnd();
 
-	UFUNCTION(BlueprintCallable)
-	void PunchHitNotify();
+// 	UFUNCTION(BlueprintCallable)
+// 	void PunchHitNotify();
 
-	UFUNCTION(BlueprintCallable)
-	void KickHitNotify();
+// 	UFUNCTION(BlueprintCallable)
+// 	void KickHitNotify();
 
-	UFUNCTION()
-	void OnAttackMontageEnded(UAnimMontage* Montage, bool IsInterrupted);
+// 	UFUNCTION()
+// 	void OnAttackMontageEnded(UAnimMontage* Montage, bool IsInterrupted);
 
-	UPROPERTY(EditAnywhere, Category = "PlayerMesh")
-	USkeletalMesh* AttractionMesh;
+// 	UPROPERTY(EditAnywhere, Category = "PlayerMesh")
+// 	USkeletalMesh* AttractionMesh;
 
-	UPROPERTY(EditAnywhere, Category = "PlayerMesh")
-	USkeletalMesh* RepulsionMesh;
+// 	UPROPERTY(EditAnywhere, Category = "PlayerMesh")
+// 	USkeletalMesh* RepulsionMesh;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	AActor* LockedOnTarget;
+// 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+// 	AActor* LockedOnTarget;
 
-	UPROPERTY(EditAnywhere, Category = "LockOn")
-	float maxLockOnDistance;
+// 	UPROPERTY(EditAnywhere, Category = "LockOn")
+// 	float maxLockOnDistance;
 
-	UPROPERTY(BlueprintReadWrite)
-	bool isDashed;
+// 	UPROPERTY(BlueprintReadWrite)
+// 	bool isDashed;
 
-	float dashStartThreshold;
+// 	float dashStartThreshold;
 
-	float dashEndThreshold;    
+// 	float dashEndThreshold;    
 
-	UPROPERTY(EditAnywhere, Category = "Attack")
-	FAttackData PunchData;
+// 	UPROPERTY(EditAnywhere, Category = "Attack")
+// 	FAttackData PunchData;
 
-	UPROPERTY(EditAnywhere, Category = "Attack")
-	FAttackData KickData;
+// 	UPROPERTY(EditAnywhere, Category = "Attack")
+// 	FAttackData KickData;
 
-	UPROPERTY(BlueprintReadOnly)
-	bool isAttacked;
+// 	UPROPERTY(BlueprintReadOnly)
+// 	bool isAttacked;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gravity")
-	EARType CurrentARType;
+// 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gravity")
+// 	EARType CurrentARType;
 
-public:
-	virtual void Tick(float DeltaTime) override;
+// public:
+// 	virtual void Tick(float DeltaTime) override;
 
-};
+// };
 

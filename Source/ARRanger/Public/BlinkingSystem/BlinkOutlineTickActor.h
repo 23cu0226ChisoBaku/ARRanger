@@ -27,19 +27,18 @@ public:
 	void AddBlinkingActor(AActor* newActor);
 
 	/*
+	* @brief 点滅をやめるアクターを配列から除外する(メッシュコンポーネントを除外する)
+	*
+	* @param 点滅をやめるアクター
+	*/
+	void RemoveBlinkingActor(AActor* removeActor);
+
+	/*
 	* @brief BlinkingOutlineSystem からのリクエストを受け取る
 	*/
 	void HandleRequest();
 
 private:
-
-	/*
-	* @brief アウトラインの処理を呼び出すデリゲート関数
-	*
-	* @param アウトラインをつける対象のオブジェクトポインタ
-	*/
-	void SetTargetmagnetizableObject(const AActor* magnetizableObject);
-
-
-	TArray<UMeshComponent*> _pBlinkingActorComponents;
+	TArray<AActor*> m_BlinkingActors;
+	TArray<UMeshComponent*> m_BlinkingActorComponents;
 };
