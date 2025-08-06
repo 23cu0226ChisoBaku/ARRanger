@@ -26,20 +26,19 @@ public:
 	/*
 	* @brief アウトラインの処理を呼び出すデリゲート関数
 	*
-	* @param アウトラインをつける対象のオブジェクトポインタ
-	* 
-	*  AGameModeBaseを継承しているクラスのStartPlay()関数でバインド
+	* @param アウトラインをつける対象のオブジェクトポインタ 
 	*/
-	void SetTargetMagnetizableObjectDelegate(AActor* magnetizableObject);
-
-private:	
+	void SetTargetMagnetizableObjectDelegate(AActor* targetMagnetizableObject);
 
 	/*
-	* @brief BlinkOutlineTickActor に点滅処理をリクエスト
+	* @brief アウトラインの処理を終了させるデリゲート関数
+	*
+	* @param アウトラインをはずす対象のオブジェクトポインタ
 	*/
-	void AddBlinkingOutlineObject(AActor* magnetizableObject);
+	void UnsetTargetMagnetizableObjectDelegate(AActor* targetMagnetizableObject);
 
 private:
+
 	ABlinkOutlineTickActor* m_TickActor;	// 点滅処理を駆動するためのアクター
 };
 

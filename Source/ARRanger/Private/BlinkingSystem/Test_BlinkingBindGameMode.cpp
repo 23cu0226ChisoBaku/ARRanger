@@ -11,34 +11,53 @@
 */
 void ATest_BlinkingBindGameMode::StartPlay()
 {
-     m_BlinkingOutlineSystem = new BlinkingOutlineSystem();
+    m_BlinkingOutlineSystem = ::MakeUnique<BlinkingOutlineSystem>();
 
     // 妥協処理
     m_LineTraceComponent = GetWorld()->GetFirstPlayerController()->GetPawn()->FindComponentByClass<ULineTraceSingleARObjectComponent>();
 
-    if (m_LineTraceComponent && m_BlinkingOutlineSystem)
-    {
-        m_LineTraceComponent->SetTargetMagnetizableObject.BindRaw(
-            m_BlinkingOutlineSystem,
-            &BlinkingOutlineSystem::SetTargetMagnetizableObjectDelegate
-        );
-    }
-
     /* 引力斥力の付与に関するデリゲート関数をバインド*/
-    BindSetTargetMagnetizableObject();
+    BindBlinkingMagnetizableObjectDelegate();
 }
 
 /*
-* @brief BlinkingOutlineSystem にある引力斥力を付与するオブジェクトを保持するの関数を 
+* @brief BlinkingOutlineSystem にある引力斥力に関する関数を
 *        LineTraceSingleARObjectComponent のデリゲートにバインド 
 */
-void ATest_BlinkingBindGameMode::BindSetTargetMagnetizableObject()
+void ATest_BlinkingBindGameMode::BindBlinkingMagnetizableObjectDelegate()
 {
     if (m_LineTraceComponent && m_BlinkingOutlineSystem)
     {
+        // 対象を点滅処理のオブジェクトに設定するデリゲート関数をバインド
         m_LineTraceComponent->SetTargetMagnetizableObject.BindRaw(
-            m_BlinkingOutlineSystem,
+            m_BlinkingOutlineSystem.Get(),
             &BlinkingOutlineSystem::SetTargetMagnetizableObjectDelegate
         );
+
+        // 対象を点滅処理のオブジェクトから除外するデリゲート関数をバインド
+        m_LineTraceComponent->UnsetTargetMagnetizableObject.BindRaw(
+            m_BlinkingOutlineSystem.Get(),
+            &BlinkingOutlineSystem::UnsetTargetMagnetizableObjectDelegate
+        );
+    } 
+}
+
+/*
+* @brief バインドされているデリゲート関数をアンバインドする 
+*/
+void ATest_BlinkingBindGameMode::UnBindDelegate()
+{
+    if (m_LineTraceComponent)
+    {
+        m_LineTraceComponent->SetTargetMagnetizableObject.Unbind();
+        m_LineTraceComponent->UnsetTargetMagnetizableObject.Unbind();
     }
+}
+
+/**
+ * @brief ゲーム終了のタイミングで呼び出される
+ */
+void ATest_BlinkingBindGameMode::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+    UnBindDelegate();
 }

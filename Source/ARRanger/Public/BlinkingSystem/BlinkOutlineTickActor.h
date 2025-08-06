@@ -41,7 +41,7 @@ public:
 private:
 
 	UPROPERTY()
-	TArray<TObjectPtr<AActor>> m_BlinkingActors;					// 点滅させるオブジェクトの配列
+	TArray<TObjectPtr<AActor>> m_BlinkingActors;					/*点滅させるオブジェクトの配列*/
 	UPROPERTY()
-	TArray<TObjectPtr<UMeshComponent>> m_BlinkingActorComponents;	// 点滅させるオブジェクトのメッシュコンポーネントの配列
+	TArray<TObjectPtr<UMeshComponent>> m_BlinkingActorComponents;	/*点滅させるオブジェクトのメッシュコンポーネントの配列*/ 
 };

@@ -21,22 +21,27 @@ void BlinkingOutlineSystem::CreateTickingActor(UWorld* world)
 }
 
 /*
-* @brief 対象のアクターを設定するデリゲート関数
+* @brief 対象のオブジェクトを設定するデリゲート関数
 *
 * @param アウトラインをつける対象のオブジェクトポインタ
 */
-void BlinkingOutlineSystem::SetTargetMagnetizableObjectDelegate(AActor* magnetizableObject)
-{
-	AddBlinkingOutlineObject(magnetizableObject);
-}
-
-/*
-* @brief BlinkOutlineTickActor に対象のアクターを渡す関数
-*/
-void BlinkingOutlineSystem::AddBlinkingOutlineObject(AActor* magnetizableObject)
+void BlinkingOutlineSystem::SetTargetMagnetizableObjectDelegate(AActor* targetMagnetizableObject)
 {
 	if(m_TickActor)
 	{
-		m_TickActor->AddBlinkingActor(magnetizableObject);
+		m_TickActor->AddBlinkingActor(targetMagnetizableObject);
+	}
+}
+
+/*
+* @brief アウトラインの処理を終了させるデリゲート関数
+*
+* @param アウトラインをはずす対象のオブジェクトポインタ
+*/
+void BlinkingOutlineSystem::UnsetTargetMagnetizableObjectDelegate(AActor* targetMagnetizableObject)
+{
+	if(m_TickActor)
+	{
+		m_TickActor->RemoveBlinkingActor(targetMagnetizableObject);
 	}
 }

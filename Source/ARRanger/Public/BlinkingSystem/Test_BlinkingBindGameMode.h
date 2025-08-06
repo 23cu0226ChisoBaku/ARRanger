@@ -20,14 +20,22 @@ class ARRANGER_API ATest_BlinkingBindGameMode : public AGameModeBase
 {
 	GENERATED_BODY()
 	
-	void StartPlay() override;
+	virtual void StartPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 	/*
 	 * @brief BlinkingOutlineSystem の関数を LineTraceSingleARObjectComponent のデリゲートにバインド 
 	 */
-	void BindSetTargetMagnetizableObject();
+	void BindBlinkingMagnetizableObjectDelegate();
+
+	/*
+	 * @brief バインドされているデリゲート関数をアンバインドする 
+	 */
+	void UnBindDelegate();
 
 private:
-    ULineTraceSingleARObjectComponent* m_LineTraceComponent;
-    BlinkingOutlineSystem* m_BlinkingOutlineSystem;
+
+	UPROPERTY()
+    TObjectPtr<ULineTraceSingleARObjectComponent> m_LineTraceComponent;
+	TUniquePtr<BlinkingOutlineSystem> m_BlinkingOutlineSystem;
 };

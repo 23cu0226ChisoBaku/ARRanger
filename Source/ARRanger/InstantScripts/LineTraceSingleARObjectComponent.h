@@ -13,7 +13,8 @@
 class UGameplayCameraComponent;
 
 // デリゲート関数宣言
-DECLARE_DELEGATE_OneParam(FStaticOnOutlineDelegate, AActor*);
+DECLARE_DELEGATE_OneParam(FStaticSetActorOnOutlineDelegate, AActor*);
+DECLARE_DELEGATE_OneParam(FStaticUnsetetActorOnOutlineDelegate, AActor*);
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class ULineTraceSingleARObjectComponent : public UActorComponent
@@ -32,9 +33,14 @@ public:
 	float LineTraceLength;
 	
 	/*
-	* @brief デリゲート関数を登録する用
+	* @brief 対象オブジェクトをシステム側に設定するデリゲート
 	*/
-	FStaticOnOutlineDelegate SetTargetMagnetizableObject;
+	FStaticSetActorOnOutlineDelegate SetTargetMagnetizableObject;
+
+	/*
+	* @brief 対象オブジェクトをシステムから除外するデリゲート
+	*/
+	FStaticUnsetetActorOnOutlineDelegate UnsetTargetMagnetizableObject;
 
 	/**
 	 * @brief コンポーネント所有者についているカメラコンポ―ネントを取得する関数
@@ -44,11 +50,11 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void SetPlayerCameraComp(const UGameplayCameraComponent* playerCameraComp);
 
-	// /**
-	//  *  @brief 引力斥力を付与する対象のオブジェクトを他クラスに割り当てる処理
-	//  */
-	// UFUNCTION(BlueprintCallable)
-	// void AssignTargetMagnetizableObject();	
+	/**
+	 *  @brief 引力斥力を付与する対象のオブジェクトを他クラスに割り当てる処理
+	 */
+	UFUNCTION(BlueprintCallable)
+	void AssignTargetMagnetizableObject();	
 
 	/*
 	* @brief ライントレースを行って付与できるオブジェクトを検知
@@ -67,10 +73,9 @@ public:
 private:
 
 	UPROPERTY()
-	TObjectPtr<AActor> m_TargetMagnetizableActor;	// 対象オブジェクト
-
+	TObjectPtr<AActor> m_TargetMagnetizableActor;				// 対象オブジェクト
 	UPROPERTY()
-	TObjectPtr<UGameplayCameraComponent> m_PlayerCameraComp;
+	TObjectPtr<UGameplayCameraComponent> m_PlayerCameraComp;	// プレイヤーのカメラ
 
 
 	// オーバーレイマテリアルの設定方法
