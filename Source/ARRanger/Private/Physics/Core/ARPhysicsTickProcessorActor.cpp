@@ -5,12 +5,31 @@
 #include "Physics/Core/ARPhysicsEngine.h"
 #include "Physics/TickObjects/Magnetic/ARMagneticTickObject.h"
 #include "Physics/Core/ARPhysicsTickManagerInterface.h"
+#include "IARMagnetizableInterface.h"
 
 #include "Internal/ARLoggingHeader.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ARPhysicsTickProcessorActor)
 
 using ARRanger::Physics::FARPhysicsTickManagerInterface;
+
+namespace
+{
+
+
+  void UnregisterQueuedTickObjectAndReset(TSet<UARMagneticTickObject*>& UnregisterQueue)
+  {
+    for (const auto& queuedTickObj : UnregisterQueue)
+    {
+      if (queuedTickObj != nullptr)
+      {
+        queuedTickObj->TerminateTickObject();
+      }
+    }
+
+    UnregisterQueue.Reset();
+  }
+}
 
 void FARMagneticTickObjectEntry::RegisterAffectedMagnetizedObject() const
 {
@@ -21,8 +40,16 @@ void FARMagneticTickObjectEntry::RegisterAffectedMagnetizedObject() const
 
   for (const auto& affectedObjWeakPtr : AffectedObjectInterfaces)
   {
-    TickObject->RegisterAffectedMagnetizedObject(affectedObjWeakPtr.Get());
+    if (affectedObjWeakPtr.IsValid())
+    {
+      TickObject->RegisterAffectedMagnetizedObject(affectedObjWeakPtr.Get());
+    }
   }
+}
+
+bool operator==(const FARMagneticTickObjectEntry& Lhs, const FARMagneticTickObjectEntry& Rhs)
+{
+  return Lhs.TickObject == Rhs.TickObject;
 }
 
 // Sets default values
@@ -52,16 +79,14 @@ void AARPhysicsTickProcessorActor::BeginPlay()
 
 void AARPhysicsTickProcessorActor::AsyncPhysicsTickActor(float DeltaTime, float SimTime)
 {
-  PreProcessARPhysicsTasks();
-
-  // 物理演算タスクを実行する
-  ProcessARPhysicsTasks(DeltaTime, SimTime);
-
   Super::AsyncPhysicsTickActor(DeltaTime, SimTime);
 }
 
 void AARPhysicsTickProcessorActor::PreProcessARPhysicsTasks()
 {
+  UnregisterQueuedTickObject();
+  RegisterQueuedTickObject();
+
   for (const auto& entry : MagneticTickObjectEntries)
   {
     entry.RegisterAffectedMagnetizedObject();
@@ -86,21 +111,71 @@ void AARPhysicsTickProcessorActor::ProcessARPhysicsTasks(float DeltaTime, float 
   }
 }
 
+void AARPhysicsTickProcessorActor::PostProcessARPhysicsTasks()
+{
+  #if WITH_EDITOR
+    Debug_LogTickObjectMessage();
+  #endif
+}
+
+void AARPhysicsTickProcessorActor::Tick(float DeltaTime)
+{
+  PreProcessARPhysicsTasks();
+
+  // 物理演算タスクを実行する
+  ProcessARPhysicsTasks(DeltaTime, 0.0f);
+
+  PostProcessARPhysicsTasks();
+
+}
+
+
 void AARPhysicsTickProcessorActor::RegisterMagneticTask(IARMagnetizableInterface* InSource, IARMagnetizableInterface* InTarget, EPhysicsRequestType InRequestType)
 {
-  if (OwningPhysicsEngine == nullptr)
-  {
-    return;
-  }
-
   RegisterMagneticTarget(InSource, InTarget, InRequestType);
   RegisterMagneticTarget(InTarget, InSource, InRequestType);
-
 }
 
 void AARPhysicsTickProcessorActor::UnregisterMagneticTask(IARMagnetizableInterface* InSource, IARMagnetizableInterface* InTarget)
 {
-  
+  UnregisterMagneticTarget(InSource);
+  UnregisterMagneticTarget(InTarget);
+}
+
+void AARPhysicsTickProcessorActor::RegisterQueuedTickObject()
+{
+  for (const auto& queuedTickObj : RegisterTickObjectQueue)
+  {
+    if (queuedTickObj != nullptr)
+    {
+      queuedTickObj->RegisterPhysicsTickFunction();
+    }
+  }
+
+  RegisterTickObjectQueue.Reset();
+}
+
+void AARPhysicsTickProcessorActor::UnregisterQueuedTickObject()
+{
+  for (const auto& queuedTickObj : UnregisterTickObjectQueue)
+  {
+    if (queuedTickObj != nullptr)
+    {
+      queuedTickObj->TerminateTickObject();
+      auto searchFunctor = [&queuedTickObj](const FARMagneticTickObjectEntry& Entry)
+      {
+        return Entry.TickObject == queuedTickObj;
+      };
+
+      FARMagneticTickObjectEntry* foundEntry = MagneticTickObjectEntries.FindByPredicate(searchFunctor);
+      if (foundEntry != nullptr)
+      {
+        MagneticTickObjectEntries.RemoveSingle(*foundEntry);
+      }
+    }
+  }
+
+  UnregisterTickObjectQueue.Reset();
 }
 
 void AARPhysicsTickProcessorActor::RegisterMagneticTarget(IARMagnetizableInterface* InTarget, IARMagnetizableInterface* InAffectedObj, EPhysicsRequestType InRequestType)
@@ -139,6 +214,15 @@ void AARPhysicsTickProcessorActor::RegisterMagneticTarget(IARMagnetizableInterfa
   
 }
 
+void AARPhysicsTickProcessorActor::UnregisterMagneticTarget(IARMagnetizableInterface* InTarget)
+{
+  FARMagneticTickObjectEntry* foundEntry = GetMagneticTickObjectEntry(InTarget);
+  if (foundEntry != nullptr)
+  {
+    UnregisterTickObjectQueue.Emplace(foundEntry->TickObject);
+  }
+}
+
 FARMagneticTickObjectEntry* AARPhysicsTickProcessorActor::GetMagneticTickObjectEntry(IARMagnetizableInterface* InTarget)
 {
   check(InTarget != nullptr);
@@ -158,7 +242,8 @@ FARMagneticTickObjectEntry* AARPhysicsTickProcessorActor::AllocateMagneticTickOb
 
   newTickObject->SetTargetObject(Target);
   newTickObject->SetPhysicsEngineProxy(OwningPhysicsEngine->GetProxy());
-  newTickObject->RegisterPhysicsTickFunction();
+
+  RegisterTickObjectQueue.Emplace(newTickObject);
 
   FARMagneticTickObjectEntry newEntry;
   newEntry.TickObject = newTickObject;
@@ -167,3 +252,17 @@ FARMagneticTickObjectEntry* AARPhysicsTickProcessorActor::AllocateMagneticTickOb
   // TODO Mayby dangerous
   return &MagneticTickObjectEntries[index];
 }
+
+
+#if WITH_EDITOR
+
+void AARPhysicsTickProcessorActor::Debug_LogTickObjectMessage()
+{
+  if (GEngine && MagneticTickObjectEntries.Num() > 0)
+  {
+    FString debugMsg = FString::Printf(TEXT("Tick object count: %d"), MagneticTickObjectEntries.Num());
+    GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, *debugMsg);
+  }
+}
+
+#endif

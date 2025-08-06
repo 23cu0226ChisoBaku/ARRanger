@@ -24,6 +24,8 @@ struct FARMagneticTickObjectEntry
   TArray<TWeakInterfacePtr<IARMagnetizableInterface>> AffectedObjectInterfaces;
 
   void RegisterAffectedMagnetizedObject() const;
+
+  ARRANGER_API friend bool operator==(const FARMagneticTickObjectEntry& Lhs, const FARMagneticTickObjectEntry& Rhs);
 };
 
 UCLASS()
@@ -41,11 +43,13 @@ class AARPhysicsTickProcessorActor : public AActor
     /**Start AActor interface */
     ARRANGER_API virtual void BeginPlay() override;
     ARRANGER_API virtual void AsyncPhysicsTickActor(float DeltaTime, float SimTime) override;
+    ARRANGER_API virtual void Tick(float DeltaTime) override;
     /**End AActor interface */
 
     // TODO May turn these to virtual
     ARRANGER_API void PreProcessARPhysicsTasks();
     ARRANGER_API void ProcessARPhysicsTasks(float DeltaTime, float SimTime);
+    ARRANGER_API void PostProcessARPhysicsTasks();
   
   public:
     void OnSpawnActor(FARPhysicsEngine* PhysicsEnginePtr) { OwningPhysicsEngine = PhysicsEnginePtr; }
@@ -55,11 +59,17 @@ class AARPhysicsTickProcessorActor : public AActor
 
   private:
     void RegisterMagneticTarget(IARMagnetizableInterface* InTarget, IARMagnetizableInterface* InAffectedObj, EPhysicsRequestType InRequestType);
+    void UnregisterMagneticTarget(IARMagnetizableInterface* InTarget);
+    void RegisterQueuedTickObject();
+    void UnregisterQueuedTickObject();
     FARMagneticTickObjectEntry* GetMagneticTickObjectEntry(IARMagnetizableInterface* InTarget);
     FARMagneticTickObjectEntry* AllocateMagneticTickObject(IARMagnetizableInterface* Target, TSubclassOf<UARMagneticTickObject> MagneticTickObjectClass);
 
   private:
     TArray<FARMagneticTickObjectEntry> MagneticTickObjectEntries;
+
+    TSet<UARMagneticTickObject*> RegisterTickObjectQueue;
+    TSet<UARMagneticTickObject*> UnregisterTickObjectQueue;
 
     FARPhysicsEngine* OwningPhysicsEngine;
 
@@ -69,6 +79,8 @@ class AARPhysicsTickProcessorActor : public AActor
     UPROPERTY(EditDefaultsOnly, meta = (AllowPrivateAccess = "true"))
     TSubclassOf<UARMagneticTickObject> RepulsionTickClass;
 
-
+#if WITH_EDITOR
+    ARRANGER_API void Debug_LogTickObjectMessage();
+#endif
 
 };

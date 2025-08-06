@@ -26,11 +26,6 @@ class UARMagneticTickObject : public UARPhysicsTickObject
     bool IsTargetValid() const { return Target != nullptr; } 
 
   protected:
-
-    /**Start UObject interface */
-    ARRANGER_API virtual void BeginDestroy() override;
-    /**End UObject interface */
-
     /**Start UARPhysicsTickObject interface */
     ARRANGER_API virtual void OnEndTickObject() override;
     /**End UARPhysicsTickObject interface */

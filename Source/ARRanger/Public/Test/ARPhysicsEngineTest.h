@@ -11,9 +11,9 @@
 #include "ARPhysicsEngineTest.generated.h"
 
 UCLASS()
-class AARPhysicsEngineTest : public AActor, 
-                                          public IARPhysicsSystemHost,
-                                          public IARMagnetizableInterface
+class AARPhysicsEngineTest :  public AActor, 
+                              public IARPhysicsSystemHost,
+                              public IARMagnetizableInterface
 {
 	GENERATED_BODY()
 	
@@ -35,7 +35,7 @@ public:
   /**Start IARMagnetizableInterface interface*/
 	ARRANGER_API virtual void OnAttraction() override;
 	ARRANGER_API virtual void OnRepulsion() override;
-	virtual AActor* GetActor() const override { return const_cast<AActor*>(static_cast<const AActor*>(this)); }
+	virtual AActor* GetActor() override { return this; }
   /**End IARMagnetizableInterface interface*/
 
 };

@@ -9,7 +9,7 @@ void AARPhysicsEngineTestGameMode::StartPlay()
 {
   Super::StartPlay();
 
-  ARRanger::Private::FARPhysicsCore::InitializeARPhysicsInWorld(GetWorld());
+  ARRanger::Private::FARPhysicsCore::InitializeARPhysicsInWorldWithActorType(GetWorld(), TickProcessorClass);
 }
 
 void AARPhysicsEngineTestGameMode::EndPlay(const EEndPlayReason::Type EndPlayReason)

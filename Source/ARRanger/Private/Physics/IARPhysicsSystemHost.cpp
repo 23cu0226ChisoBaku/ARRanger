@@ -93,7 +93,9 @@ void IARPhysicsSystemHost::Physics_RequestMagneticTaskImpl(IARMagnetizableInterf
   }
   else
   {
+    AR_LOG(LogARPhysics, Warning, TEXT("Request type is NONE."));
     request.Type = EPhysicsRequestType::None;
+    return;
   }
 
   // TODO 二種類のEnumを利用する手間を減らしたい

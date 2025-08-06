@@ -1,10 +1,11 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-
 #include "Physics/TickObjects/Magnetic/ARMagneticAttractionTickObject.h"
-#include "Internal/ARLoggingHeader.h"
-#include "Physics/Core/ARPhysicsEngineProxy.h"
+
 #include "IARMagnetizableInterface.h"
+#include "Physics/Core/ARPhysicsEngineProxy.h"
+
+#include "Internal/ARLoggingHeader.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ARMagneticAttractionTickObject)
 
@@ -41,15 +42,15 @@ void UARMagneticAttractionTickObject::OnTick(const FARPhysicsTickParameters& Tic
     // TODO Maybe should merge this things into EngineProxy?
     {
       const AActor* magnetizedActor = magnetizedObject->GetActor();
-  
       const FVector directionTo = magnetizedActor->GetActorLocation() - targetActor->GetActorLocation();
-      
       const FVector pushForce = directionTo.GetUnsafeNormal() * CONST_PROP * FMath::Pow(MAGNETIC_VALUE, 2.0f) / directionTo.SizeSquared();
       
       Result.ForceResult += pushForce;
 
       // TODO testCode
-      targetActor->AddActorWorldOffset(-pushForce, true);
+      targetActor->AddActorWorldOffset(pushForce, true);
+
+      AR_LOG(LogARPhysics, Warning, TEXT("Push force: X:[%f], Y:[%f], Z:[%f]"), pushForce.X, pushForce.Y, pushForce.Z);
     }
 
     FARPhysicsSimulationParam params{*Target, *magnetizedObject};

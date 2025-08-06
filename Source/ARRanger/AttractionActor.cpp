@@ -25,6 +25,8 @@ void AAttractionActor::BeginPlay()
 	// OnComponentBeginOverlap��Bind����
 	Sphere->OnComponentBeginOverlap.AddDynamic(this, &AAttractionActor::OnSphereBeginOverlap);
 	Sphere->OnComponentEndOverlap.AddDynamic(this, &AAttractionActor::OnSphereEndOverlap);
+
+  SetMagnetismType(EARMagnetismType::Attraction);
 }
 
 void AAttractionActor::OnSphereBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)

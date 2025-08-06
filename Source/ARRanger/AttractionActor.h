@@ -24,8 +24,7 @@ public:
 
 	virtual void OnRepulsion() override {}
 
-	virtual AActor* GetActor() const override{ return const_cast<AActor*>(static_cast<const AActor*>(this)); };
-
+	virtual AActor* GetActor() override { return this; }
 protected:
 	virtual void BeginPlay() override;
 

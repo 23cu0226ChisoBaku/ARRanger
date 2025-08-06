@@ -36,7 +36,7 @@ class FARPhysicsTickManager : public ARRanger::Physics::FARPhysicsTickManagerInt
 
     void ExecuteARPhysicsTick(EARPhysicsTickType TickType, const FARPhysicsTickParameters& Params) override
     {
-      if (!m_tickTasks.Contains(TickType))
+      if (m_tickTasks.Contains(TickType))
       {
         m_tickTasks[TickType]->ExecuteTask(Params);
       }

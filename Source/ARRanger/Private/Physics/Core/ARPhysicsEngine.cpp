@@ -89,21 +89,9 @@ void FARPhysicsEngine::RequestPhysicsProcess(const FARPhysicsRequest& Request)
       }
       case Constantly:
       {
-        using enum EPhysicsRequestType;
-        switch (Request.Type)
-        {
-          case RequestAttraction:
-          {
-            m_tickProcessorActor->RegisterMagneticTask(Request.Source, Request.Target, EPhysicsTickType::TickAttraction);
-          }
-          break;
-          case RequestRepulsion:
-          {
-            m_tickProcessorActor->RegisterMagneticTask(Request.Source, Request.Target, EPhysicsTickType::TickRepulsion);
-          }
-          break;
-        }
+        m_tickProcessorActor->RegisterMagneticTask(Request.Source, Request.Target, Request.Type);
       }
+      break;
     }
   }
 }

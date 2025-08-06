@@ -32,7 +32,7 @@ void UARPhysicsTickObject::TickPhysics(const FARPhysicsTickParameters& TickParam
 
 void UARPhysicsTickObject::BeginTickObject()
 {
-  if (m_internalData->bIsTerminated)
+  if (!m_internalData->bIsTerminated)
   {
     PreviousResult = EvaluatedResult;
     m_internalData->bIsEvaluateFinishedCurrentFrame = false;
