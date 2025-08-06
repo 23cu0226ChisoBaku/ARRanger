@@ -6,19 +6,14 @@
 #include "Kismet/GameplayStatics.h"
 
 AAttractionActor::AAttractionActor()
-	: constProp(25.0f)
-	, magneticValue(20.0f)
-	, onStayFlag(false)
-	, repulsionFlag(false)
-	, playerCharacter(nullptr)
 {
 	PrimaryActorTick.bCanEverTick = true;
 
-	// StaticMeshComponent‚ğ’Ç‰Á‚µARootComponent‚Éİ’è‚·‚é
+	// StaticMeshComponentï¿½ï¿½Ç‰ï¿½ï¿½ï¿½ï¿½ARootComponentï¿½Éİ’è‚·ï¿½ï¿½
 	InsekiActorMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMeshComponent"));
 	RootComponent = InsekiActorMesh;
 
-	// BoxComponent‚ğ’Ç‰Á‚µABoxComponent‚ğRootComponent‚ÉAttach‚·‚é
+	// BoxComponentï¿½ï¿½Ç‰ï¿½ï¿½ï¿½ï¿½ABoxComponentï¿½ï¿½RootComponentï¿½ï¿½Attachï¿½ï¿½ï¿½ï¿½
 	Sphere = CreateDefaultSubobject<USphereComponent>(TEXT("BoxComponent"));
 	Sphere->SetupAttachment(RootComponent);
 }
@@ -27,7 +22,7 @@ void AAttractionActor::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// OnComponentBeginOverlap‚ğBind‚·‚é
+	// OnComponentBeginOverlapï¿½ï¿½Bindï¿½ï¿½ï¿½ï¿½
 	Sphere->OnComponentBeginOverlap.AddDynamic(this, &AAttractionActor::OnSphereBeginOverlap);
 	Sphere->OnComponentEndOverlap.AddDynamic(this, &AAttractionActor::OnSphereEndOverlap);
 }
