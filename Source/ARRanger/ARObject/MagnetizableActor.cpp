@@ -21,7 +21,7 @@ ARRANGER_API AMagnetizableActor::AMagnetizableActor()
 }
 
 /*
-* @brief 毎フレーム処理
+* @brief ゲームプレイ開始後に一度だけ呼ばれる処理
 */
 ARRANGER_API void AMagnetizableActor::BeginPlay()
 {
@@ -29,7 +29,7 @@ ARRANGER_API void AMagnetizableActor::BeginPlay()
 }
 
 /*
-* @brief ゲームプレイ開始後に一度だけ呼ばれる処理
+* @brief 毎フレーム処理
 */
 ARRANGER_API void AMagnetizableActor::Tick(float DeltaTime)
 {
@@ -53,3 +53,9 @@ ARRANGER_API void AMagnetizableActor::OnRepulsion()
 	// 共通処理;
 	if (GEngine) { GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, TEXT("OnRepulsion Invoke")); }
 }
+
+/*テスト用*/
+// void SetType(EARMagnetismType NewType)
+// {
+// 	//SetMagnetismType(NewType);
+// }
