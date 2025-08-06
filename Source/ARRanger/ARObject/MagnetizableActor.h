@@ -22,12 +22,18 @@ public:
 	ARRANGER_API AMagnetizableActor();
 	ARRANGER_API virtual void Tick(float DeltaTime) override;
 
+	/**
+	 * @brief 引力が付与されている状態の挙動
+	 */
 	UFUNCTION(BlueprintCallable)
 	static void CallAttraction(AMagnetizableActor* Actor)
 	{
 		Actor->OnAttraction();
 	}
 
+	/**
+	 * @brief 斥力が付与されている状態の挙動
+	 */
 	UFUNCTION(BlueprintCallable)
 	static void CallRepulsion(AMagnetizableActor* Actor)
 	{
