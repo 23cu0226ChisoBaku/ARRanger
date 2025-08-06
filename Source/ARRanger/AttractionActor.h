@@ -20,11 +20,11 @@ class ARRANGER_API AAttractionActor : public AActor,
 public:
 	AAttractionActor();
 
-  ARRANGER_API virtual void OnAttraction() override {}
+  virtual void OnAttraction() override {}
 
-	ARRANGER_API virtual void OnRepulsion() override {}
+	virtual void OnRepulsion() override {}
 
-	virtual AActor* GetActor() const override{ return const_cast<AActor*>(this); };
+	virtual AActor* GetActor() const override{ return const_cast<AActor*>(static_cast<const AActor*>(this)); };
 
 protected:
 	virtual void BeginPlay() override;

@@ -8,7 +8,7 @@
 
 AARRangerGameMode::AARRangerGameMode()
 {
-	// stub
+	
 }
 
 void AARRangerGameMode::BeginPlay()

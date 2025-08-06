@@ -1,5 +1,5 @@
 //*************************************************
-// Ë—Íˆø—Í‚Ì‹““®‚ğˆ—‚·‚éƒRƒ“ƒ|[ƒlƒ“ƒg
+// æ–¥åŠ›å¼•åŠ›ã®æŒ™å‹•ã‚’å‡¦ç†ã™ã‚‹ã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆ
 //*************************************************
 
 #pragma once
@@ -10,8 +10,8 @@
 #include "ARObjectComponent.generated.h"
 
 /*
-*  UARObjectComponent‚Ìˆ—
-*  BP‚©‚ç’Ç‰Á‰Â”\
+*  UARObjectComponentã®å‡¦ç†
+*  BPã‹ã‚‰è¿½åŠ å¯èƒ½
 */
 UCLASS(ClassGroup = (ARObject), meta = (BlueprintSpawnableComponent))
 class UARObjectComponent : public UActorComponent
@@ -23,17 +23,17 @@ protected:
 	virtual void TickComponent(float deltaTime, ELevelTick tickType, FActorComponentTickFunction* thisTickFunction) override;
 
 	UPROPERTY()
-	EARType _CurrentARType = EARType::None;	// Œ»İ‚Ìó‘Ô
+	EARType _CurrentARType = EARType::None;	// ç¾åœ¨ã®çŠ¶æ…‹
 
 public:
 	UFUNCTION(BlueprintCallable)
-	void SetARType(EARType newType);  // ó‘Ô‚ğİ’è‚·‚éŠÖ”
+	void SetARType(EARType newType);  // çŠ¶æ…‹ã‚’è¨­å®šã™ã‚‹é–¢æ•°
 
 	UFUNCTION(BlueprintCallable, Category = "Attractable")
 	EARType GetCurrentARType() const { return _CurrentARType; };
 
 	/*
-	* ƒRƒ“ƒXƒgƒ‰ƒNƒ^
+	* ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
 	*/
 	UARObjectComponent();
 };

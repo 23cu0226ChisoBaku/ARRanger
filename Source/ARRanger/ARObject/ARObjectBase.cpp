@@ -1,12 +1,12 @@
 //*************************************************
-// 斥力引力の干渉を受けるオブジェクトのベースクラス
+// 譁･蜉帛ｼ募鴨縺ｮ蟷ｲ貂峨ｒ蜿励￠繧九が繝悶ず繧ｧ繧ｯ繝医�ｮ繝吶�ｼ繧ｹ繧ｯ繝ｩ繧ｹ
 //*************************************************
 
 #include "ARObject/ARObjectBase.h"
 #include "ARObjectComponent.h"
 
 /*
-* コンストラクタ
+* 繧ｳ繝ｳ繧ｹ繝医Λ繧ｯ繧ｿ
 */
 AARObjectBase::AARObjectBase()
 	: _pARObjectComponent(nullptr)
@@ -16,7 +16,7 @@ AARObjectBase::AARObjectBase()
 }
 
 /*
-* 引力状態に設定する関数
+* 蠑募鴨迥ｶ諷九↓險ｭ螳壹☆繧矩未謨ｰ
 */
 void AARObjectBase::OnAttraction()
 {
@@ -27,7 +27,7 @@ void AARObjectBase::OnAttraction()
 }
 
 /*
-* 斥力状態に設定する関数
+* 譁･蜉帷憾諷九↓險ｭ螳壹☆繧矩未謨ｰ
 */
 void AARObjectBase::OnRepulsion()
 {
@@ -38,7 +38,7 @@ void AARObjectBase::OnRepulsion()
 }
 
 /*
-* 現在の状態を取得する関数(ARComponentにある変数を持ってくる)
+* 迴ｾ蝨ｨ縺ｮ迥ｶ諷九ｒ蜿門ｾ励☆繧矩未謨ｰ(ARComponent縺ｫ縺ゅｋ螟画焚繧呈戟縺｣縺ｦ縺上ｋ)
 */
 void AARObjectBase::SetNewARType(EARType newType) const
 {
@@ -46,7 +46,7 @@ void AARObjectBase::SetNewARType(EARType newType) const
 }
 
 /*
-* 現在の状態を取得する関数(ARComponentにある変数を持ってくる)
+* 迴ｾ蝨ｨ縺ｮ迥ｶ諷九ｒ蜿門ｾ励☆繧矩未謨ｰ(ARComponent縺ｫ縺ゅｋ螟画焚繧呈戟縺｣縺ｦ縺上ｋ)
 */
 EARType AARObjectBase::GetCurrentARType() const
 {
