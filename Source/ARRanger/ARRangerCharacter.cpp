@@ -16,6 +16,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Kismet/KismetSystemLibrary.h"
+#include "LockOnComponent.h"
 #include "PunchCameraShake.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
@@ -24,12 +25,11 @@ AARRangerCharacter::AARRangerCharacter()
 	: DefaultArmLength(250)
 	, DashArmLength(500)
 	, ArmLengthInterpSpeed(2.5f)
-	, maxLockOnDistance(1500.0f)
-	, isDashed(false)
+	, IsDashed(false)
 	, dashStartThreshold(0.92f)
 	, dashEndThreshold(0.7f)
-	, isAttacked(false)
-	, isAbleToSwitchTarget(false)
+	, IsAttacked(false)
+	, LockOnComponent(nullptr)
 	, isAttractingEnemy(false)
 	, isStrongAttack(false)
 	, currentClimbSurface(nullptr)
@@ -56,6 +56,9 @@ AARRangerCharacter::AARRangerCharacter()
 	GetCharacterMovement()->MinAnalogWalkSpeed = 20.f;
 	GetCharacterMovement()->BrakingDecelerationWalking = 2000.f;
 	GetCharacterMovement()->BrakingDecelerationFalling = 1500.0f;
+
+	// ロックオンコンポーネントを取得
+	LockOnComponent = CreateDefaultSubobject<ULockOnComponent>(TEXT("LockOnComponent"));
 }
 
 void AARRangerCharacter::BeginPlay()
@@ -117,11 +120,11 @@ void AARRangerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AARRangerCharacter::Look);
 
 		// ロックオン
-		EnhancedInputComponent->BindAction(LockOnAction, ETriggerEvent::Triggered, this, &AARRangerCharacter::ToggleLockOn);
+		EnhancedInputComponent->BindAction(LockOnAction, ETriggerEvent::Triggered, LockOnComponent, &ULockOnComponent::ToggleLockOn);
 
 		// ターゲット切り替え(右、左)
-		EnhancedInputComponent->BindAction(SwitchTargetRightAction, ETriggerEvent::Triggered, this, &AARRangerCharacter::SwitchTargetRight);
-		EnhancedInputComponent->BindAction(SwitchTargetLeftAction, ETriggerEvent::Triggered, this, &AARRangerCharacter::SwitchTargetLeft);
+		EnhancedInputComponent->BindAction(SwitchTargetRightAction, ETriggerEvent::Triggered, LockOnComponent, &ULockOnComponent::SwitchTargetRight);
+		EnhancedInputComponent->BindAction(SwitchTargetLeftAction, ETriggerEvent::Triggered, LockOnComponent, &ULockOnComponent::SwitchTargetLeft);
 
 		// 攻撃(パンチ、キック)
 		EnhancedInputComponent->BindAction(PunchAction, ETriggerEvent::Started, this, &AARRangerCharacter::StartPunch);
@@ -158,47 +161,26 @@ void AARRangerCharacter::Tick(float DeltaTime)
 	}
 
 	// ヒステリシスを用いてダッシュ判定
-	if (!isDashed && InputMagnitude > dashStartThreshold)
+	if (!IsDashed && InputMagnitude > dashStartThreshold)
 	{
-		isDashed = true;
+		IsDashed = true;
 	}
-	else if (isDashed && InputMagnitude < dashEndThreshold)
+	else if (IsDashed && InputMagnitude < dashEndThreshold)
 	{
-		isDashed = false;
+		IsDashed = false;
 	}
 
+	bool isLockedOn = LockOnComponent->GetIsLockedOn();
+	AActor* Target = LockOnComponent->GetLockedOnTarget();
+
 	// ロックオン中に処理
-	if (isLockedOn && LockedOnTarget)
+	if (isLockedOn && Target)
 	{
-		FVector ToTarget = LockedOnTarget->GetActorLocation() - GetActorLocation();
+		FVector ToTarget = Target->GetActorLocation() - GetActorLocation();
 		FRotator TargetRotation = FRotationMatrix::MakeFromX(ToTarget).Rotator();
 		TargetRotation.Pitch = 0.f;
 		TargetRotation.Roll = 0.f;
 
-		if (!IsTargetVisible(LockedOnTarget))
-		{
-			// 敵がプレイヤーから見えなくなったらロックオン解除
-			LockedOnTarget = nullptr;
-			isLockedOn = false;
-			UE_LOG(LogTemp, Warning, TEXT("Lost lock-on because target is not visible."))
-		}
-
-		// ロックオン中の敵が消えたら処理
-		if (!IsValid(LockedOnTarget) || LockedOnTarget->IsActorBeingDestroyed())
-		{
-			AActor* NewTarget = FindNearestEnemy(LockedOnTarget);
-			// 新しくターゲットを設定
-			if (NewTarget)
-			{
-				LockedOnTarget = NewTarget;
-			}
-			// いなければロックオン解除
-			else
-			{
-				LockedOnTarget = nullptr;
-				isLockedOn = false;
-			}
-		}
 		// ターゲットに向けて回転
 		SetActorRotation(TargetRotation);
 
@@ -215,10 +197,10 @@ void AARRangerCharacter::Tick(float DeltaTime)
 	}
 
 	// 引き寄せ中に処理
-	if (isAttractingEnemy && LockedOnTarget && IsValid(LockedOnTarget))
+	if (isAttractingEnemy && Target && IsValid(Target))
 	{
 		FVector PlayerLocation = GetActorLocation();
-		FVector EnemyLocation = LockedOnTarget->GetActorLocation();
+		FVector EnemyLocation = Target->GetActorLocation();
 		FVector Direction = (PlayerLocation - EnemyLocation);
 		float Distance = Direction.Size();
 
@@ -236,7 +218,7 @@ void AARRangerCharacter::Tick(float DeltaTime)
 		// 敵を引き寄せる
 		float AttractionSpeed = 800.f;
 		FVector NewLocation = EnemyLocation + Direction.GetSafeNormal() * AttractionSpeed * DeltaTime;
-		LockedOnTarget->SetActorLocation(NewLocation);
+		Target->SetActorLocation(NewLocation);
 	}
 
 	// 引力クライム中に処理
@@ -259,7 +241,7 @@ void AARRangerCharacter::Tick(float DeltaTime)
 		FVector FootPosition = ActorLocation - wallNormal * (HalfHeight - 5.0f);
 
 		FVector Start = FootPosition;
-		FVector End = Start - wallNormal * 100.0f;
+		FVector End = Start - wallNormal * 70.0f;
 
 		FHitResult HitResult;
 		FCollisionQueryParams Params;
@@ -328,7 +310,7 @@ void AARRangerCharacter::OnClimbSurfaceOverlap(
 
 void AARRangerCharacter::DoMove(float Right, float Forward)
 {
-	if (GetController() == nullptr || isAttacked || isStrongAttack)
+	if (GetController() == nullptr || IsAttacked || isStrongAttack)
 	{
 		return;
 	}
@@ -444,7 +426,7 @@ void AARRangerCharacter::DoLook(float Yaw, float Pitch)
 void AARRangerCharacter::DoJumpStart()
 {
 	// 攻撃中は処理しない
-	if (isAttacked || isStrongAttack)
+	if (IsAttacked || isStrongAttack)
 	{
 		return;
 	}
@@ -474,180 +456,6 @@ void AARRangerCharacter::DoJumpEnd()
 	StopJumping();
 }
 
-bool AARRangerCharacter::IsTargetVisible(AActor* Target)
-{
-	// 敵がいないときは処理しない
-	if (!Target)
-	{
-		return false;
-	}
-		
-	// プレイヤーの視点を取得
-	FVector PlayerViewLocation;
-	FRotator PlayerViewRotation;
-	Controller->GetPlayerViewPoint(PlayerViewLocation, PlayerViewRotation);
-
-	FVector TargetLocation = Target->GetActorLocation();
-	// 少し高さを調整（敵の中心や頭部付近を狙う）
-	TargetLocation.Z += 50.0f;
-
-	FHitResult HitResult;
-	FCollisionQueryParams Params;
-	// 自分自身とターゲットは無視する
-	Params.AddIgnoredActor(this);
-	Params.AddIgnoredActor(Target);
-
-	bool bHit = GetWorld()->LineTraceSingleByChannel(
-		HitResult,
-		PlayerViewLocation,
-		TargetLocation,
-		ECC_Visibility,
-		Params
-	);
-
-	// 何かに遮られてヒットした場合は見えていないと判断
-	if (bHit)
-	{
-		// ヒットしたActorがターゲットでなければ遮られていると判定
-		if (HitResult.GetActor() != Target)
-		{
-			return false;
-		}
-	}
-
-	return true;
-}
-
-void AARRangerCharacter::ToggleLockOn()
-{
-	// 引力クライム中は処理しない
-	if (isClimbed)
-	{
-		return;
-	}
-
-	if (isLockedOn)
-	{
-		// ロックオン解除
-		LockedOnTarget = nullptr;
-		isLockedOn = false;
-	}
-	else
-	{
-		AActor* Candidate = FindNearestEnemy();
-		if (Candidate && IsTargetVisible(Candidate))
-		{
-			// 敵をロックオン
-			LockedOnTarget = Candidate;
-			isLockedOn = true;
-		}
-		else
-		{
-			// 見えていなければロックオン不可
-			UE_LOG(LogTemp, Warning, TEXT("Target not visible, cannot lock on."));
-		}
-	}
-}
-
-void AARRangerCharacter::SwitchTargetRight()
-{
-	// ターゲット切り替え処理
-	SwitchTarget(true); 
-}
-
-void AARRangerCharacter::SwitchTargetLeft()
-{
-	// ターゲット切り替え処理
-	SwitchTarget(false); 
-}
-
-void AARRangerCharacter::SwitchTarget(bool isPressedRight)
-{
-	// ロックオン中でなければ処理しない
-	if (!isLockedOn)
-	{
-		return;
-	}
-		
-	// ワールドの敵を取得(To Do：範囲内の敵を取得に変更する)
-	TArray<AActor*> Enemies;
-	UGameplayStatics::GetAllActorsWithTag(GetWorld(), FName("Enemy"), Enemies);
-	if (Enemies.Num() <= 1)
-	{
-		return;
-	}
-	int32 CurrentIndex = Enemies.IndexOfByKey(LockedOnTarget);
-	if (CurrentIndex == INDEX_NONE)
-	{
-		return;
-	}
-
-	// プレイヤーの位置を取得
-	const FVector MyLocation = GetActorLocation();
-
-	const int32 EnemyCount = Enemies.Num();
-	int32 Index = CurrentIndex;
-	int32 Checked = 0;
-
-	while (Checked < EnemyCount)
-	{
-		// 敵の数をチェック
-		Index = isPressedRight
-			? (Index + 1) % EnemyCount
-			: (Index - 1 + EnemyCount) % EnemyCount;
-
-		// 現在選択中の敵になったら処理をやめる
-		if (Index == CurrentIndex)
-		{
-			break;
-		}
-
-		AActor* Candidate = Enemies[Index];
-		if (!Candidate)
-		{
-			Checked++;
-			continue;
-		}
-
-		const float Distance = FVector::Dist(MyLocation, Candidate->GetActorLocation());
-		if (Distance <= maxLockOnDistance)
-		{
-			LockedOnTarget = Candidate;
-			return;
-		}
-
-		Checked++;
-	}
-}
-
-AActor* AARRangerCharacter::FindNearestEnemy(AActor* IgnoreActor)
-{
-	TArray<AActor*> Enemies;
-	UGameplayStatics::GetAllActorsWithTag(GetWorld(), FName("Enemy"), Enemies);
-
-	AActor* NearestEnemy = nullptr;
-	float MinDistSq = FLT_MAX;
-	FVector MyLocation = GetActorLocation();
-	float MaxDistSq = maxLockOnDistance * maxLockOnDistance;
-
-	for (AActor* Enemy : Enemies)
-	{
-		if (Enemy == IgnoreActor || !IsValid(Enemy))
-		{
-			continue;
-		}
-			
-		float DistSq = FVector::DistSquared(MyLocation, Enemy->GetActorLocation());
-
-		if (DistSq <= MaxDistSq && DistSq < MinDistSq)
-		{
-			MinDistSq = DistSq;
-			NearestEnemy = Enemy;
-		}
-	}
-	return NearestEnemy;
-}
-
 void AARRangerCharacter::StartPunch()
 {
 	// 引力クライム中は処理しない
@@ -656,8 +464,11 @@ void AARRangerCharacter::StartPunch()
 		return;
 	}
 
+	bool isLockedOn = LockOnComponent->GetIsLockedOn();
+	AActor* Target = LockOnComponent->GetLockedOnTarget();
+
 	// 引力状態で敵をロックオンしていれば処理
-	if (CurrentARType == EARMagnetismType::Attraction && isLockedOn && LockedOnTarget)
+	if (CurrentARType == EARMagnetismType::Attraction && isLockedOn && Target)
 	{
 		if (!isAttractingEnemy)
 		{
@@ -702,7 +513,7 @@ void AARRangerCharacter::KickHitNotify()
 void AARRangerCharacter::PlayAttackMontage(const FAttackData& Attack)
 {
 	// アニメーションがない、または攻撃中は処理しない
-	if (!Attack.Montage_Normal || !Attack.Montage_Strong || isAttacked)
+	if (!Attack.Montage_Normal || !Attack.Montage_Strong || IsAttacked)
 	{
 		return;
 	}
@@ -714,7 +525,7 @@ void AARRangerCharacter::PlayAttackMontage(const FAttackData& Attack)
 		return;
 	}
 
-	isAttacked = true;
+	IsAttacked = true;
 
 	// 強攻撃アニメーションを再生するか判断
 	if (isStrongAttack)
@@ -782,14 +593,14 @@ void AARRangerCharacter::AttackHit(const FAttackData& Attack)
 
 void AARRangerCharacter::OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted)
 {
-	isAttacked = false;
+	IsAttacked = false;
 	isStrongAttack = false;
 }
 
 void AARRangerCharacter::Transform()
 {
 	// 攻撃中は処理しない
-	if (isAttacked || isStrongAttack)
+	if (IsAttacked || isStrongAttack)
 	{
 		return;
 	}

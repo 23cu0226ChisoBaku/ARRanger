@@ -35,6 +35,23 @@ void ULockOnComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 			lockedOnTarget = nullptr;
 			isLockedOn = false;
 		}
+
+        // ロックオン中の敵が消えたら処理
+        if (!IsValid(lockedOnTarget) || lockedOnTarget->IsActorBeingDestroyed())
+        {
+            AActor* NewTarget = FindNearestEnemy(lockedOnTarget);
+            // 新しくターゲットを設定
+            if (NewTarget)
+            {
+                lockedOnTarget = NewTarget;
+            }
+            // いなければロックオン解除
+            else
+            {
+                lockedOnTarget = nullptr;
+                isLockedOn = false;
+            }
+        }
 	}
 }
 

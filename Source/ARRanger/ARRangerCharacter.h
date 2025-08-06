@@ -4,6 +4,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "InsekiClimbingObject.h"
+#include "LockOnComponent.h"
 #include "Logging/LogMacros.h"
 #include "PlayerObservation/IObservableSubjectInterface.h"
 #include "Public/IARMagnetizableInterface.h"
@@ -105,12 +106,6 @@ protected:
 	void Look(const FInputActionValue& Value);
 
 private:
-	// ロックオン中フラグ
-	bool isLockedOn;
-
-	// ロックオン時敵切り替えの可能フラグ
-	bool isAbleToSwitchTarget;
-
 	// もともとのカメラとプレイヤーの距離
 	float DefaultArmLength;
 
@@ -119,24 +114,6 @@ private:
 
 	// 補間速度
 	float ArmLengthInterpSpeed;
-
-	// 敵がプレイヤーから見えているか判定
-	bool IsTargetVisible(AActor* Target);
-
-	// ロックオン切替関数
-	void ToggleLockOn();
-
-	// 十字ボタン右を押した際に呼び出される
-	void SwitchTargetRight();
-
-	// 十字ボタン左を押した際に呼び出される
-	void SwitchTargetLeft();
-
-	// ロックオン時ターゲット切り替え関数(引数によって前後に切り替え)
-	void SwitchTarget(bool isPressedRight);
-
-	// ロックオン可能な敵を検索
-	AActor* FindNearestEnemy(AActor* IgnoreActor = nullptr);
 
 	// パンチの際に呼び出される
 	void StartPunch();
@@ -232,17 +209,9 @@ public:
 	UPROPERTY(EditAnywhere, Category = "PlayerMesh")
 	USkeletalMesh* RepulsionMesh;
 
-	// ロックオン対象
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	AActor* LockedOnTarget;
-
-	// ロックオン可能距離
-	UPROPERTY(EditAnywhere, Category = "LockOn")
-	float maxLockOnDistance;
-
 	// ダッシュ中フラグ
 	UPROPERTY(BlueprintReadWrite)
-	bool isDashed;
+	bool IsDashed;
 
 	// パンチデータ（Blueprintから設定）
 	UPROPERTY(EditAnywhere, Category = "Attack")
@@ -254,7 +223,11 @@ public:
 
 	// 攻撃中フラグ
 	UPROPERTY(BlueprintReadOnly)
-	bool isAttacked;
+	bool IsAttacked;
+
+	// ロックオンコンポーネント
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	ULockOnComponent* LockOnComponent;
 
 	// 現在のプレイヤーの変身状態
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gravity")

@@ -21,6 +21,9 @@ public:
     UFUNCTION(BlueprintCallable)
     void ToggleLockOn();
 
+    // 敵がプレイヤーから見えているか判定
+    bool IsTargetVisible(AActor* Target);
+
     // ターゲット切り替え(右)
     UFUNCTION(BlueprintCallable)
     void SwitchTargetRight();
@@ -31,7 +34,10 @@ public:
 
     // ターゲットを取得
     UFUNCTION(BlueprintPure)
-    AActor* GetLockedTarget() const { return lockedOnTarget; }
+    AActor* GetLockedOnTarget() const { return lockedOnTarget; }
+
+    // ロックオン中フラグを取得
+    bool GetIsLockedOn() { return isLockedOn; }
 
 protected:
     // ロックオン可能距離
@@ -55,9 +61,6 @@ private:
 
     // ロックオン可能な敵を探す
     AActor* FindNearestEnemy(AActor* IgnoreActor = nullptr);
-
-    // 敵がプレイヤーから見えているか判定
-    bool IsTargetVisible(AActor* Target);
 
     // プレイヤーのオーナー
     APawn* ownerPawn;
