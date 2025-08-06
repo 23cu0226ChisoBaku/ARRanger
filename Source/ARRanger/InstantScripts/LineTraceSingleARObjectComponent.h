@@ -5,7 +5,6 @@
 #pragma once
 
 #include "Components/ActorComponent.h"
-#include "IARMagnetizableInterface.h"
 
 #include "LineTraceSingleARObjectComponent.generated.h"
 
@@ -64,11 +63,17 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LineTrace")
 	AActor* TraceForMagnetizableObject(const FVector& Start, const FVector& End);
 
+	/**
+	 * @brief 対象としているオブジェクトを取得する
+	 */
+	UFUNCTION(BlueprintCallable)
+	AActor* GetTargetMagnetizableActor(){ return m_TargetMagnetizableActor; }	
+
 	/** 
 	 * @brief BPでデリゲートを呼び出す
 	 */
 	UFUNCTION(BlueprintCallable)
-	void ExecuteSetTargetMagnetizableObject();
+	void ExecuteSetTargetMagnetizableObject();			
 
 private:
 

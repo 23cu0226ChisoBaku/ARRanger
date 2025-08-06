@@ -3,6 +3,7 @@
 //*************************************************
 
 #include "InstantScripts/LineTraceSingleARObjectComponent.h"
+#include "IARMagnetizableInterface.h"
 
 #include "GameFramework/GameplayCameraComponent.h"
 
@@ -66,7 +67,7 @@ void ULineTraceSingleARObjectComponent::AssignTargetMagnetizableObject()
     {
         // 切り替わる前の対象オブジェクトに対する処理
         if(m_TargetMagnetizableActor)
-        {
+        {            
             // 点滅処理を行うオブジェクトから除外
             UnsetTargetMagnetizableObject.Execute(m_TargetMagnetizableActor);
         }

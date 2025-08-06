@@ -32,7 +32,7 @@ void ABlinkOutlineTickActor::Tick(float DeltaTime)
 */
 void ABlinkOutlineTickActor::AddBlinkingActor(AActor* newActor)
 {
-	if (!newActor){ return; }
+	if (!newActor || m_BlinkingActors.Contains(newActor)){ return; }
 
 	// アクターを対象オブジェクトに追加
 	m_BlinkingActors.Add(newActor);
@@ -52,7 +52,7 @@ void ABlinkOutlineTickActor::AddBlinkingActor(AActor* newActor)
 */
 void ABlinkOutlineTickActor::RemoveBlinkingActor(AActor* removeActor)
 {
-	if (!removeActor){ return; }
+	if (!removeActor || !m_BlinkingActors.Contains(removeActor)){ return; }
 
 	// アクターを対象オブジェクトから除外
 	m_BlinkingActors.Remove(removeActor);
