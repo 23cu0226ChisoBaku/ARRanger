@@ -4,9 +4,9 @@
 
 #include "InstantScripts/LineTraceSingleARObjectComponent.h"
 
-/*
-* Start ULineTraceSingleARObjectComponent Lifecycle Functions
-*/
+#include "GameFramework/GameplayCameraComponent.h"
+
+/*Start ULineTraceSingleARObjectComponent Lifecycle Functions*/
 ULineTraceSingleARObjectComponent::ULineTraceSingleARObjectComponent()
     : LineTraceLength(1000.0f)
     , m_TargetMagnetizableActor(nullptr)
@@ -23,17 +23,29 @@ void ULineTraceSingleARObjectComponent::TickComponent(float DeltaTime, ELevelTic
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 }
-/*
-* End ULineTraceSingleARObjectComponent Lifecycle Functions
-*/
+/*End ULineTraceSingleARObjectComponent Lifecycle Functions*/
 
+/**
+ * @brief コンポーネント所有者についているカメラコンポ―ネントを取得する関数
+ * 
+ * @param コンポーネント所有者についているカメラコンポ―ネント
+ */
+void ULineTraceSingleARObjectComponent::SetPlayerCameraComp(const UGameplayCameraComponent* playerCameraComp)
+{
+    if(playerCameraComp)
+    { 
+        m_PlayerCameraComp = const_cast<UGameplayCameraComponent*>(playerCameraComp);
+    }
+}
 
 /*
 * @brief ライントレースを行って付与できるオブジェクトを検知
 *
 * @param ライントレースを行うための始点と終点
+*
+* @return 検知した MagnetizableObject
 */
-void ULineTraceSingleARObjectComponent::TraceForMagnetizableObject(const FVector& Start, const FVector& End)
+AActor* ULineTraceSingleARObjectComponent::TraceForMagnetizableObject(const FVector& Start, const FVector& End)
 {
     FHitResult HitResult;
 
@@ -58,7 +70,7 @@ void ULineTraceSingleARObjectComponent::TraceForMagnetizableObject(const FVector
         {
             // オブジェクト名をログに出力
             UE_LOG(LogTemp, Log, TEXT("Hit ARObject: %s"), *HitActor->GetName());
-            m_TargetMagnetizableActor = HitActor;
+            return HitActor;
         }
         else
         {
@@ -71,6 +83,8 @@ void ULineTraceSingleARObjectComponent::TraceForMagnetizableObject(const FVector
         // オブジェクトを検知できなかった
         //UE_LOG(LogTemp, Warning, TEXT("No actor hit during line trace."));
     }
+    
+    return nullptr;
 }
 
 /** 

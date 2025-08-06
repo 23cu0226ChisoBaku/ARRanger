@@ -4,16 +4,19 @@
 
 #pragma once
 
-#include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
-#include "Public/IARMagnetizableInterface.h"
+#include "IARMagnetizableInterface.h"
+
 #include "LineTraceSingleARObjectComponent.generated.h"
+
+// 前方宣言
+class UGameplayCameraComponent;
 
 // デリゲート関数宣言
 DECLARE_DELEGATE_OneParam(FStaticOnOutlineDelegate, AActor*);
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
-class ARRANGER_API ULineTraceSingleARObjectComponent : public UActorComponent
+class ULineTraceSingleARObjectComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
@@ -28,11 +31,24 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LineTrace")
 	float LineTraceLength;
 	
-
 	/*
 	* @brief デリゲート関数を登録する用
 	*/
 	FStaticOnOutlineDelegate SetTargetMagnetizableObject;
+
+	/**
+	 * @brief コンポーネント所有者についているカメラコンポ―ネントを取得する関数
+	 * 
+	 * @param コンポーネント所有者についているカメラコンポ―ネント
+	 */
+	UFUNCTION(BlueprintCallable)
+	void SetPlayerCameraComp(const UGameplayCameraComponent* playerCameraComp);
+
+	// /**
+	//  *  @brief 引力斥力を付与する対象のオブジェクトを他クラスに割り当てる処理
+	//  */
+	// UFUNCTION(BlueprintCallable)
+	// void AssignTargetMagnetizableObject();	
 
 	/*
 	* @brief ライントレースを行って付与できるオブジェクトを検知
@@ -40,14 +56,21 @@ public:
 	* @param ライントレースを行うための始点と終点
 	*/
 	UFUNCTION(BlueprintCallable, Category = "LineTrace")
-	void TraceForMagnetizableObject(const FVector& Start, const FVector& End);
+	AActor* TraceForMagnetizableObject(const FVector& Start, const FVector& End);
 
+	/** 
+	 * @brief BPでデリゲートを呼び出す
+	 */
 	UFUNCTION(BlueprintCallable)
 	void ExecuteSetTargetMagnetizableObject();
 
 private:
 
-	AActor* m_TargetMagnetizableActor;	// 対象オブジェクト
+	UPROPERTY()
+	TObjectPtr<AActor> m_TargetMagnetizableActor;	// 対象オブジェクト
+
+	UPROPERTY()
+	TObjectPtr<UGameplayCameraComponent> m_PlayerCameraComp;
 
 
 	// オーバーレイマテリアルの設定方法

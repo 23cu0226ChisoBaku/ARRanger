@@ -18,7 +18,8 @@ public class ARRanger : ModuleRules
       "StateTreeModule",
       "GameplayStateTreeModule",
       "UMG",
-      "MLibrary"
+      "MLibrary",
+      "GameplayCameras",
 		});
 
     PrivateDependencyModuleNames.AddRange(new string[] { });
@@ -36,6 +37,7 @@ public class ARRanger : ModuleRules
     PrivateIncludePaths.AddRange(new string[] {
       "ARRanger/Public/CameraWork",
       "MLibrary/Public",
+      ""
     });
 
 		// Uncomment if you are using Slate UI

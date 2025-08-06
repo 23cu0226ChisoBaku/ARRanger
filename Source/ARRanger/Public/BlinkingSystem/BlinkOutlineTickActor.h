@@ -39,6 +39,9 @@ public:
 	void HandleRequest();
 
 private:
-	TArray<AActor*> m_BlinkingActors;
-	TArray<UMeshComponent*> m_BlinkingActorComponents;
+
+	UPROPERTY()
+	TArray<TObjectPtr<AActor>> m_BlinkingActors;					// 点滅させるオブジェクトの配列
+	UPROPERTY()
+	TArray<TObjectPtr<UMeshComponent>> m_BlinkingActorComponents;	// 点滅させるオブジェクトのメッシュコンポーネントの配列
 };

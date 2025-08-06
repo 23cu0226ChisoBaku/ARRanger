@@ -16,7 +16,6 @@ class UARMagnetizableInterface : public UInterface
 	GENERATED_BODY()
 };
 
-
 /*
 * 斥力引力状態(磁性)
 */
@@ -40,19 +39,26 @@ public:
 	/*
 	* @brief 引力の磁性を保持している時の処理
 	*/
-	ARRANGER_API virtual void OnAttraction() = 0;
+	virtual void OnAttraction(){}
 
 	/*
 	* @brief 斥力の磁性を保持している時の処理
 	*/
-	ARRANGER_API virtual void OnRepulsion() = 0;
+	virtual void OnRepulsion(){}
+
+	/**
+	 * @brief 引力・斥力における移動量
+	 * 
+	 * @param 移動量
+	 */
+	virtual void OnMagneticForceEvaluated(const FVector& magneticForce){}
 
 	/*
 	* @brief アクターを取得するための関数
 	* 
 	* @return アクターポインタ
 	*/
-	ARRANGER_API virtual AActor* GetActor() = 0;
+	virtual AActor* GetActor(){return nullptr;}
 
 	/*
 	* @brief 新しい磁性に変化させる
