@@ -9,7 +9,9 @@ UARMagneticTickObject::UARMagneticTickObject()
   : Target{nullptr}
   , AffectedMagnetizedObjects{}
   , PhysicsEngineProxy{nullptr}
-{ }
+{
+  PrimaryPhysicsTick.Frequency = EARPhysicsTickFrequency::TF_Default;
+}
 
 void UARMagneticTickObject::SetTargetObject(IARMagnetizableInterface* InTarget)
 {

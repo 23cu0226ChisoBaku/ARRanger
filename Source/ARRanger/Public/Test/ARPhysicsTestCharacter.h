@@ -32,4 +32,10 @@ public:
   virtual void OnAttraction() override { }
 	virtual void OnRepulsion() override { }
 	virtual AActor* GetActor() override { return this; }
+
+  UFUNCTION(BlueprintCallable)
+  void SetAttra();
+
+  UFUNCTION(BlueprintCallable)
+  void SetRepul();
 };

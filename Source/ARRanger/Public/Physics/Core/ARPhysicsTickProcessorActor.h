@@ -59,13 +59,14 @@ class AARPhysicsTickProcessorActor : public AActor
 
   private:
     void RegisterMagneticTarget(IARMagnetizableInterface* InTarget, IARMagnetizableInterface* InAffectedObj, EPhysicsRequestType InRequestType);
-    void UnregisterMagneticTarget(IARMagnetizableInterface* InTarget);
+    void UnregisterMagneticTarget(IARMagnetizableInterface* InSource, IARMagnetizableInterface* InTarget);
     void RegisterQueuedTickObject();
     void UnregisterQueuedTickObject();
     FARMagneticTickObjectEntry* GetMagneticTickObjectEntry(IARMagnetizableInterface* InTarget);
     FARMagneticTickObjectEntry* AllocateMagneticTickObject(IARMagnetizableInterface* Target, TSubclassOf<UARMagneticTickObject> MagneticTickObjectClass);
 
   private:
+    UPROPERTY()
     TArray<FARMagneticTickObjectEntry> MagneticTickObjectEntries;
 
     TSet<UARMagneticTickObject*> RegisterTickObjectQueue;

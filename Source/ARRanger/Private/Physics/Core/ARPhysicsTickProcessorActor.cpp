@@ -13,24 +13,6 @@
 
 using ARRanger::Physics::FARPhysicsTickManagerInterface;
 
-namespace
-{
-
-
-  void UnregisterQueuedTickObjectAndReset(TSet<UARMagneticTickObject*>& UnregisterQueue)
-  {
-    for (const auto& queuedTickObj : UnregisterQueue)
-    {
-      if (queuedTickObj != nullptr)
-      {
-        queuedTickObj->TerminateTickObject();
-      }
-    }
-
-    UnregisterQueue.Reset();
-  }
-}
-
 void FARMagneticTickObjectEntry::RegisterAffectedMagnetizedObject() const
 {
   if (TickObject == nullptr)
@@ -87,9 +69,10 @@ void AARPhysicsTickProcessorActor::PreProcessARPhysicsTasks()
   UnregisterQueuedTickObject();
   RegisterQueuedTickObject();
 
-  for (const auto& entry : MagneticTickObjectEntries)
+  const int32 entryNum = MagneticTickObjectEntries.Num();
+  for (int32 idx = 0; idx < entryNum; ++idx)
   {
-    entry.RegisterAffectedMagnetizedObject();
+    MagneticTickObjectEntries[idx].RegisterAffectedMagnetizedObject();
   }
 }
 
@@ -116,10 +99,25 @@ void AARPhysicsTickProcessorActor::PostProcessARPhysicsTasks()
   #if WITH_EDITOR
     Debug_LogTickObjectMessage();
   #endif
+
+  // FIXME 一時的なコード、後ほど別のところで一回しか実行しないTickObjectの管理をする
+  for (const auto& entry : MagneticTickObjectEntries)
+  {
+    if (entry.TickObject != nullptr)
+    {
+      if (!entry.TickObject->IsTickFunctionRegistered())
+      {
+        UnregisterTickObjectQueue.Emplace(entry.TickObject);
+      }
+    }
+  }
 }
 
 void AARPhysicsTickProcessorActor::Tick(float DeltaTime)
 {
+  // Trace profile
+  TRACE_CPUPROFILER_EVENT_SCOPE(AARPhysicsTickProcessorActor::Tick);
+
   PreProcessARPhysicsTasks();
 
   // 物理演算タスクを実行する
@@ -138,8 +136,8 @@ void AARPhysicsTickProcessorActor::RegisterMagneticTask(IARMagnetizableInterface
 
 void AARPhysicsTickProcessorActor::UnregisterMagneticTask(IARMagnetizableInterface* InSource, IARMagnetizableInterface* InTarget)
 {
-  UnregisterMagneticTarget(InSource);
-  UnregisterMagneticTarget(InTarget);
+  UnregisterMagneticTarget(InSource, InTarget);
+  UnregisterMagneticTarget(InTarget, InSource);
 }
 
 void AARPhysicsTickProcessorActor::RegisterQueuedTickObject()
@@ -161,7 +159,7 @@ void AARPhysicsTickProcessorActor::UnregisterQueuedTickObject()
   {
     if (queuedTickObj != nullptr)
     {
-      queuedTickObj->TerminateTickObject();
+      queuedTickObj->UnregisterPhysicsTickFunction();
       auto searchFunctor = [&queuedTickObj](const FARMagneticTickObjectEntry& Entry)
       {
         return Entry.TickObject == queuedTickObj;
@@ -170,6 +168,7 @@ void AARPhysicsTickProcessorActor::UnregisterQueuedTickObject()
       FARMagneticTickObjectEntry* foundEntry = MagneticTickObjectEntries.FindByPredicate(searchFunctor);
       if (foundEntry != nullptr)
       {
+        foundEntry->TickObject->ConditionalBeginDestroy();
         MagneticTickObjectEntries.RemoveSingle(*foundEntry);
       }
     }
@@ -210,16 +209,23 @@ void AARPhysicsTickProcessorActor::RegisterMagneticTarget(IARMagnetizableInterfa
   }
 
   check(foundEntry != nullptr);
-  foundEntry->AffectedObjectInterfaces.Emplace(InAffectedObj);
+  foundEntry->AffectedObjectInterfaces.AddUnique(InAffectedObj);
   
 }
 
-void AARPhysicsTickProcessorActor::UnregisterMagneticTarget(IARMagnetizableInterface* InTarget)
+void AARPhysicsTickProcessorActor::UnregisterMagneticTarget(IARMagnetizableInterface* InSource, IARMagnetizableInterface* InTarget)
 {
-  FARMagneticTickObjectEntry* foundEntry = GetMagneticTickObjectEntry(InTarget);
+  check(InSource != nullptr);
+  check(InTarget != nullptr);
+
+  FARMagneticTickObjectEntry* foundEntry = GetMagneticTickObjectEntry(InSource);
   if (foundEntry != nullptr)
   {
-    UnregisterTickObjectQueue.Emplace(foundEntry->TickObject);
+    foundEntry->AffectedObjectInterfaces.RemoveSingle(InTarget);
+    if (foundEntry->AffectedObjectInterfaces.Num() < 1)
+    {
+      UnregisterTickObjectQueue.Emplace(foundEntry->TickObject);
+    }
   }
 }
 
@@ -258,11 +264,11 @@ FARMagneticTickObjectEntry* AARPhysicsTickProcessorActor::AllocateMagneticTickOb
 
 void AARPhysicsTickProcessorActor::Debug_LogTickObjectMessage()
 {
-  if (GEngine && MagneticTickObjectEntries.Num() > 0)
-  {
-    FString debugMsg = FString::Printf(TEXT("Tick object count: %d"), MagneticTickObjectEntries.Num());
-    GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, *debugMsg);
-  }
+  // if (GEngine && MagneticTickObjectEntries.Num() > 0)
+  // {
+  //   FString debugMsg = FString::Printf(TEXT("Tick object count: %d"), MagneticTickObjectEntries.Num());
+  //   GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, *debugMsg);
+  // }
 }
 
 #endif

@@ -27,6 +27,7 @@ FARPhysicsTickTask::~FARPhysicsTickTask()
 
 void FARPhysicsTickTask::ExecuteTask(const FARPhysicsTickParameters& TickParams)
 {
+  TArray<FARPhysicsTickFunctionInterface*> removedTickFunctions{};
   for (const auto& tickFunc : m_enabledTickFunctions)
   {
     check(tickFunc != nullptr);
@@ -34,10 +35,16 @@ void FARPhysicsTickTask::ExecuteTask(const FARPhysicsTickParameters& TickParams)
 
     if (tickFunc->Frequency == EARPhysicsTickFrequency::TF_Once)
     {
-      RemoveTickFunction(tickFunc);
-      tickFunc->m_internalData->bIsRegistered = false;
+      removedTickFunctions.Emplace(tickFunc);
     }
   }
+
+  for (const auto& tickFunc : removedTickFunctions)
+  {
+    tickFunc->m_internalData->bIsRegistered = false;
+    RemoveTickFunction(tickFunc);
+  }
+  
 }
 
 void FARPhysicsTickTask::AddTickFunction(FARPhysicsTickFunctionInterface* TickFunction)

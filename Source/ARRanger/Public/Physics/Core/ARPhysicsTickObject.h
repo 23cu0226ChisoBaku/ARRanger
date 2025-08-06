@@ -61,17 +61,7 @@ class UARPhysicsTickObject : public UObject
      */
     struct FInternalData
     {
-      /**
-       * TickObjectが消滅されるかを表す。　TerminateTickObject()またはBeginDestroy()でtrueに設定される
-       * @see TerminateTickObject()
-       * @see BeginDestroy() 
-       */
-      uint8 bIsTerminated : 1;
-
-      /**
-       * 
-       */
-      uint8 bIsEvaluateFinishedCurrentFrame : 1;
+      uint8 bIsEvaluateFinishedCurrentFrame : 1 = false;
     };
 
   public:
@@ -79,12 +69,12 @@ class UARPhysicsTickObject : public UObject
 
     ARRANGER_API void RegisterPhysicsTickFunction();
     ARRANGER_API void TickPhysics(const FARPhysicsTickParameters& TickParams);    
-    ARRANGER_API void TerminateTickObject();
+    ARRANGER_API void UnregisterPhysicsTickFunction();
     
     FARPhysicsEvaluationResult GetLastFrameResult() const { return PreviousResult; }
     FARPhysicsEvaluationResult GetEvaluatedResult() const { return EvaluatedResult; }
     bool IsCurrentFrameEvaluateFinished() const { return m_internalData.IsValid() && m_internalData->bIsEvaluateFinishedCurrentFrame; }
-    bool IsTerminated() const { return m_internalData.IsValid() && m_internalData->bIsTerminated; }
+    bool IsTickFunctionRegistered() const { return PrimaryPhysicsTick.IsTickFunctionRegistered(); }
     
     UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "Physics Tick"))
     ARRANGER_API void TickOnBlueprint(const FARPhysicsTickParameters& TickParams, FARPhysicsEvaluationResult& Result);

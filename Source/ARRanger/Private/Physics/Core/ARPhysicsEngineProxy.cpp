@@ -38,16 +38,12 @@ void FARPhysicsEngineProxy::OnInitialize(FARPhysicsEngine* OwningPhysicsEnginePt
 
 void FARPhysicsEngineProxy::OnSimulateAttraction(const FARPhysicsSimulationParam& SimulationParameter)
 {
-  AR_LOG(LogARPhysics, Log, TEXT("On simulate attraction"));
-
   SimulationParameter.Target1.OnAttraction();
   SimulationParameter.Target2.OnAttraction();
 } 
 
 void FARPhysicsEngineProxy::OnSimulateRepulsion(const FARPhysicsSimulationParam& SimulationParameter)
 {
-  AR_LOG(LogARPhysics, Log, TEXT("On simulate repulsion"));
-
   SimulationParameter.Target1.OnRepulsion();
   SimulationParameter.Target2.OnRepulsion();
 }

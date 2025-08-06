@@ -13,7 +13,6 @@ UARPhysicsTickObject::UARPhysicsTickObject()
 
 void UARPhysicsTickObject::RegisterPhysicsTickFunction()
 {
-  check(!m_internalData->bIsTerminated);
   check(!PrimaryPhysicsTick.IsTickFunctionRegistered());
 
   PrimaryPhysicsTick.TargetObject = this;
@@ -32,18 +31,15 @@ void UARPhysicsTickObject::TickPhysics(const FARPhysicsTickParameters& TickParam
 
 void UARPhysicsTickObject::BeginTickObject()
 {
-  if (!m_internalData->bIsTerminated)
-  {
-    PreviousResult = EvaluatedResult;
-    m_internalData->bIsEvaluateFinishedCurrentFrame = false;
-    OnBeginTickObject();
-  }
+  PreviousResult = EvaluatedResult;
+  m_internalData->bIsEvaluateFinishedCurrentFrame = false;
+  OnBeginTickObject();  
 }
 
 void UARPhysicsTickObject::Tick(const FARPhysicsTickParameters& TickParams)
 {
   check(m_internalData.IsValid());
-  if (!m_internalData->bIsTerminated && !m_internalData->bIsEvaluateFinishedCurrentFrame)
+  if (!m_internalData->bIsEvaluateFinishedCurrentFrame)
   {
     FARPhysicsEvaluationResult result{};
     OnTick(TickParams, result);
@@ -64,35 +60,28 @@ void UARPhysicsTickObject::EndTickObject()
 {
   check(m_internalData.IsValid());
 
-  if (!m_internalData->bIsTerminated && !m_internalData->bIsEvaluateFinishedCurrentFrame)
+  if (!m_internalData->bIsEvaluateFinishedCurrentFrame)
   {
     OnEndTickObject();
   }
 }
 
-void UARPhysicsTickObject::TerminateTickObject()
+void UARPhysicsTickObject::UnregisterPhysicsTickFunction()
 {
-  if (m_internalData.IsValid())
-  {
-    m_internalData->bIsTerminated = true;
-  }
-
   PrimaryPhysicsTick.UnregisterPhysicsTickFunction();
 }
 
 void UARPhysicsTickObject::BeginDestroy()
 {
-  TerminateTickObject();
+  UnregisterPhysicsTickFunction();
 
   Super::BeginDestroy();
 }
 
 void FARPhysicsTickFunction::ExecuteTick(const FARPhysicsTickParameters& TickParams)
 {
-  if (IsValid(TargetObject) && !TargetObject->IsTerminated())
+  if (IsValid(TargetObject))
   {
     TargetObject->TickPhysics(TickParams);
-
-    AR_LOG(LogARPhysics, Log, TEXT("Run FARPhysicsTickFunction ExecuteTick"));
   }
 }

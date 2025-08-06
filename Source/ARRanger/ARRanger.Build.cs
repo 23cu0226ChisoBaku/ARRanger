@@ -19,7 +19,8 @@ public class ARRanger : ModuleRules
       "StateTreeModule",
       "GameplayStateTreeModule",
       "UMG",
-      "MLibrary"
+      "MLibrary",
+      "GameplayCameras",
     });
 
     PrivateDependencyModuleNames.AddRange(new string[] { });

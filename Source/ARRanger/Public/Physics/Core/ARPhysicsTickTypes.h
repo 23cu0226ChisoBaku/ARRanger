@@ -32,7 +32,6 @@ class FARPhysicsTickFunctionInterface
   friend class FARPhysicsTickManager;
   friend class ARRanger::Physics::FARPhysicsTickTask;
 
-  
   public:
     EARPhysicsTickType PhysicsTickType;
 

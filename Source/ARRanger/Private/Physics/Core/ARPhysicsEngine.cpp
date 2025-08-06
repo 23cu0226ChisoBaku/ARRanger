@@ -71,21 +71,24 @@ void FARPhysicsEngine::RequestPhysicsProcess(const FARPhysicsRequest& Request)
     {
       case Once:
       {
-        FARPhysicsSimulationParam simulationParam(*Request.Source, *Request.Target);
-        using enum EPhysicsRequestType;
-        switch (Request.Type)
-        {
-          case RequestAttraction:
-          {
-            proxyPtr->SimulateAttraction(simulationParam);
-          }
-          break;
-          case RequestRepulsion:
-          {
-            proxyPtr->SimulateRepulsion(simulationParam);
-          }
-          break;
-        }
+        // FARPhysicsSimulationParam simulationParam(*Request.Source, *Request.Target);
+        // using enum EPhysicsRequestType;
+        // switch (Request.Type)
+        // {
+        //   case RequestAttraction:
+        //   {
+        //     proxyPtr->SimulateAttraction(simulationParam);
+        //   }
+        //   break;
+        //   case RequestRepulsion:
+        //   {
+        //     proxyPtr->SimulateRepulsion(simulationParam);
+        //   }
+        //   break;
+        // }
+
+        // FIXME Test purpose
+        m_tickProcessorActor->RegisterMagneticTask(Request.Source, Request.Target, Request.Type);
       }
       case Constantly:
       {

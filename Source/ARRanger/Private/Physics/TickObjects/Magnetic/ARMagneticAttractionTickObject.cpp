@@ -16,22 +16,21 @@ namespace
   constexpr float MAGNETIC_VALUE = 20.0f;
 }
 
+UARMagneticAttractionTickObject::UARMagneticAttractionTickObject()
+{
+  PrimaryPhysicsTick.Frequency = EARPhysicsTickFrequency::TF_Default;
+}
+
 void UARMagneticAttractionTickObject::OnTick(const FARPhysicsTickParameters& TickParams, FARPhysicsEvaluationResult& Result)
 {
-  if ((Target == nullptr) || (PhysicsEngineProxy == nullptr))
-  {
-    AR_LOG(LogARPhysics, Error, TEXT("TargetObject or EngineProxy is invalid"));
-    return;
-  }
-
-  // 斥力計算
   AActor* targetActor = Target->GetActor();
   if (targetActor == nullptr)
   {
     AR_LOG(LogARPhysics, Error, TEXT("Target actor is nullptr.Do you override IARMagnetizableInterface::GetActor()? "));
     return;
   }
-
+  
+  // 斥力計算
   for (const auto& magnetizedObject : AffectedMagnetizedObjects)
   {
     if ((magnetizedObject == nullptr) || (magnetizedObject->GetActor() == nullptr))
@@ -43,18 +42,16 @@ void UARMagneticAttractionTickObject::OnTick(const FARPhysicsTickParameters& Tic
     {
       const AActor* magnetizedActor = magnetizedObject->GetActor();
       const FVector directionTo = magnetizedActor->GetActorLocation() - targetActor->GetActorLocation();
-      const FVector pushForce = directionTo.GetUnsafeNormal() * CONST_PROP * FMath::Pow(MAGNETIC_VALUE, 2.0f) / directionTo.SizeSquared();
+      const FVector pushForce = directionTo.GetUnsafeNormal() * CONST_PROP * MAGNETIC_VALUE * MAGNETIC_VALUE / directionTo.SizeSquared();
       
       Result.ForceResult += pushForce;
 
       // TODO testCode
       targetActor->AddActorWorldOffset(pushForce, true);
-
-      AR_LOG(LogARPhysics, Warning, TEXT("Push force: X:[%f], Y:[%f], Z:[%f]"), pushForce.X, pushForce.Y, pushForce.Z);
     }
 
-    FARPhysicsSimulationParam params{*Target, *magnetizedObject};
-    PhysicsEngineProxy->SimulateAttraction(params);
+    // FARPhysicsSimulationParam params{*Target, *magnetizedObject};
+    // PhysicsEngineProxy->SimulateAttraction(params);
   }
   
 

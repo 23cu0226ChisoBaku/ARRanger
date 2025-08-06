@@ -33,3 +33,13 @@ void AARPhysicsTestCharacter::SetupPlayerInputComponent(UInputComponent* PlayerI
 
 }
 
+void AARPhysicsTestCharacter::SetAttra()
+{
+  SetMagnetismType(EARMagnetismType::Attraction);
+}
+
+void AARPhysicsTestCharacter::SetRepul()
+{
+  SetMagnetismType(EARMagnetismType::Repulsion);
+}
+

@@ -4,16 +4,17 @@
 
 #include "Physics/TickObjects/Magnetic/ARMagneticTickObject.h"
 
-#include "ARMagneticAttractionTickObject.generated.h"
+#include "ARMagneticRepulsionTickObject.generated.h"
+
 
 UCLASS(Blueprintable, BlueprintType)
-class UARMagneticAttractionTickObject : public UARMagneticTickObject
+class UARMagneticRepulsionTickObject : public UARMagneticTickObject
 {
 	GENERATED_BODY()
-
+	
   public:
-    ARRANGER_API UARMagneticAttractionTickObject();
+    ARRANGER_API UARMagneticRepulsionTickObject();
 
-  protected:      
+  protected:
     ARRANGER_API virtual void OnTick(const FARPhysicsTickParameters& TickParams, FARPhysicsEvaluationResult& Result) override;
 };
