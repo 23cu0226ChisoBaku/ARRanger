@@ -3,7 +3,6 @@
 //*************************************************
 
 #include "Public/BlinkingSystem/BlinkOutlineTickActor.h"
-#include "Public/BlinkingSystem/BlinkDatas.h"
 
 /*
 * Start ULineTraceSingleARObjectComponent Lifecycle Functions
@@ -44,6 +43,8 @@ void ABlinkOutlineTickActor::AddBlinkingActor(AActor* newActor)
 	{
 		m_BlinkingActorComponents.Add(meshComponent);
 	}
+
+	
 }
 
 /*

@@ -34,17 +34,15 @@ USTRUCT(BlueprintType)
 struct FBlinkingActorData
 {
 	GENERATED_BODY()
-	
+
     UPROPERTY()
-    TWeakObjectPtr<UMeshComponent> _targetMeshComp;
+    float _elapsedTime;
     UPROPERTY()
-    float _elapsedTime = 0.0f;
+    float _blinkDelay;
     UPROPERTY()
-    float _blinkDelay = 0.0f;
+    float _blinkSpeed;
     UPROPERTY()
-    float _blinkSpeed = 1.0f;
+    EBlinkType _blinkType;
     UPROPERTY()
-    EBlinkType _blinkType = EBlinkType::Constant;
-    UPROPERTY()
-    EBlinkColorType _blinkColor = EBlinkColorType::White;
+    EBlinkColorType _blinkColor;
 };
