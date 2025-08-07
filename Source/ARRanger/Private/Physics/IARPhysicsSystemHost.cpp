@@ -5,28 +5,25 @@
 #include "IARMagnetizableInterface.h"
 #include "Physics/Core/ARPhysicsEngine.h"
 #include "Physics/Core/ARPhysicsTickProcessorActor.h"
+#include "Physics/Gameplay/ARPhysicsGlobal.h"
 
-#include "ARLoggingHeader.h"
+// Log Header
+#include "Internal/ARLoggingHeader.h"
 
 namespace ARRanger::Private
 {
-  struct FARPhysicsEngineAccessor
+  /**
+   * @brief AR物理エンジンを取得
+   */
+  inline static FARPhysicsEngine& GetEngine()
   {
-    static FARPhysicsEngine& GetEngine()
-    {
-      static FARPhysicsEngine Engine;
-      return Engine;
-    }
-
-    private:
-      FARPhysicsEngineAccessor() = delete;
-      ~FARPhysicsEngineAccessor() = delete;
-  };
+    static FARPhysicsEngine Engine;
+    return Engine;
+  }
 
   void FARPhysicsCore::InitializeARPhysicsInWorld(UWorld* World)
   {
     check(World != nullptr);
-
     InitializeARPhysicsInWorldWithActorType(World, AARPhysicsTickProcessorActor::StaticClass());
   }
 
@@ -39,35 +36,35 @@ namespace ARRanger::Private
     param.World = World;
     param.SubclassOfPTPActor = Subclass;
 
-    FARPhysicsEngineAccessor::GetEngine().InitializePhysicsEngine(param);
+    GetEngine().InitializePhysicsEngine(param);
   }
 
   void FARPhysicsCore::DeinitializeARPhysics()
   {
-    FARPhysicsEngineAccessor::GetEngine().DeinitializePhysicsEngine();
+    GetEngine().DeinitializePhysicsEngine();
   }
-} 
+} // namespace ARRanger::Private
 
-using ARRanger::Private::FARPhysicsEngineAccessor;
+using ARRanger::Private::GetEngine;
 
-void IARPhysicsSystemHost::Physics_RequestMagneticTask(IARMagnetizableInterface* InSource, IARMagnetizableInterface* InTarget)
+void IARPhysicsSystemHost::Physics_RegisterMagneticTask(IARMagnetizableInterface* InSource, IARMagnetizableInterface* InTarget)
 {
   Physics_RequestMagneticTaskImpl(InSource, InTarget, EMagneticTaskFrequency::Constantly);
 }
 
-void IARPhysicsSystemHost::Physics_RequestMagneticTask_Once(IARMagnetizableInterface* InSource, IARMagnetizableInterface* InTarget)
+void IARPhysicsSystemHost::Physics_RegisterMagneticTask_Once(IARMagnetizableInterface* InSource, IARMagnetizableInterface* InTarget)
 {
   Physics_RequestMagneticTaskImpl(InSource, InTarget, EMagneticTaskFrequency::Once);
 }
 
-void IARPhysicsSystemHost::Physics_TerminateMagneticTask(IARMagnetizableInterface* InSource, IARMagnetizableInterface* InTarget)
+void IARPhysicsSystemHost::Physics_UnregisterMagneticTask(IARMagnetizableInterface* InSource, IARMagnetizableInterface* InTarget)
 {
-  FARPhysicsTermination termination;
+  FARPhysicsUnregistry termination;
   termination.Source = InSource;
   termination.Target = InTarget;
-  termination.Type = EPhysicsTerminationType::TerminateMagnetic;
+  termination.Type = EPhysicsUnregistryType::UnregisterMagnetic;
 
-  FARPhysicsEngineAccessor::GetEngine().TerminatePhysicsProcess(termination);
+  GetEngine().UnregisterPhysicsProcess(termination);
 }
 
 void IARPhysicsSystemHost::Physics_RequestMagneticTaskImpl(IARMagnetizableInterface* InSource, IARMagnetizableInterface* InTarget, EMagneticTaskFrequency Frequency)
@@ -78,23 +75,23 @@ void IARPhysicsSystemHost::Physics_RequestMagneticTaskImpl(IARMagnetizableInterf
     return;
   }
 
-  FARPhysicsRequest request;
+  FARPhysicsRegistry request;
   request.Source = InSource;
   request.Target = InTarget;
   
   using enum EARMagnetismType;
   if ((InSource->GetMagnetismType() == Attraction) && (InTarget->GetMagnetismType() == Attraction))
   {
-    request.Type = EPhysicsRequestType::RequestAttraction;
+    request.Type = EPhysicsRegistryType::RequestAttraction;
   }
   else if ((InSource->GetMagnetismType() == Repulsion) && (InTarget->GetMagnetismType() == Repulsion))
   {
-    request.Type = EPhysicsRequestType::RequestRepulsion;
+    request.Type = EPhysicsRegistryType::RequestRepulsion;
   }
   else
   {
     AR_LOG(LogARPhysics, Warning, TEXT("Request type is NONE."));
-    request.Type = EPhysicsRequestType::None;
+    request.Type = EPhysicsRegistryType::None;
     return;
   }
 
@@ -103,16 +100,16 @@ void IARPhysicsSystemHost::Physics_RequestMagneticTaskImpl(IARMagnetizableInterf
   {
     case Once:
     {
-      request.Frequency = EPhysicsRequestFrequency::Once;
+      request.Frequency = EPhysicsExecuteFrequency::Once;
     }
     break;
     case Constantly:
     {
-      request.Frequency = EPhysicsRequestFrequency::Constantly;
+      request.Frequency = EPhysicsExecuteFrequency::Constantly;
     }
     break;
   }
 
-  FARPhysicsEngineAccessor::GetEngine().RequestPhysicsProcess(request);
+  GetEngine().RegisterPhysicsProcess(request);
 }
 

@@ -48,7 +48,7 @@ void FARPhysicsEngine::DeinitializePhysicsEngine()
   m_proxy.Reset();
 }
 
-void FARPhysicsEngine::RequestPhysicsProcess(const FARPhysicsRequest& Request)
+void FARPhysicsEngine::RegisterPhysicsProcess(const FARPhysicsRegistry& Request)
 {
   // FIXME Implement immediately
   if ((Request.Source == nullptr) || (Request.Target == nullptr))
@@ -57,8 +57,7 @@ void FARPhysicsEngine::RequestPhysicsProcess(const FARPhysicsRequest& Request)
     return;
   }
 
-  PhysicsEngineProxyPtr proxyPtr = GetProxy();
-  if (proxyPtr == nullptr)
+  if (GetProxy() == nullptr)
   {
     AR_LOG(LogARPhysics, Error, TEXT("Initialize AR physics engine FIRST!"));
     return;
@@ -66,28 +65,13 @@ void FARPhysicsEngine::RequestPhysicsProcess(const FARPhysicsRequest& Request)
 
   if (Request.IsMagneticForceType())
   {
-    using enum EPhysicsRequestFrequency;
+    using enum EPhysicsExecuteFrequency;
     switch (Request.Frequency)
     {
       case Once:
       {
-        // FARPhysicsSimulationParam simulationParam(*Request.Source, *Request.Target);
-        // using enum EPhysicsRequestType;
-        // switch (Request.Type)
-        // {
-        //   case RequestAttraction:
-        //   {
-        //     proxyPtr->SimulateAttraction(simulationParam);
-        //   }
-        //   break;
-        //   case RequestRepulsion:
-        //   {
-        //     proxyPtr->SimulateRepulsion(simulationParam);
-        //   }
-        //   break;
-        // }
-
         // FIXME Test purpose
+        // FIXME Currently set tick function frequency in tick object class
         m_tickProcessorActor->RegisterMagneticTask(Request.Source, Request.Target, Request.Type);
       }
       case Constantly:
@@ -99,21 +83,20 @@ void FARPhysicsEngine::RequestPhysicsProcess(const FARPhysicsRequest& Request)
   }
 }
 
-void FARPhysicsEngine::TerminatePhysicsProcess(const FARPhysicsTermination& Termination)
+void FARPhysicsEngine::UnregisterPhysicsProcess(const FARPhysicsUnregistry& Unregistry)
 {
-  PhysicsEngineProxyPtr proxyPtr = GetProxy();
-  if (proxyPtr == nullptr)
+  if (GetProxy() == nullptr)
   {
     AR_LOG(LogARPhysics, Error, TEXT("Initialize AR physics engine FIRST!"));
     return;
   }
 
-  using enum EPhysicsTerminationType;
-  switch (Termination.Type)
+  using enum EPhysicsUnregistryType;
+  switch (Unregistry.Type)
   {
-    case TerminateMagnetic:
+    case UnregisterMagnetic:
     {
-      m_tickProcessorActor->UnregisterMagneticTask(Termination.Source, Termination.Target);
+      m_tickProcessorActor->UnregisterMagneticTask(Unregistry.Source, Unregistry.Target);
     }
     break;
   }
