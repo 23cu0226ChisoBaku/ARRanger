@@ -3,6 +3,8 @@
 #include "CoreMinimal.h"
 #include "AIController.h"
 #include "Perception/AIPerceptionTypes.h"
+#include "TimerManager.h"
+#include "BehaviorTree/BlackboardComponent.h"
 #include "ZakoAIController.generated.h"
 
 class UBehaviorTree;
@@ -44,4 +46,15 @@ private:
 
 	// 近くの味方に警告をブロードキャストする関数
 	void BroadcastAlert(AActor* SeenActor);
+
+	FTimerHandle LostSightTimerHandle;
+
+	// クラス定義内に追加するメンバ関数と変数
+protected:
+
+	UPROPERTY(EditDefaultsOnly, Category = "AI")
+	float LostSightDelay = 3.0f;
+
+	void StopChasing();
+	
 };

@@ -11,14 +11,13 @@
 #include "Kismet/KismetSystemLibrary.h"
 #include "Engine/EngineTypes.h"
 #include "Enemy/Enemy_Zako.h"
-
 #include "Perception/AIPerceptionComponent.h"
 #include "Perception/AISenseConfig_Sight.h"
 #include "Perception/AISense_Sight.h"
 #include "Perception/AISense.h"
 #include "Perception/AIPerceptionTypes.h"
-
 #include "Kismet/GameplayStatics.h"
+#include "TimerManager.h"
 
 AZakoAIController::AZakoAIController()
 {
@@ -50,52 +49,70 @@ AZakoAIController::AZakoAIController()
 	AIPerceptionComponent->SetDominantSense(SightConfig->GetSenseImplementation());
 
 	AIPerceptionComponent->OnTargetPerceptionUpdated.AddDynamic(this, &AZakoAIController::OnTargetPerceptionUpdated);
-
 }
 
 void AZakoAIController::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// 修正: UseBlackboard関数は、内部でコントローラーにBlackboardComponentを関連付けます。
-	// その後、GetBlackboardComponent()でアクセスできます。
 	if (BlackboardAsset && BehaviorTreeAsset)
 	{
 		RunBehaviorTree(BehaviorTreeAsset);
 		UE_LOG(LogTemp, Warning, TEXT("RunBT!!"));
-		// テスト用にプレイヤーをターゲットに設定
-		APawn* PlayerPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
-		Blackboard->SetValueAsObject("TargetActor", PlayerPawn);
 
+		// 初期テスト用
+		APawn* PlayerPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
+		GetBlackboardComponent()->SetValueAsObject(TargetActorKey, PlayerPawn);
+	}
+}
+
+void AZakoAIController::StopChasing()
+{
+	// 3秒経過後、ブラックボードの情報をクリアして追跡を停止
+	UBlackboardComponent* BB = GetBlackboardComponent();
+	if (BB)
+	{
+		BB->ClearValue(TargetActorKey);
+		BB->ClearValue("IsPlayerDetected");
+
+		// パトロールに戻るためのロジックがあればここに追加
+		// 例: BB->SetValueAsBool("IsPatrolling", true);
 	}
 }
 
 void AZakoAIController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)
 {
 	if (!Actor || !Actor->ActorHasTag("Player"))
-	{
 		return;
-	}
+
+	UBlackboardComponent* BB = GetBlackboardComponent();
+	if (!BB) return;
 
 	if (Stimulus.WasSuccessfullySensed())
 	{
-		if (UBlackboardComponent* BB = GetBlackboardComponent())
-		{
-			BB->SetValueAsObject(TargetActorKey, Actor);
-		}
-		BroadcastAlert(Actor);
+		// プレイヤーを発見した
+		BB->SetValueAsObject(TargetActorKey, Actor);
+		BB->SetValueAsBool("IsPlayerDetected", true);
+
+		// 追跡停止タイマーをクリア
+		GetWorld()->GetTimerManager().ClearTimer(LostSightTimerHandle);
 	}
 	else
 	{
-		if (UBlackboardComponent* BB = GetBlackboardComponent())
-		{
-			BB->ClearValue(TargetActorKey);
-		}
+		// プレイヤーを見失った
+		// 最後に発見した場所を記憶するために、TargetActorKeyはクリアしない
+		// BB->ClearValue(TargetActorKey);
+
+		BB->SetValueAsBool("IsPlayerDetected", false);
+
+		// 3秒後に追跡を停止するタイマーを開始
+		GetWorld()->GetTimerManager().SetTimer(LostSightTimerHandle, this, &AZakoAIController::StopChasing, 1.0f, false);
 	}
 }
 
 void AZakoAIController::BroadcastAlert(AActor* SeenActor)
 {
+	// BroadcastAlert関数は変更なし
 	if (!SeenActor) return;
 	APawn* SelfPawn = GetPawn();
 	if (!SelfPawn) return;
@@ -130,6 +147,8 @@ void AZakoAIController::BroadcastAlert(AActor* SeenActor)
 				if (UBlackboardComponent* BB = AllyAI->GetBlackboardComponent())
 				{
 					BB->SetValueAsObject(TargetActorKey, SeenActor);
+					BB->SetValueAsBool("IsPlayerDetected", true);
+					BB->SetValueAsBool("IsInAlertState", false);
 				}
 			}
 		}
