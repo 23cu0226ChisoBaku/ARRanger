@@ -6,9 +6,10 @@ public class ARRanger : ModuleRules
 {
   public ARRanger(ReadOnlyTargetRules Target) : base(Target)
   {
+    // Set to UseSharedPCHS to include private PCH without disabling all engine module shared PCH
     PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
-		PublicDependencyModuleNames.AddRange(new string[] {
+    PublicDependencyModuleNames.AddRange(new string[] {
       "Core",
       "CoreUObject",
       "Engine",
@@ -18,8 +19,9 @@ public class ARRanger : ModuleRules
       "StateTreeModule",
       "GameplayStateTreeModule",
       "UMG",
-      "MLibrary"
-		});
+      "MLibrary",
+      "GameplayCameras",
+    });
 
     PrivateDependencyModuleNames.AddRange(new string[] { });
 
@@ -36,6 +38,7 @@ public class ARRanger : ModuleRules
     PrivateIncludePaths.AddRange(new string[] {
       "ARRanger/Public/CameraWork",
       "MLibrary/Public",
+      "ARRanger/Internal"
     });
 
 		// Uncomment if you are using Slate UI
