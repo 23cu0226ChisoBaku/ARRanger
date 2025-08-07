@@ -124,6 +124,9 @@ private:
 	// 補間速度
 	float ArmLengthInterpSpeed;
 
+	// 敵がプレイヤーから見えているか判定
+	bool IsTargetVisible(AActor* Target);
+
 	// ロックオン切替関数
 	void ToggleLockOn();
 
