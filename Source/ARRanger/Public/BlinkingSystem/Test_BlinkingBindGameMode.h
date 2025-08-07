@@ -12,6 +12,7 @@
 // 前方宣言
 class ULineTraceSingleARObjectComponent;
 class FBlinkingOutlineSystem;
+class ABlinkOutlineTickActor;
 
 /*
  * BlinkingOutlineSystem の関数を LineTraceSingleARObjectComponent のデリゲートにバインドする用のゲームモード
@@ -42,6 +43,9 @@ private:
 
 	UPROPERTY()
     TObjectPtr<ULineTraceSingleARObjectComponent> m_LineTraceComponent;
+
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<ABlinkOutlineTickActor> TickActorClass = nullptr;
 
 	TUniquePtr<FBlinkingOutlineSystem> m_BlinkingOutlineSystem;
 };

@@ -13,13 +13,13 @@ class FBlinkingOutlineSystem
 {
 public:
 
-	FBlinkingOutlineSystem() = default;
+	FBlinkingOutlineSystem();
 	~FBlinkingOutlineSystem() = default;
 
 	/*
 	* @brief アウトラインの点滅処理を行うアクターの生成
 	*/
-	void CreateTickingActor(UWorld* world);
+	void CreateTickingActor(UWorld* world, TSubclassOf<ABlinkOutlineTickActor> Subclass = nullptr);
 
 	// /*
 	// * @brief LineTraceSingleARObjectComponent のデリゲート関数に登録
@@ -42,6 +42,6 @@ public:
 
 private:
 
-	ABlinkOutlineTickActor* m_TickActor;	// 点滅処理を駆動するためのアクター
+	TWeakObjectPtr<ABlinkOutlineTickActor> m_TickActor;	// 点滅処理を駆動するためのアクター
 };
 

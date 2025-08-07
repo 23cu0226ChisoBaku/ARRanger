@@ -43,7 +43,7 @@ void ULineTraceSingleARObjectComponent::SetPlayerCameraComp(const UGameplayCamer
 void ULineTraceSingleARObjectComponent::AssignTargetMagnetizableObject()
 { 
     // 変数宣言
-    AActor* m_CurrentTargetMagnetizableObj;   		 
+    AActor* currentTargetMagnetizableObj;   		 
 
     FVector lineTraceStart;                          
     FVector lineTraceEnd;                           
@@ -60,10 +60,14 @@ void ULineTraceSingleARObjectComponent::AssignTargetMagnetizableObject()
     lineTraceEnd = lineTraceStart +  m_PlayerCameraComp->GetEvaluationContext()->GetInitialResult().CameraPose.GetAimDir() * LineTraceLength;   // 終点
 
     // ライントレースした結果を保持
-    m_CurrentTargetMagnetizableObj = TraceForMagnetizableObject(lineTraceStart,lineTraceEnd);
-
+    currentTargetMagnetizableObj = TraceForMagnetizableObject(lineTraceStart,lineTraceEnd);
+    if(currentTargetMagnetizableObj)
+    {
+        UE_LOG(LogTemp, Log, TEXT("currentTargetMagnetizableObj: %s"), *currentTargetMagnetizableObj->GetName());
+    }
+    
     // 検知しているオブジェクトに変化があるかチェック
-    if(m_CurrentTargetMagnetizableObj != m_TargetMagnetizableActor)
+    if(currentTargetMagnetizableObj != m_TargetMagnetizableActor)
     {
         // 切り替わる前の対象オブジェクトに対する処理
         if(m_TargetMagnetizableActor)
@@ -73,15 +77,19 @@ void ULineTraceSingleARObjectComponent::AssignTargetMagnetizableObject()
         }
 
         // 切り替わった後の対象オブジェクトに対する処理
-        if (m_CurrentTargetMagnetizableObj)
+        if (currentTargetMagnetizableObj)
         {
             // 点滅処理を行うオブジェクトとして登録
-            SetTargetMagnetizableObject.ExecuteIfBound(m_CurrentTargetMagnetizableObj);
+            SetTargetMagnetizableObject.ExecuteIfBound(currentTargetMagnetizableObj);
         }
         else
         {
             m_TargetMagnetizableActor = nullptr;
         }
+    }
+    else
+    {
+        UE_LOG(LogTemp, Warning, TEXT("aaa"));
     }
 }
 
@@ -113,10 +121,10 @@ AActor* ULineTraceSingleARObjectComponent::TraceForMagnetizableObject(const FVec
         AActor* HitActor = HitResult.GetActor();
 
         // IARObjectInterface を実装しているかチェック
-        if (HitActor->GetClass()->ImplementsInterface(UARMagnetizableInterface::StaticClass()))
+        if (Cast<IARMagnetizableInterface>(HitActor))
         {
             // オブジェクト名をログに出力
-            UE_LOG(LogTemp, Log, TEXT("Hit ARObject: %s"), *HitActor->GetName());
+            //UE_LOG(LogTemp, Log, TEXT("Hit ARObject: %s"), *HitActor->GetName());
             return HitActor;
         }
         else

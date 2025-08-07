@@ -6,17 +6,28 @@
 #include "Public/BlinkingSystem/BlinkOutlineTickActor.h"
 #include "InstantScripts/LineTraceSingleARObjectComponent.h"
 
+FBlinkingOutlineSystem::FBlinkingOutlineSystem()
+	: m_TickActor{nullptr}
+{
+	
+}
+
 /*
 * @brief アウトラインの点滅処理を行うアクターの生成
 */
-void FBlinkingOutlineSystem::CreateTickingActor(UWorld* world)
+void FBlinkingOutlineSystem::CreateTickingActor(UWorld* world, TSubclassOf<ABlinkOutlineTickActor> Subclass)
 {	
-	if (!m_TickActor && world)
+	if (!m_TickActor.IsValid() && world)
 	{
 		FActorSpawnParameters Params;
 		Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+		if (Subclass == nullptr)
+		{
+			Subclass = ABlinkOutlineTickActor::StaticClass();
+		}
 		m_TickActor = world->SpawnActor<ABlinkOutlineTickActor>
-			(ABlinkOutlineTickActor::StaticClass(), FVector(0.f), FRotator::ZeroRotator, Params);
+			(Subclass, FVector(0.f), FRotator::ZeroRotator, Params);
 	}
 }
 
@@ -27,7 +38,7 @@ void FBlinkingOutlineSystem::CreateTickingActor(UWorld* world)
 */
 void FBlinkingOutlineSystem::SetTargetMagnetizableObjectDelegate(AActor* targetMagnetizableObject)
 {
-	if(m_TickActor)
+	if(m_TickActor.IsValid())
 	{
 		m_TickActor->AddBlinkingActor(targetMagnetizableObject);
 	}
@@ -40,7 +51,7 @@ void FBlinkingOutlineSystem::SetTargetMagnetizableObjectDelegate(AActor* targetM
 */
 void FBlinkingOutlineSystem::UnsetTargetMagnetizableObjectDelegate(AActor* targetMagnetizableObject)
 {
-	if(m_TickActor)
+	if(m_TickActor.IsValid())
 	{
 		m_TickActor->RemoveBlinkingActor(targetMagnetizableObject);
 	}

@@ -17,6 +17,9 @@ ATest_BlinkingBindGameMode::ATest_BlinkingBindGameMode()
 void ATest_BlinkingBindGameMode::StartPlay()
 {
     m_BlinkingOutlineSystem = ::MakeUnique<FBlinkingOutlineSystem>();
+    check(m_BlinkingOutlineSystem.IsValid());
+
+    m_BlinkingOutlineSystem->CreateTickingActor(GetWorld(), TickActorClass);
 
     // 妥協処理
     m_LineTraceComponent = GetWorld()->GetFirstPlayerController()->GetPawn()->FindComponentByClass<ULineTraceSingleARObjectComponent>();
