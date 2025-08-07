@@ -17,7 +17,7 @@ class UObservableSubjectInterface : public UInterface
 /**
  * 
  */
-class ARRANGER_API IObservableSubjectInterface
+class IObservableSubjectInterface
 {
 	GENERATED_BODY()
 

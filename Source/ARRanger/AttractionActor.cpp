@@ -6,19 +6,14 @@
 #include "Kismet/GameplayStatics.h"
 
 AAttractionActor::AAttractionActor()
-	: constProp(25.0f)
-	, magneticValue(20.0f)
-	, onStayFlag(false)
-	, repulsionFlag(false)
-	, playerCharacter(nullptr)
 {
 	PrimaryActorTick.bCanEverTick = true;
 
-	// StaticMeshComponent‚ğ’Ç‰Á‚µARootComponent‚Éİ’è‚·‚é
+	// StaticMeshComponentï¿½ï¿½Ç‰ï¿½ï¿½ï¿½ï¿½ARootComponentï¿½Éİ’è‚·ï¿½ï¿½
 	InsekiActorMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMeshComponent"));
 	RootComponent = InsekiActorMesh;
 
-	// BoxComponent‚ğ’Ç‰Á‚µABoxComponent‚ğRootComponent‚ÉAttach‚·‚é
+	// BoxComponentï¿½ï¿½Ç‰ï¿½ï¿½ï¿½ï¿½ABoxComponentï¿½ï¿½RootComponentï¿½ï¿½Attachï¿½ï¿½ï¿½ï¿½
 	Sphere = CreateDefaultSubobject<USphereComponent>(TEXT("BoxComponent"));
 	Sphere->SetupAttachment(RootComponent);
 }
@@ -27,53 +22,27 @@ void AAttractionActor::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// OnComponentBeginOverlap‚ğBind‚·‚é
+	// OnComponentBeginOverlapï¿½ï¿½Bindï¿½ï¿½ï¿½ï¿½
 	Sphere->OnComponentBeginOverlap.AddDynamic(this, &AAttractionActor::OnSphereBeginOverlap);
 	Sphere->OnComponentEndOverlap.AddDynamic(this, &AAttractionActor::OnSphereEndOverlap);
 
-	TArray<AActor*> FoundActors;
-	UGameplayStatics::GetAllActorsWithTag(GetWorld(), FName("Player"), FoundActors);
-	playerCharacter = FoundActors[0];
-}
-
-void AAttractionActor::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
-	if (onStayFlag == true)
-	{
-		// ƒvƒŒƒCƒ„[‚Æ‚Ì•ûŒü‚Æ‹——£‚ğæ“¾
-		FVector Direction = playerCharacter->GetActorLocation() - GetActorLocation();
-		float Distance = Direction.Size();
-		UE_LOG(LogTemp, Warning, TEXT("PushOffset size: %f"), Direction.Size());
-
-		FVector DirectionNorm = Direction / Distance;
-
-		// ¥‹C—Í‚ğ”­‚µ‚ÄƒvƒŒƒCƒ„[‚ğˆø‚«‚Ş
-		FVector pushForce = DirectionNorm * constProp * magneticValue * magneticValue / (Distance * Distance);
-		playerCharacter->AddActorWorldOffset(-pushForce, true);
-	}
-
+  SetMagnetismType(EARMagnetismType::Attraction);
 }
 
 void AAttractionActor::OnSphereBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	// ÚG‚µ‚½Actor‚ªAInsekiCharacter‚©”»’è‚·‚é
-	if (AARRangerCharacter* Player = Cast<AARRangerCharacter>(OtherActor))
-	{
-		// “ü‚Á‚Ä‚«‚½ƒtƒ‰ƒO‚ğƒIƒ“‚É
-		onStayFlag = true;
-	}
+  IARMagnetizableInterface* otherMagnetized = Cast<IARMagnetizableInterface>(OtherActor);
+  if (otherMagnetized != nullptr)
+  {
+    Physics_RequestMagneticTask(this, otherMagnetized);
+  } 
 }
 
 void AAttractionActor::OnSphereEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
-	// ÚG‚µ‚½Actor‚ªAInsekiCharacter‚©”»’è‚·‚é
-	if (AARRangerCharacter* Player = Cast<AARRangerCharacter>(OtherActor))
-	{
-		UE_LOG(LogTemp, Warning, TEXT("tasukattaaaaaa"));
-		// “ü‚Á‚Ä‚«‚½ƒtƒ‰ƒO‚ğƒIƒt‚É
-		onStayFlag = false;
-		repulsionFlag = false;
-	}
+  IARMagnetizableInterface* otherMagnetized = Cast<IARMagnetizableInterface>(OtherActor);
+  if (otherMagnetized != nullptr)
+  {
+    Physics_TerminateMagneticTask(this, otherMagnetized);
+  } 
 }
