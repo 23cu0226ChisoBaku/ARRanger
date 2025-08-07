@@ -16,7 +16,10 @@ UCLASS()
 class ARRANGER_API AInsekiGameMode : public AGameModeBase
 {
 	GENERATED_BODY()
-	
+
+public:
+	AInsekiGameMode();
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -46,4 +49,8 @@ public:
 private:
   TSharedPtr<ARRanger::INotifyHandlerInterface> NotifyHandler;
   TArray< TWeakInterfacePtr< IObservableSubjectInterface > > Subjects;
+
+  // TODO Temporary
+  UPROPERTY(EditDefaultsOnly)
+  TSubclassOf<class AARPhysicsTickProcessorActor> ProcessorActorClass;
 };

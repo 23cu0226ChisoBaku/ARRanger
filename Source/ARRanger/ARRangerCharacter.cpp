@@ -1,7 +1,7 @@
 ﻿#include "ARRangerCharacter.h"
 
 #include "ARRangerAnimInstance.h"
-#include "AttackData.h"
+#include "AttackComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Components/BoxComponent.h"
 #include "Components/CapsuleComponent.h"
@@ -28,10 +28,7 @@ AARRangerCharacter::AARRangerCharacter()
 	, IsDashed(false)
 	, dashStartThreshold(0.92f)
 	, dashEndThreshold(0.7f)
-	, IsAttacked(false)
 	, LockOnComponent(nullptr)
-	, isAttractingEnemy(false)
-	, isStrongAttack(false)
 	, currentClimbSurface(nullptr)
 	, wallNormal(0.0f, 0.0f, 0.0f)
 	, isClimbed(false)
@@ -57,24 +54,14 @@ AARRangerCharacter::AARRangerCharacter()
 	GetCharacterMovement()->BrakingDecelerationWalking = 2000.f;
 	GetCharacterMovement()->BrakingDecelerationFalling = 1500.0f;
 
-	// ロックオンコンポーネントを取得
+	// 各種コンポーネントを取得
 	LockOnComponent = CreateDefaultSubobject<ULockOnComponent>(TEXT("LockOnComponent"));
+	AttackComponent = CreateDefaultSubobject<UAttackComponent>(TEXT("AttackComponent"));
 }
 
 void AARRangerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-
-	if (UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance())
-	{
-		UE_LOG(LogTemp, Warning, TEXT("AnimInstance found! Registering OnMontageEnded"));
-		// AnimInstanceにバインド
-		AnimInstance->OnMontageEnded.AddDynamic(this, &AARRangerCharacter::OnAttackMontageEnded);
-	}
-	else
-	{
-		UE_LOG(LogTemp, Error, TEXT("NO AnimInstance at BeginPlay!"));
-	}
 
 	// ワールド内のInsekiClimbingObjectをすべて取得し、バインドする（デモ用）
 	TArray<AActor*> ClimbSurfaces;
@@ -93,6 +80,11 @@ void AARRangerCharacter::BeginPlay()
 
   // 麦
   LandedDelegate.AddDynamic(this, &AARRangerCharacter::LandedToGround);
+
+  // 麦
+  GetCapsuleComponent()->OnComponentBeginOverlap.AddDynamic(this, &AARRangerCharacter::OnMagneticForceFieldBeginOverlap);
+  GetCapsuleComponent()->OnComponentEndOverlap.AddDynamic(this, &AARRangerCharacter::OnMagneticForceFieldEndOverlap);
+  GetCapsuleComponent()->OnComponentHit.AddDynamic(this, &AARRangerCharacter::OnMagnetizedObjectHit);
 }
 
 // 麦
@@ -100,6 +92,11 @@ void AARRangerCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
   // 麦
   LandedDelegate.RemoveDynamic(this, &AARRangerCharacter::LandedToGround);
+
+  GetCapsuleComponent()->OnComponentBeginOverlap.RemoveDynamic(this, &AARRangerCharacter::OnMagneticForceFieldBeginOverlap);
+  GetCapsuleComponent()->OnComponentEndOverlap.RemoveDynamic(this, &AARRangerCharacter::OnMagneticForceFieldEndOverlap);
+  GetCapsuleComponent()->OnComponentHit.RemoveDynamic(this, &AARRangerCharacter::OnMagnetizedObjectHit);
+
   Super::EndPlay(EndPlayReason);
 }
 
@@ -127,8 +124,8 @@ void AARRangerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 		EnhancedInputComponent->BindAction(SwitchTargetLeftAction, ETriggerEvent::Triggered, LockOnComponent, &ULockOnComponent::SwitchTargetLeft);
 
 		// 攻撃(パンチ、キック)
-		EnhancedInputComponent->BindAction(PunchAction, ETriggerEvent::Started, this, &AARRangerCharacter::StartPunch);
-		EnhancedInputComponent->BindAction(KickAction, ETriggerEvent::Started, this, &AARRangerCharacter::Kick);
+		EnhancedInputComponent->BindAction(PunchAction, ETriggerEvent::Started, AttackComponent, &UAttackComponent::StartPunch);
+		EnhancedInputComponent->BindAction(KickAction, ETriggerEvent::Started, AttackComponent, &UAttackComponent::Kick);
 
 		// 変身
 		EnhancedInputComponent->BindAction(TransformAction, ETriggerEvent::Started, this, &AARRangerCharacter::Transform);
@@ -196,31 +193,6 @@ void AARRangerCharacter::Tick(float DeltaTime)
 		}
 	}
 
-	// 引き寄せ中に処理
-	if (isAttractingEnemy && Target && IsValid(Target))
-	{
-		FVector PlayerLocation = GetActorLocation();
-		FVector EnemyLocation = Target->GetActorLocation();
-		FVector Direction = (PlayerLocation - EnemyLocation);
-		float Distance = Direction.Size();
-
-		// 最低距離を設定
-		const float MinDistance = 150.0f;
-
-		// 最低距離に達したらパンチ
-		if (Distance <= MinDistance)
-		{
-			isAttractingEnemy = false;
-			PlayAttackMontage(PunchData); 
-			return;
-		}
-
-		// 敵を引き寄せる
-		float AttractionSpeed = 800.f;
-		FVector NewLocation = EnemyLocation + Direction.GetSafeNormal() * AttractionSpeed * DeltaTime;
-		Target->SetActorLocation(NewLocation);
-	}
-
 	// 引力クライム中に処理
 	if (isClimbed)
 	{
@@ -254,7 +226,7 @@ void AARRangerCharacter::Tick(float DeltaTime)
 
 		// ライントレースで壁を判定
 		// 壁がないか、または引力クライム中に斥力状態に変身したらクライムを解除
-		if (!bHit || (CurrentARType != EARMagnetismType::Attraction))
+		if (!bHit || (GetMagnetismType() != EARMagnetismType::Attraction))
 		{
 			// クライム解除＋ジャンプ処理
 			isClimbed = false;
@@ -310,7 +282,11 @@ void AARRangerCharacter::OnClimbSurfaceOverlap(
 
 void AARRangerCharacter::DoMove(float Right, float Forward)
 {
-	if (GetController() == nullptr || IsAttacked || isStrongAttack)
+	bool isAttacked =AttackComponent->GetIsAttacked();
+	bool isStrongAttacked = AttackComponent->GetIsStrongAttacked();
+
+	// コントローラーがないか、攻撃中なら処理しない
+	if (GetController() == nullptr || isAttacked || isStrongAttacked)
 	{
 		return;
 	}
@@ -350,7 +326,7 @@ void AARRangerCharacter::DoMove(float Right, float Forward)
 void AARRangerCharacter::StartClimbing(AInsekiClimbingObject* ClimbActor)
 {
 	// クライム中でない、引力クライムオブジェクトに触れていない、または引力状態でないなら処理しない
-	if (isClimbed || !ClimbActor || CurrentARType != EARMagnetismType::Attraction)
+	if (isClimbed || !ClimbActor || GetMagnetismType() != EARMagnetismType::Attraction)
 	{
 		return;
 	}
@@ -425,8 +401,11 @@ void AARRangerCharacter::DoLook(float Yaw, float Pitch)
 
 void AARRangerCharacter::DoJumpStart()
 {
+	bool isAttacked = AttackComponent->GetIsAttacked();
+	bool isStrongAttacked = AttackComponent->GetIsStrongAttacked();
+
 	// 攻撃中は処理しない
-	if (IsAttacked || isStrongAttack)
+	if (isAttacked || isStrongAttacked)
 	{
 		return;
 	}
@@ -456,162 +435,32 @@ void AARRangerCharacter::DoJumpEnd()
 	StopJumping();
 }
 
-void AARRangerCharacter::StartPunch()
+void AARRangerCharacter::OnAttackHitNotify()
 {
-	// 引力クライム中は処理しない
-	if (isClimbed)
-	{
-		return;
-	}
-
-	bool isLockedOn = LockOnComponent->GetIsLockedOn();
-	AActor* Target = LockOnComponent->GetLockedOnTarget();
-
-	// 引力状態で敵をロックオンしていれば処理
-	if (CurrentARType == EARMagnetismType::Attraction && isLockedOn && Target)
-	{
-		if (!isAttractingEnemy)
-		{
-			// 引き寄せを開始
-			isAttractingEnemy = true;
-			isStrongAttack = true;
-
-			if (PunchData.Montage_AR && !GetMesh()->GetAnimInstance()->Montage_IsPlaying(PunchData.Montage_AR))
-			{
-				GetMesh()->GetAnimInstance()->Montage_Play(PunchData.Montage_AR);
-			}
-		}
-		return;
-	}
-
-	// 通常パンチ処理
-	isStrongAttack = false;
-	PlayAttackMontage(PunchData);
-}
-
-void AARRangerCharacter::PunchHitNotify()
-{
-	AttackHit(PunchData);
-}
-
-void AARRangerCharacter::Kick()
-{
-	// 引力クライム中は処理しない
-	if (isClimbed)
-	{
-		return;
-	}
-
-	PlayAttackMontage(KickData);
-}
-
-void AARRangerCharacter::KickHitNotify()
-{
-	AttackHit(KickData);
-}
-
-void AARRangerCharacter::PlayAttackMontage(const FAttackData& Attack)
-{
-	// アニメーションがない、または攻撃中は処理しない
-	if (!Attack.Montage_Normal || !Attack.Montage_Strong || IsAttacked)
-	{
-		return;
-	}
-
-	UAnimInstance* Anim = GetMesh()->GetAnimInstance();
-	// 攻撃アニメーション再生中は処理しない
-	if (!Anim || Anim->Montage_IsPlaying(Attack.Montage_Normal) || Anim->Montage_IsPlaying(Attack.Montage_Strong))
-	{
-		return;
-	}
-
-	IsAttacked = true;
-
-	// 強攻撃アニメーションを再生するか判断
-	if (isStrongAttack)
-	{
-		Anim->Montage_Play(Attack.Montage_Strong);
-	}
-	else
-	{
-		Anim->Montage_Play(Attack.Montage_Normal);
-	}
-}
-
-void AARRangerCharacter::AttackHit(const FAttackData& Attack)
-{
-	FVector Origin = GetActorLocation() + GetActorForwardVector() * 100.f;
-	TArray<AActor*> HitActors;
-
-	// 当たり判定を作成
-	bool bHit = UKismetSystemLibrary::SphereOverlapActors(
-		this,
-		Origin,
-		Attack.HitRadius,
-		TArray<TEnumAsByte<EObjectTypeQuery>>{
-		UEngineTypes::ConvertToObjectType(ECC_Pawn),
-			UEngineTypes::ConvertToObjectType(ECC_WorldDynamic)
-	},
-		nullptr,
-		TArray<AActor*>{this},
-		HitActors
-	);
-
-	if (!bHit)
-	{
-		return;
-	}
-		
-	for (AActor* HitActor : HitActors)
-	{
-		if (HitActor->ActorHasTag(Attack.TargetTag))
-		{
-			AEnemy* Enemy = Cast<AEnemy>(HitActor);
-			if (Enemy && !Enemy->isDead)
-			{
-				TSharedRef<ARRanger::INotifyHandlerInterface> notifyHandler = GetNotifyHandlerRef();
-				notifyHandler->OnAttack();
-
-				const bool bWillBeKilled = (Enemy->currentHP - Attack.Damage <= 0);
-
-				FVector LaunchDir = GetActorForwardVector() + FVector(0, 0, 0.2f);
-				LaunchDir.Normalize();
-
-				// ダメージを与える(強攻撃ならダメージを上乗せ)
-				if (isStrongAttack)
-				{
-					Enemy->ReceiveDamage(Attack.Damage + Attack.DamageModifier, LaunchDir, bWillBeKilled);
-				}
-				else
-				{
-					Enemy->ReceiveDamage(Attack.Damage, LaunchDir, bWillBeKilled);
-				}
-			}
-		}
-	}
-}
-
-void AARRangerCharacter::OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted)
-{
-	IsAttacked = false;
-	isStrongAttack = false;
+	// プレイヤー内でのみ扱いたいのでこちらで攻撃のコールバック
+	TSharedRef<ARRanger::INotifyHandlerInterface> notifyHandler = GetNotifyHandlerRef();
+	notifyHandler->OnAttack();
 }
 
 void AARRangerCharacter::Transform()
 {
+	bool isAttacked = AttackComponent->GetIsAttacked();
+	bool isStrongAttacked = AttackComponent->GetIsStrongAttacked();
+
 	// 攻撃中は処理しない
-	if (IsAttacked || isStrongAttack)
+	if (isAttacked || isStrongAttacked)
 	{
 		return;
 	}
 
 	// 現在と別のモードに変身
-	CurrentARType = (CurrentARType == EARMagnetismType::Attraction)
+	SetMagnetismType(
+		(GetMagnetismType() == EARMagnetismType::Attraction)
 		? EARMagnetismType::Repulsion
-		: EARMagnetismType::Attraction;
+		: EARMagnetismType::Attraction);
 
 	// メッシュを別モードに変更
-	USkeletalMesh* NewMesh = (CurrentARType == EARMagnetismType::Repulsion)
+	USkeletalMesh* NewMesh = (GetMagnetismType() == EARMagnetismType::Repulsion)
 		? RepulsionMesh
 		: AttractionMesh;
 
@@ -623,5 +472,29 @@ void AARRangerCharacter::Transform()
 
 EARMagnetismType AARRangerCharacter::GetCurrentARType()
 {
-	return CurrentARType;
+	return GetMagnetismType();
+}
+
+void AARRangerCharacter::OnMagneticForceFieldBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if (IARMagnetizableInterface* magnetizableObj = Cast<IARMagnetizableInterface>(OtherActor))
+	{
+		Physics_RequestMagneticTask(this, magnetizableObj);
+	}
+}
+
+void AARRangerCharacter::OnMagneticForceFieldEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	if (IARMagnetizableInterface* magnetizableObj = Cast<IARMagnetizableInterface>(OtherActor))
+	{
+		Physics_TerminateMagneticTask(this, magnetizableObj);
+	}
+}
+
+void AARRangerCharacter::OnMagnetizedObjectHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
+{
+	if (IARMagnetizableInterface* magnetizableObj = Cast<IARMagnetizableInterface>(OtherActor))
+	{
+		Physics_RequestMagneticTask_Once(this, magnetizableObj);
+	}
 }

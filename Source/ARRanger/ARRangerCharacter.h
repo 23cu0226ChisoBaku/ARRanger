@@ -1,13 +1,14 @@
 #pragma once
 
-#include "AttackData.h"
+#include "AttackComponent.h"
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "IARMagnetizableInterface.h"
 #include "InsekiClimbingObject.h"
 #include "LockOnComponent.h"
 #include "Logging/LogMacros.h"
+#include "Physics/IARPhysicsSystemHost.h"
 #include "PlayerObservation/IObservableSubjectInterface.h"
-#include "Public/IARMagnetizableInterface.h"
 
 #include "ARRangerCharacter.generated.h"
 
@@ -25,7 +26,9 @@ DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);
  */
 UCLASS(abstract)
 class AARRangerCharacter : public ACharacter,
-                           public IObservableSubjectInterface
+                           public IObservableSubjectInterface,
+						   public IARMagnetizableInterface,
+						   public IARPhysicsSystemHost
 {
 	GENERATED_BODY()
 	
@@ -115,18 +118,6 @@ private:
 	// 補間速度
 	float ArmLengthInterpSpeed;
 
-	// パンチの際に呼び出される
-	void StartPunch();
-
-	// キックの際に呼び出される
-	void Kick();
-
-	// 攻撃アニメーションの再生用関数
-	void PlayAttackMontage(const FAttackData& Attack);
-
-	// 当たり判定の処理
-	void AttackHit(const FAttackData& Attack);
-
 	// 変身の際に呼び出される
 	void Transform();
 
@@ -135,12 +126,6 @@ private:
 
 	// 少し入力を緩めたらダッシュを解除する用の数値
 	float dashEndThreshold;
-
-	// 敵を引き寄せ中のフラグ
-	bool isAttractingEnemy;
-
-	// 強い攻撃かどうかのフラグ
-	bool isStrongAttack;
 
 	// 現在歩いているオブジェクトの表面
 	UPROPERTY()
@@ -183,18 +168,6 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Input")
 	virtual void DoJumpEnd();
 
-	// パンチのAnimNotifyの通知を受け取る
-	UFUNCTION(BlueprintCallable)
-	void PunchHitNotify();
-
-	// キックのAnimNotifyの通知を受け取る
-	UFUNCTION(BlueprintCallable)
-	void KickHitNotify();
-
-	// 攻撃が終わった際のコールバック
-	UFUNCTION()
-	void OnAttackMontageEnded(UAnimMontage* Montage, bool IsInterrupted);
-
 	UFUNCTION(BlueprintPure, Category = "AR|Player")
 	float GetDefaultArmLength() const { return DefaultArmLength; }
 
@@ -213,25 +186,13 @@ public:
 	UPROPERTY(BlueprintReadWrite)
 	bool IsDashed;
 
-	// パンチデータ（Blueprintから設定）
-	UPROPERTY(EditAnywhere, Category = "Attack")
-	FAttackData PunchData;
-
-	// キックデータ（Blueprintから設定）
-	UPROPERTY(EditAnywhere, Category = "Attack")
-	FAttackData KickData;
-
-	// 攻撃中フラグ
-	UPROPERTY(BlueprintReadOnly)
-	bool IsAttacked;
-
 	// ロックオンコンポーネント
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	ULockOnComponent* LockOnComponent;
 
-	// 現在のプレイヤーの変身状態
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gravity")
-	EARMagnetismType CurrentARType;
+	// アタックコンポーネント
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Attack")
+	UAttackComponent* AttackComponent;
 
 	// 引力クライム時のアニメーションモンタージュ
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gravity")
@@ -241,8 +202,14 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	// 現在のプレイヤーのモードを取得
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION(BlueprintPure)
 	EARMagnetismType GetCurrentARType();
+
+	// 引力クライム中フラグを取得
+	bool GetIsClimbed() { return isClimbed; }
+
+	// AttackComponent内で使用するNotifyHandler用
+	void OnAttackHitNotify();
 
 	// 麦
 	bool bIsJumping = false;
@@ -252,4 +219,18 @@ public:
 	{
 		bIsJumping = false;
 	}
+
+private:
+	UFUNCTION()
+	void OnMagneticForceFieldBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+	UFUNCTION()
+	void OnMagneticForceFieldEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
+	UFUNCTION()
+	void OnMagnetizedObjectHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+
+	ARRANGER_API virtual void OnAttraction() override { }
+	ARRANGER_API virtual void OnRepulsion() override { }
+	ARRANGER_API virtual AActor* GetActor() override { return this; }
 };

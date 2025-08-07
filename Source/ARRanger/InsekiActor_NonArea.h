@@ -2,12 +2,15 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "IARMagnetizableInterface.h"
+
 #include "InsekiActor_NonArea.generated.h"
 
 class UCapsuleComponent;
 
 UCLASS()
-class ARRANGER_API AInsekiActor_NonArea : public AActor
+class ARRANGER_API AInsekiActor_NonArea : public AActor,
+										  public IARMagnetizableInterface
 {
 	GENERATED_BODY()
 
@@ -28,6 +31,10 @@ private:
 
 public:
 	virtual void Tick(float DeltaTime) override;
+
+	virtual void OnAttraction() { }
+	virtual void OnRepulsion() { }
+	virtual AActor* GetActor() { return this; }
 
 	// OnHitä÷êîÇêÈåæ
 	UFUNCTION()
