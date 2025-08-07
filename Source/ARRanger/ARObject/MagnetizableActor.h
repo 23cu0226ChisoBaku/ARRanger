@@ -1,0 +1,60 @@
+//*************************************************
+// 斥力引力の干渉を受けるオブジェクトのベースクラス
+//*************************************************
+
+#pragma once
+
+#include "GameFramework/Actor.h"
+#include "Public/IARMagnetizableInterface.h"
+
+#include "MagnetizableActor.generated.h"
+
+UCLASS(Abstract)
+class AMagnetizableActor :  public AActor, 
+							public IARMagnetizableInterface
+{
+	GENERATED_BODY()
+
+protected:
+	ARRANGER_API virtual void BeginPlay() override;
+	
+public:	
+	ARRANGER_API AMagnetizableActor();
+	ARRANGER_API virtual void Tick(float DeltaTime) override;
+
+	/**
+	 * @brief 引力が付与されている状態の挙動
+	 */
+	UFUNCTION(BlueprintCallable)
+	static void CallAttraction(AMagnetizableActor* Actor)
+	{
+		Actor->OnAttraction();
+	}
+
+	/**
+	 * @brief 斥力が付与されている状態の挙動
+	 */
+	UFUNCTION(BlueprintCallable)
+	static void CallRepulsion(AMagnetizableActor* Actor)
+	{
+		Actor->OnRepulsion();
+	}
+
+	/*Start IARMagnetizableInterface interface*/
+	ARRANGER_API virtual void OnAttraction() override;
+	ARRANGER_API virtual void OnRepulsion() override;
+	ARRANGER_API virtual AActor* GetActor() override { return (AActor*)this; }
+	/*End IARMagnetizableInterface interface*/
+
+	/*テスト用*/
+	// UFUNCTION(BlueprintCallable)
+	// void SetType(EARMagnetismType NewType);
+
+
+private:
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
+	USceneComponent* _pRootComponent;		// ピポット
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components", meta = (AllowPrivateAccess = "true"))
+	UPrimitiveComponent* _pMagneticField;	// 磁場範囲
+};

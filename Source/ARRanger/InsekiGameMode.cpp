@@ -12,6 +12,9 @@
 
 #include "AudioSystem/ARSoundPlayLibrary.h"
 
+#include "PlayerObservation/IObserverRegistry.h"
+#include "PlayerObservation/Registry/SoundEffectRegistry.h"
+
 void AInsekiGameMode::BeginPlay()
 {
 	Super::BeginPlay();
@@ -50,24 +53,21 @@ void AInsekiGameMode::InitializeObserver()
   {
     TSharedPtr<FPlayerNotifyHandler> playerHandler = ::MakeShared<FPlayerNotifyHandler>();
     
+    FARSoundEffectParameters attackSEParam;
+    attackSEParam.Dimension = EARSoundDimension::Dimension3;
+    attackSEParam.Pitch = 1.0f;
+    attackSEParam.PlayLocation = player->GetActorLocation();
+    attackSEParam.RepositoryAccessActor = player;
+    attackSEParam.SEType = EARSoundEffectType::Attack;
+    
+    // Bind registry
+    TSharedPtr<ARRanger::IObserverRegistry> attackRegistry = 
+      MakeRegistry<ARRanger::FSoundEffectRegistry>(attackSEParam);
+
     // 攻撃
     TSharedPtr<FObserverListNode> attackObserverListNode = FObserverListRootNode::MakeListNode();
     attackObserverListNode->Initialize();
-    attackObserverListNode->BindNewObserver(FSimpleDelegate::CreateLambda([this]() 
-    { 
-      ACharacter* player = UGameplayStatics::GetPlayerCharacter(this, 0);
-      if (player != nullptr)
-      {
-        FARSoundEffectParameters params;
-        params.Dimension = EARSoundDimension::Dimension3;
-        params.Pitch = 1.0f;
-        params.PlayLocation = player->GetActorLocation();
-        params.RepositoryAccessActor = player;
-        params.SEType = EARSoundEffectType::Attack;
-  
-        UARSoundPlayLibrary::PlaySESound(params); 
-      }
-    }));
+    attackRegistry->RegisterObserverProxy(attackObserverListNode);
 
     // ジャンプ
     TSharedPtr<FObserverListNode> jumpObserverListNode = FObserverListRootNode::MakeListNode();
@@ -129,13 +129,28 @@ void AInsekiGameMode::OnEnemyKilled()
 		UE_LOG(LogTemp, Warning, TEXT("Game Clear!"));
 
 		APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0);
-		if (PC && GameClearWidgetClass)
+		if (PC)
 		{
 			PC->SetShowMouseCursor(true);
 			PC->SetInputMode(FInputModeUIOnly());
 
-			UUserWidget* Widget = CreateWidget(PC, GameClearWidgetClass);
-			if (Widget) Widget->AddToViewport();
+            FTimerHandle ClearTimerHandle;
+            GetWorldTimerManager().SetTimer(ClearTimerHandle, this, &AInsekiGameMode::HandleGameClear, 3.0f, false);
 		}
 	}
+}
+
+void AInsekiGameMode::HandleGameClear()
+{
+    // プレイヤー操作停止
+    APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0);
+    if (PC)
+    {
+        PC->SetIgnoreMoveInput(true);
+        PC->SetIgnoreLookInput(true);
+        PC->SetShowMouseCursor(true);
+    }
+
+    // レベル遷移
+    UGameplayStatics::OpenLevel(this, FName("GameClear"));
 }

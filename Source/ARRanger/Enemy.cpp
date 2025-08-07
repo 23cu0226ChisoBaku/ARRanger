@@ -1,7 +1,7 @@
 #include "Enemy.h"
 
-#include "ARRangerGameMode.h"
 #include "Components/BoxComponent.h"
+#include "InsekiGameMode.h"
 #include "Kismet/GameplayStatics.h"
 
 AEnemy::AEnemy()
@@ -59,7 +59,7 @@ void AEnemy::ReceiveDamage(int DamageAmount, FVector LaunchDirection, bool bEnab
 
 
 		// GameMode�ɒʒm
-		if (AARRangerGameMode* GM = Cast<AARRangerGameMode>(UGameplayStatics::GetGameMode(this)))
+		if (AInsekiGameMode* GM = Cast<AInsekiGameMode>(UGameplayStatics::GetGameMode(this)))
 		{
 			UE_LOG(LogTemp, Warning, TEXT("Cast Success!"));
 			GM->OnEnemyKilled();

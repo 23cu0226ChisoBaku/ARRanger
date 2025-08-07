@@ -138,10 +138,12 @@ void UARAudioSystem::Tick(float DeltaTime)
     }
   }
 
-  // 無効なSEオブジェクトを全部削除する
-  RemoveInvalidHandles(m_seHandles, m_requestRemoveHandles);
-
-  m_requestRemoveHandles.Reset();
+  // 無効なSEハンドルを全部削除する
+  if (m_requestRemoveHandles.Num() > 0)
+  {
+    RemoveInvalidHandles(m_seHandles, m_requestRemoveHandles);
+    m_requestRemoveHandles.Reset();
+  }
 }
 
 

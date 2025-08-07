@@ -2,6 +2,7 @@
 
 #include "ARRangerCharacter.h"
 #include "Components/BoxComponent.h"
+#include "Components/SphereComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Kismet/GameplayStatics.h"
 
@@ -19,11 +20,11 @@ AInsekiActor::AInsekiActor()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
-	// StaticMeshComponent‚ğ’Ç‰Á‚µARootComponent‚Éİ’è‚·‚é
+	// StaticMeshComponentï¿½ï¿½Ç‰ï¿½ï¿½ï¿½ï¿½ARootComponentï¿½Éİ’è‚·ï¿½ï¿½
 	InsekiActorMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMeshComponent"));
 	RootComponent = InsekiActorMesh;
 
-	// BoxComponent‚ğ’Ç‰Á‚µASphereComponent‚ğRootComponent‚ÉAttach‚·‚é
+	// BoxComponentï¿½ï¿½Ç‰ï¿½ï¿½ï¿½ï¿½ASphereComponentï¿½ï¿½RootComponentï¿½ï¿½Attachï¿½ï¿½ï¿½ï¿½
 	Sphere = CreateDefaultSubobject<USphereComponent>(TEXT("SphereComponent"));
 	Sphere->SetupAttachment(RootComponent);
 }
@@ -32,7 +33,7 @@ void AInsekiActor::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// OnComponentBeginOverlap‚ğBind‚·‚é
+	// OnComponentBeginOverlapï¿½ï¿½Bindï¿½ï¿½ï¿½ï¿½
 	Sphere->OnComponentBeginOverlap.AddDynamic(this, &AInsekiActor::OnSphereBeginOverlap);
 	Sphere->OnComponentEndOverlap.AddDynamic(this, &AInsekiActor::OnSphereEndOverlap);
 
@@ -40,7 +41,7 @@ void AInsekiActor::BeginPlay()
 	UGameplayStatics::GetAllActorsWithTag(GetWorld(), FName("Player"), FoundActors);
 	playerCharacter = FoundActors[0];
 
-	// ƒvƒŒƒCƒ„[‚ÌRootComponent‚ğæ“¾
+	// ï¿½vï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½[ï¿½ï¿½RootComponentï¿½ï¿½ï¿½æ“¾
 	PlayerRoot = Cast<UPrimitiveComponent>(playerCharacter->GetRootComponent());
 }
 
@@ -61,7 +62,7 @@ void AInsekiActor::Tick(float DeltaTime)
 		UE_LOG(LogTemp, Warning, TEXT("ugoku?"));
 		FVector DirectionNorm = Direction / Distance;
 
-		// —LŒø”ÍˆÍ‚ğw’èi‚±‚±‚Ü‚Å‚È‚ç—Í‚ª“­‚­j
+		// ï¿½Lï¿½ï¿½ï¿½ÍˆÍ‚ï¿½ï¿½wï¿½ï¿½iï¿½ï¿½ï¿½ï¿½ï¿½Ü‚Å‚È‚ï¿½Í‚ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½j
 		const float MaxRange = 3000.f;
 		const float MinDistance = 100.f;
 		const float ForceScale = constProp * magneticValue * magneticValue;
@@ -87,7 +88,7 @@ void AInsekiActor::Tick(float DeltaTime)
 }
 void AInsekiActor::OnSphereBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	// ÚG‚µ‚½Actor‚ªAInsekiCharacter‚©”»’è‚·‚é
+	// ï¿½ÚGï¿½ï¿½ï¿½ï¿½Actorï¿½ï¿½AInsekiCharacterï¿½ï¿½ï¿½ï¿½ï¿½è‚·ï¿½ï¿½
 	if (AARRangerCharacter* Player = Cast<AARRangerCharacter>(OtherActor))
 	{
 		UE_LOG(LogTemp, Warning, TEXT("gomikasuuuuuuu"));
@@ -98,7 +99,7 @@ void AInsekiActor::OnSphereBeginOverlap(UPrimitiveComponent* OverlappedComp, AAc
 void AInsekiActor::OnSphereEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
 	UE_LOG(LogTemp, Warning, TEXT("kutabareeeeee"));
-	// ÚG‚µ‚½Actor‚ªAInsekiCharacter‚©”»’è‚·‚é
+	// ï¿½ÚGï¿½ï¿½ï¿½ï¿½Actorï¿½ï¿½AInsekiCharacterï¿½ï¿½ï¿½ï¿½ï¿½è‚·ï¿½ï¿½
 	if (AARRangerCharacter* Player = Cast<AARRangerCharacter>(OtherActor))
 	{
 		RootPrimitive = nullptr;

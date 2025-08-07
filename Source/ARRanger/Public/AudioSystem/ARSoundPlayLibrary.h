@@ -12,7 +12,11 @@ struct FARSoundBaseSettingParameters
   GENERATED_BODY()
 
   UPROPERTY(EditAnywhere)
-  float Pitch;
+  float Volume = 1.0f;
+
+  UPROPERTY(EditAnywhere)
+  float Pitch = 1.0f;
+
 };
 
 UENUM()

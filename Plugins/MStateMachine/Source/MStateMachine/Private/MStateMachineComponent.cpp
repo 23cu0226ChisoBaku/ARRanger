@@ -121,8 +121,7 @@ UMStateInstance* FMStateMachineStateList::TrySwitchState(const UMStateInstance* 
 		return nullptr;
 	}
 
-  // TODO 同じものがGetTagByStateにある（DRY違反かも）
-  static auto searchInstancePredicate = [&CurrentStateInstance](const FMStateMachineStateListEntry& Entry)
+  auto searchInstancePredicate = [&CurrentStateInstance](const FMStateMachineStateListEntry& Entry)
   {
     return Entry.State == CurrentStateInstance;
   };
@@ -160,7 +159,7 @@ bool FMStateMachineStateList::ContainsStateTag(const FGameplayTag& StateTag) con
 
 UMStateInstance* FMStateMachineStateList::GetStateByTag(const FGameplayTag& StateTag) const
 {
-  static auto searchTagPredicate = [&StateTag](const FMStateMachineStateListEntry& Entry)
+  auto searchTagPredicate = [&StateTag](const FMStateMachineStateListEntry& Entry)
   {
     return Entry.StateDefinition->TagInfo.StateTag == StateTag;
   };
@@ -171,7 +170,7 @@ UMStateInstance* FMStateMachineStateList::GetStateByTag(const FGameplayTag& Stat
 
 FGameplayTag FMStateMachineStateList::GetTagByState(const UMStateInstance* StateInstance) const
 {
-  static auto searchInstancePredicate = [&StateInstance](const FMStateMachineStateListEntry& Entry)
+  auto searchInstancePredicate = [&StateInstance](const FMStateMachineStateListEntry& Entry)
   {
     return Entry.State == StateInstance;
   };
@@ -360,7 +359,7 @@ bool UMStateMachineComponent::ContainsStateTag(const FGameplayTag& Tag) const
 bool UMStateMachineComponent::CanSwitchToNext(const FGameplayTag& NextStateTag) const
 {
   // 現在のステートかつ次のステートに切り替えられるかを確認するラムダ式
-  static auto searchCurrentNextTransitionTagPredicate = [&](const FMStateMachineStateListEntry& Entry)
+  auto searchCurrentNextTransitionTagPredicate = [&](const FMStateMachineStateListEntry& Entry)
   {
     return (Entry.State == m_currentState) && Entry.StateDefinition->TagInfo.NextTransitionTags.Contains(NextStateTag);
   };
