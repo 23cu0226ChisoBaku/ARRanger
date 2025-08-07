@@ -73,6 +73,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void SetType(EARMagnetismType newType);
 
+	UFUNCTION(BlueprintPure)
+	EARMagnetismType GetType() const;
+
 
 private:
 

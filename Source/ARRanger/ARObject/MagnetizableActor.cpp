@@ -89,3 +89,8 @@ void AMagnetizableActor::SetType(EARMagnetismType NewType)
 		SetMagnetismType(NewType);
 	}
 }
+
+EARMagnetismType AMagnetizableActor::GetType() const
+{
+	return GetMagnetismType();
+}

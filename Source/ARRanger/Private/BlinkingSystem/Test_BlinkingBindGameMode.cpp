@@ -6,12 +6,17 @@
 #include "Public/BlinkingSystem/BlinkingOutlineSystem.h"
 #include "InstantScripts/LineTraceSingleARObjectComponent.h"
 
+ATest_BlinkingBindGameMode::ATest_BlinkingBindGameMode()
+    : m_LineTraceComponent{nullptr}
+    , m_BlinkingOutlineSystem{nullptr}
+{ }
+
 /*
 * @brief アクターのBeginPlayの前に処理する
 */
 void ATest_BlinkingBindGameMode::StartPlay()
 {
-    m_BlinkingOutlineSystem = ::MakeUnique<BlinkingOutlineSystem>();
+    m_BlinkingOutlineSystem = ::MakeUnique<FBlinkingOutlineSystem>();
 
     // 妥協処理
     m_LineTraceComponent = GetWorld()->GetFirstPlayerController()->GetPawn()->FindComponentByClass<ULineTraceSingleARObjectComponent>();
@@ -31,13 +36,13 @@ void ATest_BlinkingBindGameMode::BindBlinkingMagnetizableObjectDelegate()
         // 対象を点滅処理のオブジェクトに設定するデリゲート関数をバインド
         m_LineTraceComponent->SetTargetMagnetizableObject.BindRaw(
             m_BlinkingOutlineSystem.Get(),
-            &BlinkingOutlineSystem::SetTargetMagnetizableObjectDelegate
+            &FBlinkingOutlineSystem::SetTargetMagnetizableObjectDelegate
         );
 
         // 対象を点滅処理のオブジェクトから除外するデリゲート関数をバインド
         m_LineTraceComponent->UnsetTargetMagnetizableObject.BindRaw(
             m_BlinkingOutlineSystem.Get(),
-            &BlinkingOutlineSystem::UnsetTargetMagnetizableObjectDelegate
+            &FBlinkingOutlineSystem::UnsetTargetMagnetizableObjectDelegate
         );
     } 
 }

@@ -46,7 +46,7 @@ void ULineTraceSingleARObjectComponent::AssignTargetMagnetizableObject()
     AActor* m_CurrentTargetMagnetizableObj;   		 
 
     FVector lineTraceStart;                          
-    FVector lineTraceEnd;                            
+    FVector lineTraceEnd;                           
 
     // カメラが有効でなければリターン
     if (!m_PlayerCameraComp || !m_PlayerCameraComp->GetEvaluationContext().IsValid()) 
@@ -69,14 +69,14 @@ void ULineTraceSingleARObjectComponent::AssignTargetMagnetizableObject()
         if(m_TargetMagnetizableActor)
         {            
             // 点滅処理を行うオブジェクトから除外
-            UnsetTargetMagnetizableObject.Execute(m_TargetMagnetizableActor);
+            UnsetTargetMagnetizableObject.ExecuteIfBound(m_TargetMagnetizableActor);
         }
 
         // 切り替わった後の対象オブジェクトに対する処理
         if (m_CurrentTargetMagnetizableObj)
         {
             // 点滅処理を行うオブジェクトとして登録
-            SetTargetMagnetizableObject.Execute(m_CurrentTargetMagnetizableObj);
+            SetTargetMagnetizableObject.ExecuteIfBound(m_CurrentTargetMagnetizableObj);
         }
         else
         {

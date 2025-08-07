@@ -24,6 +24,7 @@ public:
 	*
 	* @param 点滅させるアクター
 	*/
+	UFUNCTION()
 	void AddBlinkingActor(AActor* newActor);
 
 	/*
@@ -31,6 +32,7 @@ public:
 	*
 	* @param 点滅をやめるアクター
 	*/
+	UFUNCTION()
 	void RemoveBlinkingActor(AActor* removeActor);
 
 	/*

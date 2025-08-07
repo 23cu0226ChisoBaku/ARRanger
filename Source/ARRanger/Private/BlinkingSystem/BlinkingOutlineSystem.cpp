@@ -9,7 +9,7 @@
 /*
 * @brief アウトラインの点滅処理を行うアクターの生成
 */
-void BlinkingOutlineSystem::CreateTickingActor(UWorld* world)
+void FBlinkingOutlineSystem::CreateTickingActor(UWorld* world)
 {	
 	if (!m_TickActor && world)
 	{
@@ -25,7 +25,7 @@ void BlinkingOutlineSystem::CreateTickingActor(UWorld* world)
 *
 * @param アウトラインをつける対象のオブジェクトポインタ
 */
-void BlinkingOutlineSystem::SetTargetMagnetizableObjectDelegate(AActor* targetMagnetizableObject)
+void FBlinkingOutlineSystem::SetTargetMagnetizableObjectDelegate(AActor* targetMagnetizableObject)
 {
 	if(m_TickActor)
 	{
@@ -38,7 +38,7 @@ void BlinkingOutlineSystem::SetTargetMagnetizableObjectDelegate(AActor* targetMa
 *
 * @param アウトラインをはずす対象のオブジェクトポインタ
 */
-void BlinkingOutlineSystem::UnsetTargetMagnetizableObjectDelegate(AActor* targetMagnetizableObject)
+void FBlinkingOutlineSystem::UnsetTargetMagnetizableObjectDelegate(AActor* targetMagnetizableObject)
 {
 	if(m_TickActor)
 	{

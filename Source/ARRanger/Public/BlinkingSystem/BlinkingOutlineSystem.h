@@ -9,9 +9,12 @@ class AActor;
 class UWorld;
 class ABlinkOutlineTickActor;
 
-class BlinkingOutlineSystem
+class FBlinkingOutlineSystem
 {
 public:
+
+	FBlinkingOutlineSystem() = default;
+	~FBlinkingOutlineSystem() = default;
 
 	/*
 	* @brief アウトラインの点滅処理を行うアクターの生成
