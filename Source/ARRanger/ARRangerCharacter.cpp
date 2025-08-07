@@ -186,6 +186,14 @@ void AARRangerCharacter::Tick(float DeltaTime)
 		TargetRotation.Pitch = 0.f;
 		TargetRotation.Roll = 0.f;
 
+		if (!IsTargetVisible(LockedOnTarget))
+		{
+			// 敵がプレイヤーから見えなくなったらロックオン解除
+			LockedOnTarget = nullptr;
+			isLockedOn = false;
+			UE_LOG(LogTemp, Warning, TEXT("Lost lock-on because target is not visible."))
+		}
+
 		if (!IsValid(LockedOnTarget) || LockedOnTarget->IsActorBeingDestroyed())
 		{
 			AActor* NewTarget = FindNearestEnemy(LockedOnTarget);
@@ -243,16 +251,24 @@ void AARRangerCharacter::Tick(float DeltaTime)
 	// 引力クライム中に処理
 	if (isClimbed)
 	{
+		// DoMoveが呼ばれない際はここで入力値を反映
+		const FVector Input = GetLastMovementInputVector();
+		if (UARRangerAnimInstance* MyAnim = Cast<UARRangerAnimInstance>(GetMesh()->GetAnimInstance()))
+		{
+			MyAnim->ClimbUpSpeed = Input.Y;
+			MyAnim->ClimbRightSpeed = Input.X;
+		}
+
 		// 壁回転処理
 		// 足元の位置（Capsuleの底の位置）
 		UCapsuleComponent* Capsule = GetCapsuleComponent();
 		FVector ActorLocation = GetActorLocation();
 		float HalfHeight = Capsule->GetScaledCapsuleHalfHeight();
-		FVector FootPosition = ActorLocation - FVector(0, 0, HalfHeight - 5.0f); // 少し余裕をもたせる
+		// 壁に対して垂直な向きに少しめり込むようにして設定
+		FVector FootPosition = ActorLocation - wallNormal * (HalfHeight - 5.0f);
 
-		// Trace
 		FVector Start = FootPosition;
-		FVector End = Start - wallNormal * 100.0f; // 壁の方向へ100cm
+		FVector End = Start - wallNormal * 100.0f;
 
 		FHitResult HitResult;
 		FCollisionQueryParams Params;
@@ -271,9 +287,14 @@ void AARRangerCharacter::Tick(float DeltaTime)
 			isClimbed = false;
 			GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Falling);
 			GetCharacterMovement()->bOrientRotationToMovement = true;
+			// AnimInstance側のフラグも下げる
+			if (UARRangerAnimInstance* MyAnim = Cast<UARRangerAnimInstance>(GetMesh()->GetAnimInstance()))
+			{
+				MyAnim->IsClimbing = false;
+			}
 
 			// 少し上方向にジャンプさせる
-			LaunchCharacter(FVector(0.f, 0.f, 500.f), true, true);
+			LaunchCharacter(FVector(0.0f, 0.0f, 700.0f), true, true);
 		}
 	}
 }
@@ -365,6 +386,7 @@ void AARRangerCharacter::DoMove(float Right, float Forward)
 
 		if (UARRangerAnimInstance* MyAnim = Cast<UARRangerAnimInstance>(GetMesh()->GetAnimInstance()))
 		{
+			// 引力クライム中の速度に入力値を反映
 			MyAnim->ClimbUpSpeed = Forward;
 			MyAnim->ClimbRightSpeed = Right;
 		}
@@ -386,6 +408,11 @@ void AARRangerCharacter::StartClimbing(AInsekiClimbingObject* ClimbActor)
 	// 引力クライムフラグを上げる
 	isClimbed = true;
 	currentClimbSurface = ClimbActor;
+	// AnimInstance側のフラグも上げる
+	if (UARRangerAnimInstance* MyAnim = Cast<UARRangerAnimInstance>(GetMesh()->GetAnimInstance()))
+	{
+		MyAnim->IsClimbing = true;
+	}
 
 	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Flying);
 	GetCharacterMovement()->bOrientRotationToMovement = false;
@@ -425,6 +452,11 @@ void AARRangerCharacter::StopClimbing()
 	isClimbed = false;
 	currentClimbSurface = nullptr;
 	GetCharacterMovement()->bOrientRotationToMovement = true;
+	// AnimInstance側のフラグも下げる
+	if (UARRangerAnimInstance* MyAnim = Cast<UARRangerAnimInstance>(GetMesh()->GetAnimInstance()))
+	{
+		MyAnim->IsClimbing = false;
+	}
 
 	// 回転を元に戻す
 	SetActorRotation(FRotator(0.f, GetActorRotation().Yaw, 0.f));
@@ -474,28 +506,77 @@ void AARRangerCharacter::DoJumpEnd()
 	StopJumping();
 }
 
+bool AARRangerCharacter::IsTargetVisible(AActor* Target)
+{
+	// 敵がいないときは処理しない
+	if (!Target)
+	{
+		return false;
+	}
+		
+	// プレイヤーの視点を取得
+	FVector PlayerViewLocation;
+	FRotator PlayerViewRotation;
+	Controller->GetPlayerViewPoint(PlayerViewLocation, PlayerViewRotation);
+
+	FVector TargetLocation = Target->GetActorLocation();
+	// 少し高さを調整（敵の中心や頭部付近を狙う）
+	TargetLocation.Z += 50.0f;
+
+	FHitResult HitResult;
+	FCollisionQueryParams Params;
+	// 自分自身とターゲットは無視する
+	Params.AddIgnoredActor(this);
+	Params.AddIgnoredActor(Target);
+
+	bool bHit = GetWorld()->LineTraceSingleByChannel(
+		HitResult,
+		PlayerViewLocation,
+		TargetLocation,
+		ECC_Visibility,
+		Params
+	);
+
+	// 何かに遮られてヒットした場合は見えていないと判断
+	if (bHit)
+	{
+		// ヒットしたActorがターゲットでなければ遮られていると判定
+		if (HitResult.GetActor() != Target)
+		{
+			return false;
+		}
+	}
+
+	return true;
+}
+
 void AARRangerCharacter::ToggleLockOn()
 {
+	// 引力クライム中は処理しない
+	if (isClimbed)
+	{
+		return;
+	}
+
 	if (isLockedOn)
 	{
-		// ???b?N?I??????
-		UE_LOG(LogTemp, Warning, TEXT("Lock off"));
+		// ロックオン解除
 		LockedOnTarget = nullptr;
 		isLockedOn = false;
 	}
 	else
 	{
-		UE_LOG(LogTemp, Warning, TEXT("LockOoooooooooon"));
-		// ???????G???擾
-		LockedOnTarget = FindNearestEnemy();
-		if (LockedOnTarget)
+		AActor* Candidate = FindNearestEnemy();
+		if (Candidate && IsTargetVisible(Candidate))
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Locked on to: %s"), *LockedOnTarget->GetName());
+			// 敵をロックオン
+			LockedOnTarget = Candidate;
 			isLockedOn = true;
 		}
 		else
 		{
-			UE_LOG(LogTemp, Warning, TEXT("No enemies to lock onto"));
+			// 見えていなければロックオン不可
+			UE_LOG(LogTemp, Warning, TEXT("Target not visible, cannot lock on."));
 		}
 	}
 }
@@ -601,6 +682,12 @@ AActor* AARRangerCharacter::FindNearestEnemy(AActor* IgnoreActor)
 
 void AARRangerCharacter::StartPunch()
 {
+	// 引力クライム中は処理しない
+	if (isClimbed)
+	{
+		return;
+	}
+
 	// ???????????b?N?I????????????
 	if (CurrentARType == EARMagnetismType::Attraction && isLockedOn && LockedOnTarget)
 	{
@@ -630,6 +717,12 @@ void AARRangerCharacter::PunchHitNotify()
 
 void AARRangerCharacter::Kick()
 {
+	// 引力クライム中は処理しない
+	if (isClimbed)
+	{
+		return;
+	}
+
 	PlayAttackMontage(KickData);
 }
 
@@ -727,8 +820,8 @@ void AARRangerCharacter::OnAttackMontageEnded(UAnimMontage* Montage, bool bInter
 
 void AARRangerCharacter::Transform()
 {
-	// ?U??????????????
-	if (isAttacked)
+	// 攻撃中は処理しない
+	if (isAttacked || isStrongAttack)
 	{
 		return;
 	}

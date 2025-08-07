@@ -46,11 +46,15 @@ public:
 	ARRANGER_API virtual AActor* GetActor() override { return (AActor*)this; }
 	/*End IARMagnetizableInterface interface*/
 
+	/*テスト用*/
+	// UFUNCTION(BlueprintCallable)
+	// void SetType(EARMagnetismType NewType);
+
+
 private:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
 	USceneComponent* _pRootComponent;		// ピポット
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components", meta = (AllowPrivateAccess = "true"))
 	UPrimitiveComponent* _pMagneticField;	// 磁場範囲
-
 };
