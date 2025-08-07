@@ -8,22 +8,26 @@
 /*
 * @brief コンストラクタ
 */
-ARRANGER_API AMagnetizableActor::AMagnetizableActor()
+AMagnetizableActor::AMagnetizableActor()
+	: m_RootComponent (nullptr)
+	, m_MagneticField (nullptr)
+	, m_CanMagneticForce (true)
+	, m_CanSetMagnetismType(true)
 {
 	PrimaryActorTick.bCanEverTick = true;
 
 	// Root（SceneComponent）を作成
-	_pRootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("RootComponent"));
-	RootComponent = _pRootComponent;
+	m_RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("RootComponent"));
+	RootComponent = m_RootComponent;
 
 	// カプセルコンポーネントを作成
-	_pMagneticField = CreateDefaultSubobject<UCapsuleComponent>(TEXT("CapsuleComponent"));
+	m_MagneticField = CreateDefaultSubobject<UCapsuleComponent>(TEXT("CapsuleComponent"));
 }
 
 /*
 * @brief ゲームプレイ開始後に一度だけ呼ばれる処理
 */
-ARRANGER_API void AMagnetizableActor::BeginPlay()
+void AMagnetizableActor::BeginPlay()
 {
 	Super::BeginPlay();
 }
@@ -31,31 +35,62 @@ ARRANGER_API void AMagnetizableActor::BeginPlay()
 /*
 * @brief 毎フレーム処理
 */
-ARRANGER_API void AMagnetizableActor::Tick(float DeltaTime)
+void AMagnetizableActor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	/*テスト用*/
+	if (GetMagnetismType() ==  EARMagnetismType::Attraction)
+	{
+		OnAttraction();
+	}
+	else if (GetMagnetismType() ==  EARMagnetismType::Repulsion)
+	{
+		OnRepulsion();
+	}
+}
+
+/**
+ * @brief 引力・斥力における移動
+ * 
+ * @param 移動量
+ */
+void AMagnetizableActor::OnMagneticForceEvaluated(const FVector& magneticForce)
+{
+	if(CanMagneticForce())
+	{
+		SetActorLocation(magneticForce);
+	}
 }
 
 /*
-* 引力状態に設定する関数
+* @brief 引力の磁性を保持している時の処理
 */
-ARRANGER_API void AMagnetizableActor::OnAttraction()
+void AMagnetizableActor::OnAttraction()
 {
 	// 共通処理;
 	if (GEngine) { GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, TEXT("OnAttraction Invoke")); }
 }
 
 /*
-* 斥力状態に設定する関数
+* @brief の磁性を保持している時の処理
 */
-ARRANGER_API void AMagnetizableActor::OnRepulsion()
+void AMagnetizableActor::OnRepulsion()
 {
 	// 共通処理;
 	if (GEngine) { GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, TEXT("OnRepulsion Invoke")); }
 }
 
 /*テスト用*/
-// void SetType(EARMagnetismType NewType)
-// {
-// 	//SetMagnetismType(NewType);
-// }
+void AMagnetizableActor::SetType(EARMagnetismType NewType)
+{
+	if(m_CanSetMagnetismType)
+	{
+		SetMagnetismType(NewType);
+	}
+}
+
+EARMagnetismType AMagnetizableActor::GetType() const
+{
+	return GetMagnetismType();
+}
