@@ -111,10 +111,12 @@ class FARPhysicsEngine : private ARRanger::Private::FCountLimiter<FARPhysicsEngi
   DECLARE_COUNT_LIMITER_PROPERTY(FARPhysicsEngine, 1)
 
   public:
-  
     ARRANGER_API FARPhysicsEngine();
     ARRANGER_API virtual ~FARPhysicsEngine();
 
+    /**
+     * @brief 
+     */
     ARRANGER_API void InitializePhysicsEngine(const FARPhysicsEngineInitializationParameters& Parameters);
     ARRANGER_API void DeinitializePhysicsEngine();
     ARRANGER_API void RegisterPhysicsProcess(const FARPhysicsRegistry& Registry);
