@@ -89,7 +89,7 @@ void ULineTraceSingleARObjectComponent::AssignTargetMagnetizableObject()
     }
     else
     {
-        UE_LOG(LogTemp, Warning, TEXT("aaa"));
+        //UE_LOG(LogTemp, Warning, TEXT("aaa"));
     }
 }
 

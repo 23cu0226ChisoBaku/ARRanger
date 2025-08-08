@@ -16,19 +16,19 @@ enum class EBlinkType : uint8
     Accelerated  UMETA(DisplayName = "Accelerated Blink"),
 };
 
-/**
- * @brief 点滅する色
- */
-UENUM(BlueprintType)
-enum class EBlinkColorType : uint8
-{
-	White  UMETA(DisplayName = "White"),
-    Blue   UMETA(DisplayName = "Blue"),
-    Red    UMETA(DisplayName = "Red"),
-};
+// /**
+//  * @brief 点滅する色
+//  */
+// UENUM(BlueprintType)
+// enum class EBlinkColorType : uint8
+// {
+// 	White  UMETA(DisplayName = "White"),
+//     Blue   UMETA(DisplayName = "Blue"),
+//     Red    UMETA(DisplayName = "Red"),
+// }; 使わないかも
 
 /**
- * @ brief 点滅処理に必要なパラメータ
+ * @brief 点滅処理に必要なパラメータ
  */
 USTRUCT(BlueprintType)
 struct FBlinkingActorData
@@ -36,13 +36,13 @@ struct FBlinkingActorData
 	GENERATED_BODY()
 
     UPROPERTY()
-    float _elapsedTime;
-    UPROPERTY()
-    float _blinkDelay;
-    UPROPERTY()
-    float _blinkSpeed;
-    UPROPERTY()
-    EBlinkType _blinkType;
-    UPROPERTY()
-    EBlinkColorType _blinkColor;
+    float _elapsedTime = 0.0f;          /*経過時間*/
+    UPROPERTY(EditAnywhere)
+    float _blinkDelay;                  /*点滅するまでの遅延*/
+    UPROPERTY(EditAnywhere)
+    float _blinkSpeed;                  /*点滅スピード*/
+    UPROPERTY(EditAnywhere)
+    EBlinkType _blinkType;              /*点滅の仕方*/
+    UPROPERTY(EditAnywhere)
+    UMaterialInterface* _blinkMaterial; /*点滅させるマテリアル*/
 };

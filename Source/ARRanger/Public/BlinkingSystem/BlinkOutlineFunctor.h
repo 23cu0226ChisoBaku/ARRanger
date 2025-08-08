@@ -16,8 +16,17 @@ public:
 	/**
 	 * @brief 点滅処理を行う関数
 	 */
-	void OutlineBlink(FBlinkingActorData* blinkingData); 
+	void OutlineBlink(FBlinkingActorData* blinkingData, float DeltaTime, UObject* targetObject); 
 
 private:
-	
+
+	/**
+	 * @brief 動的なマテリアルを生成する
+	 * 
+	 * @param 点滅させるマテリアル
+	 */
+	UMaterialInstanceDynamic* CreateDynamicMaterial(UMaterialInterface* blinkMaterial, UObject* targetObject);
+
+	UPROPERTY()
+	TObjectPtr<UMaterialInstanceDynamic> m_DynamicMaterial;	/*動的マテリアル*/
 };

@@ -18,15 +18,6 @@ struct FBlinkDataSet
 
 	GENERATED_BODY()
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "BlinkParam")
-	FBlinkingActorData AttractionBlinkData;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "BlinkParam")
-	FBlinkingActorData RepulsionBlinkData;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "BlinkParam")
-	FBlinkingActorData NoneBlinkData;
-
 	// 状態に応じて該当データを返す
 	FBlinkingActorData GetBlinkData (EARMagnetismType actorMagType) 
 	{
@@ -43,6 +34,17 @@ struct FBlinkDataSet
             return NoneBlinkData;
         }
 	}
+
+private:
+
+	UPROPERTY(EditAnywhere, Category = "BlinkParam")
+	FBlinkingActorData AttractionBlinkData;
+
+	UPROPERTY(EditAnywhere, Category = "BlinkParam")
+	FBlinkingActorData RepulsionBlinkData;
+
+	UPROPERTY(EditAnywhere, Category = "BlinkParam")
+	FBlinkingActorData NoneBlinkData;
 };
 
 
@@ -77,12 +79,16 @@ public:
 	UFUNCTION()
 	void RemoveBlinkingActor(AActor* removeActor);
 
-	// /*
-	// * @brief BlinkingOutlineSystem からのリクエストを受け取る
-	// */
-	// void HandleRequest();
-
 private:
+
+	/**
+	 * @brief 動的なマテリアルを生成する
+	 * 
+	 * @param 点滅させるマテリアル
+	 * 
+	 * @return 指定のマテリアルから生成した動的マテリアル
+	 */
+	UMaterialInstanceDynamic* CreateDynamicMaterial(UMaterialInterface* blinkMaterial);
 
 	UPROPERTY()
 	TArray<TObjectPtr<AActor>> m_BlinkingActors;					/*点滅させるオブジェクトの配列*/
@@ -90,5 +96,4 @@ private:
 	TArray<TObjectPtr<UMeshComponent>> m_BlinkingActorComponents;	/*点滅させるオブジェクトのメッシュコンポーネントの配列*/ 
 	UPROPERTY(EditAnywhere)
 	FBlinkDataSet m_BlinkDatas;										/*点滅させる際の必要なパラメータ*/
-
 };
