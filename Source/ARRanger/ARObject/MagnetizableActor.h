@@ -16,45 +16,75 @@ class AMagnetizableActor :  public AActor,
 	GENERATED_BODY()
 
 protected:
-	ARRANGER_API virtual void BeginPlay() override;
+	virtual void BeginPlay() override;
 	
 public:	
-	ARRANGER_API AMagnetizableActor();
-	ARRANGER_API virtual void Tick(float DeltaTime) override;
+	AMagnetizableActor();
+	virtual void Tick(float DeltaTime) override;
 
 	/**
 	 * @brief 引力が付与されている状態の挙動
 	 */
 	UFUNCTION(BlueprintCallable)
-	static void CallAttraction(AMagnetizableActor* Actor)
+	static void CallAttraction(AMagnetizableActor* actor)
 	{
-		Actor->OnAttraction();
+		actor->OnAttraction();
 	}
 
 	/**
 	 * @brief 斥力が付与されている状態の挙動
 	 */
 	UFUNCTION(BlueprintCallable)
-	static void CallRepulsion(AMagnetizableActor* Actor)
+	static void CallRepulsion(AMagnetizableActor* actor)
 	{
-		Actor->OnRepulsion();
+		actor->OnRepulsion();
+	}
+
+	/**
+	 * @brief 斥力・引力の影響を受けれる状態かどうかを返す
+	 * 
+	 * @param 斥力・引力の影響を受けれる状態かどうか
+	 */
+	UFUNCTION(BlueprintCallable)
+	bool CanMagneticForce()
+	{
+		return m_CanMagneticForce;
+	}
+
+	/**
+	 * @brief 斥力・引力の状態変化が可能かどうかを返す
+	 * 
+	 * @param 斥力・引力の状態変化が可能かどうか
+	 */
+	UFUNCTION(BlueprintCallable)
+	bool CanSetMagnetismType()
+	{
+		return m_CanSetMagnetismType;
 	}
 
 	/*Start IARMagnetizableInterface interface*/
-	ARRANGER_API virtual void OnAttraction() override;
-	ARRANGER_API virtual void OnRepulsion() override;
-	ARRANGER_API virtual AActor* GetActor() override { return (AActor*)this; }
+	virtual void OnAttraction() override;
+	virtual void OnRepulsion() override;
+	virtual void OnMagneticForceEvaluated(const FVector& magneticForce) override;
+	virtual AActor* GetActor() override { return (AActor*)this; }
 	/*End IARMagnetizableInterface interface*/
 
 	/*テスト用*/
-	// UFUNCTION(BlueprintCallable)
-	// void SetType(EARMagnetismType NewType);
+	UFUNCTION(BlueprintCallable)
+	void SetType(EARMagnetismType newType);
 
+	UFUNCTION(BlueprintPure)
+	EARMagnetismType GetType() const;
 
 private:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
-	USceneComponent* _pRootComponent;		// ピポット
+	USceneComponent* m_RootComponent;		// ピポット
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components", meta = (AllowPrivateAccess = "true"))
-	UPrimitiveComponent* _pMagneticField;	// 磁場範囲
+	UPrimitiveComponent* m_MagneticField;	// 磁場範囲
+
+	UPROPERTY()
+	bool m_CanMagneticForce;				// 移動可能か
+	UPROPERTY()
+	bool m_CanSetMagnetismType;				// 磁性の設定が可能かどうか
 };
