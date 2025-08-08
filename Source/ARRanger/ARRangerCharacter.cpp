@@ -284,9 +284,10 @@ void AARRangerCharacter::DoMove(float Right, float Forward)
 {
 	bool isAttacked =AttackComponent->GetIsAttacked();
 	bool isStrongAttacked = AttackComponent->GetIsStrongAttacked();
+	bool isAttractingEnemy = AttackComponent->GetIsAttractingEnemy();
 
-	// コントローラーがないか、攻撃中なら処理しない
-	if (GetController() == nullptr || isAttacked || isStrongAttacked)
+	// コントローラーがない、引き寄せ中または攻撃中なら処理しない
+	if (GetController() == nullptr || isAttractingEnemy || isAttacked || isStrongAttacked)
 	{
 		return;
 	}

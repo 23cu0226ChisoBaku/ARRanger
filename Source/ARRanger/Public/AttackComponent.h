@@ -3,8 +3,6 @@
 #include "AttackData.h"
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
-#include "IARMagnetizableInterface.h"
-#include "PlayerObservation/IObservableSubjectInterface.h"
 
 #include "AttackComponent.generated.h"
 
@@ -12,8 +10,6 @@ class AARRangerCharacter;
 
 UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
 class ARRANGER_API UAttackComponent : public UActorComponent
-                                    , public IARMagnetizableInterface
-                                    , public IObservableSubjectInterface
 {
     GENERATED_BODY()
 
@@ -78,13 +74,12 @@ public:
     UPROPERTY(EditAnywhere, Category = "Effects")
     TSubclassOf<AActor> HitEffectActor;
 
+    // 引き寄せ中フラグを取得
+    bool GetIsAttractingEnemy() { return isAttractingEnemy; }
+
     // 攻撃中フラグを取得
     bool GetIsAttacked() { return IsAttacked; }
 
     //強攻撃フラグを取得
     bool GetIsStrongAttacked() { return isStrongAttack; }
-
-    virtual void OnAttraction() override { }
-    virtual void OnRepulsion() override { }
-    virtual AActor* GetActor() override { return 0; }
 };

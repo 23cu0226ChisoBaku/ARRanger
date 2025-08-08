@@ -2,7 +2,6 @@
 
 #include "ARRangerCharacter.h"
 #include "Enemy.h"
-#include "IARMagnetizableInterface.h"
 #include "Kismet/KismetSystemLibrary.h"
 
 UAttackComponent::UAttackComponent()
@@ -77,11 +76,12 @@ void UAttackComponent::StartPunch()
 		return;
 	}
 
+	EARMagnetismType MagnetismType = ownerPawn->GetMagnetismType();
 	bool isLockedOn = ownerPawn->LockOnComponent->GetIsLockedOn();
 	AActor* Target = ownerPawn->LockOnComponent->GetLockedOnTarget();
 
 	// ˆø—Íó‘Ô‚Å“G‚ğƒƒbƒNƒIƒ“‚µ‚Ä‚¢‚ê‚Îˆ—
-	if (GetMagnetismType() == EARMagnetismType::Attraction && isLockedOn && Target)
+	if (MagnetismType == EARMagnetismType::Attraction && isLockedOn && Target)
 	{
 		if (!isAttractingEnemy)
 		{
@@ -163,7 +163,7 @@ void UAttackComponent::AttackHit(const FAttackData& Attack)
 		Attack.HitRadius,
 		TArray<TEnumAsByte<EObjectTypeQuery>>{
 		UEngineTypes::ConvertToObjectType(ECC_Pawn),
-			UEngineTypes::ConvertToObjectType(ECC_WorldDynamic)
+		UEngineTypes::ConvertToObjectType(ECC_WorldDynamic)
 	},
 		nullptr,
 		TArray<AActor*>{ownerPawn},
