@@ -17,34 +17,25 @@ enum class EBlinkType : uint8
 };
 
 /**
- * @brief 点滅する色
- */
-UENUM(BlueprintType)
-enum class EBlinkColorType : uint8
-{
-	White  UMETA(DisplayName = "White"),
-    Blue   UMETA(DisplayName = "Blue"),
-    Red    UMETA(DisplayName = "Red"),
-};
-
-/**
- * @ brief 点滅処理に必要なパラメータ
+ * @brief 点滅処理に必要なパラメータ
  */
 USTRUCT(BlueprintType)
 struct FBlinkingActorData
 {
 	GENERATED_BODY()
-	
+
     UPROPERTY()
-    TWeakObjectPtr<UMeshComponent> _targetMeshComp;
+    float _elapsedTime = 0.0f;                              /*経過時間*/
     UPROPERTY()
-    float _elapsedTime = 0.0f;
-    UPROPERTY()
-    float _blinkDelay = 0.0f;
-    UPROPERTY()
-    float _blinkSpeed = 1.0f;
-    UPROPERTY()
-    EBlinkType _blinkType = EBlinkType::Constant;
-    UPROPERTY()
-    EBlinkColorType _blinkColor = EBlinkColorType::White;
+    TObjectPtr<UMaterialInstanceDynamic> m_DynamicMaterial;	/*動的マテリアル*/
+    UPROPERTY(EditAnywhere)
+    float _blinkDelay;                                      /*点滅するまでの遅延*/
+    UPROPERTY(EditAnywhere)
+    float _blinkSpeed;                                      /*点滅スピード*/
+    UPROPERTY(EditAnywhere)
+    EBlinkType _blinkType;                                  /*点滅の仕方*/
+    UPROPERTY(EditAnywhere)
+    TObjectPtr<UMeshComponent> _meshComponent;              /*マテリアルを適用するメッシュコンポ―ネント*/
+    UPROPERTY(EditAnywhere)
+    TObjectPtr<UMaterialInterface> _blinkMaterial;          /*点滅させるマテリアル*/
 };

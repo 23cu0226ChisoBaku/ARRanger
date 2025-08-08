@@ -14,7 +14,7 @@ UBTT_PunchAttack::UBTT_PunchAttack()
 
 EBTNodeResult::Type UBTT_PunchAttack::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
-	// 1. 攻撃対象を取得
+	// 攻撃対象を取得
 	AAIController* AIController = OwnerComp.GetAIOwner();
 	if (!AIController) return EBTNodeResult::Failed;
 
@@ -27,16 +27,16 @@ EBTNodeResult::Type UBTT_PunchAttack::ExecuteTask(UBehaviorTreeComponent& OwnerC
 	AActor* TargetActor = Cast<AActor>(BlackboardComp->GetValueAsObject(TargetActorKey.SelectedKeyName));
 	if (!TargetActor) return EBTNodeResult::Failed;
 
-	// 2. 攻撃判定
+	// 攻撃判定
 	// 敵とプレイヤーの距離をチェック
 	float Distance = FVector::Dist(AICharacter->GetActorLocation(), TargetActor->GetActorLocation());
-
+	
 	if (Distance <= AttackRange)
 	{
-		// 3. 攻撃がヒットした場合の処理
+		// 攻撃がヒットした場合の処理
 		// ダメージを与える
-		UGameplayStatics::ApplyDamage(TargetActor, Damage, AIController, AICharacter, UDamageType::StaticClass());
-
+		//UGameplayStatics::ApplyDamage(TargetActor, Damage, AIController, AICharacter, UDamageType::StaticClass());
+		
 		// パーティクルエフェクトとサウンドを再生
 		FVector HitLocation = TargetActor->GetActorLocation();
 		if (HitParticle)
