@@ -110,6 +110,6 @@ void IARPhysicsSystemHost::Physics_RequestMagneticTaskImpl(IARMagnetizableInterf
     break;
   }
 
-  GetEngine().RegisterPhysicsProcess(request);
+  GetEngine().RegisterPhysicsTask(request);
 }
 
