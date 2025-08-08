@@ -5,6 +5,7 @@
 #pragma once
 
 #include "GameFramework/Actor.h"
+#include "Public/IARMagnetizableInterface.h"
 #include "BlinkOutlineTickActor.generated.h"
 
 UCLASS()
@@ -24,6 +25,7 @@ public:
 	*
 	* @param 点滅させるアクター
 	*/
+	UFUNCTION()
 	void AddBlinkingActor(AActor* newActor);
 
 	/*
@@ -31,14 +33,19 @@ public:
 	*
 	* @param 点滅をやめるアクター
 	*/
+	UFUNCTION()
 	void RemoveBlinkingActor(AActor* removeActor);
 
-	/*
-	* @brief BlinkingOutlineSystem からのリクエストを受け取る
-	*/
-	void HandleRequest();
+	// /*
+	// * @brief BlinkingOutlineSystem からのリクエストを受け取る
+	// */
+	// void HandleRequest();
 
 private:
-	TArray<AActor*> m_BlinkingActors;
-	TArray<UMeshComponent*> m_BlinkingActorComponents;
+
+	UPROPERTY()
+	TArray<TObjectPtr<AActor>> m_BlinkingActors;					/*点滅させるオブジェクトの配列*/
+	UPROPERTY()
+	TArray<TObjectPtr<UMeshComponent>> m_BlinkingActorComponents;	/*点滅させるオブジェクトのメッシュコンポーネントの配列*/ 
+
 };
