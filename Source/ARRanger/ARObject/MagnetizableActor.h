@@ -76,7 +76,6 @@ public:
 	UFUNCTION(BlueprintPure)
 	EARMagnetismType GetType() const;
 
-
 private:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))

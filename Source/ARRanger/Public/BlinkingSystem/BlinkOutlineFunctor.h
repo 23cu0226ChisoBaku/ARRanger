@@ -27,6 +27,17 @@ private:
 	 */
 	UMaterialInstanceDynamic* CreateDynamicMaterial(UMaterialInterface* blinkMaterial, UObject* targetObject);
 
-	UPROPERTY()
-	TObjectPtr<UMaterialInstanceDynamic> m_DynamicMaterial;	/*動的マテリアル*/
+	/**
+	 * @brief 指定されたパラメータに応じて等間隔で点滅を行う
+	 * 
+	 * @param 
+	 */
+	void ConstantBlink();
+
+	/**
+	 * @brief 指定されたパラメータに応じて徐々に早くなる点滅を行う
+	 * 
+	 * @param 
+	 */
+	void AcceleratedBlink();
 };

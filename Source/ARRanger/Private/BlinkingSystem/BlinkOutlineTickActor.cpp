@@ -4,6 +4,8 @@
 
 #include "Public/BlinkingSystem/BlinkOutlineTickActor.h"
 
+#define OUTLINEMATERIAL
+
 /*
 * Start ULineTraceSingleARObjectComponent Lifecycle Functions
 */
@@ -19,7 +21,7 @@ void ABlinkOutlineTickActor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	//FunFunFunctor()
+	//OutlineBlink(m_BlinkDatas)
 }
 /*
 * End ULineTraceSingleARObjectComponent Lifecycle Functions
@@ -39,12 +41,14 @@ void ABlinkOutlineTickActor::AddBlinkingActor(AActor* newActor)
 
 	// 対象アクターのメッシュコンポーネントを追加
 	UMeshComponent* meshComponent = newActor->FindComponentByClass<UMeshComponent>();
+
 	if (meshComponent || !m_BlinkingActorComponents.Contains(meshComponent)) 
 	{
-		m_BlinkingActorComponents.Add(meshComponent);
+		if(meshComponent->ComponentHasTag("OutLineMesh"))
+		{
+			m_BlinkingActorComponents.Add(meshComponent);
+		}		
 	}
-
-	
 }
 
 /*
@@ -61,8 +65,11 @@ void ABlinkOutlineTickActor::RemoveBlinkingActor(AActor* removeActor)
 
 	// 対象アクターのメッシュコンポーネントを除外
 	UMeshComponent* meshComp = removeActor->FindComponentByClass<UMeshComponent>();
-	if (meshComp) 
-	{
-		m_BlinkingActorComponents.Remove(meshComp);
+	if (meshComp)
+	{	
+		if(meshComp->ComponentHasTag("OutLineMesh"))
+		{
+			m_BlinkingActorComponents.Remove(meshComp);
+		}		
 	}
 }
