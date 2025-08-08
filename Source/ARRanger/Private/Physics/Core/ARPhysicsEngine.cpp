@@ -1,15 +1,14 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-
 #include "Physics/Core/ARPhysicsEngine.h"
 
+#include "IARMagnetizableInterface.h"
+#include "Internal/ARLoggingHeader.h"
 #include "Physics/Core/ARPhysicsEngineProxy.h"
 #include "Physics/Core/ARPhysicsTickProcessorActor.h"
 
-#include "IARMagnetizableInterface.h"
 
-#include "Internal/ARLoggingHeader.h"
-
+/**インスタンス数制限クラス定義 */
 DEFINE_COUNT_LIMITER_PROPERTY(FARPhysicsEngine)
 
 FARPhysicsEngine::FARPhysicsEngine()
@@ -34,7 +33,6 @@ void FARPhysicsEngine::InitializePhysicsEngine(const FARPhysicsEngineInitializat
   {
     m_proxy->Initialize(this);
   }
-  
 }
 
 void FARPhysicsEngine::DeinitializePhysicsEngine()
@@ -48,74 +46,66 @@ void FARPhysicsEngine::DeinitializePhysicsEngine()
   m_proxy.Reset();
 }
 
-void FARPhysicsEngine::RequestPhysicsProcess(const FARPhysicsRequest& Request)
+void FARPhysicsEngine::RegisterPhysicsTask(const FARPhysicsRegistry& Registry)
 {
-  // FIXME Implement immediately
-  if ((Request.Source == nullptr) || (Request.Target == nullptr))
+  if ((Registry.Source == nullptr) || (Registry.Target == nullptr))
   {
-    AR_LOG(LogARPhysics, Warning, TEXT("Invalid request"));
+    AR_LOG(LogARPhysics, Warning, TEXT("Invalid registry"));
     return;
   }
 
-  PhysicsEngineProxyPtr proxyPtr = GetProxy();
-  if (proxyPtr == nullptr)
+  if (GetProxy() == nullptr)
   {
     AR_LOG(LogARPhysics, Error, TEXT("Initialize AR physics engine FIRST!"));
     return;
   }
 
-  if (Request.IsMagneticForceType())
+  // 磁力タスク登録
+  if (Registry.IsMagneticForceType())
   {
-    using enum EPhysicsRequestFrequency;
-    switch (Request.Frequency)
+    using enum EPhysicsExecuteFrequency;
+    switch (Registry.Frequency)
     {
       case Once:
       {
-        // FARPhysicsSimulationParam simulationParam(*Request.Source, *Request.Target);
-        // using enum EPhysicsRequestType;
-        // switch (Request.Type)
-        // {
-        //   case RequestAttraction:
-        //   {
-        //     proxyPtr->SimulateAttraction(simulationParam);
-        //   }
-        //   break;
-        //   case RequestRepulsion:
-        //   {
-        //     proxyPtr->SimulateRepulsion(simulationParam);
-        //   }
-        //   break;
-        // }
-
         // FIXME Test purpose
-        m_tickProcessorActor->RegisterMagneticTask(Request.Source, Request.Target, Request.Type);
+        // FIXME Currently set tick function frequency in tick object class
+        m_tickProcessorActor->RegisterMagneticTask(Registry.Source, Registry.Target, Registry.Type);
       }
       case Constantly:
       {
-        m_tickProcessorActor->RegisterMagneticTask(Request.Source, Request.Target, Request.Type);
+        m_tickProcessorActor->RegisterMagneticTask(Registry.Source, Registry.Target, Registry.Type);
       }
       break;
     }
   }
 }
 
-void FARPhysicsEngine::TerminatePhysicsProcess(const FARPhysicsTermination& Termination)
+void FARPhysicsEngine::UnregisterPhysicsProcess(const FARPhysicsUnregistry& Unregistry)
 {
-  PhysicsEngineProxyPtr proxyPtr = GetProxy();
-  if (proxyPtr == nullptr)
+  if ((Unregistry.Source == nullptr) || (Unregistry.Target == nullptr))
+  {
+    AR_LOG(LogARPhysics, Warning, TEXT("Invalid unregistry"));
+    return;
+  }
+
+  if (GetProxy() == nullptr)
   {
     AR_LOG(LogARPhysics, Error, TEXT("Initialize AR physics engine FIRST!"));
     return;
   }
 
-  using enum EPhysicsTerminationType;
-  switch (Termination.Type)
+  // 登録解除命令をTickアクターに送る
   {
-    case TerminateMagnetic:
+    using enum EPhysicsUnregistryType;
+    switch (Unregistry.Type)
     {
-      m_tickProcessorActor->UnregisterMagneticTask(Termination.Source, Termination.Target);
+      case UnregisterMagnetic:
+      {
+        m_tickProcessorActor->UnregisterMagneticTask(Unregistry.Source, Unregistry.Target);
+      }
+      break;
     }
-    break;
   }
 }
 
@@ -126,14 +116,13 @@ TSharedPtr<FARPhysicsEngineProxy> FARPhysicsEngine::MakePhysicsEngineProxy() con
 
 void FARPhysicsEngine::InitializePhysicsTickProcessorActor(UWorld* World, TSubclassOf<AARPhysicsTickProcessorActor> Subclass)
 {
-  if ((World == nullptr) || (Subclass == nullptr))
-  {
-    return;
-  }
+  check(World != nullptr);
+  check(Subclass != nullptr);
 
   AARPhysicsTickProcessorActor* spawnedActor = World->SpawnActorDeferred<AARPhysicsTickProcessorActor>(Subclass, FTransform::Identity);
   check(spawnedActor != nullptr);
 
+  // TickActor初期化
   spawnedActor->OnSpawnActor(this);
   spawnedActor->FinishSpawning(FTransform::Identity);
 

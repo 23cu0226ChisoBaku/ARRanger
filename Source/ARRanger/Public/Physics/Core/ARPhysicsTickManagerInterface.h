@@ -5,8 +5,8 @@
 #ifndef _AR_CORE_PHYSICS_TICK_MANAGER_INTERFACE_
 #define _AR_CORE_PHYSICS_TICK_MANAGER_INTERFACE_
 
+#include "Physics/Core/ARPhysicsTickTypes.h"
 struct FARPhysicsTickParameters;
-enum class EARPhysicsTickType : uint8;
 
 namespace ARRanger::Physics
 {

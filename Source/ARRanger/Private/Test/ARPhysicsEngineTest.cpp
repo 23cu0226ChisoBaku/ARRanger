@@ -31,7 +31,7 @@ void AARPhysicsEngineTest::TestRequestMagneticTask(AActor* Target)
 {
   if ((Target != nullptr) && Target->GetClass()->ImplementsInterface(UARMagnetizableInterface::StaticClass()))
   {
-    Physics_RequestMagneticTask(this, ::Cast<IARMagnetizableInterface>(Target));
+    Physics_RegisterMagneticTask(this, ::Cast<IARMagnetizableInterface>(Target));
   }
 }
 

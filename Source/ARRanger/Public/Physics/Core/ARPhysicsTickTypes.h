@@ -5,12 +5,28 @@
 #ifndef _AR_CORE_PHYSICS_TICK_TYPES_
 #define _AR_CORE_PHYSICS_TICK_TYPES_
 
+/**前方宣言 */
 struct FARPhysicsTickParameters;
-
 namespace ARRanger::Physics
 {
   class FARPhysicsTickTask;
 }
+
+/**
+ * @brief AR物理Tick専用パラメータ構造体
+ */
+struct FARPhysicsTickParameters
+{
+  /**
+   * @brief DeltaTime
+   */
+  float DeltaTime;
+  
+  /**
+   * @brief 合計シミュレーション時間
+   */
+  float TotalSimTime;
+};
 
 enum class EARPhysicsTickType : uint8
 {
