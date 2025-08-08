@@ -3,6 +3,7 @@
 //*************************************************
 
 #include "Public/BlinkingSystem/BlinkOutlineTickActor.h"
+#include "Public/BlinkingSystem/BlinkDatas.h"
 
 /*
 * Start ULineTraceSingleARObjectComponent Lifecycle Functions
@@ -11,12 +12,10 @@ ABlinkOutlineTickActor::ABlinkOutlineTickActor()
 {
 	PrimaryActorTick.bCanEverTick = true;
 }
-
 void ABlinkOutlineTickActor::BeginPlay()
 {
 	Super::BeginPlay();
 }
-
 void ABlinkOutlineTickActor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
@@ -27,7 +26,6 @@ void ABlinkOutlineTickActor::Tick(float DeltaTime)
 * End ULineTraceSingleARObjectComponent Lifecycle Functions
 */
 
-
 /*
 * @brief 点滅させるアクターを追加する
 *
@@ -35,15 +33,16 @@ void ABlinkOutlineTickActor::Tick(float DeltaTime)
 */
 void ABlinkOutlineTickActor::AddBlinkingActor(AActor* newActor)
 {
-	if (!newActor){ return; }
+	if (!newActor || m_BlinkingActors.Contains(newActor)){ return; }
 
+	// アクターを対象オブジェクトに追加
 	m_BlinkingActors.Add(newActor);
 
-	// 対象アクターのメッシュコンポーネントを保持
-	UMeshComponent* _pMeshComponent = newActor->FindComponentByClass<UMeshComponent>();
-	if (_pMeshComponent || !m_BlinkingActorComponents.Contains(_pMeshComponent)) 
+	// 対象アクターのメッシュコンポーネントを追加
+	UMeshComponent* meshComponent = newActor->FindComponentByClass<UMeshComponent>();
+	if (meshComponent || !m_BlinkingActorComponents.Contains(meshComponent)) 
 	{
-		m_BlinkingActorComponents.Add(_pMeshComponent);
+		m_BlinkingActorComponents.Add(meshComponent);
 	}
 }
 
@@ -54,14 +53,15 @@ void ABlinkOutlineTickActor::AddBlinkingActor(AActor* newActor)
 */
 void ABlinkOutlineTickActor::RemoveBlinkingActor(AActor* removeActor)
 {
-	if (!removeActor){ return; }
+	if (!removeActor || !m_BlinkingActors.Contains(removeActor)){ return; }
 
+	// アクターを対象オブジェクトから除外
 	m_BlinkingActors.Remove(removeActor);
 
 	// 対象アクターのメッシュコンポーネントを除外
-	UMeshComponent* _pMeshComponent = removeActor->FindComponentByClass<UMeshComponent>();
-	if (_pMeshComponent) 
+	UMeshComponent* meshComp = removeActor->FindComponentByClass<UMeshComponent>();
+	if (meshComp) 
 	{
-		m_BlinkingActorComponents.Remove(_pMeshComponent);
+		m_BlinkingActorComponents.Remove(meshComp);
 	}
 }
