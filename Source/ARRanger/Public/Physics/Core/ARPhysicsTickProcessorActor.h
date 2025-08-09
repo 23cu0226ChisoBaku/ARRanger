@@ -11,7 +11,7 @@ class FARPhysicsEngine;
 class IARMagnetizableInterface;
 class UARMagneticTickObject;
 
-enum class EPhysicsRequestType;
+enum class EPhysicsRegistryType;
 
 USTRUCT()
 struct FARMagneticTickObjectEntry
@@ -54,11 +54,11 @@ class AARPhysicsTickProcessorActor : public AActor
   public:
     void OnSpawnActor(FARPhysicsEngine* PhysicsEnginePtr) { OwningPhysicsEngine = PhysicsEnginePtr; }
     bool IsBelongTo(const FARPhysicsEngine* PhysicsEngine) const { return OwningPhysicsEngine == PhysicsEngine; }
-    ARRANGER_API void RegisterMagneticTask(IARMagnetizableInterface* InSource, IARMagnetizableInterface* InTarget, EPhysicsRequestType InRequestType);
+    ARRANGER_API void RegisterMagneticTask(IARMagnetizableInterface* InSource, IARMagnetizableInterface* InTarget, EPhysicsRegistryType InRequestType);
     ARRANGER_API void UnregisterMagneticTask(IARMagnetizableInterface* InSource, IARMagnetizableInterface* InTarget);
 
   private:
-    void RegisterMagneticTarget(IARMagnetizableInterface* InTarget, IARMagnetizableInterface* InAffectedObj, EPhysicsRequestType InRequestType);
+    void RegisterMagneticTarget(IARMagnetizableInterface* InTarget, IARMagnetizableInterface* InAffectedObj, EPhysicsRegistryType InRequestType);
     void UnregisterMagneticTarget(IARMagnetizableInterface* InSource, IARMagnetizableInterface* InTarget);
     void RegisterQueuedTickObject();
     void UnregisterQueuedTickObject();

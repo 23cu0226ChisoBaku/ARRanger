@@ -34,7 +34,7 @@ void AAttractionActor::OnSphereBeginOverlap(UPrimitiveComponent* OverlappedComp,
   IARMagnetizableInterface* otherMagnetized = Cast<IARMagnetizableInterface>(OtherActor);
   if (otherMagnetized != nullptr)
   {
-    Physics_RequestMagneticTask(this, otherMagnetized);
+    Physics_RegisterMagneticTask(this, otherMagnetized);
   } 
 }
 
@@ -43,6 +43,6 @@ void AAttractionActor::OnSphereEndOverlap(UPrimitiveComponent* OverlappedCompone
   IARMagnetizableInterface* otherMagnetized = Cast<IARMagnetizableInterface>(OtherActor);
   if (otherMagnetized != nullptr)
   {
-    Physics_TerminateMagneticTask(this, otherMagnetized);
+    Physics_UnregisterMagneticTask(this, otherMagnetized);
   } 
 }

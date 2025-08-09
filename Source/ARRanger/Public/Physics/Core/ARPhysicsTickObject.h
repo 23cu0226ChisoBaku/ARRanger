@@ -24,27 +24,6 @@ struct FARPhysicsEvaluationResult
 };
 
 /**
- * @brief AR物理Tick専用パラメータ構造体
- */
-USTRUCT(BlueprintType)
-struct FARPhysicsTickParameters
-{
-  GENERATED_BODY()
-
-  /**
-   * @brief DeltaTime
-   */
-  UPROPERTY(VisibleAnywhere)
-  float DeltaTime;
-  
-  /**
-   * @brief 合計シミュレーション時間
-   */
-  UPROPERTY(VisibleAnywhere)
-  float TotalSimTime;
-};
-
-/**
  * @brief AR物理Tickオブジェクト
  */
 UCLASS(MinimalAPI, Abstract)
@@ -77,7 +56,7 @@ class UARPhysicsTickObject : public UObject
     bool IsTickFunctionRegistered() const { return PrimaryPhysicsTick.IsTickFunctionRegistered(); }
     
     UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "Physics Tick"))
-    ARRANGER_API void TickOnBlueprint(const FARPhysicsTickParameters& TickParams, FARPhysicsEvaluationResult& Result);
+    ARRANGER_API void TickOnBlueprint(float DeltaTime, float Total, FARPhysicsEvaluationResult& Result);
     
   private:
     void BeginTickObject();

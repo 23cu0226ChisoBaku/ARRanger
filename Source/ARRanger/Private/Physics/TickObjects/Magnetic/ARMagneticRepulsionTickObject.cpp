@@ -74,4 +74,6 @@ void UARMagneticRepulsionTickObject::OnTick(const FARPhysicsTickParameters& Tick
       }
     }
   }
+
+  //Target->OnMagneticForceEvaluated(Result.ForceResult);
 }
