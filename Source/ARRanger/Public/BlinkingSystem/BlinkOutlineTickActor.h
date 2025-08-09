@@ -7,7 +7,26 @@
 #include "GameFramework/Actor.h"
 #include "Public/IARMagnetizableInterface.h"
 #include "Public/BlinkingSystem/BlinkDatas.h"
+#include "ARObject/MagnetizableActor.h"
 #include "BlinkOutlineTickActor.generated.h"
+
+// 前方宣言
+class BlinkOutlineFunctor;
+
+/**
+ * @brief 点滅処理の対象アクターを保持する
+ */
+USTRUCT()
+struct FBlinkingTarget
+{
+	GENERATED_BODY()
+
+    UPROPERTY()
+    TObjectPtr<AActor> _actor = nullptr;
+
+    UPROPERTY()
+    TObjectPtr<UMeshComponent> _meshComponent = nullptr;
+};
 
 /**
  * @brief 各磁性に対応する点滅に必要なデータ
@@ -15,23 +34,31 @@
 USTRUCT(BlueprintType)
 struct FBlinkDataSet
 {
-
 	GENERATED_BODY()
 
 	// 状態に応じて該当データを返す
-	FBlinkingActorData GetBlinkData (EARMagnetismType actorMagType) 
+	FBlinkingActorData* GetBlinkData (AActor* blinkActor) 
 	{
+		if(blinkActor == nullptr){ return nullptr; }
+
+		EARMagnetismType actorMagType = EARMagnetismType::None;
+
+		if (AMagnetizableActor* MagnetActor = Cast<AMagnetizableActor>(blinkActor))
+		{
+			actorMagType = MagnetActor->GetMagnetismType();
+		}
+
         if(actorMagType == EARMagnetismType::Attraction)
         {            
-            return AttractionBlinkData;
+            return &AttractionBlinkData;
         }
         else if(actorMagType == EARMagnetismType::Repulsion)
         {
-            return RepulsionBlinkData;
+            return &RepulsionBlinkData;
         }
         else
         {
-            return NoneBlinkData;
+            return &NoneBlinkData;
         }
 	}
 
@@ -47,7 +74,6 @@ private:
 	FBlinkingActorData NoneBlinkData;
 };
 
-
 /**
  * @brief アウトラインの点滅処理を毎フレーム処理する
  */
@@ -61,6 +87,7 @@ protected:
 
 public:	
 	ABlinkOutlineTickActor();
+	~ABlinkOutlineTickActor();
 	virtual void Tick(float DeltaTime) override;
 
 	/*
@@ -82,18 +109,18 @@ public:
 private:
 
 	/**
-	 * @brief 動的なマテリアルを生成する
+	 * @brief m_BlinkingActors構造体配列の中に指定したアクターが存在するかどうかを返す
 	 * 
-	 * @param 点滅させるマテリアル
+	 * @param 探したいアクター
 	 * 
-	 * @return 指定のマテリアルから生成した動的マテリアル
+	 * @return 存在したいかどうか
 	 */
-	UMaterialInstanceDynamic* CreateDynamicMaterial(UMaterialInterface* blinkMaterial);
+	bool ContainsActor(AActor* actor);
 
 	UPROPERTY()
-	TArray<TObjectPtr<AActor>> m_BlinkingActors;					/*点滅させるオブジェクトの配列*/
-	UPROPERTY()
-	TArray<TObjectPtr<UMeshComponent>> m_BlinkingActorComponents;	/*点滅させるオブジェクトのメッシュコンポーネントの配列*/ 
+	TArray<FBlinkingTarget> m_BlinkingActors;						/*点滅させる対象のアクターのデータ構造体*/
 	UPROPERTY(EditAnywhere)
 	FBlinkDataSet m_BlinkDatas;										/*点滅させる際の必要なパラメータ*/
+
+	BlinkOutlineFunctor* m_BlinkOutlineFunctor;						/*点滅する処理があるFunctorクラス*/
 };
