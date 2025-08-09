@@ -53,8 +53,7 @@ void UARMagneticAttractionTickObject::OnTick(const FARPhysicsTickParameters& Tic
       targetActor->AddActorWorldOffset(pushForce, true);
     }
 
-    // FARPhysicsSimulationParam params{*Target, *magnetizedObject};
-    // PhysicsEngineProxy->SimulateAttraction(params);
+    //Target->OnMagneticForceEvaluated(Result.ForceResult);
   }
   
 
