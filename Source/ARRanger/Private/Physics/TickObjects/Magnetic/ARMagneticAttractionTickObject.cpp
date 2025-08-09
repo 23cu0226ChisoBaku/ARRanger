@@ -53,7 +53,7 @@ void UARMagneticAttractionTickObject::OnTick(const FARPhysicsTickParameters& Tic
       targetActor->AddActorWorldOffset(pushForce, true);
     }
 
-    Target->OnMagneticForceEvaluated(Result.ForceResult);
+    //Target->OnMagneticForceEvaluated(Result.ForceResult);
   }
   
 
