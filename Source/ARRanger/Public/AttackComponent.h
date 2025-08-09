@@ -24,7 +24,7 @@ public:
     void StartPunch();
 
     // キックの際に呼び出される
-    void Kick();
+    void StartKick();
 
     // パンチのAnimNotifyの通知を受け取る
     UFUNCTION(BlueprintCallable)
@@ -42,8 +42,14 @@ private:
     // 敵を引き寄せ中のフラグ
     bool isAttractingEnemy;
 
+    // 敵を吹き飛ばすフラグ
+    bool isBlowedAwayEnemy;
+
     // 強い攻撃かどうかのフラグ
     bool isStrongAttack;
+
+    // 攻撃時にプレイヤーをターゲットの方向に向かせる
+    void RotateOwnerToTarget();
 
     // 攻撃アニメーションの再生用関数
     void PlayAttackMontage(const FAttackData& Attack);

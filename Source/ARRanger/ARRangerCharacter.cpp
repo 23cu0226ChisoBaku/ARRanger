@@ -125,7 +125,7 @@ void AARRangerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 
 		// 攻撃(パンチ、キック)
 		EnhancedInputComponent->BindAction(PunchAction, ETriggerEvent::Started, AttackComponent, &UAttackComponent::StartPunch);
-		EnhancedInputComponent->BindAction(KickAction, ETriggerEvent::Started, AttackComponent, &UAttackComponent::Kick);
+		EnhancedInputComponent->BindAction(KickAction, ETriggerEvent::Started, AttackComponent, &UAttackComponent::StartKick);
 
 		// 変身
 		EnhancedInputComponent->BindAction(TransformAction, ETriggerEvent::Started, this, &AARRangerCharacter::Transform);

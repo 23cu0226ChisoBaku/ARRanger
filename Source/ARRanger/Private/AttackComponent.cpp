@@ -6,6 +6,7 @@
 
 UAttackComponent::UAttackComponent()
 	: isAttractingEnemy(false)
+	, isBlowedAwayEnemy(false)
 	, isStrongAttack(false)
 	, ownerPawn(nullptr)
 	, ownerController(nullptr)
@@ -76,6 +77,9 @@ void UAttackComponent::StartPunch()
 		return;
 	}
 
+	// ターゲットの方向に向く
+	RotateOwnerToTarget();
+
 	EARMagnetismType MagnetismType = ownerPawn->GetMagnetismType();
 	bool isLockedOn = ownerPawn->LockOnComponent->GetIsLockedOn();
 	AActor* Target = ownerPawn->LockOnComponent->GetLockedOnTarget();
@@ -107,7 +111,7 @@ void UAttackComponent::PunchHitNotify()
 	AttackHit(PunchData);
 }
 
-void UAttackComponent::Kick()
+void UAttackComponent::StartKick()
 {
 	// 引力クライム中は処理しない
 	if (ownerPawn->GetIsClimbed())
@@ -115,12 +119,62 @@ void UAttackComponent::Kick()
 		return;
 	}
 
+	EARMagnetismType MagnetismType = ownerPawn->GetMagnetismType();
+	bool isLockedOn = ownerPawn->LockOnComponent->GetIsLockedOn();
+	AActor* Target = ownerPawn->LockOnComponent->GetLockedOnTarget();
+
+	// 斥力状態であり、ロックオン時活ターゲットが存在するとき処理
+	if (MagnetismType == EARMagnetismType::Repulsion && isLockedOn && Target)
+	{
+		// 吹き飛ばしフラグを上げる
+		isBlowedAwayEnemy = true;
+
+		// 強攻撃フラグを上げる
+		isStrongAttack = true;
+
+		// 向きをターゲットに合わせる
+		RotateOwnerToTarget();
+
+		// キックのアニメ再生
+		PlayAttackMontage(KickData);
+
+		UE_LOG(LogTemp, Warning, TEXT("Repulsion Kick！！！"));
+		return;
+	}
+
+	// それ以外は通常のキック処理
+	RotateOwnerToTarget();
 	PlayAttackMontage(KickData);
 }
 
 void UAttackComponent::KickHitNotify()
 {
 	AttackHit(KickData);
+}
+
+void UAttackComponent::RotateOwnerToTarget()
+{
+	// プレイヤーがいないか、アタックコンポーネントがなければ処理しない
+	if (!ownerPawn || !ownerPawn->LockOnComponent)
+	{
+		return;
+	}
+
+	// ロックオンしているときに処理
+	if (ownerPawn->LockOnComponent->GetIsLockedOn())
+	{
+		AActor* Target = ownerPawn->LockOnComponent->GetLockedOnTarget();
+		if (Target && IsValid(Target))
+		{
+			// プレイヤーをターゲットの方向に向かせる
+			FVector Direction = Target->GetActorLocation() - ownerPawn->GetActorLocation();
+			Direction.Z = 0.f;
+			Direction.Normalize();
+
+			FRotator TargetRot = Direction.Rotation();
+			ownerPawn->SetActorRotation(TargetRot);
+		}
+	}
 }
 
 void UAttackComponent::PlayAttackMontage(const FAttackData& Attack)
@@ -192,18 +246,34 @@ void UAttackComponent::AttackHit(const FAttackData& Attack)
 				// NotifyHandlerはこちらでは触れず、プレイヤー側に任せる
 				ownerPawn->OnAttackHitNotify();
 
-				const bool bWillBeKilled = (Enemy->currentHP - Attack.Damage <= 0);
-
 				FVector LaunchDir = ownerPawn->GetActorForwardVector() + FVector(0, 0, 0.2f);
 				LaunchDir.Normalize();
 
 				// ダメージを与える(強攻撃ならダメージを上乗せ)
 				if (isStrongAttack)
 				{
+					const bool bWillBeKilled = (Enemy->currentHP - (Attack.Damage + Attack.DamageModifier) <= 0);
 					Enemy->ReceiveDamage(Attack.Damage + Attack.DamageModifier, LaunchDir, bWillBeKilled);
+
+					// 斥力キック時は敵を吹っ飛ばす
+					if (isBlowedAwayEnemy)
+					{
+						UPrimitiveComponent* PrimComp = Cast<UPrimitiveComponent>(Enemy->GetRootComponent());
+						if (PrimComp && PrimComp->IsSimulatingPhysics())
+						{
+							FVector ImpulseDir = (Enemy->GetActorLocation() - ownerPawn->GetActorLocation()).GetSafeNormal();
+							ImpulseDir.Z += 0.5f;
+							ImpulseDir.Normalize();
+
+							float ImpulseStrength = 1500.f;
+
+							PrimComp->AddImpulse(ImpulseDir * ImpulseStrength, NAME_None, true);
+						}
+					}
 				}
 				else
 				{
+					const bool bWillBeKilled = (Enemy->currentHP - Attack.Damage <= 0);
 					Enemy->ReceiveDamage(Attack.Damage, LaunchDir, bWillBeKilled);
 				}
 			}
@@ -214,5 +284,6 @@ void UAttackComponent::AttackHit(const FAttackData& Attack)
 void UAttackComponent::OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted)
 {
 	IsAttacked = false;
+	isBlowedAwayEnemy = false;
 	isStrongAttack = false;
 }
