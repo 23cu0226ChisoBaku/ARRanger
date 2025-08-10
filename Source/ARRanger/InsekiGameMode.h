@@ -5,6 +5,8 @@
 
 #include "InsekiGameMode.generated.h"
 
+class ABlinkOutlineTickActor;
+
 // 麦
 namespace ARRanger
 {
@@ -38,12 +40,16 @@ public:
 	UPROPERTY(EditAnywhere, Category = "UI")
 	TSubclassOf<UUserWidget> GameClearWidgetClass;
 
-  // 麦
-  UPROPERTY(EditDefaultsOnly, Category = "AR|Test|SoundData", meta = (RequiredAssetDataTags = "RowStructure=/Script/ARRanger.ARSoundMetaData"))
-  TObjectPtr<UDataTable> SoundEffectData;
+	// 麦
+	UPROPERTY(EditDefaultsOnly, Category = "AR|Test|SoundData", meta = (RequiredAssetDataTags = "RowStructure=/Script/ARRanger.ARSoundMetaData"))
+	TObjectPtr<UDataTable> SoundEffectData;
 
-  // 麦
+	// 麦
 private:
-  TSharedPtr<ARRanger::INotifyHandlerInterface> NotifyHandler;
-  TArray< TWeakInterfacePtr< IObservableSubjectInterface > > Subjects;
+	TSharedPtr<ARRanger::INotifyHandlerInterface> NotifyHandler;
+	TArray< TWeakInterfacePtr< IObservableSubjectInterface > > Subjects;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Blinking")
+	TSubclassOf<ABlinkOutlineTickActor> BlinkTickActorClass;
+
 };

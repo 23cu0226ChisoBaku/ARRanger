@@ -25,17 +25,19 @@ struct FBlinkingActorData
 	GENERATED_BODY()
 
     UPROPERTY()
-    float _elapsedTime = 0.0f;                              /*経過時間*/
+    float _elapsedTime = 0.0f;                                          /*経過時間*/
+    // UPROPERTY()
+    // TObjectPtr<UMeshComponent> _meshComponent;                          /*マテリアルを適用するメッシュコンポ―ネント*/
     UPROPERTY()
-    TObjectPtr<UMaterialInstanceDynamic> m_DynamicMaterial;	/*動的マテリアル*/
+    TObjectPtr<UMaterialInstanceDynamic> m_DynamicMaterial =nullptr;	/*動的マテリアル*/
     UPROPERTY(EditAnywhere)
-    float _blinkDelay;                                      /*点滅するまでの遅延*/
+    float _blinkInterval;                                               /*点滅する時間*/ 
     UPROPERTY(EditAnywhere)
-    float _blinkSpeed;                                      /*点滅スピード*/
+    float _blinkSpeed;                                                  /*点滅スピード*/
     UPROPERTY(EditAnywhere)
-    EBlinkType _blinkType;                                  /*点滅の仕方*/
+    float _blinkDelay;                                                  /*点滅し始めるまでの遅延*/
     UPROPERTY(EditAnywhere)
-    TObjectPtr<UMeshComponent> _meshComponent;              /*マテリアルを適用するメッシュコンポ―ネント*/
+    EBlinkType _blinkType;                                              /*点滅の仕方*/
     UPROPERTY(EditAnywhere)
-    TObjectPtr<UMaterialInterface> _blinkMaterial;          /*点滅させるマテリアル*/
+    TObjectPtr<UMaterialInterface> _blinkMaterial;                      /*点滅させるマテリアル*/
 };

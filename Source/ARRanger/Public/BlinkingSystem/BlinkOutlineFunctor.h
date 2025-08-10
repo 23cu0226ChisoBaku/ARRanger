@@ -16,7 +16,7 @@ public:
 	/**
 	 * @brief 点滅処理を行う関数
 	 */
-	void OutlineBlink(FBlinkingActorData* blinkingData, float DeltaTime, UObject* targetObject); 
+	void OutlineBlink( UObject* targetObject, UMeshComponent* targetmeshComponent, FBlinkingActorData* blinkingData, float DeltaTime); 
 
 private:
 

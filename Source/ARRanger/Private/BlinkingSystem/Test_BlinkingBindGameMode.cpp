@@ -4,6 +4,7 @@
 
 #include "Public/BlinkingSystem/Test_BlinkingBindGameMode.h"
 #include "Public/BlinkingSystem/BlinkingOutlineSystem.h"
+#include "Subsystems/WorldSubsystem.h"
 #include "InstantScripts/LineTraceSingleARObjectComponent.h"
 
 ATest_BlinkingBindGameMode::ATest_BlinkingBindGameMode()
