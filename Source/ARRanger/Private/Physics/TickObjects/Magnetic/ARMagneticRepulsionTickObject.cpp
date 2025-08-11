@@ -26,8 +26,6 @@ void UARMagneticRepulsionTickObject::OnTick(const FARPhysicsTickParameters& Tick
     return;
   }
 
-
-  bool zOverride = true;
   for (const auto& magnetizedObject : AffectedMagnetizedObjects)
   {
     if ((magnetizedObject == nullptr) || (magnetizedObject->GetActor() == nullptr))
@@ -55,25 +53,36 @@ void UARMagneticRepulsionTickObject::OnTick(const FARPhysicsTickParameters& Tick
     }
     else
     {
-      zOverride = false;
       const FVector horizontalDir = FVector{impactDir.X, impactDir.Y, 0.0}.GetUnsafeNormal();
       const FVector knockBackVelo = horizontalDir * 800.0f + FVector{0.0, 0.0, 200.0};
       Result.ForceResult += knockBackVelo;
     }
 
-    // TODO: Test Code
-    if (ACharacter* targetCharacter = Cast<ACharacter>(targetActor))
-    {
-      targetCharacter->LaunchCharacter(Result.ForceResult, true, zOverride);
-    }
-    else
-    {
-      if (UPrimitiveComponent* primitiveComp = targetActor->GetComponentByClass<UPrimitiveComponent>())
-      {
-        primitiveComp->AddImpulse(Result.ForceResult);
-      }
-    }
+    // // TODO: Test Code
+    // if (ACharacter* targetCharacter = Cast<ACharacter>(targetActor))
+    // {
+    //   targetCharacter->LaunchCharacter(Result.ForceResult, true, zOverride);
+    // }
+    // else
+    // {
+    //   if (UPrimitiveComponent* primitiveComp = targetActor->GetComponentByClass<UPrimitiveComponent>())
+    //   {
+    //     primitiveComp->AddImpulse(Result.ForceResult);
+    //   }
+    // }
   }
 
-  //Target->OnMagneticForceEvaluated(Result.ForceResult);
+}
+
+void UARMagneticRepulsionTickObject::OnEndTickObject()
+{
+  if (Target == nullptr)
+  {
+    return;
+  }
+
+  FARMagneticForceResult result;
+  result.FinalForce = GetEvaluatedResult().ForceResult;
+  
+  Target->OnRepulsionEvaluated(result);
 }

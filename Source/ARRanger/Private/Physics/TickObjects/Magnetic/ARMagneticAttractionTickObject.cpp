@@ -49,13 +49,21 @@ void UARMagneticAttractionTickObject::OnTick(const FARPhysicsTickParameters& Tic
       
       Result.ForceResult += pushForce;
 
-      // TODO testCode
-      targetActor->AddActorWorldOffset(pushForce, true);
+      // // TODO testCode
+      // targetActor->AddActorWorldOffset(pushForce, true);
     }
-
-    //Target->OnMagneticForceEvaluated(Result.ForceResult);
   }
-  
+}
 
+void UARMagneticAttractionTickObject::OnEndTickObject()
+{
+  if (Target == nullptr)
+  {
+    return;
+  }
 
+  FARMagneticForceResult result;
+  result.FinalForce = GetEvaluatedResult().ForceResult;
+
+  Target->OnAttractionEvaluated(result);
 }
