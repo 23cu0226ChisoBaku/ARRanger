@@ -25,19 +25,19 @@ public:
 	/**
 	 * @brief 引力が付与されている状態の挙動
 	 */
-  // DEPRECATED
+	// DEPRECATED
 	UFUNCTION(BlueprintCallable)
 	static void CallAttraction(AMagnetizableActor* actor)
 	{
-    // FIXME Remove this
-    FARMagneticForceResult result;
+		// FIXME Remove this
+		FARMagneticForceResult result;
 		actor->OnAttractionEvaluated(result);
 	}
 
 	/**
 	 * @brief 斥力が付与されている状態の挙動
 	 */
-  // DEPRECATED
+  	// DEPRECATED
 	UFUNCTION(BlueprintCallable)
 	static void CallRepulsion(AMagnetizableActor* actor)
 	{

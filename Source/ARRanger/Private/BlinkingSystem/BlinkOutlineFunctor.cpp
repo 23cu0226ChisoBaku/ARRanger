@@ -5,14 +5,30 @@
 #include "Public/BlinkingSystem/BlinkOutlineFunctor.h"
 #include "Public/BlinkingSystem/BlinkDatas.h"
 
+/*
+* Start BlinkOutlineFunctor Lifecycle Functions
+*/
+BlinkOutlineFunctor::BlinkOutlineFunctor()
+{
+
+}
+BlinkOutlineFunctor::~BlinkOutlineFunctor()
+{
+
+}
+/*
+* End BlinkOutlineFunctor Lifecycle Functions
+*/
+
+
 /**
  * @brief 点滅処理を行う関数
  * 
  * @param 点滅処理を行うためのパラメータ,１フレームの時間
  */
-void BlinkOutlineFunctor::OutlineBlink(FBlinkingActorData* blinkingData, float DeltaTime, UObject* targetObject)
+void BlinkOutlineFunctor::OutlineBlink(UObject* targetObject, UMeshComponent* targetmeshComponent, FBlinkingActorData* blinkingData, float DeltaTime)
 {
-    if(blinkingData == nullptr){ return; }
+    if(targetObject == nullptr || targetmeshComponent == nullptr || blinkingData == nullptr){ return; }
 
     // 経過時間を加算
     blinkingData->_elapsedTime += DeltaTime;
@@ -20,11 +36,19 @@ void BlinkOutlineFunctor::OutlineBlink(FBlinkingActorData* blinkingData, float D
     // まだディレイ中なら処理しない
     if (blinkingData->_elapsedTime < blinkingData->_blinkDelay){ return; }
 
+    // 点滅する時間が過ぎていたら点滅終了(点滅し始めてからの経過時間で計測)
+    if(blinkingData->_blinkInterval  <=  blinkingData->_elapsedTime - blinkingData->_blinkDelay)
+    {        
+        // アウトラインをクリア
+        targetmeshComponent->SetOverlayMaterial(nullptr);  
+        return;      
+    }
+
     // 動的マテリアルの生成・マテリアルのセット
     if(blinkingData->m_DynamicMaterial == nullptr)
     {
         blinkingData->m_DynamicMaterial = CreateDynamicMaterial(blinkingData->_blinkMaterial, targetObject);
-        blinkingData->_meshComponent->SetOverlayMaterial(blinkingData->_blinkMaterial);
+        targetmeshComponent->SetOverlayMaterial(blinkingData->_blinkMaterial);
     }
 
     // 指定された種類の点滅を行う

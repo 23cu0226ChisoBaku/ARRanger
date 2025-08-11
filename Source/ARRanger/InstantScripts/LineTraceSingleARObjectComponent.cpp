@@ -21,6 +21,8 @@ void ULineTraceSingleARObjectComponent::BeginPlay()
 void ULineTraceSingleARObjectComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+
+    AssignTargetMagnetizableObject();
 }
 /*End ULineTraceSingleARObjectComponent Lifecycle Functions*/
 
@@ -31,7 +33,7 @@ void ULineTraceSingleARObjectComponent::TickComponent(float DeltaTime, ELevelTic
  */
 void ULineTraceSingleARObjectComponent::SetPlayerCameraComp(const UGameplayCameraComponent* playerCameraComp)
 {
-    if(playerCameraComp)
+    if(playerCameraComp != nullptr)
     { 
         m_PlayerCameraComp = const_cast<UGameplayCameraComponent*>(playerCameraComp);
     }
@@ -61,6 +63,7 @@ void ULineTraceSingleARObjectComponent::AssignTargetMagnetizableObject()
 
     // ライントレースした結果を保持
     currentTargetMagnetizableObj = TraceForMagnetizableObject(lineTraceStart,lineTraceEnd);
+
     if(currentTargetMagnetizableObj)
     {
         UE_LOG(LogTemp, Log, TEXT("currentTargetMagnetizableObj: %s"), *currentTargetMagnetizableObj->GetName());
@@ -70,17 +73,33 @@ void ULineTraceSingleARObjectComponent::AssignTargetMagnetizableObject()
     if(currentTargetMagnetizableObj != m_TargetMagnetizableActor)
     {
         // 切り替わる前の対象オブジェクトに対する処理
-        if(m_TargetMagnetizableActor)
-        {            
-            // 点滅処理を行うオブジェクトから除外
-            UnsetTargetMagnetizableObject.ExecuteIfBound(m_TargetMagnetizableActor);
+        if(m_TargetMagnetizableActor != nullptr)
+        {
+            // IARObjectInterface を実装しているかチェック
+            if (m_TargetMagnetizableActor->GetClass()->ImplementsInterface(UARMagnetizableInterface::StaticClass()))
+            {
+                IARMagnetizableInterface* interfacePtr = Cast<IARMagnetizableInterface>(m_TargetMagnetizableActor);
+                if (interfacePtr)
+                {
+                    // 点滅処理を行うオブジェクトから除外
+                    UnsetTargetMagnetizableObject.ExecuteIfBound(m_TargetMagnetizableActor);    
+                }
+            }       
         }
 
         // 切り替わった後の対象オブジェクトに対する処理
-        if (currentTargetMagnetizableObj)
+        if (currentTargetMagnetizableObj != nullptr)
         {
-            // 点滅処理を行うオブジェクトとして登録
-            SetTargetMagnetizableObject.ExecuteIfBound(currentTargetMagnetizableObj);
+            // IARObjectInterface を実装しているかチェック
+            if (currentTargetMagnetizableObj->GetClass()->ImplementsInterface(UARMagnetizableInterface::StaticClass()))
+            {
+                IARMagnetizableInterface* interfacePtr = Cast<IARMagnetizableInterface>(currentTargetMagnetizableObj);
+                if (interfacePtr)
+                {
+                    // 点滅処理を行うオブジェクトとして登録
+                    SetTargetMagnetizableObject.ExecuteIfBound(currentTargetMagnetizableObj);
+                }
+            }
         }
         else
         {
@@ -120,18 +139,9 @@ AActor* ULineTraceSingleARObjectComponent::TraceForMagnetizableObject(const FVec
     {
         AActor* HitActor = HitResult.GetActor();
 
-        // IARObjectInterface を実装しているかチェック
-        if (Cast<IARMagnetizableInterface>(HitActor))
-        {
-            // オブジェクト名をログに出力
-            //UE_LOG(LogTemp, Log, TEXT("Hit ARObject: %s"), *HitActor->GetName());
-            return HitActor;
-        }
-        else
-        {
-            // 取得したオブジェクトがInterfaceをもっていなかった
-            //UE_LOG(LogTemp, Warning, TEXT("Hit actor does not implement IARObjectInterface: %s"), *HitActor->GetName());
-        }
+        // オブジェクト名をログに出力
+        return HitActor;
+                
     }
     else
     {

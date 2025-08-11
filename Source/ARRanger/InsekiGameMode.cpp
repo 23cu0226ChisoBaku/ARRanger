@@ -15,6 +15,8 @@
 #include "PlayerObservation/IObserverRegistry.h"
 #include "PlayerObservation/Registry/SoundEffectRegistry.h"
 
+#include "Public/BlinkingSystem/BlinkingOutlineWorldSubsystem.h"
+
 void AInsekiGameMode::BeginPlay()
 {
 	Super::BeginPlay();
@@ -37,6 +39,21 @@ void AInsekiGameMode::BeginPlay()
       audioSystem->InitializeSounds(/**BGM */ nullptr, /**SE */ SoundEffectData);
     }
   }
+
+  // BlinkingOutlineWorldSubsystem を取得
+	auto* WorldSubsystem = GetWorld()->GetSubsystem<UBlinkingOutlineWorldSubsystem>();
+	if (WorldSubsystem)
+	{
+		APlayerController* PC = GetWorld()->GetFirstPlayerController();
+		if (PC && PC->GetPawn())
+		{
+			// プレイヤーのPawnからLineTraceSingleARObjectComponentを取得
+			auto* LineTraceComp = PC->GetPawn()->FindComponentByClass<ULineTraceSingleARObjectComponent>();
+
+			// TickActorClassを設定し、サブシステムにセットアップを依頼
+			WorldSubsystem->SetupBlinkingSystem(GetWorld(), LineTraceComp, BlinkTickActorClass);
+		}
+	}
 
   InitializeObserver();
 }
