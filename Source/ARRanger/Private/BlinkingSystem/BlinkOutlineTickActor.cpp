@@ -32,10 +32,6 @@ void ABlinkOutlineTickActor::Tick(float DeltaTime)
 	// 登録されたアクターにアウトラインを付け点滅させる
 	for (int32 i = 0; i < m_BlinkingActors.Num(); ++i)
 	{
-		UE_LOG(LogTemp, Log, TEXT("Tick: Actor=%s, Mesh=%s"),
-		*GetNameSafe(m_BlinkingActors[i]._actor),
-		*GetNameSafe(m_BlinkingActors[i]._meshComponent));
-
 		if (m_BlinkingActors[i]._actor == nullptr || m_BlinkingActors[i]._meshComponent == nullptr ) {continue;}
 		
 		/*点滅させる(引数：対象アクター, 対象アクターのコンポーネント, 対象アクターに対応した点滅に関するデータ, １フレームの時間)*/ 
@@ -43,7 +39,7 @@ void ABlinkOutlineTickActor::Tick(float DeltaTime)
 			Cast<UObject>(m_BlinkingActors[i]._actor),
 			m_BlinkingActors[i]._meshComponent,
 			m_BlinkDatas.GetBlinkData(m_BlinkingActors[i]._actor),
-			DeltaTime);
+			DeltaTime );
 	}
 }
 ABlinkOutlineTickActor::~ABlinkOutlineTickActor()
@@ -103,7 +99,7 @@ void ABlinkOutlineTickActor::RemoveBlinkingActor(AActor* removeActor)
 	if (removeActor == nullptr){ return; }
 
 	// 登録されているアクターかチェック
-	if(!ContainsActor(removeActor)){return;}
+	if(!ContainsActor(removeActor)){ return; }
 
 	// GetBlinkData()で該当のデータを取得
     FBlinkingActorData* blinkData = m_BlinkDatas.GetBlinkData(removeActor);
@@ -116,7 +112,6 @@ void ABlinkOutlineTickActor::RemoveBlinkingActor(AActor* removeActor)
             if (target._actor == removeActor)
             {
                 meshComp = target._meshComponent;
-                break;
             }
         }
         if (meshComp && meshComp->GetOverlayMaterial())
@@ -132,35 +127,31 @@ void ABlinkOutlineTickActor::RemoveBlinkingActor(AActor* removeActor)
 		// 登録されている配列から削除する
 		m_BlinkingActors.RemoveAll([removeActor](const FBlinkingTarget& target) 
 		{
-			if (target._meshComponent->GetOverlayMaterial()) 
-			{
-				target._meshComponent->SetOverlayMaterial(nullptr);
-			}
 			return target._actor == removeActor;
 		});
 	}
 }
 
-/**
- * @brief 指定されたアクターの EARMagnetismType を変更する
- * 
- * @param 変更するアクター, 変更先のEARMagnetismType
- */
-void ABlinkOutlineTickActor::UpdateBlinkingDataByMagnetismType(AActor* actor, EARMagnetismType magnetismType)
-{
-	if(actor == nullptr) {return;}
-	if(!ContainsActor(actor)) {return;}
+// /**
+//  * @brief 指定されたアクターの EARMagnetismType を変更する
+//  * 
+//  * @param 変更するアクター, 変更先のEARMagnetismType
+//  */
+// void ABlinkOutlineTickActor::UpdateBlinkingDataByMagnetismType(AActor* actor, EARMagnetismType magnetismType)
+// {
+// 	if(actor == nullptr) {return;}
+// 	if(!ContainsActor(actor)) {return;}
 
-	// m_BlinkingActors に登録されているアクターのデータを取得
+// 	// m_BlinkingActors に登録されているアクターのデータを取得
 
-    for (const FBlinkingTarget& target : m_BlinkingActors)
-    {
-        if (target._actor == actor)
-        {
-            break;
-        }
-    }
-}
+//     for (const FBlinkingTarget& target : m_BlinkingActors)
+//     {
+//         if (target._actor == actor)
+//         {
+//             break;
+//         }
+//     }
+// }
 
 
 /**

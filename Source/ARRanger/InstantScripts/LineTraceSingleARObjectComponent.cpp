@@ -74,7 +74,7 @@ void ULineTraceSingleARObjectComponent::AssignTargetMagnetizableObject()
                     // 点滅処理を行うオブジェクトから除外
                     UnsetTargetMagnetizableObject.ExecuteIfBound(m_TargetMagnetizableActor);    
                 }
-            }       
+            }
         }
 
         // 切り替わった後の対象オブジェクトに対する処理
