@@ -7,7 +7,6 @@
 #include "UObject/Interface.h"
 #include "IARMagnetizableInterface.generated.h"
 
-
 /**
  * UObject専門のインターフェース
  */
@@ -29,16 +28,6 @@ enum class EARMagnetismType : uint8
 };
 
 /**
- * @brief Magnetic result from AR physics engine simulation
- */
-struct FARMagneticForceResult
-{
-  /**磁力 */
-  FVector FinalForce;
-};
-
-
-/**
  * 磁性を管理するインターフェース
  */
 class IARMagnetizableInterface
@@ -50,19 +39,26 @@ public:
 	/*
 	* @brief 引力の磁性を保持している時の処理
 	*/
-	ARRANGER_API virtual void OnAttractionEvaluated(const FARMagneticForceResult& Result) {}
+	virtual void OnAttraction(){}
 
 	/*
 	* @brief 斥力の磁性を保持している時の処理
 	*/
-	ARRANGER_API virtual void OnRepulsionEvaluated(const FARMagneticForceResult& Result) {}
+	virtual void OnRepulsion(){}
+
+	/**
+	 * @brief 引力・斥力における移動量
+	 * 
+	 * @param 移動量
+	 */
+	virtual void OnMagneticForceEvaluated(const FVector& magneticForce){}
 
 	/*
 	* @brief アクターを取得するための関数
 	* 
 	* @return アクターポインタ
 	*/
-	ARRANGER_API virtual AActor* GetActor() { return nullptr; }
+	virtual AActor* GetActor(){return nullptr;}
 
 	/*
 	* @brief 新しい磁性に変化させる

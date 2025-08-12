@@ -31,11 +31,11 @@ void AARPhysicsEngineTest::TestRequestMagneticTask(AActor* Target)
 {
   if ((Target != nullptr) && Target->GetClass()->ImplementsInterface(UARMagnetizableInterface::StaticClass()))
   {
-    Physics_RegisterMagneticTask(this, ::Cast<IARMagnetizableInterface>(Target));
+    Physics_RequestMagneticTask(this, ::Cast<IARMagnetizableInterface>(Target));
   }
 }
 
-void AARPhysicsEngineTest::OnAttractionEvaluated(const FARMagneticForceResult& Result)
+void AARPhysicsEngineTest::OnAttraction()
 {
   if (GEngine)
   {
@@ -43,7 +43,7 @@ void AARPhysicsEngineTest::OnAttractionEvaluated(const FARMagneticForceResult& R
   }
 }
 
-void AARPhysicsEngineTest::OnRepulsionEvaluated(const FARMagneticForceResult& Result)
+void AARPhysicsEngineTest::OnRepulsion()
 {
   if (GEngine)
   {

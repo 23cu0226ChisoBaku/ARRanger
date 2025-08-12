@@ -48,7 +48,7 @@ void UARPhysicsTickObject::Tick(const FARPhysicsTickParameters& TickParams)
     // Same as AActor::Tick
     if (GetClass()->HasAnyClassFlags(CLASS_CompiledFromBlueprint) || !GetClass()->HasAllClassFlags(CLASS_Native))
     {
-      TickOnBlueprint(TickParams.DeltaTime, TickParams.TotalSimTime, result);
+      TickOnBlueprint(TickParams, result);
     }
 
     EvaluatedResult = result;

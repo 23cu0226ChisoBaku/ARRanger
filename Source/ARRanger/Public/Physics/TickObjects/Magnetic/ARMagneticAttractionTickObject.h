@@ -14,9 +14,6 @@ class UARMagneticAttractionTickObject : public UARMagneticTickObject
   public:
     ARRANGER_API UARMagneticAttractionTickObject();
 
-  protected:     
-    /**Start UARPhysicsTickObject interface */ 
+  protected:      
     ARRANGER_API virtual void OnTick(const FARPhysicsTickParameters& TickParams, FARPhysicsEvaluationResult& Result) override;
-    ARRANGER_API virtual void OnEndTickObject() override;
-    /**End UARPhysicsTickObject interface */
 };

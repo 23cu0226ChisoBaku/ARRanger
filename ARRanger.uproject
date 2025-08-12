@@ -21,9 +21,7 @@
 			"Type": "Editor",
 			"LoadingPhase": "Default",
 			"AdditionalDependencies": [
-				"Engine",
-				"Blutility",
-				"CoreUObject"
+				"Engine"
 			]
 		},
 		{

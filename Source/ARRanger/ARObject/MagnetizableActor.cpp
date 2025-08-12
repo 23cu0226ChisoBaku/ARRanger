@@ -40,45 +40,45 @@ void AMagnetizableActor::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	/*テスト用*/
-	// if (GetMagnetismType() ==  EARMagnetismType::Attraction)
-	// {
-	// 	OnAttractionEvaluated();
-	// }
-	// else if (GetMagnetismType() ==  EARMagnetismType::Repulsion)
-	// {
-	// 	OnRepulsionEvaluated();
-	// }
+	if (GetMagnetismType() ==  EARMagnetismType::Attraction)
+	{
+		OnAttraction();
+	}
+	else if (GetMagnetismType() ==  EARMagnetismType::Repulsion)
+	{
+		OnRepulsion();
+	}
 }
 
-// /**
-//  * @brief 引力・斥力における移動
-//  * 
-//  * @param 移動量
-//  */
-// void AMagnetizableActor::OnMagneticForceEvaluated(const FVector& magneticForce)
-// {
-// 	if(CanMagneticForce())
-// 	{
-// 		SetActorLocation(magneticForce);
-// 	}
-// }
+/**
+ * @brief 引力・斥力における移動
+ * 
+ * @param 移動量
+ */
+void AMagnetizableActor::OnMagneticForceEvaluated(const FVector& magneticForce)
+{
+	if(CanMagneticForce())
+	{
+		SetActorLocation(magneticForce);
+	}
+}
 
 /*
 * @brief 引力の磁性を保持している時の処理
 */
-void AMagnetizableActor::OnAttractionEvaluated(const FARMagneticForceResult& Result)
+void AMagnetizableActor::OnAttraction()
 {
 	// 共通処理;
-	if (GEngine) { GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, TEXT("OnAttractionEvaluated Invoke")); }
+	if (GEngine) { GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, TEXT("OnAttraction Invoke")); }
 }
 
 /*
 * @brief の磁性を保持している時の処理
 */
-void AMagnetizableActor::OnRepulsionEvaluated(const FARMagneticForceResult& Result)
+void AMagnetizableActor::OnRepulsion()
 {
 	// 共通処理;
-	if (GEngine) { GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, TEXT("OnRepulsionEvaluated Invoke")); }
+	if (GEngine) { GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, TEXT("OnRepulsion Invoke")); }
 }
 
 /*テスト用*/

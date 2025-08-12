@@ -29,8 +29,8 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-  virtual void OnAttractionEvaluated(const FARMagneticForceResult& Result) override { }
-	virtual void OnRepulsionEvaluated(const FARMagneticForceResult& Result) override { }
+  virtual void OnAttraction() override { }
+	virtual void OnRepulsion() override { }
 	virtual AActor* GetActor() override { return this; }
 
   UFUNCTION(BlueprintCallable)

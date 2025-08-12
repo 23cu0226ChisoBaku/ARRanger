@@ -11,12 +11,9 @@
 
 namespace
 {
-  // 比例定数ｋ（単位：N・m^2/Wb^2）約6.33 * 10^4
-  // URL: https://hegtel.com/ac-coulomb-magnet.html
-  // URL: https://hegtel.com/jikai-tsuyosa.html
-  // URL: https://rikeilabo.com/magnetic-field-and-magnetic-flux-density
-  constexpr float PROPORTIONALITY_CONSTANT = 6.33e4f;
-  constexpr float MAGNETIC_VALUE = 60.0f;
+  // FIXME 一時的な定数
+  constexpr float CONST_PROP = 25.0f;
+  constexpr float MAGNETIC_VALUE = 20.0f;
 }
 
 UARMagneticAttractionTickObject::UARMagneticAttractionTickObject()
@@ -45,25 +42,18 @@ void UARMagneticAttractionTickObject::OnTick(const FARPhysicsTickParameters& Tic
     {
       const AActor* magnetizedActor = magnetizedObject->GetActor();
       const FVector directionTo = magnetizedActor->GetActorLocation() - targetActor->GetActorLocation();
-      const FVector pushForce = directionTo.GetUnsafeNormal() * PROPORTIONALITY_CONSTANT * MAGNETIC_VALUE * MAGNETIC_VALUE / directionTo.SizeSquared() * 0.0001f;
+      const FVector pushForce = directionTo.GetUnsafeNormal() * CONST_PROP * MAGNETIC_VALUE * MAGNETIC_VALUE / directionTo.SizeSquared();
       
       Result.ForceResult += pushForce;
 
-      // // TODO testCode
-      // targetActor->AddActorWorldOffset(pushForce, true);
+      // TODO testCode
+      targetActor->AddActorWorldOffset(pushForce, true);
     }
+
+    // FARPhysicsSimulationParam params{*Target, *magnetizedObject};
+    // PhysicsEngineProxy->SimulateAttraction(params);
   }
-}
+  
 
-void UARMagneticAttractionTickObject::OnEndTickObject()
-{
-  if (Target == nullptr)
-  {
-    return;
-  }
 
-  FARMagneticForceResult result;
-  result.FinalForce = GetEvaluatedResult().ForceResult;
-
-  Target->OnAttractionEvaluated(result);
 }

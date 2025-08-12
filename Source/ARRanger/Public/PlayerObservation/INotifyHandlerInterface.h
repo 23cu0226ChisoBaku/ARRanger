@@ -1,7 +1,7 @@
 ﻿#pragma once
 
-#ifndef _AR_NOTIFY_HANDLER_INTERFACE_
-#define _AR_NOTIFY_HANDLER_INTERFACE_
+#ifndef _AR_I_NOTIFY_HANDLER_INTERFACE_
+#define _AR_I_NOTIFY_HANDLER_INTERFACE_
 
 namespace ARRanger
 {
@@ -26,4 +26,4 @@ namespace ARRanger
   };
 }
 
-#endif // _AR_NOTIFY_HANDLER_INTERFACE_
+#endif // _AR_I_NOTIFY_HANDLER_INTERFACE_
