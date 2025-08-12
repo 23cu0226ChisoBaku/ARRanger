@@ -1,5 +1,8 @@
 #pragma once
 
+#include "AbilitySystemInterface.h"
+#include "AbilitySystemComponent.h"
+#include "GameplayEffectTypes.h" 
 #include "AttackComponent.h"
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
@@ -12,9 +15,11 @@
 
 #include "ARRangerCharacter.generated.h"
 
+class UAbilitySystemComponent;
 class UAnimMontage;
-class USkeletalMesh;
 class UInputAction;
+class USkeletalMesh;
+
 
 struct FInputActionValue;
 
@@ -95,12 +100,18 @@ public:
 	// コンストラクタ
 	AARRangerCharacter();
 
+	// IAbilitySystemInterface の必須実装
+	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const;
+
 protected:
 
 	// 入力アクションのバインディングを初期化する
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 protected:
+	// AbilitySystemComponentを保存
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Abilities")
+	UAbilitySystemComponent* AbilitySystemComp;
 
 	// 移動入力のために呼び出される
 	void Move(const FInputActionValue& Value);
@@ -118,23 +129,8 @@ private:
 	// 補間速度
 	float ArmLengthInterpSpeed;
 
-	// 入力の閾値
-	const float inputDeadZone = 0.3f;
-
-	// 半歩歩くための時間
-	const float minWalkTime = 0.3f;
-
-	// 現在の歩き時間カウンタ
-	float walkTimer = 0.0f;
-
-	// 現在の歩き状態フラグ
-	bool isWalking = false;
-
-	// 前フレームの歩き状態を記憶
-	bool bWasMoving = false; 
-
-	// 移動入力の更新
-	void UpdateMovementState();
+	// 最後に移動していた時間
+	float LastMoveTime = 0.f;
 
 	// 変身の際に呼び出される
 	void Transform();
@@ -199,6 +195,10 @@ public:
 	// 斥力用プレイヤーメッシュ
 	UPROPERTY(EditAnywhere, Category = "PlayerMesh")
 	USkeletalMesh* RepulsionMesh;
+
+	// 移動アニメを最低限継続させる時間
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
+	float MinMoveAnimTime = 0.6f;
 
 	// ダッシュ中フラグ
 	UPROPERTY(BlueprintReadWrite)

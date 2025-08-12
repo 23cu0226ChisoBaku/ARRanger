@@ -56,6 +56,10 @@
 		{
 			"Name": "CameraShakePreviewer",
 			"Enabled": false
+		},
+		{
+			"Name": "GameplayAbilities",
+			"Enabled": true
 		}
 	]
 }
