@@ -167,6 +167,9 @@ void AARRangerCharacter::Tick(float DeltaTime)
 		IsDashed = false;
 	}
 
+	// 移動入力の更新
+	UpdateMovementState();
+
 	bool isLockedOn = LockOnComponent->GetIsLockedOn();
 	AActor* Target = LockOnComponent->GetLockedOnTarget();
 
@@ -186,9 +189,8 @@ void AARRangerCharacter::Tick(float DeltaTime)
 		{
 			FRotator CurrentControlRot = Controller->GetControlRotation();
 
-			// ?X???[?Y????
+			// 補間も入れて滑らかに回転させる
 			FRotator NewControlRot = FMath::RInterpTo(CurrentControlRot, TargetRotation, DeltaTime, 5.0f);
-
 			Controller->SetControlRotation(NewControlRot);
 		}
 	}
@@ -280,6 +282,28 @@ void AARRangerCharacter::OnClimbSurfaceOverlap(
 	}
 }
 
+void AARRangerCharacter::UpdateMovementState()
+{
+	bool bIsMovingNow = false;
+	if (UARRangerAnimInstance* MyAnim = Cast<UARRangerAnimInstance>(GetMesh()->GetAnimInstance()))
+	{
+		bIsMovingNow = MyAnim->ShouldMove;
+	}
+
+	// 歩き終了を検知
+	if (bWasMoving && !bIsMovingNow)
+	{
+		// 歩き終了した瞬間に呼ぶ
+		if (UARRangerAnimInstance* MyAnim = Cast<UARRangerAnimInstance>(GetMesh()->GetAnimInstance()))
+		{
+			MyAnim->RequestFinishWalk();
+		}
+	}
+
+	bWasMoving = bIsMovingNow;
+}
+
+
 void AARRangerCharacter::DoMove(float Right, float Forward)
 {
 	bool isAttacked =AttackComponent->GetIsAttacked();
@@ -290,6 +314,27 @@ void AARRangerCharacter::DoMove(float Right, float Forward)
 	if (GetController() == nullptr || isAttractingEnemy || isAttacked || isStrongAttacked)
 	{
 		return;
+	}
+
+	// 入力閾値
+	const float InputDeadZone = 0.2f;
+
+	// 微小な入力はゼロにする
+	if (FMath::Abs(Right) < InputDeadZone) Right = 0.f;
+	if (FMath::Abs(Forward) < InputDeadZone) Forward = 0.f;
+
+	bool hasInput = (FMath::Abs(Right) > KINDA_SMALL_NUMBER || FMath::Abs(Forward) > KINDA_SMALL_NUMBER);
+	UARRangerAnimInstance* AnimInst = Cast<UARRangerAnimInstance>(GetMesh()->GetAnimInstance());
+	if (AnimInst)
+	{
+		if (hasInput)
+		{
+			AnimInst->ShouldMove = true;  // 入力あれば歩く
+		}
+		else if (AnimInst->ShouldMove && !AnimInst->FinishWalk)
+		{
+			AnimInst->RequestFinishWalk();  // 入力なくなった瞬間、半歩歩き残す処理へ
+		}
 	}
 
 	if (!isClimbed)
@@ -305,20 +350,21 @@ void AARRangerCharacter::DoMove(float Right, float Forward)
 	}
 	else
 	{
+		// 壁に触れていなければ処理しない
 		if (!currentClimbSurface)
 		{
 			UE_LOG(LogTemp, Warning, TEXT("currentClimbSurface is null!"));
 			return;
 		}
 
+		// 移動軸を変更する
 		if (UARRangerAnimInstance* MyAnim = Cast<UARRangerAnimInstance>(GetMesh()->GetAnimInstance()))
 		{
-			// 引力クライム中の速度に入力値を反映
 			MyAnim->ClimbUpSpeed = Forward;
 			MyAnim->ClimbRightSpeed = Right;
 		}
 
-		// 壁の向きに対して上下左右に移動
+		// 壁に対して上下左右に動かす
 		AddMovementInput(GetActorForwardVector(), Forward);
 		AddMovementInput(GetActorRightVector(), Right);
 	}
