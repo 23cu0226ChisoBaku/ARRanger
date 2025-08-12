@@ -17,6 +17,7 @@ public class ARRangerEditor : ModuleRules
         "Slate",
         "SlateCore",
         "UnrealEd",
+        "UMG",
 			}
 		);
 	}

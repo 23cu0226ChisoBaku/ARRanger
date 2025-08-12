@@ -33,8 +33,8 @@ public:
   ARRANGER_API void TestRequestMagneticTask(AActor* Target);
 
   /**Start IARMagnetizableInterface interface*/
-	ARRANGER_API virtual void OnAttraction() override;
-	ARRANGER_API virtual void OnRepulsion() override;
+	ARRANGER_API virtual void OnAttractionEvaluated(const FARMagneticForceResult& Result) override;
+	ARRANGER_API virtual void OnRepulsionEvaluated(const FARMagneticForceResult& Result) override;
 	virtual AActor* GetActor() override { return this; }
   /**End IARMagnetizableInterface interface*/
 

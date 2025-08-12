@@ -40,7 +40,10 @@ void FBlinkingOutlineSystem::SetTargetMagnetizableObjectDelegate(AActor* targetM
 {
 	if(m_TickActor.IsValid())
 	{
-		m_TickActor->AddBlinkingActor(targetMagnetizableObject);
+		if(m_TickActor != nullptr)
+		{
+			m_TickActor->AddBlinkingActor(targetMagnetizableObject);	
+		}
 	}
 }
 

@@ -21,5 +21,9 @@ protected:
 	FBlackboardKeySelector PatrolLocationKey;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Config")
-	float SearchRadius = 500.0f;
+	float SearchRadius = 300.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Config")
+	FVector Origin;
+	bool IsSetOrigin;
 };

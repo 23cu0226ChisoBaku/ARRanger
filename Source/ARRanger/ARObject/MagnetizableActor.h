@@ -25,19 +25,25 @@ public:
 	/**
 	 * @brief 引力が付与されている状態の挙動
 	 */
+	// DEPRECATED
 	UFUNCTION(BlueprintCallable)
 	static void CallAttraction(AMagnetizableActor* actor)
 	{
-		actor->OnAttraction();
+		// FIXME Remove this
+		FARMagneticForceResult result;
+		actor->OnAttractionEvaluated(result);
 	}
 
 	/**
 	 * @brief 斥力が付与されている状態の挙動
 	 */
+  	// DEPRECATED
 	UFUNCTION(BlueprintCallable)
 	static void CallRepulsion(AMagnetizableActor* actor)
 	{
-		actor->OnRepulsion();
+    // FIXME Remove this
+    FARMagneticForceResult result;
+		actor->OnRepulsionEvaluated(result);
 	}
 
 	/**
@@ -63,9 +69,8 @@ public:
 	}
 
 	/*Start IARMagnetizableInterface interface*/
-	virtual void OnAttraction() override;
-	virtual void OnRepulsion() override;
-	virtual void OnMagneticForceEvaluated(const FVector& magneticForce) override;
+	virtual void OnAttractionEvaluated(const FARMagneticForceResult& Result) override;
+	virtual void OnRepulsionEvaluated(const FARMagneticForceResult& Result) override;
 	virtual AActor* GetActor() override { return (AActor*)this; }
 	/*End IARMagnetizableInterface interface*/
 
@@ -75,7 +80,6 @@ public:
 
 	UFUNCTION(BlueprintPure)
 	EARMagnetismType GetType() const;
-
 
 private:
 

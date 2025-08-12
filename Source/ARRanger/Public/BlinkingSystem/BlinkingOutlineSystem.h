@@ -42,6 +42,7 @@ public:
 
 private:
 
+	
 	TWeakObjectPtr<ABlinkOutlineTickActor> m_TickActor;	// 点滅処理を駆動するためのアクター
 };
 

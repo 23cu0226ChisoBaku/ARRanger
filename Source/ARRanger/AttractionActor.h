@@ -19,9 +19,9 @@ class ARRANGER_API AAttractionActor : public AActor,
 public:
 	AAttractionActor();
 
-  virtual void OnAttraction() override {}
+  virtual void OnAttractionEvaluated(const FARMagneticForceResult& Result) override {}
 
-	virtual void OnRepulsion() override {}
+	virtual void OnRepulsionEvaluated(const FARMagneticForceResult& Result) override {}
 
 	virtual AActor* GetActor() override { return this; }
 protected:

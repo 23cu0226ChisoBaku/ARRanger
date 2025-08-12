@@ -20,6 +20,10 @@ public class ARRanger : ModuleRules
       "GameplayStateTreeModule",
       "UMG",
       "MLibrary",
+<<<<<<< HEAD
+=======
+      "NavigationSystem",
+>>>>>>> origin/main
       "GameplayCameras",
       "NavigationSystem"
     });

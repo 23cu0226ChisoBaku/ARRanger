@@ -77,18 +77,13 @@ public:
 
 private:
 
+	/**
+	 * @brief Playerについているカメラの回転(Rotation) を取得するための関数(多分後からなくなる)
+	 */
+	FVector GetPlayerCameraRotation();
+
 	UPROPERTY()
 	TObjectPtr<AActor> m_TargetMagnetizableActor;				// 対象オブジェクト
 	UPROPERTY()
 	TObjectPtr<UGameplayCameraComponent> m_PlayerCameraComp;	// プレイヤーのカメラ
-
-
-	// オーバーレイマテリアルの設定方法
-	// BPでも可能
-	// この処理を持っておくオブジェクトは新しい奴を作る
-	// 対象オブジェクトは、Typeインターフェースを持っているかどうかで判断
-	// 対象のメッシュコンポーネントを取得して保持していたアウトラインマテリアルを適用
-	// FunFun()
-	// 点滅ディレイ = 0,点滅時間、間隔、色は各パラメータで制御
-	// UMeshComponent->SetOverlayMaterial(Material);
 };
