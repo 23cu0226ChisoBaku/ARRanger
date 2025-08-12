@@ -18,6 +18,7 @@
 #include "Physics/Gameplay/ARPhysicsGlobal.h"
 #include "Physics/Core/ARPhysicsTickProcessorActor.h"
 #include "Public/BlinkingSystem/BlinkingOutlineWorldSubsystem.h"
+#include "InstantScripts/LineTraceSingleARObjectComponent.h"
 
 // TODO May move initialize function to another file
 #include "Physics/IARPhysicsSystemHost.h"
@@ -52,14 +53,14 @@ void AInsekiGameMode::BeginPlay()
   }
 
   // BlinkingOutlineWorldSubsystem を取得
-	auto* WorldSubsystem = GetWorld()->GetSubsystem<UBlinkingOutlineWorldSubsystem>();
-	if (WorldSubsystem)
+	UBlinkingOutlineWorldSubsystem* WorldSubsystem = GetWorld()->GetSubsystem<UBlinkingOutlineWorldSubsystem>();
+	if (WorldSubsystem != nullptr)
 	{
 		APlayerController* PC = GetWorld()->GetFirstPlayerController();
-		if (PC && PC->GetPawn())
+		if (PC != nullptr && PC->GetPawn() != nullptr)
 		{
 			// プレイヤーのPawnからLineTraceSingleARObjectComponentを取得
-			auto* LineTraceComp = PC->GetPawn()->FindComponentByClass<ULineTraceSingleARObjectComponent>();
+			ULineTraceSingleARObjectComponent* LineTraceComp = PC->GetPawn()->FindComponentByClass<ULineTraceSingleARObjectComponent>();
 
 			// TickActorClassを設定し、サブシステムにセットアップを依頼
 			WorldSubsystem->SetupBlinkingSystem(GetWorld(), LineTraceComp, BlinkTickActorClass);
@@ -84,60 +85,60 @@ void AInsekiGameMode::InitializeObserver()
   {
     TSharedPtr<FPlayerNotifyHandler> playerHandler = ::MakeShared<FPlayerNotifyHandler>();
     
-    FARSoundEffectParameters attackSEParam;
-    attackSEParam.Dimension = EARSoundDimension::Dimension3;
-    attackSEParam.Pitch = 1.0f;
-    attackSEParam.PlayLocation = player->GetActorLocation();
-    attackSEParam.RepositoryAccessActor = player;
-    attackSEParam.SEType = EARSoundEffectType::Attack;
-    
-    // Bind registry
-    TSharedPtr<ARRanger::IObserverRegistry> attackRegistry = 
-      MakeRegistry<ARRanger::FSoundEffectRegistry>(attackSEParam);
-
     // 攻撃
     TSharedPtr<FObserverListNode> attackObserverListNode = FObserverListRootNode::MakeListNode();
     attackObserverListNode->Initialize();
-    attackRegistry->RegisterObserverProxy(attackObserverListNode);
 
-    // ジャンプ
+    {
+      FARSoundEffectParameters attackSEParam;
+      attackSEParam.Dimension = EARSoundDimension::Dimension3;
+      attackSEParam.Pitch = 1.0f;
+      attackSEParam.PlayLocation = player->GetActorLocation();
+      attackSEParam.RepositoryAccessActor = player;
+      attackSEParam.SEType = EARSoundEffectType::Attack;
+      
+      // Bind registry
+      TSharedPtr<ARRanger::IObserverRegistry> attackRegistry = 
+        MakeRegistry<ARRanger::FSoundEffectRegistry>(attackSEParam);
+      attackRegistry->RegisterObserverProxy(attackObserverListNode);
+    }
+
+    // ジャンプ 
     TSharedPtr<FObserverListNode> jumpObserverListNode = FObserverListRootNode::MakeListNode();
     jumpObserverListNode->Initialize();
-    jumpObserverListNode->BindNewObserver(FSimpleDelegate::CreateLambda([this]() 
-    { 
-      ACharacter* player = UGameplayStatics::GetPlayerCharacter(this, 0);
-      if (player != nullptr)
-      {
-        FARSoundEffectParameters params;
-        params.Dimension = EARSoundDimension::Dimension3;
-        params.Pitch = 1.0f;
-        params.PlayLocation = player->GetActorLocation();
-        params.RepositoryAccessActor = player;
-        params.SEType = EARSoundEffectType::Jump;
-  
-        UARSoundPlayLibrary::PlaySESound(params); 
-      }
-    }));
+
+    {
+      FARSoundEffectParameters jumpSEParam;
+      jumpSEParam.Dimension = EARSoundDimension::Dimension3;
+      jumpSEParam.Pitch = 1.0f;
+      jumpSEParam.PlayLocation = player->GetActorLocation();
+      jumpSEParam.RepositoryAccessActor = player;
+      jumpSEParam.SEType = EARSoundEffectType::Jump;
+      
+      TSharedPtr<ARRanger::IObserverRegistry> jumpRegistry =
+        MakeRegistry<ARRanger::FSoundEffectRegistry>(jumpSEParam);
+      
+      jumpRegistry->RegisterObserverProxy(jumpObserverListNode);
+    }
 
     // ダッシュ
     TSharedPtr<FObserverListNode> dashObserverListNode = FObserverListRootNode::MakeListNode();
     dashObserverListNode->Initialize();
-    dashObserverListNode->BindNewObserver(FSimpleDelegate::CreateLambda([this]() 
-    { 
-      ACharacter* player = UGameplayStatics::GetPlayerCharacter(this, 0);
-      if (player != nullptr)
-      {
-        FARSoundEffectParameters params;
-        params.Dimension = EARSoundDimension::Dimension3;
-        params.Pitch = 5.0f;
-        params.PlayLocation = player->GetActorLocation();
-        params.RepositoryAccessActor = player;
-        params.SEType = EARSoundEffectType::Dash;
-  
-        UARSoundPlayLibrary::PlaySESound(params); 
-      }
-    }));
-  
+
+    {
+      FARSoundEffectParameters dashSEParam;
+      dashSEParam.Dimension = EARSoundDimension::Dimension3;
+      dashSEParam.Pitch = 5.0f;
+      dashSEParam.PlayLocation = player->GetActorLocation();
+      dashSEParam.RepositoryAccessActor = player;
+      dashSEParam.SEType = EARSoundEffectType::Dash;
+
+      TSharedPtr<ARRanger::IObserverRegistry> dashRegistry =
+        MakeRegistry<ARRanger::FSoundEffectRegistry>(dashSEParam);
+      
+      dashRegistry->RegisterObserverProxy(dashObserverListNode);
+    }
+
     playerHandler->AttackObserverRoot.AttachNewObserverList(attackObserverListNode);
     playerHandler->DashObserverRoot.AttachNewObserverList(dashObserverListNode);
     playerHandler->JumpObserverRoot.AttachNewObserverList(jumpObserverListNode);
