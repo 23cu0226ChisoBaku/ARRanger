@@ -101,10 +101,29 @@ void ABlinkOutlineTickActor::RemoveBlinkingActor(AActor* removeActor)
 	// 登録されているアクターかチェック
 	if(!ContainsActor(removeActor)){ return; }
 
+	// オブジェクトのタイプをNoneに変化
+	if (AMagnetizableActor* MagnetActor = Cast<AMagnetizableActor>(removeActor))
+	{
+		MagnetActor->SetMagnetismType(EARMagnetismType::None);
+	}
+
 	// GetBlinkData()で該当のデータを取得
     FBlinkingActorData* blinkData = m_BlinkDatas.GetBlinkData(removeActor);
     if (blinkData)
     {
+		// 妥協処理
+		if (AMagnetizableActor* MagnetActor = Cast<AMagnetizableActor>(removeActor))
+		{
+			MagnetActor->DynamicBlinkMaterial = nullptr;
+			MagnetActor->ElapsedBlinkTime = 0.f;
+		}	
+		
+		// // 動的マテリアルを解放・リセット
+        // blinkData->m_DynamicMaterial = nullptr;
+        // // タイマーリセット
+        // blinkData->_elapsedTime = 0.f;
+
+
         // アウトライン解除
         UMeshComponent* meshComp = nullptr;
         for (const FBlinkingTarget& target : m_BlinkingActors)
@@ -112,17 +131,13 @@ void ABlinkOutlineTickActor::RemoveBlinkingActor(AActor* removeActor)
             if (target._actor == removeActor)
             {
                 meshComp = target._meshComponent;
+				break;
             }
         }
-        if (meshComp && meshComp->GetOverlayMaterial())
+        if (meshComp != nullptr && meshComp->GetOverlayMaterial() != nullptr)
         {
             meshComp->SetOverlayMaterial(nullptr);
         }
-
-        // 動的マテリアルを解放・リセット
-        blinkData->m_DynamicMaterial = nullptr;
-        // 他の状態も必要に応じて初期化する
-        blinkData->_elapsedTime = 0.f;
 
 		// 登録されている配列から削除する
 		m_BlinkingActors.RemoveAll([removeActor](const FBlinkingTarget& target) 

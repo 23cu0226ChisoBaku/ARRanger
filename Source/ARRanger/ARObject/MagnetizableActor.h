@@ -81,6 +81,11 @@ public:
 	UFUNCTION(BlueprintPure)
 	EARMagnetismType GetType() const;
 
+	// 妥協処理
+	float ElapsedBlinkTime = 0.0f;
+    UPROPERTY()
+    UMaterialInstanceDynamic* DynamicBlinkMaterial = nullptr;
+
 private:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))

@@ -58,6 +58,7 @@ void FBlinkingOutlineSystem::UnsetTargetMagnetizableObjectDelegate(AActor* targe
 	{
 		if (AMagnetizableActor* MagnetActor = Cast<AMagnetizableActor>(targetMagnetizableObject))
 		{
+			// 妥協処理
 			if(MagnetActor->GetMagnetismType() == EARMagnetismType::None)
 			{
 				m_TickActor->RemoveBlinkingActor(targetMagnetizableObject);

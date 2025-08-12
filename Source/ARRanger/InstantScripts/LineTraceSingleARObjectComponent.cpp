@@ -101,6 +101,25 @@ void ULineTraceSingleARObjectComponent::AssignTargetMagnetizableObject()
             m_TargetMagnetizableActor = nullptr;
         }
     }
+    // 妥協処理
+    else
+    {
+        // 切り替わった後の対象オブジェクトに対する処理
+        if (currentTargetMagnetizableObj != nullptr)
+        {
+            // IARObjectInterface を実装しているかチェック
+            if (currentTargetMagnetizableObj->GetClass()->ImplementsInterface(UARMagnetizableInterface::StaticClass()))
+            {
+                IARMagnetizableInterface* interfacePtr = Cast<IARMagnetizableInterface>(currentTargetMagnetizableObj);
+                if (interfacePtr)
+                {
+                    // 点滅処理を行うオブジェクトとして登録
+                    SetTargetMagnetizableObject.ExecuteIfBound(currentTargetMagnetizableObj);
+                    m_TargetMagnetizableActor = currentTargetMagnetizableObj;
+                }
+            }
+        }
+    }
 }
 
 /*

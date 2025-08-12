@@ -5,6 +5,9 @@
 #include "Public/BlinkingSystem/BlinkOutlineFunctor.h"
 #include "Public/BlinkingSystem/BlinkDatas.h"
 
+// 妥協処理
+#include "ARObject/MagnetizableActor.h"
+
 /*
 * Start BlinkOutlineFunctor Lifecycle Functions
 */
@@ -20,7 +23,6 @@ BlinkOutlineFunctor::~BlinkOutlineFunctor()
 * End BlinkOutlineFunctor Lifecycle Functions
 */
 
-
 /**
  * @brief 点滅処理を行う関数
  * 
@@ -30,21 +32,76 @@ void BlinkOutlineFunctor::OutlineBlink(UObject* targetObject, UMeshComponent* ta
 {
     if(targetObject == nullptr || targetmeshComponent == nullptr || blinkingData == nullptr){ return; }
 
-    // 経過時間を加算
-    blinkingData->_elapsedTime += DeltaTime;
-
-    // まだディレイ中なら処理しない
-    if (blinkingData->_elapsedTime < blinkingData->_blinkDelay){ return; }
-
-    // 動的マテリアルの生成・マテリアルのセット
-    if(blinkingData->m_DynamicMaterial == nullptr)
+    // 妥協処理
+    if(AMagnetizableActor* MagnetActor = Cast<AMagnetizableActor>(targetObject))
     {
-        blinkingData->m_DynamicMaterial = CreateDynamicMaterial(blinkingData->_blinkMaterial, targetObject);
-        if (blinkingData->m_DynamicMaterial)
-        {
-            targetmeshComponent->SetOverlayMaterial(blinkingData->m_DynamicMaterial);
+        targetObject = Cast<AMagnetizableActor>(targetObject);
+    }
+
+    // 動的マテリアルの生成・セット
+    if(targetmeshComponent != nullptr)
+    {
+        // blinkingData->m_DynamicMaterial = CreateDynamicMaterial(blinkingData->_blinkMaterial, targetObject);
+        // targetmeshComponent->SetOverlayMaterial(blinkingData->m_DynamicMaterial);
+
+        // 妥協処理
+        if (AMagnetizableActor* MagnetActor = Cast<AMagnetizableActor>(targetObject))
+		{
+            MagnetActor->DynamicBlinkMaterial = CreateDynamicMaterial(blinkingData->_blinkMaterial, targetObject);
+            targetmeshComponent->SetOverlayMaterial(MagnetActor->DynamicBlinkMaterial);
         }
     }
+
+    // 妥協処理(本来はNoneTypeだった場合のみ、なんならここに書きたくない)
+    if(blinkingData->_blinkType != EBlinkType::Constant)
+    {
+        // 経過時間を加算
+        //blinkingData->_elapsedTime += DeltaTime;
+        // 妥協処理
+        if (AMagnetizableActor* MagnetActor = Cast<AMagnetizableActor>(targetObject))
+		{
+            MagnetActor->ElapsedBlinkTime += DeltaTime;
+
+            // ログ表示
+            if (GEngine)
+            {
+                // 第1引数: キー (同じキーなら上書き表示)
+                // 第2引数: 表示時間 (秒)
+                // 第3引数: 色
+                GEngine->AddOnScreenDebugMessage(
+                    -1,
+                    0.f,
+                    FColor::Green,
+                    //FString::Printf(TEXT("ElapsedTime: %.2f"), blinkingData->_elapsedTime)
+                    FString::Printf(TEXT("ElapsedTime: %.2f"), MagnetActor->ElapsedBlinkTime)
+                );
+            }
+        }
+
+        // // ログ表示
+        // if (GEngine)
+        // {
+        //     // 第1引数: キー (同じキーなら上書き表示)
+        //     // 第2引数: 表示時間 (秒)
+        //     // 第3引数: 色
+        //     GEngine->AddOnScreenDebugMessage(
+        //         -1,
+        //         0.f,
+        //         FColor::Green,
+        //         FString::Printf(TEXT("ElapsedTime: %.2f"), blinkingData->_elapsedTime)
+        //         FString::Printf(TEXT("ElapsedTime: %.2f"), targetObject->ElapsedBlinkTime)
+        //     );
+        // }
+    }
+
+    // ディレイ中なら処理しない
+    //if (blinkingData->_elapsedTime < blinkingData->_blinkDelay){ return; }
+    // 妥協処理
+    if (AMagnetizableActor* MagnetActor = Cast<AMagnetizableActor>(targetObject))
+    {
+        if (MagnetActor->ElapsedBlinkTime < blinkingData->_blinkDelay){ return; }
+    }
+    
 
     // 指定された種類の点滅を行う
     // 等間隔の点滅
@@ -57,23 +114,36 @@ void BlinkOutlineFunctor::OutlineBlink(UObject* targetObject, UMeshComponent* ta
     {
         AcceleratedBlink();
     }
-
-    // 妥協処理(本来はNoneTypeだった場合のみ、なんならここに書きたくない)
-    if(blinkingData->_blinkType != EBlinkType::Constant)
+    
+   
+    if (AMagnetizableActor* MagnetActor = Cast<AMagnetizableActor>(targetObject))
     {
-        // 点滅する時間が過ぎていたら点滅終了(点滅し始めてからの経過時間で計測)
-        if(blinkingData->_blinkInterval  <=  blinkingData->_elapsedTime - blinkingData->_blinkDelay)
+        if(blinkingData->_blinkInterval  <=  MagnetActor->ElapsedBlinkTime)
         {
             // コールバック呼び出し
-            if (OnBlinkEnd)
+            if (OnBlinkEnd != nullptr)
             {
                 if (AActor* targetActor = Cast<AActor>(targetObject))
                 {
-                    //OnBlinkEnd(targetActor);
+                    OnBlinkEnd(targetActor);
                 }
             }
         }
-    }
+    }    
+
+    
+    // // 点滅する時間が過ぎていたら点滅終了(点滅し始めてからの経過時間で計測)
+    // //if(blinkingData->_blinkInterval  <=  blinkingData->_elapsedTime)
+    // {
+    //     // コールバック呼び出し
+    //     if (OnBlinkEnd != nullptr)
+    //     {
+    //         if (AActor* targetActor = Cast<AActor>(targetObject))
+    //         {
+    //             OnBlinkEnd(targetActor);
+    //         }
+    //     }
+    // }
 } 
 
 /**
