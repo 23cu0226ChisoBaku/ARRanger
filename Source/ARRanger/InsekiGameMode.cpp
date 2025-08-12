@@ -15,8 +15,19 @@
 #include "PlayerObservation/IObserverRegistry.h"
 #include "PlayerObservation/Registry/SoundEffectRegistry.h"
 
+#include "Physics/Gameplay/ARPhysicsGlobal.h"
+#include "Physics/Core/ARPhysicsTickProcessorActor.h"
 #include "Public/BlinkingSystem/BlinkingOutlineWorldSubsystem.h"
 #include "InstantScripts/LineTraceSingleARObjectComponent.h"
+
+// TODO May move initialize function to another file
+#include "Physics/IARPhysicsSystemHost.h"
+
+AInsekiGameMode::AInsekiGameMode()
+{
+    ProcessorActorClass = AARPhysicsTickProcessorActor::StaticClass();
+}
+
 
 void AInsekiGameMode::BeginPlay()
 {
@@ -57,6 +68,9 @@ void AInsekiGameMode::BeginPlay()
 	}
 
   InitializeObserver();
+
+  // 物理システム初期化
+  ARRanger::Private::FARPhysicsCore::InitializeARPhysicsInWorldWithActorType(GetWorld(), ProcessorActorClass);
 }
 
 void AInsekiGameMode::InitializeObserver()

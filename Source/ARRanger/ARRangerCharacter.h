@@ -1,12 +1,14 @@
 #pragma once
 
-#include "AttackData.h"
+#include "AttackComponent.h"
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "IARMagnetizableInterface.h"
 #include "InsekiClimbingObject.h"
+#include "LockOnComponent.h"
 #include "Logging/LogMacros.h"
+#include "Physics/IARPhysicsSystemHost.h"
 #include "PlayerObservation/IObservableSubjectInterface.h"
-#include "Public/IARMagnetizableInterface.h"
 
 #include "ARRangerCharacter.generated.h"
 
@@ -24,7 +26,9 @@ DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);
  */
 UCLASS(abstract)
 class AARRangerCharacter : public ACharacter,
-                           public IObservableSubjectInterface
+                           public IObservableSubjectInterface,
+						   public IARMagnetizableInterface,
+						   public IARPhysicsSystemHost
 {
 	GENERATED_BODY()
 	
@@ -105,16 +109,6 @@ protected:
 	void Look(const FInputActionValue& Value);
 
 private:
-	// ロックオン中フラグ
-	bool isLockedOn;
-
-	// ロックオン時敵切り替えの可能フラグ
-	bool isAbleToSwitchTarget;
-
-	// 山内
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Climb", meta = (AllowPrivateAccess = "true"))
-	bool isClimb;
-
 	// もともとのカメラとプレイヤーの距離
 	float DefaultArmLength;
 
@@ -124,35 +118,23 @@ private:
 	// 補間速度
 	float ArmLengthInterpSpeed;
 
-	// 敵がプレイヤーから見えているか判定
-	bool IsTargetVisible(AActor* Target);
+	// 入力の閾値
+	const float inputDeadZone = 0.3f;
 
-	// ロックオン切替関数
-	void ToggleLockOn();
+	// 半歩歩くための時間
+	const float minWalkTime = 0.3f;
 
-	// 十字ボタン右を押した際に呼び出される
-	void SwitchTargetRight();
+	// 現在の歩き時間カウンタ
+	float walkTimer = 0.0f;
 
-	// 十字ボタン左を押した際に呼び出される
-	void SwitchTargetLeft();
+	// 現在の歩き状態フラグ
+	bool isWalking = false;
 
-	// ロックオン時ターゲット切り替え関数(引数によって前後に切り替え)
-	void SwitchTarget(bool isPressedRight);
+	// 前フレームの歩き状態を記憶
+	bool bWasMoving = false; 
 
-	// ロックオン可能な敵を検索
-	AActor* FindNearestEnemy(AActor* IgnoreActor = nullptr);
-
-	// パンチの際に呼び出される
-	void StartPunch();
-
-	// キックの際に呼び出される
-	void Kick();
-
-	// 攻撃アニメーションの再生用関数
-	void PlayAttackMontage(const FAttackData& Attack);
-
-	// 当たり判定の処理
-	void AttackHit(const FAttackData& Attack);
+	// 移動入力の更新
+	void UpdateMovementState();
 
 	// 変身の際に呼び出される
 	void Transform();
@@ -162,12 +144,6 @@ private:
 
 	// 少し入力を緩めたらダッシュを解除する用の数値
 	float dashEndThreshold;
-
-	// 敵を引き寄せ中のフラグ
-	bool isAttractingEnemy;
-
-	// 強い攻撃かどうかのフラグ
-	bool isStrongAttack;
 
 	// 現在歩いているオブジェクトの表面
 	UPROPERTY()
@@ -198,10 +174,6 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Input")
 	virtual void DoMove(float Right, float Forward);
 
-	// 山内
-	UFUNCTION(BlueprintCallable, Category = "Input")
-	void DoClimb(float Right, float Up);
-
 	// コントロールまたはUIインターフェースからのルック入力を処理する
 	UFUNCTION(BlueprintCallable, Category = "Input")
 	virtual void DoLook(float Yaw, float Pitch);
@@ -213,18 +185,6 @@ public:
 	// コントロールまたはUIインターフェースのどちらからでも、押されたジャンプ入力を処理する
 	UFUNCTION(BlueprintCallable, Category = "Input")
 	virtual void DoJumpEnd();
-
-	// パンチのAnimNotifyの通知を受け取る
-	UFUNCTION(BlueprintCallable)
-	void PunchHitNotify();
-
-	// キックのAnimNotifyの通知を受け取る
-	UFUNCTION(BlueprintCallable)
-	void KickHitNotify();
-
-	// 攻撃が終わった際のコールバック
-	UFUNCTION()
-	void OnAttackMontageEnded(UAnimMontage* Montage, bool IsInterrupted);
 
 	UFUNCTION(BlueprintPure, Category = "AR|Player")
 	float GetDefaultArmLength() const { return DefaultArmLength; }
@@ -240,33 +200,17 @@ public:
 	UPROPERTY(EditAnywhere, Category = "PlayerMesh")
 	USkeletalMesh* RepulsionMesh;
 
-	// ロックオン対象
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	AActor* LockedOnTarget;
-
-	// ロックオン可能距離
-	UPROPERTY(EditAnywhere, Category = "LockOn")
-	float maxLockOnDistance;
-
 	// ダッシュ中フラグ
 	UPROPERTY(BlueprintReadWrite)
-	bool isDashed;
+	bool IsDashed;
 
-	// パンチデータ（Blueprintから設定）
-	UPROPERTY(EditAnywhere, Category = "Attack")
-	FAttackData PunchData;
+	// ロックオンコンポーネント
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	ULockOnComponent* LockOnComponent;
 
-	// キックデータ（Blueprintから設定）
-	UPROPERTY(EditAnywhere, Category = "Attack")
-	FAttackData KickData;
-
-	// 攻撃中フラグ
-	UPROPERTY(BlueprintReadOnly)
-	bool isAttacked;
-
-	// 現在のプレイヤーの変身状態
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gravity")
-	EARMagnetismType CurrentARType;
+	// アタックコンポーネント
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Attack")
+	UAttackComponent* AttackComponent;
 
 	// 引力クライム時のアニメーションモンタージュ
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gravity")
@@ -276,8 +220,14 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	// 現在のプレイヤーのモードを取得
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION(BlueprintPure)
 	EARMagnetismType GetCurrentARType();
+
+	// 引力クライム中フラグを取得
+	bool GetIsClimbed() { return isClimbed; }
+
+	// AttackComponent内で使用するNotifyHandler用
+	void OnAttackHitNotify();
 
 	// 麦
 	bool bIsJumping = false;
@@ -287,4 +237,16 @@ public:
 	{
 		bIsJumping = false;
 	}
+
+private:
+	UFUNCTION()
+	void OnMagneticForceFieldBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+	UFUNCTION()
+	void OnMagneticForceFieldEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
+	UFUNCTION()
+	void OnMagnetizedObjectHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+
+	ARRANGER_API virtual AActor* GetActor() override { return this; }
 };
