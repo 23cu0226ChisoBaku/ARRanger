@@ -157,6 +157,43 @@ void AARRangerCharacter::Tick(float DeltaTime)
 		}
 	}
 
+	const float CurrentSpeed = GetVelocity().Size();
+
+	// デバッグ表示
+	//if (GEngine)
+	//{
+	//	GEngine->AddOnScreenDebugMessage(
+	//		-1, // key（-1は毎フレーム追加表示）
+	//		0.f, // 表示時間（0で1フレーム）
+	//		FColor::Yellow,
+	//		FString::Printf(TEXT("Speed: %.2f"), CurrentSpeed)
+	//	);
+	//}
+
+	// 移動中なら最後の移動時間を記録
+	if (CurrentSpeed > 100.0f) // 1cm/s以下は停止扱い
+	{
+		LastMoveTime = GetWorld()->GetTimeSeconds();
+	}
+
+	// 最低移動アニメ継続時間判定
+	const bool bForceMoveAnim = (GetWorld()->GetTimeSeconds() - LastMoveTime) < MinMoveAnimTime;
+
+	float AnimSpeedToSend = CurrentSpeed;
+
+	// 最低継続時間中はSpeedを固定値にする（例：150cm/s）
+	if (bForceMoveAnim && CurrentSpeed < 150.f)
+	{
+		AnimSpeedToSend = 150.f;
+	}
+
+	// アニメBPに値を渡す
+	if (UARRangerAnimInstance* Anim = Cast<UARRangerAnimInstance>(GetMesh()->GetAnimInstance()))
+	{
+		Anim->Speed = AnimSpeedToSend;
+		Anim->bForceMoveAnim = bForceMoveAnim;
+	}
+
 	// ヒステリシスを用いてダッシュ判定
 	if (!IsDashed && InputMagnitude > dashStartThreshold)
 	{
@@ -166,9 +203,6 @@ void AARRangerCharacter::Tick(float DeltaTime)
 	{
 		IsDashed = false;
 	}
-
-	// 移動入力の更新
-	UpdateMovementState();
 
 	bool isLockedOn = LockOnComponent->GetIsLockedOn();
 	AActor* Target = LockOnComponent->GetLockedOnTarget();
@@ -215,7 +249,7 @@ void AARRangerCharacter::Tick(float DeltaTime)
 		FVector FootPosition = ActorLocation - wallNormal * (HalfHeight - 5.0f);
 
 		FVector Start = FootPosition;
-		FVector End = Start - wallNormal * 70.0f;
+		FVector End = Start - wallNormal * 30.0f;
 
 		FHitResult HitResult;
 		FCollisionQueryParams Params;
@@ -282,28 +316,6 @@ void AARRangerCharacter::OnClimbSurfaceOverlap(
 	}
 }
 
-void AARRangerCharacter::UpdateMovementState()
-{
-	bool bIsMovingNow = false;
-	if (UARRangerAnimInstance* MyAnim = Cast<UARRangerAnimInstance>(GetMesh()->GetAnimInstance()))
-	{
-		bIsMovingNow = MyAnim->ShouldMove;
-	}
-
-	// 歩き終了を検知
-	if (bWasMoving && !bIsMovingNow)
-	{
-		// 歩き終了した瞬間に呼ぶ
-		if (UARRangerAnimInstance* MyAnim = Cast<UARRangerAnimInstance>(GetMesh()->GetAnimInstance()))
-		{
-			MyAnim->RequestFinishWalk();
-		}
-	}
-
-	bWasMoving = bIsMovingNow;
-}
-
-
 void AARRangerCharacter::DoMove(float Right, float Forward)
 {
 	bool isAttacked =AttackComponent->GetIsAttacked();
@@ -316,25 +328,22 @@ void AARRangerCharacter::DoMove(float Right, float Forward)
 		return;
 	}
 
-	// 入力閾値
-	const float InputDeadZone = 0.2f;
+	// 最低入力値（デッドゾーン＆最低速度）を設定
+	const float DeadZone = 0.15f;
+	const float MinInput = 0.3f;
 
-	// 微小な入力はゼロにする
-	if (FMath::Abs(Right) < InputDeadZone) Right = 0.f;
-	if (FMath::Abs(Forward) < InputDeadZone) Forward = 0.f;
+	// 入力値の絶対値をチェックしてデッドゾーン以下は0に
+	if (FMath::Abs(Forward) < DeadZone) Forward = 0.f;
+	if (FMath::Abs(Right) < DeadZone) Right = 0.f;
 
-	bool hasInput = (FMath::Abs(Right) > KINDA_SMALL_NUMBER || FMath::Abs(Forward) > KINDA_SMALL_NUMBER);
-	UARRangerAnimInstance* AnimInst = Cast<UARRangerAnimInstance>(GetMesh()->GetAnimInstance());
-	if (AnimInst)
+	// 0じゃないなら最低入力値に補正（符号は保持）
+	if (Forward != 0.f)
 	{
-		if (hasInput)
-		{
-			AnimInst->ShouldMove = true;  // 入力あれば歩く
-		}
-		else if (AnimInst->ShouldMove && !AnimInst->FinishWalk)
-		{
-			AnimInst->RequestFinishWalk();  // 入力なくなった瞬間、半歩歩き残す処理へ
-		}
+		Forward = FMath::Sign(Forward) * FMath::Max(FMath::Abs(Forward), MinInput);
+	}
+	if (Right != 0.f)
+	{
+		Right = FMath::Sign(Right) * FMath::Max(FMath::Abs(Right), MinInput);
 	}
 
 	if (!isClimbed)
