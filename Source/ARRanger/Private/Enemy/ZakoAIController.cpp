@@ -131,7 +131,11 @@ void AZakoAIController::BroadcastAlert(AActor* SeenActor)
 		Params
 	);
 
-	if (!bHit) return;
+	if (!bHit || Overlaps.Num() == 0) return;
+
+	UE_LOG(LogTemp, Warning, TEXT("%s detected %s, notifying allies..."),
+		*SelfPawn->GetName(),
+		*SeenActor->GetName());
 
 	for (const FOverlapResult& Result : Overlaps)
 	{
@@ -144,9 +148,14 @@ void AZakoAIController::BroadcastAlert(AActor* SeenActor)
 			{
 				if (UBlackboardComponent* BB = AllyAI->GetBlackboardComponent())
 				{
-					BB->SetValueAsObject(TargetActorKey, SeenActor);
+					BB->SetValueAsObject("TargetActor", SeenActor);
 					BB->SetValueAsBool("IsPlayerDetected", true);
-					BB->SetValueAsBool("IsInAlertState", false);
+					BB->SetValueAsBool("IsInAlertState", true); 
+
+					UE_LOG(LogTemp, Warning,
+						TEXT("  -> Notified ally: %s (Controller: %s)"),
+						*AllyChar->GetName(),
+						*AllyAI->GetName());
 				}
 			}
 		}

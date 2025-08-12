@@ -55,18 +55,10 @@ void AEnemy::ReceiveDamage(int DamageAmount, FVector LaunchDirection, bool bEnab
 			}
 		}
 
-		// エフェクトやSEもここで再生可！
-
-
 		// GameModeに通知
 		if (AInsekiGameMode* GM = Cast<AInsekiGameMode>(UGameplayStatics::GetGameMode(this)))
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Cast Success!"));
 			GM->OnEnemyKilled();
-		}
-		else
-		{
-			UE_LOG(LogTemp, Error, TEXT("Cast Failed! GameMode is %s"), *UGameplayStatics::GetGameMode(this)->GetClass()->GetName());
 		}
 		// ちょっと待ってから消す
 		SetLifeSpan(1.0f);

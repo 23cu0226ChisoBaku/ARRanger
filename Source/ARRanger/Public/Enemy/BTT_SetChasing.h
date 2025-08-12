@@ -3,19 +3,19 @@
 
 #include "CoreMinimal.h"
 #include "BehaviorTree/BTTaskNode.h"
-#include "BTT_SetAttackCooldown.generated.h"
+#include "BTT_SetChasing.generated.h"
 
 UCLASS()
-class ARRANGER_API UBTT_SetAttackCooldown : public UBTTaskNode
+class ARRANGER_API UBTT_SetChasing : public UBTTaskNode
 {
 	GENERATED_BODY()
 	
 public:
-    UBTT_SetAttackCooldown();
+    UBTT_SetChasing();
 
 protected:
     UPROPERTY(EditAnywhere, Category = "AI")
-    float CooldownTime = 5.0f;
+    bool bChasing;
 
     virtual EBTNodeResult::Type ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;
 
