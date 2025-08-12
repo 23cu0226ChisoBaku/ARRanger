@@ -1,5 +1,8 @@
 #pragma once
 
+#include "AbilitySystemInterface.h"
+#include "AbilitySystemComponent.h"
+#include "GameplayEffectTypes.h" 
 #include "AttackComponent.h"
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
@@ -12,9 +15,11 @@
 
 #include "ARRangerCharacter.generated.h"
 
+class UAbilitySystemComponent;
 class UAnimMontage;
-class USkeletalMesh;
 class UInputAction;
+class USkeletalMesh;
+
 
 struct FInputActionValue;
 
@@ -95,12 +100,18 @@ public:
 	// コンストラクタ
 	AARRangerCharacter();
 
+	// IAbilitySystemInterface の必須実装
+	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const;
+
 protected:
 
 	// 入力アクションのバインディングを初期化する
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 protected:
+	// AbilitySystemComponentを保存
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Abilities")
+	UAbilitySystemComponent* AbilitySystemComp;
 
 	// 移動入力のために呼び出される
 	void Move(const FInputActionValue& Value);

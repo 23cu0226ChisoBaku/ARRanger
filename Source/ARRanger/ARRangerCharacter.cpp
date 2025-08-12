@@ -57,6 +57,7 @@ AARRangerCharacter::AARRangerCharacter()
 	// 各種コンポーネントを取得
 	LockOnComponent = CreateDefaultSubobject<ULockOnComponent>(TEXT("LockOnComponent"));
 	AttackComponent = CreateDefaultSubobject<UAttackComponent>(TEXT("AttackComponent"));
+	AbilitySystemComp = CreateDefaultSubobject<UAbilitySystemComponent>(TEXT("AbilitySystemComp"));
 }
 
 void AARRangerCharacter::BeginPlay()
@@ -134,6 +135,11 @@ void AARRangerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 	{
 		UE_LOG(LogTemplateCharacter, Error, TEXT("'%s' Failed to find an Enhanced Input component! This template is built to use the Enhanced Input system. If you intend to use the legacy system, then you will need to update this C++ file."), *GetNameSafe(this));
 	}
+}
+
+UAbilitySystemComponent* AARRangerCharacter::GetAbilitySystemComponent() const
+{
+	return AbilitySystemComp;
 }
 
 void AARRangerCharacter::Tick(float DeltaTime)
