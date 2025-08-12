@@ -15,7 +15,7 @@
 #include "PlayerObservation/IObserverRegistry.h"
 #include "PlayerObservation/Registry/SoundEffectRegistry.h"
 
-
+#include "Physics/Gameplay/ARPhysicsGlobal.h"
 #include "Physics/Core/ARPhysicsTickProcessorActor.h"
 #include "Public/BlinkingSystem/BlinkingOutlineWorldSubsystem.h"
 

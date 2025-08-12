@@ -26,21 +26,3 @@ void AAttractionActor::BeginPlay()
 }
 
 
-void AAttractionActor::OnSphereBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
-{
-  IARMagnetizableInterface* otherMagnetized = Cast<IARMagnetizableInterface>(OtherActor);
-  if (otherMagnetized != nullptr)
-  {
-    Physics_RegisterMagneticTask(this, otherMagnetized);
-  } 
-}
-
-void AAttractionActor::OnSphereEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
-{
-  IARMagnetizableInterface* otherMagnetized = Cast<IARMagnetizableInterface>(OtherActor);
-  if (otherMagnetized != nullptr)
-  {
-    Physics_UnregisterMagneticTask(this, otherMagnetized);
-  } 
-}
-

@@ -248,7 +248,5 @@ private:
 	UFUNCTION()
 	void OnMagnetizedObjectHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
-	ARRANGER_API virtual void OnAttraction() override { }
-	ARRANGER_API virtual void OnRepulsion() override { }
 	ARRANGER_API virtual AActor* GetActor() override { return this; }
 };

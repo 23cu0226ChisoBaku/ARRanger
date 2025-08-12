@@ -50,9 +50,6 @@ public:
 	// 麦
 private:
 
-  TSharedPtr<ARRanger::INotifyHandlerInterface> NotifyHandler;
-  TArray< TWeakInterfacePtr< IObservableSubjectInterface > > Subjects;
-
   // TODO Temporary
   UPROPERTY(EditDefaultsOnly)
   TSubclassOf<class AARPhysicsTickProcessorActor> ProcessorActorClass;

@@ -526,7 +526,7 @@ void AARRangerCharacter::OnMagneticForceFieldBeginOverlap(UPrimitiveComponent* O
 {
 	if (IARMagnetizableInterface* magnetizableObj = Cast<IARMagnetizableInterface>(OtherActor))
 	{
-		Physics_RequestMagneticTask(this, magnetizableObj);
+		Physics_RegisterMagneticTask(this, magnetizableObj);
 	}
 }
 
@@ -534,7 +534,7 @@ void AARRangerCharacter::OnMagneticForceFieldEndOverlap(UPrimitiveComponent* Ove
 {
 	if (IARMagnetizableInterface* magnetizableObj = Cast<IARMagnetizableInterface>(OtherActor))
 	{
-		Physics_TerminateMagneticTask(this, magnetizableObj);
+		Physics_UnregisterMagneticTask(this, magnetizableObj);
 	}
 }
 
@@ -542,6 +542,6 @@ void AARRangerCharacter::OnMagnetizedObjectHit(UPrimitiveComponent* HitComponent
 {
 	if (IARMagnetizableInterface* magnetizableObj = Cast<IARMagnetizableInterface>(OtherActor))
 	{
-		Physics_RequestMagneticTask_Once(this, magnetizableObj);
+		Physics_RegisterMagneticTask_Once(this, magnetizableObj);
 	}
 }
