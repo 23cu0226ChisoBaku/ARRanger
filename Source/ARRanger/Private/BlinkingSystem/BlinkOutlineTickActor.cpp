@@ -4,6 +4,8 @@
 
 #include "Public/BlinkingSystem/BlinkOutlineTickActor.h"
 
+#include "BlinkingSystem/BlinkOutlineFunctor.h"
+
 
 #define OUTLINEMATERIAL
 

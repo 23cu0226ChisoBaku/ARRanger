@@ -11,7 +11,6 @@
 
 // 前方宣言
 class ULineTraceSingleARObjectComponent;
-class FBlinkingOutlineSystem;
 class ABlinkOutlineTickActor;
 
 
@@ -56,5 +55,5 @@ private:
 	UPROPERTY()
 	TSubclassOf<ABlinkOutlineTickActor> m_TickActorClass;
 
-	TUniquePtr<FBlinkingOutlineSystem> m_BlinkingOutlineSystem;
+	TUniquePtr<class FBlinkingOutlineSystem> m_BlinkingOutlineSystem;
 };
