@@ -545,3 +545,8 @@ void AARRangerCharacter::OnMagnetizedObjectHit(UPrimitiveComponent* HitComponent
 		Physics_RegisterMagneticTask_Once(this, magnetizableObj);
 	}
 }
+
+void AARRangerCharacter::OnRepulsionEvaluated(const FARMagneticForceResult& Result)
+{
+  LaunchCharacter(Result.FinalForce, true, false);
+}

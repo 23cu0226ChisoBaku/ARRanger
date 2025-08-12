@@ -24,11 +24,11 @@ DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);
  *  シンプルでプレイヤーが操作可能な三人称視点キャラクター
  *  制御可能な軌道カメラの実装
  */
-UCLASS(abstract)
-class AARRangerCharacter : public ACharacter,
-                           public IObservableSubjectInterface,
-						   public IARMagnetizableInterface,
-						   public IARPhysicsSystemHost
+UCLASS(Abstract)
+class AARRangerCharacter :  public ACharacter,
+                            public IObservableSubjectInterface,
+                            public IARMagnetizableInterface,
+                            public IARPhysicsSystemHost
 {
 	GENERATED_BODY()
 	
@@ -248,5 +248,8 @@ private:
 	UFUNCTION()
 	void OnMagnetizedObjectHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
+  /**Start IARMagnetizableInterface interface */
+  ARRANGER_API virtual void OnRepulsionEvaluated(const FARMagneticForceResult& Result) override;
 	ARRANGER_API virtual AActor* GetActor() override { return this; }
+  /**End IARMagnetizableInterface interface */
 };
