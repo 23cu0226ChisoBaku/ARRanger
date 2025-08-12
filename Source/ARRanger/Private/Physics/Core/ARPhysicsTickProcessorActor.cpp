@@ -7,6 +7,10 @@
 #include "Physics/Core/ARPhysicsTickManagerInterface.h"
 #include "IARMagnetizableInterface.h"
 
+// FIXME For temporary use
+#include "Physics/TickObjects/Magnetic/ARMagneticAttractionTickObject.h"
+#include "Physics/TickObjects/Magnetic/ARMagneticRepulsionTickObject.h"
+
 #include "Internal/ARLoggingHeader.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ARPhysicsTickProcessorActor)
@@ -45,8 +49,11 @@ AARPhysicsTickProcessorActor::AARPhysicsTickProcessorActor()
   PrimaryActorTick.TickGroup = TG_PrePhysics;
   bAsyncPhysicsTickEnabled = true;
 
-  AttractionTickClass = UARMagneticTickObject::StaticClass();
-  RepulsionTickClass = UARMagneticTickObject::StaticClass();
+  // AttractionTickClass = UARMagneticTickObject::StaticClass();
+  // RepulsionTickClass = UARMagneticTickObject::StaticClass();
+
+  AttractionTickClass = UARMagneticAttractionTickObject::StaticClass();
+  RepulsionTickClass = UARMagneticRepulsionTickObject::StaticClass();
 }
 
 // Called when the game starts or when spawned
@@ -128,7 +135,7 @@ void AARPhysicsTickProcessorActor::Tick(float DeltaTime)
 }
 
 
-void AARPhysicsTickProcessorActor::RegisterMagneticTask(IARMagnetizableInterface* InSource, IARMagnetizableInterface* InTarget, EPhysicsRequestType InRequestType)
+void AARPhysicsTickProcessorActor::RegisterMagneticTask(IARMagnetizableInterface* InSource, IARMagnetizableInterface* InTarget, EPhysicsRegistryType InRequestType)
 {
   RegisterMagneticTarget(InSource, InTarget, InRequestType);
   RegisterMagneticTarget(InTarget, InSource, InRequestType);
@@ -177,7 +184,7 @@ void AARPhysicsTickProcessorActor::UnregisterQueuedTickObject()
   UnregisterTickObjectQueue.Reset();
 }
 
-void AARPhysicsTickProcessorActor::RegisterMagneticTarget(IARMagnetizableInterface* InTarget, IARMagnetizableInterface* InAffectedObj, EPhysicsRequestType InRequestType)
+void AARPhysicsTickProcessorActor::RegisterMagneticTarget(IARMagnetizableInterface* InTarget, IARMagnetizableInterface* InAffectedObj, EPhysicsRegistryType InRequestType)
 {
   if (InTarget == nullptr)
   {
@@ -190,7 +197,7 @@ void AARPhysicsTickProcessorActor::RegisterMagneticTarget(IARMagnetizableInterfa
   {
     TSubclassOf<UARMagneticTickObject> allocateClass = nullptr;
     // TODO
-    using enum EPhysicsRequestType;
+    using enum EPhysicsRegistryType;
     switch (InRequestType)
     {
       case RequestAttraction:

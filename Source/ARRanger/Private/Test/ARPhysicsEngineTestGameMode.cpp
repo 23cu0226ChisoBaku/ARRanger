@@ -3,7 +3,8 @@
 
 #include "Test/ARPhysicsEngineTestGameMode.h"
 
-#include "Physics/IARPhysicsSystemHost.h"
+#include "Physics/Gameplay/ARPhysicsGlobal.h"
+
 
 void AARPhysicsEngineTestGameMode::StartPlay()
 {

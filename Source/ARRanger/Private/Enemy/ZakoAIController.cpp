@@ -37,8 +37,8 @@ AZakoAIController::AZakoAIController()
 
 	SightConfig = CreateDefaultSubobject<UAISenseConfig_Sight>(TEXT("SightConfig"));
 
-	SightConfig->SightRadius = 1500.0f;
-	SightConfig->LoseSightRadius = 1800.0f;
+	SightConfig->SightRadius = 700.0f;
+	SightConfig->LoseSightRadius = 800.0f;
 	SightConfig->PeripheralVisionAngleDegrees = 90.0f;
 
 	SightConfig->DetectionByAffiliation.bDetectEnemies = true;
@@ -58,11 +58,11 @@ void AZakoAIController::BeginPlay()
 	if (BlackboardAsset && BehaviorTreeAsset)
 	{
 		RunBehaviorTree(BehaviorTreeAsset);
-		UE_LOG(LogTemp, Warning, TEXT("RunBT!!"));
+		//UE_LOG(LogTemp, Warning, TEXT("RunBT!!"));
 
 		// 初期テスト用
-		APawn* PlayerPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
-		GetBlackboardComponent()->SetValueAsObject(TargetActorKey, PlayerPawn);
+		//APawn* PlayerPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
+		//GetBlackboardComponent()->SetValueAsObject(TargetActorKey, PlayerPawn);
 	}
 }
 
@@ -76,7 +76,6 @@ void AZakoAIController::StopChasing()
 		BB->ClearValue("IsPlayerDetected");
 
 		// パトロールに戻るためのロジックがあればここに追加
-		// 例: BB->SetValueAsBool("IsPatrolling", true);
 	}
 }
 
@@ -105,14 +104,13 @@ void AZakoAIController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Sti
 
 		BB->SetValueAsBool("IsPlayerDetected", false);
 
-		// 3秒後に追跡を停止するタイマーを開始
-		GetWorld()->GetTimerManager().SetTimer(LostSightTimerHandle, this, &AZakoAIController::StopChasing, 1.0f, false);
+		// 2秒後に追跡を停止するタイマーを開始
+		GetWorld()->GetTimerManager().SetTimer(LostSightTimerHandle, this, &AZakoAIController::StopChasing, 2.0f, false);
 	}
 }
 
 void AZakoAIController::BroadcastAlert(AActor* SeenActor)
 {
-	// BroadcastAlert関数は変更なし
 	if (!SeenActor) return;
 	APawn* SelfPawn = GetPawn();
 	if (!SelfPawn) return;
