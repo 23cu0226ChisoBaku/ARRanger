@@ -15,8 +15,9 @@
 #include "PlayerObservation/IObserverRegistry.h"
 #include "PlayerObservation/Registry/SoundEffectRegistry.h"
 
-<<<<<<< HEAD
+
 #include "Physics/Core/ARPhysicsTickProcessorActor.h"
+#include "Public/BlinkingSystem/BlinkingOutlineWorldSubsystem.h"
 
 // TODO May move initialize function to another file
 #include "Physics/IARPhysicsSystemHost.h"
@@ -25,9 +26,7 @@ AInsekiGameMode::AInsekiGameMode()
 {
     ProcessorActorClass = AARPhysicsTickProcessorActor::StaticClass();
 }
-=======
-#include "Public/BlinkingSystem/BlinkingOutlineWorldSubsystem.h"
->>>>>>> origin/main
+
 
 void AInsekiGameMode::BeginPlay()
 {

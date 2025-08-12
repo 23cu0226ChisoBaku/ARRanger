@@ -49,19 +49,18 @@ public:
 
 	// 麦
 private:
-<<<<<<< HEAD
+
   TSharedPtr<ARRanger::INotifyHandlerInterface> NotifyHandler;
   TArray< TWeakInterfacePtr< IObservableSubjectInterface > > Subjects;
 
   // TODO Temporary
   UPROPERTY(EditDefaultsOnly)
   TSubclassOf<class AARPhysicsTickProcessorActor> ProcessorActorClass;
-=======
+
 	TSharedPtr<ARRanger::INotifyHandlerInterface> NotifyHandler;
 	TArray< TWeakInterfacePtr< IObservableSubjectInterface > > Subjects;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Blinking")
 	TSubclassOf<ABlinkOutlineTickActor> BlinkTickActorClass;
 
->>>>>>> origin/main
 };
