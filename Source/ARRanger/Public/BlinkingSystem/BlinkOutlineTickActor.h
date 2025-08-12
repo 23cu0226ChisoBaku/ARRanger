@@ -16,16 +16,20 @@ class BlinkOutlineFunctor;
 /**
  * @brief 点滅処理の対象アクターを保持する
  */
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FBlinkingTarget
 {
 	GENERATED_BODY()
 
-    UPROPERTY()
+    UPROPERTY(BlueprintReadOnly)
     TObjectPtr<AActor> _actor = nullptr;
-
-    UPROPERTY()
+    UPROPERTY(BlueprintReadOnly)
     TObjectPtr<UMeshComponent> _meshComponent = nullptr;
+	
+	bool operator==(const FBlinkingTarget& other) const
+    {
+        return _actor == other._actor;
+    }
 };
 
 /**
@@ -105,6 +109,28 @@ public:
 	*/
 	UFUNCTION()
 	void RemoveBlinkingActor(AActor* removeActor);
+
+	/**
+	 * @brief 指定されたアクターの EARMagnetismType を変更する
+	 * 
+	 * @param 変更するアクター, 変更先のEARMagnetismType
+	 */
+	void UpdateBlinkingDataByMagnetismType(AActor* actor, EARMagnetismType magnetismType);
+
+	/*テスト */
+	UFUNCTION(BlueprintCallable)
+	TArray<AActor*> GetBlinkingActors_Actors() const
+	{
+		TArray<AActor*> actors;
+		for (const FBlinkingTarget& target : m_BlinkingActors)
+		{
+			if (target._actor)
+			{
+				actors.Add(target._actor);
+			}
+		}
+		return actors;
+	}
 
 private:
 

@@ -60,7 +60,7 @@ void UARPhysicsTickObject::EndTickObject()
 {
   check(m_internalData.IsValid());
 
-  if (!m_internalData->bIsEvaluateFinishedCurrentFrame)
+  if (m_internalData->bIsEvaluateFinishedCurrentFrame)
   {
     OnEndTickObject();
   }
