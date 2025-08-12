@@ -5,7 +5,7 @@
 #include "Camera/CameraComponent.h"
 #include "Components/BoxComponent.h"
 #include "Components/CapsuleComponent.h"
-#include "Enemy.h"
+#include "Enemy/Enemy_Zako.h"
 #include "Engine/LocalPlayer.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
@@ -787,7 +787,7 @@ void AARRangerCharacter::AttackHit(const FAttackData& Attack)
 	{
 		if (HitActor->ActorHasTag(Attack.TargetTag))
 		{
-			AEnemy* Enemy = Cast<AEnemy>(HitActor);
+			AEnemy_Zako* Enemy = Cast<AEnemy_Zako>(HitActor);
 			if (Enemy && !Enemy->isDead)
 			{
 				TSharedRef<ARRanger::INotifyHandlerInterface> notifyHandler = GetNotifyHandlerRef();
