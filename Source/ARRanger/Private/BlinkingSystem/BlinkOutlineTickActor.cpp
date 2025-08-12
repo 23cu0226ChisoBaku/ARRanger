@@ -14,6 +14,12 @@ ABlinkOutlineTickActor::ABlinkOutlineTickActor()
 	: m_BlinkOutlineFunctor(new BlinkOutlineFunctor()) 
 {
 	PrimaryActorTick.bCanEverTick = true;
+
+	// コールバック登録
+    m_BlinkOutlineFunctor->OnBlinkEnd = [this](AActor* actor)
+    {
+        this->RemoveBlinkingActor(actor);
+    };
 }
 void ABlinkOutlineTickActor::BeginPlay()
 {
@@ -64,22 +70,27 @@ void ABlinkOutlineTickActor::AddBlinkingActor(AActor* newActor)
 	// すでに登録されているアクターかチェック
 	if(ContainsActor(newActor)){return;}
 
-    // メッシュコンポーネントを取得
-    UMeshComponent* meshComponent = newActor->FindComponentByClass<UMeshComponent>();
-    if (!meshComponent){ return; }
-
-    if (!meshComponent->ComponentHasTag(TEXT("OutLineMesh"))) { return; }
+	// メッシュコンポーネントを取得
+	UMeshComponent* meshComponent = nullptr;
+	TArray<UMeshComponent*> meshComponents;
+	newActor->GetComponents(meshComponents);
+	for (UMeshComponent* comp : meshComponents)
+	{
+		if (comp && comp->ComponentHasTag(TEXT("OutLineMeshComponent")))
+		{
+			meshComponent = comp;
+			break; // 最初に見つけたものでOKなら break
+		}
+	}
+	if (meshComponent == nullptr){ return; }
 
     // 構造体を作成して追加
     FBlinkingTarget newTarget;
     newTarget._actor = newActor;
     newTarget._meshComponent = meshComponent;
 
+	// 点滅させるアクターとして登録
     m_BlinkingActors.Add(newTarget);
-
-	UE_LOG(LogTemp, Log, TEXT("AddBlinkingActor: %s, Mesh: %s"),
-    *GetNameSafe(newActor),
-    *GetNameSafe(meshComponent));
 }
 
 /*
@@ -91,22 +102,66 @@ void ABlinkOutlineTickActor::RemoveBlinkingActor(AActor* removeActor)
 {
 	if (removeActor == nullptr){ return; }
 
-	// すでに登録されているアクターかチェック
-	if(ContainsActor(removeActor)){return;}
+	// 登録されているアクターかチェック
+	if(!ContainsActor(removeActor)){return;}
 
-    // メッシュコンポーネントを取得
-    UMeshComponent* meshComponent = removeActor->FindComponentByClass<UMeshComponent>();
-    if (!meshComponent){ return; }
+	// GetBlinkData()で該当のデータを取得
+    FBlinkingActorData* blinkData = m_BlinkDatas.GetBlinkData(removeActor);
+    if (blinkData)
+    {
+        // アウトライン解除
+        UMeshComponent* meshComp = nullptr;
+        for (const FBlinkingTarget& target : m_BlinkingActors)
+        {
+            if (target._actor == removeActor)
+            {
+                meshComp = target._meshComponent;
+                break;
+            }
+        }
+        if (meshComp && meshComp->GetOverlayMaterial())
+        {
+            meshComp->SetOverlayMaterial(nullptr);
+        }
 
-    if (!meshComponent->ComponentHasTag(TEXT("OutLineMesh"))) { return; }
+        // 動的マテリアルを解放・リセット
+        blinkData->m_DynamicMaterial = nullptr;
+        // 他の状態も必要に応じて初期化する
+        blinkData->_elapsedTime = 0.f;
 
-    // 構造体を作成して追加
-    FBlinkingTarget removeTarget;
-    removeTarget._actor = removeActor;
-    removeTarget._meshComponent = meshComponent;
-
-    m_BlinkingActors.Add(removeTarget);
+		// 登録されている配列から削除する
+		m_BlinkingActors.RemoveAll([removeActor](const FBlinkingTarget& target) 
+		{
+			if (target._meshComponent->GetOverlayMaterial()) 
+			{
+				target._meshComponent->SetOverlayMaterial(nullptr);
+			}
+			return target._actor == removeActor;
+		});
+	}
 }
+
+/**
+ * @brief 指定されたアクターの EARMagnetismType を変更する
+ * 
+ * @param 変更するアクター, 変更先のEARMagnetismType
+ */
+void ABlinkOutlineTickActor::UpdateBlinkingDataByMagnetismType(AActor* actor, EARMagnetismType magnetismType)
+{
+	if(actor == nullptr) {return;}
+	if(!ContainsActor(actor)) {return;}
+
+	// m_BlinkingActors に登録されているアクターのデータを取得
+
+    for (const FBlinkingTarget& target : m_BlinkingActors)
+    {
+        if (target._actor == actor)
+        {
+            break;
+        }
+    }
+}
+
 
 /**
  * @brief m_BlinkingActors構造体配列の中に指定したアクターが存在するかどうかを返す

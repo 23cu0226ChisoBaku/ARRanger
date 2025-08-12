@@ -14,6 +14,11 @@ public:
 	~BlinkOutlineFunctor();
 
 	/**
+	 * @brief 点滅終了時に呼ばれるコールバック
+	 */ 
+    TFunction<void(AActor*)> OnBlinkEnd;
+
+	/**
 	 * @brief 点滅処理を行う関数
 	 */
 	void OutlineBlink( UObject* targetObject, UMeshComponent* targetmeshComponent, FBlinkingActorData* blinkingData, float DeltaTime); 

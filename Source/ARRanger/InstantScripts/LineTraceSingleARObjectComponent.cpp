@@ -46,28 +46,18 @@ void ULineTraceSingleARObjectComponent::AssignTargetMagnetizableObject()
 { 
     // 変数宣言
     AActor* currentTargetMagnetizableObj;   		 
-
     FVector lineTraceStart;                          
     FVector lineTraceEnd;                           
 
     // カメラが有効でなければリターン
-    if (!m_PlayerCameraComp || !m_PlayerCameraComp->GetEvaluationContext().IsValid()) 
-    {
-        UE_LOG(LogTemp, Warning, TEXT("PlayerCameraComponent is not valid"));
-        return;
-    }
+    if (!m_PlayerCameraComp || !m_PlayerCameraComp->GetEvaluationContext().IsValid())  { return; }
 
     // ライントレース用の座標を取得
-    lineTraceStart = m_PlayerCameraComp->GetEvaluationContext()->GetInitialResult().CameraPose.GetLocation();                                   // 始点
-    lineTraceEnd = lineTraceStart +  m_PlayerCameraComp->GetEvaluationContext()->GetInitialResult().CameraPose.GetAimDir() * LineTraceLength;   // 終点
+    lineTraceStart = GetOwner()->GetActorLocation();                                                                                                   // 始点
+    lineTraceEnd = lineTraceStart +  GetPlayerCameraRotation() * LineTraceLength;   // 終点
 
     // ライントレースした結果を保持
     currentTargetMagnetizableObj = TraceForMagnetizableObject(lineTraceStart,lineTraceEnd);
-
-    if(currentTargetMagnetizableObj)
-    {
-        UE_LOG(LogTemp, Log, TEXT("currentTargetMagnetizableObj: %s"), *currentTargetMagnetizableObj->GetName());
-    }
     
     // 検知しているオブジェクトに変化があるかチェック
     if(currentTargetMagnetizableObj != m_TargetMagnetizableActor)
@@ -98,17 +88,18 @@ void ULineTraceSingleARObjectComponent::AssignTargetMagnetizableObject()
                 {
                     // 点滅処理を行うオブジェクトとして登録
                     SetTargetMagnetizableObject.ExecuteIfBound(currentTargetMagnetizableObj);
+                    m_TargetMagnetizableActor = currentTargetMagnetizableObj;
                 }
             }
-        }
+            else
+            {
+                m_TargetMagnetizableActor = nullptr;
+            }
+        } 
         else
         {
             m_TargetMagnetizableActor = nullptr;
         }
-    }
-    else
-    {
-        //UE_LOG(LogTemp, Warning, TEXT("aaa"));
     }
 }
 
@@ -164,4 +155,31 @@ void ULineTraceSingleARObjectComponent::ExecuteSetTargetMagnetizableObject()
             SetTargetMagnetizableObject.Execute(m_TargetMagnetizableActor);
         }
     }
+}
+
+/**
+ * @brief Playerについているカメラの回転(Rotation) を取得するための関数(後からなくなる)
+ */
+FVector ULineTraceSingleARObjectComponent::GetPlayerCameraRotation()
+{
+    APawn* Pawn = Cast<APawn>(GetOwner());
+    if(Pawn != nullptr)
+    {
+        AController* Controller = Pawn->GetController();
+        if(Controller != nullptr)
+        {
+            APlayerController* PlayerController = Cast<APlayerController>(Controller);
+            if(PlayerController != nullptr)
+            {
+                APlayerCameraManager* CameraManager = PlayerController->PlayerCameraManager;
+
+                if(CameraManager != nullptr)
+                {
+                    return CameraManager->GetCameraRotation().Vector();
+                }
+            }
+        }
+    }
+
+    return FVector::ZeroVector;
 }

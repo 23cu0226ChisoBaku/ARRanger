@@ -36,14 +36,6 @@ void BlinkOutlineFunctor::OutlineBlink(UObject* targetObject, UMeshComponent* ta
     // まだディレイ中なら処理しない
     if (blinkingData->_elapsedTime < blinkingData->_blinkDelay){ return; }
 
-    // 点滅する時間が過ぎていたら点滅終了(点滅し始めてからの経過時間で計測)
-    if(blinkingData->_blinkInterval  <=  blinkingData->_elapsedTime - blinkingData->_blinkDelay)
-    {        
-        // アウトラインをクリア
-        targetmeshComponent->SetOverlayMaterial(nullptr);  
-        return;      
-    }
-
     // 動的マテリアルの生成・マテリアルのセット
     if(blinkingData->m_DynamicMaterial == nullptr)
     {
@@ -62,6 +54,20 @@ void BlinkOutlineFunctor::OutlineBlink(UObject* targetObject, UMeshComponent* ta
     {
         AcceleratedBlink();
     }
+
+    // 点滅する時間が過ぎていたら点滅終了(点滅し始めてからの経過時間で計測)
+    if(blinkingData->_blinkInterval  <=  blinkingData->_elapsedTime - blinkingData->_blinkDelay)
+    {        
+        // コールバック呼び出し
+        if (OnBlinkEnd)
+        {
+            if (AActor* targetActor = Cast<AActor>(targetObject))
+            {
+                OnBlinkEnd(targetActor);
+            }
+        }          
+    }
+
 } 
 
 /**

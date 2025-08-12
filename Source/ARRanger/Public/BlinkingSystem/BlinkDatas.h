@@ -26,8 +26,6 @@ struct FBlinkingActorData
 
     UPROPERTY()
     float _elapsedTime = 0.0f;                                          /*経過時間*/
-    // UPROPERTY()
-    // TObjectPtr<UMeshComponent> _meshComponent;                          /*マテリアルを適用するメッシュコンポ―ネント*/
     UPROPERTY()
     TObjectPtr<UMaterialInstanceDynamic> m_DynamicMaterial =nullptr;	/*動的マテリアル*/
     UPROPERTY(EditAnywhere)
