@@ -6,6 +6,7 @@
 #include "BTT_PunchAttack.generated.h"
 
 class UParticleSystem;
+class UAnimMontage;
 
 UCLASS()
 class ARRANGER_API UBTT_PunchAttack : public UBTTaskNode
@@ -32,4 +33,7 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Effects")
 	USoundCue* HitSound;
+
+	UPROPERTY(EditAnywhere, Category = "Attack")
+	UAnimMontage* AttackMontage;
 };

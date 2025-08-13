@@ -11,9 +11,10 @@ class ARRANGER_API UEnemyAnimInstance : public UAnimInstance
 	GENERATED_BODY()
 	
 public:
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "AI")
 	bool bIsChasing = false;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "AI")
-	bool bIsAttacking = false;
+	bool bIsSearch = false;
 };
