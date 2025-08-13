@@ -1,7 +1,7 @@
 #include "AttackComponent.h"
 
 #include "ARRangerCharacter.h"
-#include "Enemy.h"
+#include "Enemy/Enemy_Zako.h"
 #include "Kismet/KismetSystemLibrary.h"
 
 UAttackComponent::UAttackComponent()
@@ -233,7 +233,7 @@ void UAttackComponent::AttackHit(const FAttackData& Attack)
 	{
 		if (HitActor->ActorHasTag(Attack.TargetTag))
 		{
-			AEnemy* Enemy = Cast<AEnemy>(HitActor);
+			AEnemy_Zako* Enemy = Cast<AEnemy_Zako>(HitActor);
 
 			if (Enemy && !Enemy->isDead)
 			{
