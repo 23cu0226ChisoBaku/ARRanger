@@ -1,11 +1,10 @@
 ﻿#include "ARRangerCharacter.h"
-
 #include "ARRangerAnimInstance.h"
 #include "AttackComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Components/BoxComponent.h"
 #include "Components/CapsuleComponent.h"
-#include "Enemy.h"
+#include "Enemy/Enemy_Zako.h"
 #include "Engine/LocalPlayer.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
