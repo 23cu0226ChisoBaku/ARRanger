@@ -34,7 +34,7 @@ void AARPhysics_TestRepulsionActor::OnHit(UPrimitiveComponent* HitComponent, AAc
 {
   if (IARMagnetizableInterface* magnetizableObj = Cast<IARMagnetizableInterface>(OtherActor))
   {
-    Physics_RequestMagneticTask_Once(this, magnetizableObj);
+    Physics_RegisterMagneticTask_Once(this, magnetizableObj);
   }
 }
 

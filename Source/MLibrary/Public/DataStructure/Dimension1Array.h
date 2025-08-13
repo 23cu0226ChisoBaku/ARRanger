@@ -21,14 +21,6 @@ Encoding : UTF-8
 
 #include "ArrayIterator.h"
 
-#define ThrowWhenTrue(expression) \
-if (!!(expression))								\
-{																	\
-  throw;													\
-}
-
-#define ThrowWhenFalse(expression) ThrowWhenTrue(!expression)
-
 namespace UE::MLibrary
 {
   namespace MDataStructure

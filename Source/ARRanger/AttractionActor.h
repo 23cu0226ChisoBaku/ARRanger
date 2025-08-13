@@ -12,7 +12,6 @@ class USphereComponent;
 
 UCLASS()
 class ARRANGER_API AAttractionActor : public AActor,
-                                      public IARPhysicsSystemHost,
                                       public IARMagnetizableInterface
 {
 	GENERATED_BODY()
@@ -20,9 +19,9 @@ class ARRANGER_API AAttractionActor : public AActor,
 public:
 	AAttractionActor();
 
-  virtual void OnAttraction() override {}
+  virtual void OnAttractionEvaluated(const FARMagneticForceResult& Result) override {}
 
-	virtual void OnRepulsion() override {}
+	virtual void OnRepulsionEvaluated(const FARMagneticForceResult& Result) override {}
 
 	virtual AActor* GetActor() override { return this; }
 protected:
@@ -34,14 +33,4 @@ private:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite,Category = Inseki, meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<USphereComponent> Sphere;
-
-  
-
-private:
-	UFUNCTION()
-	void OnSphereBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
-
-	UFUNCTION()
-	void OnSphereEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
-
 };

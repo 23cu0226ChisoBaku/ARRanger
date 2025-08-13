@@ -29,8 +29,6 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-  virtual void OnAttraction() {}
-	virtual void OnRepulsion() {}
 	virtual AActor* GetActor() { return this; }
 
 
