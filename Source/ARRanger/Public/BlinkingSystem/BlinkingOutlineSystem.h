@@ -21,11 +21,6 @@ public:
 	*/
 	void CreateTickingActor(UWorld* world, TSubclassOf<ABlinkOutlineTickActor> Subclass = nullptr);
 
-	// /*
-	// * @brief LineTraceSingleARObjectComponent のデリゲート関数に登録
-	// */
-	// void RegisterDelegateFunction();
-
 	/*
 	* @brief アウトラインの処理を呼び出すデリゲート関数
 	*
@@ -42,7 +37,6 @@ public:
 
 private:
 
-	
 	TWeakObjectPtr<ABlinkOutlineTickActor> m_TickActor;	// 点滅処理を駆動するためのアクター
 };
 
