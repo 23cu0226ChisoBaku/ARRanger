@@ -10,5 +10,13 @@ class ARRANGER_API UBTT_SetAttackCooldown : public UBTTaskNode
 {
 	GENERATED_BODY()
 	
-	UBTT_SetAttackCooldown();
+public:
+    UBTT_SetAttackCooldown();
+
+protected:
+    UPROPERTY(EditAnywhere, Category = "AI")
+    float CooldownTime = 5.0f;
+
+    virtual EBTNodeResult::Type ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;
+
 };

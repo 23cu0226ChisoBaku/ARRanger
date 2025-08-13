@@ -1,7 +1,7 @@
 #include "AttackComponent.h"
 
 #include "ARRangerCharacter.h"
-#include "Enemy.h"
+#include "Enemy/Enemy_Zako.h"
 #include "Kismet/KismetSystemLibrary.h"
 
 UAttackComponent::UAttackComponent()
@@ -233,18 +233,18 @@ void UAttackComponent::AttackHit(const FAttackData& Attack)
 	{
 		if (HitActor->ActorHasTag(Attack.TargetTag))
 		{
-			AEnemy* Enemy = Cast<AEnemy>(HitActor);
-
-			// ヒットエフェクト用のアクターをSpawn
-			FVector SpawnLocation = Enemy->GetActorLocation();
-			FRotator SpawnRotation = FRotator::ZeroRotator;
-
-			GetWorld()->SpawnActor<AActor>(HitEffectActor, SpawnLocation, SpawnRotation);
+			AEnemy_Zako* Enemy = Cast<AEnemy_Zako>(HitActor);
 
 			if (Enemy && !Enemy->isDead)
 			{
 				// NotifyHandlerはこちらでは触れず、プレイヤー側に任せる
 				ownerPawn->OnAttackHitNotify();
+
+				// ヒットエフェクト用のアクターをSpawn
+				FVector SpawnLocation = Enemy->GetActorLocation();
+				FRotator SpawnRotation = FRotator::ZeroRotator;
+
+				GetWorld()->SpawnActor<AActor>(HitEffectActor, SpawnLocation, SpawnRotation);
 
 				FVector LaunchDir = ownerPawn->GetActorForwardVector() + FVector(0, 0, 0.2f);
 				LaunchDir.Normalize();

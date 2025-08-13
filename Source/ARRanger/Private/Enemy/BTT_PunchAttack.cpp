@@ -27,6 +27,16 @@ EBTNodeResult::Type UBTT_PunchAttack::ExecuteTask(UBehaviorTreeComponent& OwnerC
 	AActor* TargetActor = Cast<AActor>(BlackboardComp->GetValueAsObject(TargetActorKey.SelectedKeyName));
 	if (!TargetActor) return EBTNodeResult::Failed;
 
+	// 攻撃アニメーションの再生（モンタージュ割り込み）
+	if (AttackMontage)
+	{
+		if (UAnimInstance* AnimInstance = AICharacter->GetMesh()->GetAnimInstance())
+		{
+			// 即時再生（ステートマシンより優先される）
+			AnimInstance->Montage_Play(AttackMontage);
+		}
+	}
+
 	// 攻撃判定
 	// 敵とプレイヤーの距離をチェック
 	float Distance = FVector::Dist(AICharacter->GetActorLocation(), TargetActor->GetActorLocation());
