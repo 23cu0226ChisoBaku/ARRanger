@@ -1,7 +1,9 @@
 #include "AttackComponent.h"
 
+#include "AbilitySystemComponent.h"
 #include "ARRangerCharacter.h"
 #include "Enemy.h"
+#include "GA_Attack.h"
 #include "Kismet/KismetSystemLibrary.h"
 
 UAttackComponent::UAttackComponent()
@@ -17,6 +19,9 @@ UAttackComponent::UAttackComponent()
 	// プレイヤーとそのコントローラーを取得
 	ownerPawn = Cast<AARRangerCharacter>(GetOwner());
 	ownerController = ownerPawn ? Cast<APlayerController>(ownerPawn->GetController()) : nullptr;
+
+	// AbilitySystemComponentを取得
+	AbilitySystemComp = CreateDefaultSubobject<UAbilitySystemComponent>(TEXT("AbilitySystemComp"));
 }
 
 void UAttackComponent::BeginPlay()
@@ -32,6 +37,14 @@ void UAttackComponent::BeginPlay()
 	else
 	{
 		UE_LOG(LogTemp, Error, TEXT("NO AnimInstance at BeginPlay!"));
+	}
+
+	if (AbilitySystemComp)
+	{
+		AbilitySystemComp->InitAbilityActorInfo(ownerPawn, ownerPawn);
+
+		// 攻撃アビリティ付与
+		AbilitySystemComp->GiveAbility(FGameplayAbilitySpec(UGA_Attack::StaticClass(), 1, 0));
 	}
 }
 
@@ -68,9 +81,18 @@ void UAttackComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 	}
 }
 
+UAbilitySystemComponent* UAttackComponent::GetAbilitySystemComponent() const
+{
+	return AbilitySystemComp;
+}
 
 void UAttackComponent::StartPunch()
 {
+	if (AbilitySystemComp)
+	{
+		AbilitySystemComp->TryActivateAbilityByClass(UGA_Attack::StaticClass());
+	}
+
 	// 引力クライム中は処理しない
 	if (ownerPawn->GetIsClimbed())
 	{

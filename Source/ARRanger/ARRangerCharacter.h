@@ -100,19 +100,12 @@ public:
 	// コンストラクタ
 	AARRangerCharacter();
 
-	// IAbilitySystemInterface の必須実装
-	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const;
-
 protected:
 
 	// 入力アクションのバインディングを初期化する
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 protected:
-	// AbilitySystemComponentを保存
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Abilities")
-	UAbilitySystemComponent* AbilitySystemComp;
-
 	// 移動入力のために呼び出される
 	void Move(const FInputActionValue& Value);
 
@@ -128,9 +121,6 @@ private:
 
 	// 補間速度
 	float ArmLengthInterpSpeed;
-
-	// 最後に移動していた時間
-	float LastMoveTime = 0.f;
 
 	// 変身の際に呼び出される
 	void Transform();
@@ -195,10 +185,6 @@ public:
 	// 斥力用プレイヤーメッシュ
 	UPROPERTY(EditAnywhere, Category = "PlayerMesh")
 	USkeletalMesh* RepulsionMesh;
-
-	// 移動アニメを最低限継続させる時間
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
-	float MinMoveAnimTime = 0.6f;
 
 	// ダッシュ中フラグ
 	UPROPERTY(BlueprintReadWrite)

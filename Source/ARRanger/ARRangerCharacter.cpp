@@ -1,4 +1,6 @@
 ﻿#include "ARRangerCharacter.h"
+
+#include "AbilitySystemComponent.h"
 #include "ARRangerAnimInstance.h"
 #include "AttackComponent.h"
 #include "Camera/CameraComponent.h"
@@ -9,6 +11,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/Controller.h"
+#include "GA_Attack.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "InputActionValue.h"
@@ -56,7 +59,6 @@ AARRangerCharacter::AARRangerCharacter()
 	// 各種コンポーネントを取得
 	LockOnComponent = CreateDefaultSubobject<ULockOnComponent>(TEXT("LockOnComponent"));
 	AttackComponent = CreateDefaultSubobject<UAttackComponent>(TEXT("AttackComponent"));
-	AbilitySystemComp = CreateDefaultSubobject<UAbilitySystemComponent>(TEXT("AbilitySystemComp"));
 }
 
 void AARRangerCharacter::BeginPlay()
@@ -136,11 +138,6 @@ void AARRangerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 	}
 }
 
-UAbilitySystemComponent* AARRangerCharacter::GetAbilitySystemComponent() const
-{
-	return AbilitySystemComp;
-}
-
 void AARRangerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
@@ -160,43 +157,6 @@ void AARRangerCharacter::Tick(float DeltaTime)
 				}
 			}
 		}
-	}
-
-	const float CurrentSpeed = GetVelocity().Size();
-
-	// デバッグ表示
-	//if (GEngine)
-	//{
-	//	GEngine->AddOnScreenDebugMessage(
-	//		-1, // key（-1は毎フレーム追加表示）
-	//		0.f, // 表示時間（0で1フレーム）
-	//		FColor::Yellow,
-	//		FString::Printf(TEXT("Speed: %.2f"), CurrentSpeed)
-	//	);
-	//}
-
-	// 移動中なら最後の移動時間を記録
-	if (CurrentSpeed > 100.0f) // 1cm/s以下は停止扱い
-	{
-		LastMoveTime = GetWorld()->GetTimeSeconds();
-	}
-
-	// 最低移動アニメ継続時間判定
-	const bool bForceMoveAnim = (GetWorld()->GetTimeSeconds() - LastMoveTime) < MinMoveAnimTime;
-
-	float AnimSpeedToSend = CurrentSpeed;
-
-	// 最低継続時間中はSpeedを固定値にする（例：150cm/s）
-	if (bForceMoveAnim && CurrentSpeed < 150.f)
-	{
-		AnimSpeedToSend = 150.f;
-	}
-
-	// アニメBPに値を渡す
-	if (UARRangerAnimInstance* Anim = Cast<UARRangerAnimInstance>(GetMesh()->GetAnimInstance()))
-	{
-		Anim->Speed = AnimSpeedToSend;
-		Anim->bForceMoveAnim = bForceMoveAnim;
 	}
 
 	// ヒステリシスを用いてダッシュ判定
@@ -254,7 +214,7 @@ void AARRangerCharacter::Tick(float DeltaTime)
 		FVector FootPosition = ActorLocation - wallNormal * (HalfHeight - 5.0f);
 
 		FVector Start = FootPosition;
-		FVector End = Start - wallNormal * 30.0f;
+		FVector End = Start - wallNormal * 7.0f;
 
 		FHitResult HitResult;
 		FCollisionQueryParams Params;
