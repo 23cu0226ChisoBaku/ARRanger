@@ -24,7 +24,9 @@ public class ARRanger : ModuleRules
       "NavigationSystem"
     });
 
-    PrivateDependencyModuleNames.AddRange(new string[] { });
+    PrivateDependencyModuleNames.AddRange(new string[] {
+      "UnrealEd",
+     });
 
     PublicIncludePaths.AddRange(new string[] {
       "ARRanger",
