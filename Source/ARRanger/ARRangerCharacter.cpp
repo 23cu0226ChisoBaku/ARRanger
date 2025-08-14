@@ -1,8 +1,8 @@
 ﻿#include "ARRangerCharacter.h"
 
+#include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
 #include "ARRangerAnimInstance.h"
-#include "AttackComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Components/BoxComponent.h"
 #include "Components/CapsuleComponent.h"
@@ -58,7 +58,8 @@ AARRangerCharacter::AARRangerCharacter()
 
 	// 各種コンポーネントを取得
 	LockOnComponent = CreateDefaultSubobject<ULockOnComponent>(TEXT("LockOnComponent"));
-	AttackComponent = CreateDefaultSubobject<UAttackComponent>(TEXT("AttackComponent"));
+	AbilitySystemComp = CreateDefaultSubobject<UAbilitySystemComponent>(TEXT("AbilitySystem"));
+	AbilitySystemComp->SetIsReplicated(true);
 }
 
 void AARRangerCharacter::BeginPlay()
@@ -87,6 +88,18 @@ void AARRangerCharacter::BeginPlay()
   GetCapsuleComponent()->OnComponentBeginOverlap.AddDynamic(this, &AARRangerCharacter::OnMagneticForceFieldBeginOverlap);
   GetCapsuleComponent()->OnComponentEndOverlap.AddDynamic(this, &AARRangerCharacter::OnMagneticForceFieldEndOverlap);
   GetCapsuleComponent()->OnComponentHit.AddDynamic(this, &AARRangerCharacter::OnMagnetizedObjectHit);
+
+  if (GA_AttackClass && AbilitySystemComp)
+  {
+	  // AbilitySystemComp に渡すためのSpecを作る
+	  FGameplayAbilitySpec PunchSpec(GA_AttackClass, 1, 0);
+	  PunchHandle = AbilitySystemComp->GiveAbility(PunchSpec);
+
+	  FGameplayAbilitySpec KickSpec(GA_AttackClass, 1, 1);
+	  KickHandle = AbilitySystemComp->GiveAbility(KickSpec);
+
+	  AbilitySystemComp->InitAbilityActorInfo(this, this);
+  }
 }
 
 // 麦
@@ -126,8 +139,8 @@ void AARRangerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 		EnhancedInputComponent->BindAction(SwitchTargetLeftAction, ETriggerEvent::Triggered, LockOnComponent, &ULockOnComponent::SwitchTargetLeft);
 
 		// 攻撃(パンチ、キック)
-		EnhancedInputComponent->BindAction(PunchAction, ETriggerEvent::Started, AttackComponent, &UAttackComponent::StartPunch);
-		EnhancedInputComponent->BindAction(KickAction, ETriggerEvent::Started, AttackComponent, &UAttackComponent::StartKick);
+		EnhancedInputComponent->BindAction(PunchAction, ETriggerEvent::Started, this, &AARRangerCharacter::Input_Punch);
+		EnhancedInputComponent->BindAction(KickAction, ETriggerEvent::Started, this, &AARRangerCharacter::Input_Kick);
 
 		// 変身
 		EnhancedInputComponent->BindAction(TransformAction, ETriggerEvent::Started, this, &AARRangerCharacter::Transform);
@@ -136,6 +149,11 @@ void AARRangerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 	{
 		UE_LOG(LogTemplateCharacter, Error, TEXT("'%s' Failed to find an Enhanced Input component! This template is built to use the Enhanced Input system. If you intend to use the legacy system, then you will need to update this C++ file."), *GetNameSafe(this));
 	}
+}
+
+UAbilitySystemComponent* AARRangerCharacter::GetAbilitySystemComponent() const
+{
+	return AbilitySystemComp;
 }
 
 void AARRangerCharacter::Tick(float DeltaTime)
@@ -283,12 +301,8 @@ void AARRangerCharacter::OnClimbSurfaceOverlap(
 
 void AARRangerCharacter::DoMove(float Right, float Forward)
 {
-	bool isAttacked =AttackComponent->GetIsAttacked();
-	bool isStrongAttacked = AttackComponent->GetIsStrongAttacked();
-	bool isAttractingEnemy = AttackComponent->GetIsAttractingEnemy();
-
 	// コントローラーがない、引き寄せ中または攻撃中なら処理しない
-	if (GetController() == nullptr || isAttractingEnemy || isAttacked || isStrongAttacked)
+	if (GetController() == nullptr || isAttracted || isAttacked || isStrongAttacked)
 	{
 		return;
 	}
@@ -422,11 +436,8 @@ void AARRangerCharacter::DoLook(float Yaw, float Pitch)
 
 void AARRangerCharacter::DoJumpStart()
 {
-	bool isAttacked = AttackComponent->GetIsAttacked();
-	bool isStrongAttacked = AttackComponent->GetIsStrongAttacked();
-
-	// 攻撃中は処理しない
-	if (isAttacked || isStrongAttacked)
+	// 攻撃中・引き寄せ中は処理しない
+	if (isAttacked || isStrongAttacked || isAttracted)
 	{
 		return;
 	}
@@ -456,6 +467,38 @@ void AARRangerCharacter::DoJumpEnd()
 	StopJumping();
 }
 
+void AARRangerCharacter::Input_Punch()
+{
+	UE_LOG(LogTemp, Warning, TEXT("Punch Input!"));
+
+	// GA_Attackがなければ処理しない
+	if (!GA_AttackClass)
+	{
+		return;
+	}
+
+	if (AbilitySystemComp && PunchHandle.IsValid())
+	{
+		AbilitySystemComp->TryActivateAbility(PunchHandle);
+	}
+}
+
+void AARRangerCharacter::Input_Kick()
+{
+	UE_LOG(LogTemp, Warning, TEXT("Kick Input!"));
+
+	// GA_Attackがなければ処理しない
+	if (!GA_AttackClass)
+	{
+		return;
+	}
+
+	if (AbilitySystemComp && KickHandle.IsValid())
+	{
+		AbilitySystemComp->TryActivateAbility(KickHandle);
+	}
+}
+
 void AARRangerCharacter::OnAttackHitNotify()
 {
 	// プレイヤー内でのみ扱いたいのでこちらで攻撃のコールバック
@@ -465,11 +508,8 @@ void AARRangerCharacter::OnAttackHitNotify()
 
 void AARRangerCharacter::Transform()
 {
-	bool isAttacked = AttackComponent->GetIsAttacked();
-	bool isStrongAttacked = AttackComponent->GetIsStrongAttacked();
-
-	// 攻撃中は処理しない
-	if (isAttacked || isStrongAttacked)
+	// 攻撃中・引き寄せ中はは処理しない
+	if (isAttacked || isStrongAttacked || isAttracted)
 	{
 		return;
 	}

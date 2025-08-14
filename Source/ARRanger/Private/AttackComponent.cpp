@@ -81,10 +81,12 @@ void UAttackComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 	}
 }
 
+
 UAbilitySystemComponent* UAttackComponent::GetAbilitySystemComponent() const
 {
 	return AbilitySystemComp;
 }
+
 
 void UAttackComponent::StartPunch()
 {
