@@ -8,9 +8,21 @@ struct FAttackData
 {
 	GENERATED_BODY()
 
-	// 通常攻撃アニメーションモンタージュ
+	// 実際に再生する通常攻撃アニメーションモンタージュ
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	UAnimMontage* Montage_Normal;
+
+	// 通常攻撃アニメーションモンタージュ(1段目)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UAnimMontage* Montage_Normal_1;
+
+	// 通常攻撃アニメーションモンタージュ(2段目)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UAnimMontage* Montage_Normal_2;
+
+	// 通常攻撃アニメーションモンタージュ(3段目)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UAnimMontage* Montage_Normal_3;
 
 	// 強攻撃アニメーションモンタージュ
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)

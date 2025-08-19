@@ -75,16 +75,12 @@ void UGA_Attack::EndAbility(
 // =====================
 void UGA_Attack::StartPunch()
 {
-    UE_LOG(LogTemp, Warning, TEXT("Punch Start!"));
-    if (bIsAttacked) return;
-
     AARRangerCharacter* Char = Cast<AARRangerCharacter>(GetAvatarActorFromActorInfo());
     if (!Char) return;
 
-    // ロックオン向きに回転
     RotateOwnerToTarget();
 
-    // 引力状態で敵をロックオンしていれば引き寄せ開始
+    // 引力特殊攻撃は従来どおり
     if (Char->GetMagnetismType() == EARMagnetismType::Attraction &&
         Char->LockOnComponent->GetIsLockedOn())
     {
@@ -100,8 +96,22 @@ void UGA_Attack::StartPunch()
         return;
     }
 
-    bIsStrongAttack = false;
-    PlayAttackMontage(PunchData);
+    UAnimInstance* Anim = Char->GetMesh()->GetAnimInstance();
+    if (!Anim || !PunchData.Montage_Normal) return;
+
+    bIsAttacked = true;
+    Char->SetIsAttacked(true);
+
+    // コンボ段階に応じたセクション名
+    FString SectionName = FString::Printf(TEXT("Punch%d"), ComboCount + 1);
+    Anim->Montage_Play(PunchData.Montage_Normal);
+    Anim->Montage_JumpToSection(FName(*SectionName), PunchData.Montage_Normal);
+
+    // 次の段階に進める（最後の段階を超えたら最後のまま）
+    if (ComboCount < MaxCombo - 1)
+    {
+        ComboCount++;
+    }
 }
 
 void UGA_Attack::PunchHitNotify()
@@ -157,31 +167,16 @@ void UGA_Attack::RotateOwnerToTarget()
 
 void UGA_Attack::PlayAttackMontage(const FAttackData& Attack)
 {
-    // プレイヤーが取得できなければ処理しない
-    AARRangerCharacter* Char = Cast<AARRangerCharacter>(GetAvatarActorFromActorInfo());
-    if (!Char)
-    {
-        return;
-    }
-    
-    // アニメーションがない、または攻撃中は処理しない 
-    if (!Attack.Montage_Normal || !Attack.Montage_Strong || bIsAttacked) 
-    { 
-        return; 
-    } 
+    AARRangerCharacter * Char = Cast<AARRangerCharacter>(GetAvatarActorFromActorInfo());
+    if (!Char || !Attack.Montage_Normal) return;
 
-    UAnimInstance* Anim = Char->GetMesh()->GetAnimInstance(); 
-    // アニメ再生中は処理しない 
-    if (!Anim || Anim->Montage_IsPlaying(Attack.Montage_Normal) || Anim->Montage_IsPlaying(Attack.Montage_Strong)) 
-    { 
-        return;
-    }
+    UAnimInstance* Anim = Char->GetMesh()->GetAnimInstance();
+    if (!Anim) return;
 
     bIsAttacked = true;
     Char->SetIsAttacked(true);
 
-    UE_LOG(LogTemp, Warning, TEXT("Anim Start"));
-    if (bIsStrongAttack)
+    if (bIsStrongAttack && Attack.Montage_Strong)
         Anim->Montage_Play(Attack.Montage_Strong);
     else
         Anim->Montage_Play(Attack.Montage_Normal);
@@ -269,14 +264,22 @@ void UGA_Attack::AttackHit(const FAttackData& Attack)
 
 void UGA_Attack::OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted)
 {
-    UE_LOG(LogTemp, Warning, TEXT("Anim End"));
     bIsAttacked = false;
     bIsStrongAttack = false;
     bIsBlowedAwayEnemy = false;
     bIsAttractingEnemy = false;
 
     AARRangerCharacter* Char = Cast<AARRangerCharacter>(GetAvatarActorFromActorInfo());
-    Char->SetIsAttacked(false);
-    Char->SetIsStrongAttacked(false);
-    Char->SetIsAttracted(false);
+    if (Char)
+    {
+        Char->SetIsAttacked(false);
+        Char->SetIsStrongAttacked(false);
+        Char->SetIsAttracted(false);
+    }
+
+    // 最後のセクションが終わったらコンボリセット
+    if (ComboCount >= MaxCombo)
+    {
+        ComboCount = 0;
+    }
 }

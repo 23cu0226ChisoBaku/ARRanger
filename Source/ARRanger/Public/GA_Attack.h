@@ -34,6 +34,12 @@ private:
     bool bIsBlowedAwayEnemy = false;
     bool bIsAttractingEnemy = false;
 
+    // 現在のコンボ段階
+    int32 ComboCount = 0;
+
+    // 最大コンボ回数
+    int32 MaxCombo = 3;
+
     // パンチ・キックのデータ
     UPROPERTY(EditAnywhere, Category = "Attack")
     FAttackData PunchData;
@@ -54,7 +60,14 @@ private:
     void OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted);
 
 public:
+    // コンボ用のモンタージュ
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attack")
+    TArray<UAnimMontage*> ComboMontages;
+
+    // パンチの際に呼び出される
     void StartPunch();
+
+    // キックの際に呼び出される
     void StartKick();
 
     // パンチのAnimNotifyの通知を受け取る
