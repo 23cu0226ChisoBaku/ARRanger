@@ -5,7 +5,7 @@
 
 #include "InsekiGameMode.generated.h"
 
-class ABlinkOutlineTickActor;
+class AOutlineTickActor;
 
 // 麦
 namespace ARRanger
@@ -58,6 +58,6 @@ private:
 	TArray< TWeakInterfacePtr< IObservableSubjectInterface > > Subjects;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Blinking")
-	TSubclassOf<ABlinkOutlineTickActor> BlinkTickActorClass;
+	TSubclassOf<AOutlineTickActor> OutlineTickActorClass;
 
 };

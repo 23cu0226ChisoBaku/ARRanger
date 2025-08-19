@@ -13,11 +13,9 @@
 */
 BlinkOutlineFunctor::BlinkOutlineFunctor()
 {
-
 }
 BlinkOutlineFunctor::~BlinkOutlineFunctor()
 {
-
 }
 /*
 * End BlinkOutlineFunctor Lifecycle Functions
@@ -28,7 +26,7 @@ BlinkOutlineFunctor::~BlinkOutlineFunctor()
  * 
  * @param 点滅処理を行うためのパラメータ,１フレームの時間
  */
-void BlinkOutlineFunctor::OutlineBlink(UObject* targetObject, UMeshComponent* targetmeshComponent, FBlinkingActorData* blinkingData, float DeltaTime)
+void BlinkOutlineFunctor::OutlineBlink(AActor* targetObject, UMeshComponent* targetmeshComponent, FBlinkingActorData* blinkingData, float DeltaTime)
 {
     if(targetObject == nullptr || targetmeshComponent == nullptr || blinkingData == nullptr){ return; }
 
@@ -41,9 +39,6 @@ void BlinkOutlineFunctor::OutlineBlink(UObject* targetObject, UMeshComponent* ta
     // 動的マテリアルの生成・セット
     if(targetmeshComponent != nullptr)
     {
-        // blinkingData->m_DynamicMaterial = CreateDynamicMaterial(blinkingData->_blinkMaterial, targetObject);
-        // targetmeshComponent->SetOverlayMaterial(blinkingData->m_DynamicMaterial);
-
         // 妥協処理
         if (AMagnetizableActor* MagnetActor = Cast<AMagnetizableActor>(targetObject))
 		{
@@ -55,11 +50,10 @@ void BlinkOutlineFunctor::OutlineBlink(UObject* targetObject, UMeshComponent* ta
     // 妥協処理(本来はNoneTypeだった場合のみ、なんならここに書きたくない)
     if(blinkingData->_blinkType != EBlinkType::Constant)
     {
-        // 経過時間を加算
-        //blinkingData->_elapsedTime += DeltaTime;
         // 妥協処理
         if (AMagnetizableActor* MagnetActor = Cast<AMagnetizableActor>(targetObject))
 		{
+            // 経過時間を加算
             MagnetActor->ElapsedBlinkTime += DeltaTime;
 
             // ログ表示
@@ -77,21 +71,6 @@ void BlinkOutlineFunctor::OutlineBlink(UObject* targetObject, UMeshComponent* ta
                 );
             }
         }
-
-        // // ログ表示
-        // if (GEngine)
-        // {
-        //     // 第1引数: キー (同じキーなら上書き表示)
-        //     // 第2引数: 表示時間 (秒)
-        //     // 第3引数: 色
-        //     GEngine->AddOnScreenDebugMessage(
-        //         -1,
-        //         0.f,
-        //         FColor::Green,
-        //         FString::Printf(TEXT("ElapsedTime: %.2f"), blinkingData->_elapsedTime)
-        //         FString::Printf(TEXT("ElapsedTime: %.2f"), targetObject->ElapsedBlinkTime)
-        //     );
-        // }
     }
 
     // ディレイ中なら処理しない
@@ -101,21 +80,20 @@ void BlinkOutlineFunctor::OutlineBlink(UObject* targetObject, UMeshComponent* ta
     {
         if (MagnetActor->ElapsedBlinkTime < blinkingData->_blinkDelay){ return; }
     }
-    
 
     // 指定された種類の点滅を行う
     // 等間隔の点滅
     if(blinkingData->_blinkType == EBlinkType::Constant)
     {
-        ConstantBlink();
+        ConstantBlink(targetObject, blinkingData->_blinkInterval, blinkingData->_blinkSpeed);
     }
     // 徐々に早める点滅
     else if(blinkingData->_blinkType == EBlinkType::Accelerated)
     {
-        AcceleratedBlink();
+        AcceleratedBlink(targetObject, blinkingData->_blinkInterval, blinkingData->_blinkSpeed);
     }
     
-   
+    // 点滅時間過ぎたら終了
     if (AMagnetizableActor* MagnetActor = Cast<AMagnetizableActor>(targetObject))
     {
         if(blinkingData->_blinkInterval  <=  MagnetActor->ElapsedBlinkTime)
@@ -130,20 +108,6 @@ void BlinkOutlineFunctor::OutlineBlink(UObject* targetObject, UMeshComponent* ta
             }
         }
     }    
-
-    
-    // // 点滅する時間が過ぎていたら点滅終了(点滅し始めてからの経過時間で計測)
-    // //if(blinkingData->_blinkInterval  <=  blinkingData->_elapsedTime)
-    // {
-    //     // コールバック呼び出し
-    //     if (OnBlinkEnd != nullptr)
-    //     {
-    //         if (AActor* targetActor = Cast<AActor>(targetObject))
-    //         {
-    //             OnBlinkEnd(targetActor);
-    //         }
-    //     }
-    // }
 } 
 
 /**
@@ -176,9 +140,21 @@ UMaterialInstanceDynamic* BlinkOutlineFunctor::CreateDynamicMaterial(UMaterialIn
  * 
  * @param 
  */
-void BlinkOutlineFunctor::ConstantBlink()
+void BlinkOutlineFunctor::ConstantBlink(AActor* targetObject, float blinkInterval, float blinkSpeed)
 {
+    if (targetObject == nullptr) {return;}
 
+    AMagnetizableActor* magnetActor = Cast<AMagnetizableActor>(targetObject);
+    if (magnetActor == nullptr || magnetActor->DynamicBlinkMaterial == nullptr) {return;}
+
+    // 経過時間を加算
+    magnetActor->ElapsedBlinkTime += blinkSpeed * targetObject->GetWorld()->GetDeltaSeconds();
+
+    // 点滅計算 (半周期で ON/OFF)
+    float phase = FMath::Fmod(magnetActor->ElapsedBlinkTime, blinkInterval);
+    float alpha = (phase < blinkInterval / 2.0f) ? 1.0f : 0.0f;
+
+    magnetActor->DynamicBlinkMaterial->SetScalarParameterValue(TEXT("OutlineIntensity"), alpha);
 }
 
 /**
@@ -186,7 +162,20 @@ void BlinkOutlineFunctor::ConstantBlink()
  * 
  * @param 
  */
-void BlinkOutlineFunctor::AcceleratedBlink()
+void BlinkOutlineFunctor::AcceleratedBlink(AActor* targetObject, float blinkInterval, float blinkSpeed)
 {
-    
+    if (targetObject == nullptr) {return;}
+
+    AMagnetizableActor* magnetActor = Cast<AMagnetizableActor>(targetObject);
+    if (magnetActor == nullptr || magnetActor->DynamicBlinkMaterial == nullptr) {return;}
+
+    // 経過時間加算
+    magnetActor->ElapsedBlinkTime += targetObject->GetWorld()->GetDeltaSeconds();
+
+    // 徐々に早くなる点滅
+    float interval = FMath::Max(blinkInterval - magnetActor->ElapsedBlinkTime * blinkSpeed, 0.05f);
+    float phase = FMath::Fmod(magnetActor->ElapsedBlinkTime, interval);
+    float alpha = (phase < interval / 2.0f) ? 1.0f : 0.0f;
+
+    magnetActor->DynamicBlinkMaterial->SetScalarParameterValue(TEXT("OutlineIntensity"), alpha);
 }

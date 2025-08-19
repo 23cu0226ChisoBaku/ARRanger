@@ -9,7 +9,7 @@
 
 #include "MagnetizableActor.generated.h"
 
-UCLASS(Abstract)
+UCLASS(Blueprintable)
 class AMagnetizableActor :  public AActor, 
 							public IARMagnetizableInterface
 {
@@ -66,6 +66,17 @@ public:
 	bool CanSetMagnetismType()
 	{
 		return m_CanSetMagnetismType;
+	}
+
+	/**
+	 * @brief 斥力・引力の状態変化が可能かどうかを設定する
+	 * 
+	 * @param bCanSet 新しい状態（true/false）
+	 */
+	UFUNCTION(BlueprintCallable)
+	void SetCanSetMagnetismType(bool bCanSet)
+	{
+		m_CanSetMagnetismType = bCanSet;
 	}
 
 	/*Start IARMagnetizableInterface interface*/

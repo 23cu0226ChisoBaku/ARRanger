@@ -6,16 +6,16 @@
 
 #include "CoreMinimal.h"
 #include "Subsystems/WorldSubsystem.h"
-#include "Public/BlinkingSystem/BlinkingOutlineSystem.h"
+#include "Public/BlinkingSystem/OutlineSystem.h"
 #include "BlinkingOutlineWorldSubsystem.generated.h"
 
 // 前方宣言
-class ULineTraceSingleARObjectComponent;
-class ABlinkOutlineTickActor;
+class UDetectorMagnetizableComponent;
+class AOutlineTickActor;
 
 
 /*
- * BlinkingOutlineSystem の関数を LineTraceSingleARObjectComponent のデリゲートにバインドする用のシステム
+ * OutlineSystem の関数を DetectorMagnetizableComponent のデリゲートにバインドする用のシステム
  */
 UCLASS()
 class ARRANGER_API UBlinkingOutlineWorldSubsystem : public UWorldSubsystem
@@ -28,18 +28,18 @@ public:
 	virtual void Deinitialize() override;
 
 	/*
-	* @brief BlinkingOutlineSystem を初期化し、ライントレースコンポーネントにデリゲートをバインド
+	* @brief OutlineSystem を初期化し、ライントレースコンポーネントにデリゲートをバインド
 	*
 	* @param 現在のワールド, ライントレースコンポーネント, 点滅処理させるアクターのクラス
 	*/
-	void SetupBlinkingSystem(UWorld* World, ULineTraceSingleARObjectComponent* lineTraceComp, TSubclassOf<ABlinkOutlineTickActor> tickActorClass);
+	void SetupBlinkingSystem(UWorld* World, UDetectorMagnetizableComponent* lineTraceComp, TSubclassOf<AOutlineTickActor> tickActorClass);
 
-	FBlinkingOutlineSystem* GetBlinkingOutlineSystem() const { return m_BlinkingOutlineSystem.Get(); }
+	FOutlineSystem* GetBlinkingOutlineSystem() const { return m_OutlineSystem.Get(); }
 
 private:
 
 	/*
-	 * @brief BlinkingOutlineSystem の関数を LineTraceSingleARObjectComponent のデリゲートにバインド 
+	 * @brief OutlineSystem の関数を DetectorMagnetizableComponent のデリゲートにバインド 
 	 */
 	void BindBlinkingMagnetizableObjectDelegate();
 
@@ -51,9 +51,9 @@ private:
 private:
 
 	UPROPERTY()
-	TObjectPtr<ULineTraceSingleARObjectComponent> m_LineTraceComponent;
+	TObjectPtr<UDetectorMagnetizableComponent> m_DetectorMagnetizableComponent;
 	UPROPERTY()
-	TSubclassOf<ABlinkOutlineTickActor> m_TickActorClass;
+	TSubclassOf<AOutlineTickActor> m_TickActorClass;
 
-	TUniquePtr<class FBlinkingOutlineSystem> m_BlinkingOutlineSystem;
+	TUniquePtr<class FOutlineSystem> m_OutlineSystem;
 };

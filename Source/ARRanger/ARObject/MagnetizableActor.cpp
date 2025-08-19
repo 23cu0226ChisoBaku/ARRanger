@@ -38,30 +38,7 @@ void AMagnetizableActor::BeginPlay()
 void AMagnetizableActor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
-	/*テスト用*/
-	// if (GetMagnetismType() ==  EARMagnetismType::Attraction)
-	// {
-	// 	OnAttractionEvaluated();
-	// }
-	// else if (GetMagnetismType() ==  EARMagnetismType::Repulsion)
-	// {
-	// 	OnRepulsionEvaluated();
-	// }
 }
-
-// /**
-//  * @brief 引力・斥力における移動
-//  * 
-//  * @param 移動量
-//  */
-// void AMagnetizableActor::OnMagneticForceEvaluated(const FVector& magneticForce)
-// {
-// 	if(CanMagneticForce())
-// 	{
-// 		SetActorLocation(magneticForce);
-// 	}
-// }
 
 /*
 * @brief 引力の磁性を保持している時の処理
