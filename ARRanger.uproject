@@ -23,7 +23,9 @@
 			"AdditionalDependencies": [
 				"Engine",
 				"Blutility",
-				"CoreUObject"
+				"CoreUObject",
+				"ScriptableEditorWidgets",
+				"UnrealEd"
 			]
 		},
 		{

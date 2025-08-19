@@ -25,7 +25,7 @@ public class ARRanger : ModuleRules
     });
 
     PrivateDependencyModuleNames.AddRange(new string[] {
-      "UnrealEd",
+
      });
 
     PublicIncludePaths.AddRange(new string[] {

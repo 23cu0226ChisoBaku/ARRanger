@@ -25,20 +25,20 @@ FARPhysicsMagneticParametersRepository::~FARPhysicsMagneticParametersRepository(
   Reset();
 }
 
-bool FARPhysicsMagneticParametersRepository::Find(UObject* User, FMagneticParameterDTO& OutData) const
+bool FARPhysicsMagneticParametersRepository::Find(UObject* ID, FMagneticParameterDTO& OutData) const
 {
   OutData = FMagneticParameterDTO::EmptyDTO;
 
-  if (User == nullptr)
+  if (ID == nullptr)
   {
-    AR_LOG(LogARPhysicsRepository, Error, TEXT("User is invalid."));
+    AR_LOG(LogARRepository, Error, TEXT("User is invalid."));
     return false;
   }
 
-  TSubclassOf<UObject> userClass = User->GetClass();
+  TSubclassOf<UObject> userClass = ID->GetClass();
   if (!m_container.Contains(userClass))
   {
-    AR_LOG(LogARPhysicsRepository, Error, TEXT("Can not find data of User. User Class Name:[%s]"), *User->GetClass()->GetName());
+    AR_LOG(LogARRepository, Error, TEXT("Can not find data of User. User Class Name:[%s]"), *ID->GetClass()->GetName());
     return false;
   } 
 
@@ -60,31 +60,78 @@ int32 FARPhysicsMagneticParametersRepository::FindAll(TArray<FMagneticParameterD
   return OutAllDatas.Num();
 } 
 
-bool FARPhysicsMagneticParametersRepository::Save(UObject* User, const FMagneticParameterDTO& InData)
+bool FARPhysicsMagneticParametersRepository::Add(UObject* ID, const FMagneticParameterDTO& InData)
 {
-  if (User == nullptr)
+  if (ID == nullptr)
   {
-    AR_LOG(LogARPhysicsRepository, Error, TEXT("Can not save invalid user into repository."));
+    AR_LOG(LogARRepository, Error, TEXT("Can not add invalid user into repository."));
     return false;
   }
 
-  FMagneticParameters& userData = m_container.FindOrAdd(User->GetClass());
-  if (userData.MagneticCharge == InData.MagneticCharge &&
-      userData.MagneticObjectMass == InData.MagneticObjectMass)
+  TSubclassOf<UObject> userClass = ID->GetClass();
+  if (m_container.Contains(userClass))
   {
-    AR_LOG(LogARPhysicsRepository, Warning, TEXT("Try to save same value.Repository would not update"));
+    AR_LOG(LogARRepository, Warning, TEXT("Try to add same user into repository"));
     return false;
   }
 
-  userData.MagneticCharge = InData.MagneticCharge;
-  userData.MagneticObjectMass = InData.MagneticObjectMass;
-
-#if WITH_EDITOR
-  MarkDirty();
-#endif
-
+  (void)m_container.Emplace(userClass, FMagneticParameters{InData.MagneticCharge, InData.MagneticObjectMass});
   return true;
 }
+
+
+bool FARPhysicsMagneticParametersRepository::Save(UObject* ID, const FMagneticParameterDTO& InData)
+{
+  if (ID == nullptr)
+  {
+    AR_LOG(LogARRepository, Error, TEXT("Can not save invalid user into repository."));
+    return false;
+  }
+  
+  FMagneticParameters* userData = m_container.Find(ID->GetClass());
+  if (userData == nullptr)
+  {
+    AR_LOG(LogARRepository, Error, TEXT("Try to save data that is not exist."));
+    return false;
+  }
+
+  if (userData->MagneticCharge == InData.MagneticCharge &&
+      userData->MagneticObjectMass == InData.MagneticObjectMass)
+    {
+      AR_LOG(LogARRepository, Warning, TEXT("Try to save same value.Repository would not update"));
+      return false;
+    }
+    
+    userData->MagneticCharge = InData.MagneticCharge;
+    userData->MagneticObjectMass = InData.MagneticObjectMass;
+    
+#if WITH_EDITOR
+    MarkDirty();
+#endif
+  
+  return true;
+}
+  
+bool FARPhysicsMagneticParametersRepository::Delete(UObject* ID)
+{
+  if (ID == nullptr)
+  {
+    return false;
+  }
+
+  return m_container.Remove(ID->GetClass()) > 0;
+
+}
+
+bool FARPhysicsMagneticParametersRepository::Exist(UObject* ID) const
+{
+  if (ID == nullptr)
+  {
+    return false;
+  }
+
+  return m_container.Contains(ID->GetClass());
+} 
 
 void FARPhysicsMagneticParametersRepository::Reset()
 {

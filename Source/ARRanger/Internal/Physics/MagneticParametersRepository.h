@@ -3,31 +3,36 @@
 #ifndef _AR_INTERNAL_PHYSICS_MAGNETIC_PARAMETERS_REPOSITORY_
 #define _AR_INTERNAL_PHYSICS_MAGNETIC_PARAMETERS_REPOSITORY_
 
-#include "Physics/DataTransfer/IMagneticGatewayInterface.h"
+#include "Repositories/IARRepositoryInterface.h"
+#include "Physics/DataTransfer/MagneticParameterDTO.h"
+#include "Internal/Physics/ARPhysicsModels.h"
 
 namespace ARRanger
 {
 
 namespace Physics
 {
-  struct FMagneticParameters;
-
-  class FARPhysicsMagneticParametersRepository final : public ARRanger::Physics::IMagneticGatewayInterface
+  class FARPhysicsMagneticParametersRepository final : public ARRanger::Repository::IARRepositoryGateway<UObject*, FMagneticParameterDTO>
   {
     using RepositoryContainer = TMap<TSubclassOf<UObject>, FMagneticParameters>;
     
     public:
+      /**Start IARRepositoryInterface interface */
       AR_DEFINE_REPOSITORY_CLASS(FARPhysicsMagneticParametersRepository)
+      /**End IARRepositoryInterface interface */
 
     public:
       FARPhysicsMagneticParametersRepository();
       ~FARPhysicsMagneticParametersRepository();
 
-      /**Start IMagneticGatewayInterface interface */
-      [[nodiscard]] bool Find(UObject* User, FMagneticParameterDTO& OutData) const override;
-      [[nodiscard]] int32 FindAll(TArray<FMagneticParameterDTO>& OutAllDatas) const override;
-      [[nodiscard]] bool Save(UObject* User, const FMagneticParameterDTO& InData) override; 
-      /**End IMagneticGatewayInterface interface */
+      /**Start IARRepositoryGateway interface */
+      ARRANGER_API [[nodiscard]] bool Find(UObject* ID, FMagneticParameterDTO& OutData) const override;
+      ARRANGER_API [[nodiscard]] int32 FindAll(TArray<FMagneticParameterDTO>& OutAllDatas) const override;
+      ARRANGER_API [[nodiscard]] bool Add(UObject* ID, const FMagneticParameterDTO& InData) override;
+      ARRANGER_API [[nodiscard]] bool Save(UObject* ID, const FMagneticParameterDTO& InData) override; 
+      ARRANGER_API [[nodiscard]] bool Delete(UObject* ID) override;
+      ARRANGER_API [[nodiscard]] bool Exist(UObject* ID) const override;
+      /**End IARRepositoryGateway interface */
 
       FARPhysicsMagneticParametersRepository(const FARPhysicsMagneticParametersRepository& Other) = delete;
       FARPhysicsMagneticParametersRepository& operator=(const FARPhysicsMagneticParametersRepository& Other) = delete;
@@ -53,6 +58,7 @@ namespace Physics
       uint8 bIsRepositoryModified : 1;
   #endif
 #pragma endregion EDITOR_ONLY_REGION
+
   };
 
 } // namespace ARRanger::Physics
