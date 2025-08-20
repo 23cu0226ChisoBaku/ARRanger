@@ -6,7 +6,6 @@
 
 #include "GameFramework/Actor.h"
 #include "Public/IARMagnetizableInterface.h"
-
 #include "MagnetizableActor.generated.h"
 
 UCLASS(Blueprintable)
@@ -88,9 +87,6 @@ public:
 	/*テスト用*/
 	UFUNCTION(BlueprintCallable)
 	void SetType(EARMagnetismType newType);
-
-	UFUNCTION(BlueprintPure)
-	EARMagnetismType GetType() const;
 
 	// 妥協処理
 	float ElapsedBlinkTime = 0.0f;

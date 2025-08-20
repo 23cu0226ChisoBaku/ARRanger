@@ -53,7 +53,7 @@ public:
 	/*
 	* @brief 引力斥力を付与したをシステムから除外するデリゲート
 	*/
-	FStaticUnsetActorOnBlinkingOutlineDelegate UnsetActorOnBlinkingOutline;
+	//FStaticUnsetActorOnBlinkingOutlineDelegate UnsetActorOnBlinkingOutline;
 
 	/**
 	 * @brief コンポーネント所有者についているカメラコンポ―ネントを取得する関数

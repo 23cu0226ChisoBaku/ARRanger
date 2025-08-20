@@ -54,7 +54,7 @@ void UDetectorMagnetizableComponent::AssignTargetMagnetizableObject()
     FVector startPoint;
     FVector endPoint;
 
-	 // カメラが有効でなければリターン
+	// カメラが有効でなければリターン
     if (m_PlayerCameraComponent == nullptr || !m_PlayerCameraComponent->GetEvaluationContext().IsValid())  { return; }
 
     // 始点と終点を計算
@@ -75,7 +75,7 @@ void UDetectorMagnetizableComponent::AssignTargetMagnetizableObject()
 
 		// 新しい対象を設定
 		if (currentTarget != nullptr && currentTarget->GetClass()->ImplementsInterface(UARMagnetizableInterface::StaticClass()))
-		{
+		{	
 			SetMagnetizableObjectAtCursor.ExecuteIfBound(currentTarget);
 			m_TargetMagnetizableActor = currentTarget;
 		}

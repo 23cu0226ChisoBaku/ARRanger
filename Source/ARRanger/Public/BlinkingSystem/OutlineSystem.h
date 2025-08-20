@@ -50,11 +50,11 @@ public:
 	void AddBlinkingOutlineActorDelegate(AActor* targetObject);
 
 	/*
-	* @brief 点滅アウトライン対象を削除するデリゲート関数
+	* @brief 点滅アウトライン対象を削除する
 	*
 	* @param 点滅するアウトラインをはずす対象のオブジェクトポインタ
 	*/
-	void RemoveBlinkingOutlineActorDelegate(AActor* targetObject);
+	void RemoveBlinkingOutlineActor(AActor* targetObject);
 
     /*
 	* @brief アウトライン対象配列の参照を返す

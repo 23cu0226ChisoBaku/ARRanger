@@ -160,6 +160,9 @@ public:
 	void OnIsUpOutlineActors()  {m_IsUpOutlineActors = true;}
 	void OnIsUpBlinkingActors() {m_IsUpBlinkingActors = true;}
 
+	// FOutlineSystemから渡してもらうコールバック
+    TFunction<void(AActor*)> OnRequestRemoveBlinkingActor;
+
 private:
 
 	/**
@@ -177,9 +180,9 @@ private:
 	void UpdateBlinkingTargets();
 
 	UPROPERTY()
-	TArray<FBlinkingTarget> m_OutlineActors;						/*点滅させる対象のアクターのデータ構造体*/
+	TArray<FBlinkingTarget> m_OutlineActors;						/*アウトラインを付ける対象アクターのデータ構造体*/
 	UPROPERTY()
-	TArray<FBlinkingTarget> m_BlinkingActors;						/*点滅させる対象のアクターのデータ構造体*/
+	TArray<FBlinkingTarget> m_BlinkingActors;						/*点滅させる対象アクターのデータ構造体*/
 	UPROPERTY(EditAnywhere)
 	FBlinkDataSet m_BlinkDatas;										/*点滅させる際の必要なパラメータ*/
 

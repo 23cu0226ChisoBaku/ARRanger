@@ -33,6 +33,11 @@ void FOutlineSystem::CreateTickingActor(UWorld* world, TSubclassOf<AOutlineTickA
 		if (m_TickActor.IsValid())
 		{
 			m_TickActor->BindOutlineActorArrays(&m_OutlineActors, &m_BlinkingOutlineActors);
+			// コールバックを登録
+			m_TickActor->OnRequestRemoveBlinkingActor = [this](AActor* actor)
+			{
+				this->RemoveBlinkingOutlineActor(actor);
+			};
 		}
 	}
 }
@@ -45,8 +50,8 @@ void FOutlineSystem::CreateTickingActor(UWorld* world, TSubclassOf<AOutlineTickA
 void FOutlineSystem::BlinkOutlineActorAtCursorDelegate(AActor* targetObject)
 {
 	if(m_TickActor != nullptr)
-	{				
-		m_TickActor->SetBlinkOutlineActorAtCursor(targetObject);		
+	{
+		m_TickActor->SetBlinkOutlineActorAtCursor(targetObject);			
 	}
 }
 
@@ -94,27 +99,20 @@ void FOutlineSystem::AddBlinkingOutlineActorDelegate(AActor* targetObject)
 		m_TickActor->AddBlinkingActor(targetObject);
 		m_TickActor->OnIsUpBlinkingActors();
 	}
-
-    // アウトラインを付ける対象に登録されている場合は外す
-	if (m_OutlineActors.Contains(targetObject))
-	{
-		m_OutlineActors.Remove(targetObject);
-	}
 }
 
 /*
-* @brief 点滅アウトライン対象を削除するデリゲート関数
+* @brief 点滅アウトライン対象を削除する
 *
 * @param 点滅アウトラインをはずす対象のオブジェクトポインタ
 */
-void FOutlineSystem::RemoveBlinkingOutlineActorDelegate(AActor* targetObject)
+void FOutlineSystem::RemoveBlinkingOutlineActor(AActor* targetObject)
 {
 	if (m_TickActor.IsValid())
 	{
 		if (m_TickActor != nullptr)
 		{
 			m_BlinkingOutlineActors.Remove(targetObject);
-			m_TickActor->RemoveBlinkingActor(targetObject);
 		}
 	}
 }

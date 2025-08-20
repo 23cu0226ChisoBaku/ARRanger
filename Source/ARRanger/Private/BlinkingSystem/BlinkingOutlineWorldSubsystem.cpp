@@ -68,10 +68,10 @@ void UBlinkingOutlineWorldSubsystem::BindBlinkingMagnetizableObjectDelegate()
 			&FOutlineSystem::AddBlinkingOutlineActorDelegate
 		);
 
-		m_DetectorMagnetizableComponent->UnsetActorOnBlinkingOutline.BindRaw(
-			m_OutlineSystem.Get(),
-			&FOutlineSystem::RemoveBlinkingOutlineActorDelegate
-		);
+		// m_DetectorMagnetizableComponent->UnsetActorOnBlinkingOutline.BindRaw(
+		// 	m_OutlineSystem.Get(),
+		// 	&FOutlineSystem::RemoveBlinkingOutlineActorDelegate
+		// );
 	}
 }
 
@@ -86,6 +86,5 @@ void UBlinkingOutlineWorldSubsystem::UnBindDelegate()
 		m_DetectorMagnetizableComponent->SetActorOnOutline.Unbind();
 		m_DetectorMagnetizableComponent->UnsetActorOnOutline.Unbind();
 		m_DetectorMagnetizableComponent->SetActorOnBlinkingOutline.Unbind();
-		m_DetectorMagnetizableComponent->UnsetActorOnBlinkingOutline.Unbind();
 	}
 }
