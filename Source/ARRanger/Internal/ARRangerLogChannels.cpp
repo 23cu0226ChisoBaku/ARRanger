@@ -1,3 +1,5 @@
 ﻿#include "ARRangerLogChannels.h"
 
 DEFINE_LOG_CATEGORY(LogARPhysics);
+DEFINE_LOG_CATEGORY(LogARRepository);
+DEFINE_LOG_CATEGORY(LogAREditorAsset);
