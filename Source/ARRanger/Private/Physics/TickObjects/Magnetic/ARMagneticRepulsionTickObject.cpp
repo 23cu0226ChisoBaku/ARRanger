@@ -57,19 +57,6 @@ void UARMagneticRepulsionTickObject::OnTick(const FARPhysicsTickParameters& Tick
       const FVector knockBackVelo = horizontalDir * 800.0f + FVector{0.0, 0.0, 200.0};
       Result.ForceResult += knockBackVelo;
     }
-
-    // // TODO: Test Code
-    // if (ACharacter* targetCharacter = Cast<ACharacter>(targetActor))
-    // {
-    //   targetCharacter->LaunchCharacter(Result.ForceResult, true, zOverride);
-    // }
-    // else
-    // {
-    //   if (UPrimitiveComponent* primitiveComp = targetActor->GetComponentByClass<UPrimitiveComponent>())
-    //   {
-    //     primitiveComp->AddImpulse(Result.ForceResult);
-    //   }
-    // }
   }
 
 }
