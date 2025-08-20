@@ -40,6 +40,18 @@ private:
     // 最大コンボ回数
     int32 MaxCombo = 3;
 
+    // 受付中
+    bool bInComboWindow = false;
+
+    // 窓外で押されたらバッファ
+    bool bComboQueued = false;
+
+    // コンボ予約を入れたかのフラグ
+    bool bNextScheduled = false;
+
+    // コンボ時アニメーションモンタージュのセクション名を取得
+    FName GetPunchSectionName(int32 Index) const;
+
     // パンチ・キックのデータ
     UPROPERTY(EditAnywhere, Category = "Attack")
     FAttackData PunchData;
@@ -54,6 +66,9 @@ private:
     void RotateOwnerToTarget();
     void PlayAttackMontage(const FAttackData& Attack);
     void AttackHit(const FAttackData& Attack);
+
+    // 次のコンボ攻撃を予約する関数
+    void ScheduleNextPunch();
 
     // Montage終了イベント
     UFUNCTION()
@@ -77,6 +92,14 @@ public:
     // キックのAnimNotifyの通知を受け取る
     UFUNCTION(BlueprintCallable)
     void KickHitNotify();
+
+    // コンボスタート
+    UFUNCTION(BlueprintCallable) 
+    void ComboWindowStart();
+
+    // コンボ終了
+    UFUNCTION(BlueprintCallable)
+    void ComboWindowEnd();
 
     // 引き寄せ中フラグを取得
     bool GetIsAttractingEnemy() { return bIsAttractingEnemy; }
