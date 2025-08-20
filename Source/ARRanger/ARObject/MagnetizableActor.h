@@ -6,10 +6,9 @@
 
 #include "GameFramework/Actor.h"
 #include "Public/IARMagnetizableInterface.h"
-
 #include "MagnetizableActor.generated.h"
 
-UCLASS(Abstract)
+UCLASS(Blueprintable)
 class AMagnetizableActor :  public AActor, 
 							public IARMagnetizableInterface
 {
@@ -68,6 +67,17 @@ public:
 		return m_CanSetMagnetismType;
 	}
 
+	/**
+	 * @brief 斥力・引力の状態変化が可能かどうかを設定する
+	 * 
+	 * @param bCanSet 新しい状態（true/false）
+	 */
+	UFUNCTION(BlueprintCallable)
+	void SetCanSetMagnetismType(bool bCanSet)
+	{
+		m_CanSetMagnetismType = bCanSet;
+	}
+
 	/*Start IARMagnetizableInterface interface*/
 	virtual void OnAttractionEvaluated(const FARMagneticForceResult& Result) override;
 	virtual void OnRepulsionEvaluated(const FARMagneticForceResult& Result) override;
@@ -77,9 +87,6 @@ public:
 	/*テスト用*/
 	UFUNCTION(BlueprintCallable)
 	void SetType(EARMagnetismType newType);
-
-	UFUNCTION(BlueprintPure)
-	EARMagnetismType GetType() const;
 
 	// 妥協処理
 	float ElapsedBlinkTime = 0.0f;

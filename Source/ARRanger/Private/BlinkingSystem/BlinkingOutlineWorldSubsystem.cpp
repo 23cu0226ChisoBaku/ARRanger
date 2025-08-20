@@ -3,8 +3,8 @@
 //*************************************************
 
 #include "Public/BlinkingSystem/BlinkingOutlineWorldSubsystem.h"
-#include "InstantScripts/LineTraceSingleARObjectComponent.h"
-#include "Public/BlinkingSystem/BlinkOutlineTickActor.h"
+#include "Public/BlinkingSystem/DetectorMagnetizableComponent.h"
+#include "Public/BlinkingSystem/OutlineTickActor.h"
 
 /**
  * @brief 初期化処理
@@ -20,43 +20,58 @@ void UBlinkingOutlineWorldSubsystem::Initialize(FSubsystemCollectionBase& Collec
 void UBlinkingOutlineWorldSubsystem::Deinitialize()
 {
 	UnBindDelegate();
-	m_BlinkingOutlineSystem.Reset();
+	m_OutlineSystem.Reset();
 	Super::Deinitialize();
 }
 
-void UBlinkingOutlineWorldSubsystem::SetupBlinkingSystem(UWorld* world, ULineTraceSingleARObjectComponent* lineTraceComp, TSubclassOf<ABlinkOutlineTickActor> tickActorClass)
+void UBlinkingOutlineWorldSubsystem::SetupBlinkingSystem(UWorld* world, UDetectorMagnetizableComponent* detectorMagnetizableComp, TSubclassOf<AOutlineTickActor> tickActorClass)
 {
-	if (world == nullptr || lineTraceComp == nullptr || tickActorClass == nullptr)
+	if (world == nullptr || detectorMagnetizableComp == nullptr || tickActorClass == nullptr)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("BlinkingOutlineWorldSubsystem: Setup failed due to null parameters."));
 		return;
 	}
 
-	m_BlinkingOutlineSystem = MakeUnique<FBlinkingOutlineSystem>();
-	m_BlinkingOutlineSystem->CreateTickingActor(world, tickActorClass);
+	m_OutlineSystem = MakeUnique<FOutlineSystem>();
+	m_OutlineSystem->CreateTickingActor(world, tickActorClass);
 
-	m_LineTraceComponent = lineTraceComp;
+	m_DetectorMagnetizableComponent = detectorMagnetizableComp;
 	m_TickActorClass = tickActorClass;
 
 	BindBlinkingMagnetizableObjectDelegate();
 }
 
 /*
-* @brief BlinkingOutlineSystem の関数を LineTraceSingleARObjectComponent のデリゲートにバインド 
+* @brief BlinkingOutlineSystem の関数を DetectorMagnetizableComponent のデリゲートにバインド 
 */
 void UBlinkingOutlineWorldSubsystem::BindBlinkingMagnetizableObjectDelegate()
 {
-	if (m_LineTraceComponent != nullptr && m_BlinkingOutlineSystem != nullptr)
+	if (m_DetectorMagnetizableComponent != nullptr && m_OutlineSystem != nullptr)
 	{
-		m_LineTraceComponent->SetTargetMagnetizableObject.BindRaw(
-			m_BlinkingOutlineSystem.Get(),
-			&FBlinkingOutlineSystem::SetTargetMagnetizableObjectDelegate
+		m_DetectorMagnetizableComponent->SetMagnetizableObjectAtCursor.BindRaw(
+			m_OutlineSystem.Get(),
+			&FOutlineSystem::BlinkOutlineActorAtCursorDelegate
 		);
 
-		m_LineTraceComponent->UnsetTargetMagnetizableObject.BindRaw(
-			m_BlinkingOutlineSystem.Get(),
-			&FBlinkingOutlineSystem::UnsetTargetMagnetizableObjectDelegate
+		m_DetectorMagnetizableComponent->SetActorOnOutline.BindRaw(
+			m_OutlineSystem.Get(),
+			&FOutlineSystem::AddOutlineActorDelegate
 		);
+
+		m_DetectorMagnetizableComponent->UnsetActorOnOutline.BindRaw(
+			m_OutlineSystem.Get(),
+			&FOutlineSystem::RemoveOutlineActorDelegate
+		);
+
+		m_DetectorMagnetizableComponent->SetActorOnBlinkingOutline.BindRaw(
+			m_OutlineSystem.Get(),
+			&FOutlineSystem::AddBlinkingOutlineActorDelegate
+		);
+
+		// m_DetectorMagnetizableComponent->UnsetActorOnBlinkingOutline.BindRaw(
+		// 	m_OutlineSystem.Get(),
+		// 	&FOutlineSystem::RemoveBlinkingOutlineActorDelegate
+		// );
 	}
 }
 
@@ -65,9 +80,11 @@ void UBlinkingOutlineWorldSubsystem::BindBlinkingMagnetizableObjectDelegate()
 */
 void UBlinkingOutlineWorldSubsystem::UnBindDelegate()
 {
-	if (m_LineTraceComponent != nullptr)
+	if (m_DetectorMagnetizableComponent != nullptr)
 	{
-		m_LineTraceComponent->SetTargetMagnetizableObject.Unbind();
-		m_LineTraceComponent->UnsetTargetMagnetizableObject.Unbind();
+		m_DetectorMagnetizableComponent->SetMagnetizableObjectAtCursor.Unbind();
+		m_DetectorMagnetizableComponent->SetActorOnOutline.Unbind();
+		m_DetectorMagnetizableComponent->UnsetActorOnOutline.Unbind();
+		m_DetectorMagnetizableComponent->SetActorOnBlinkingOutline.Unbind();
 	}
 }

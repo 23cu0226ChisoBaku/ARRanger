@@ -24,10 +24,6 @@ struct FBlinkingActorData
 {
 	GENERATED_BODY()
 
-    // UPROPERTY()
-    // float _elapsedTime = 0.0f;                                          /*経過時間*/
-    // UPROPERTY()
-    // TObjectPtr<UMaterialInstanceDynamic> m_DynamicMaterial =nullptr;	/*動的マテリアル*/
     UPROPERTY(EditAnywhere)
     float _blinkInterval;                                               /*点滅する時間*/ 
     UPROPERTY(EditAnywhere)
