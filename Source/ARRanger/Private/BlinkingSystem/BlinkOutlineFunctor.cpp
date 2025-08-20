@@ -157,7 +157,7 @@ void BlinkOutlineFunctor::ConstantBlink(AActor* targetObject, float blinkInterva
     if (magnetActor == nullptr || magnetActor->DynamicBlinkMaterial == nullptr) {return;}
 
     // 点滅計算 (半周期で ON/OFF)
-    float phase = FMath::Fmod(magnetActor->ElapsedBlinkTime, blinkInterval);
+    float phase = FMath::Fmod(magnetActor->ElapsedBlinkTime * blinkSpeed, blinkInterval);
     float alpha = (phase < blinkInterval / 2.0f) ? 1.0f : 0.0f;
 
     // FLinearColor outlineColor{};

@@ -29,7 +29,7 @@ void AOutlineTickActor::Tick(float DeltaTime)
 
 	// 参照配列に変更があれば反映
 	UpdateOutlineTargets();
-	UpdateBlinkingTargets();
+	//UpdateBlinkingTargets();
 
 	if(m_BlinkingActorAtAtCursor != nullptr)
 	{
