@@ -110,12 +110,12 @@ public:
 	UFUNCTION()
 	void RemoveBlinkingActor(AActor* removeActor);
 
-	/**
-	 * @brief 指定されたアクターの EARMagnetismType を変更する
-	 * 
-	 * @param 変更するアクター, 変更先のEARMagnetismType
-	 */
-	void UpdateBlinkingDataByMagnetismType(AActor* actor, EARMagnetismType magnetismType);
+	// /**
+	//  * @brief 指定されたアクターの EARMagnetismType を変更する
+	//  * 
+	//  * @param 変更するアクター, 変更先のEARMagnetismType
+	//  */
+	// void UpdateBlinkingDataByMagnetismType(AActor* actor, EARMagnetismType magnetismType);
 
 	/*テスト */
 	UFUNCTION(BlueprintCallable)

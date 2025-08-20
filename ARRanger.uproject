@@ -23,9 +23,7 @@
 			"AdditionalDependencies": [
 				"Engine",
 				"Blutility",
-				"CoreUObject",
-				"ScriptableEditorWidgets",
-				"UnrealEd"
+				"CoreUObject"
 			]
 		},
 		{
@@ -60,11 +58,7 @@
 			"Enabled": false
 		},
 		{
-			"Name": "MovieRenderPipeline",
-			"Enabled": true
-		},
-		{
-			"Name": "MoviePipelineMaskRenderPass",
+			"Name": "GameplayAbilities",
 			"Enabled": true
 		}
 	]
