@@ -342,14 +342,12 @@ void AOutlineTickActor::BlinkOutlineActorAtCursor(float deltaTime)
 {
 	if (m_BlinkingActorAtAtCursor == nullptr) { return; }
 	AMagnetizableActor* MagnetActor = Cast<AMagnetizableActor>(m_BlinkingActorAtAtCursor);
-	if(MagnetActor != nullptr)
+	if(MagnetActor == nullptr) {return;}
+	if(MagnetActor->GetMagnetismType() != EARMagnetismType::None)
 	{
-		if(MagnetActor->GetMagnetismType() != EARMagnetismType::None)
-		{
-			return;
-		}
+		return;
 	}
-
+	
 	// メッシュコンポーネントを取得
 	UMeshComponent* meshComponent = nullptr;
 	TArray<UMeshComponent*> meshComponents;
