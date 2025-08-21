@@ -30,7 +30,6 @@ void UGA_Attack::ActivateAbility(
     AARRangerCharacter* Char = Cast<AARRangerCharacter>(GetAvatarActorFromActorInfo());
     if (UAnimInstance* AnimInstance = Char->GetMesh()->GetAnimInstance())
     {
-        UE_LOG(LogTemp, Warning, TEXT("AnimInstance found! Registering OnMontageEnded"));
         // AnimInstanceにバインド
         AnimInstance->OnMontageEnded.AddDynamic(this, &UGA_Attack::OnAttackMontageEnded);
     }
@@ -75,23 +74,30 @@ void UGA_Attack::EndAbility(
 // =====================
 void UGA_Attack::StartPunch()
 {
+    UE_LOG(LogTemp, Warning, TEXT("Punch Start"));
     AARRangerCharacter* Char = Cast<AARRangerCharacter>(GetAvatarActorFromActorInfo());
     if (!Char || !PunchData.Montage_Normal) return;
 
     RotateOwnerToTarget();
 
-    UAnimInstance* Anim = Char->GetMesh()->GetAnimInstance();
-    if (!Anim) return;
+    UE_LOG(LogTemp, Warning, TEXT("Combo OK? %s"), bInComboWindow ? TEXT("true") : TEXT("false"));
 
+    UAnimInstance* Anim = Char->GetMesh()->GetAnimInstance();
+    if (!Anim)
+    {
+        UE_LOG(LogTemp, Error, TEXT("NO AnimInstance at StartPunch!"));
+        return;
+    }
+        
     // モンタージュ未再生 → 1段目から開始
     if (!Anim->Montage_IsPlaying(PunchData.Montage_Normal))
     {
+        UE_LOG(LogTemp, Warning, TEXT("Combo 1"));
         bIsAttacked = true;
         Char->SetIsAttacked(true);
 
         ComboCount = 0;
         bComboQueued = false;
-        bInComboWindow = false;
         bNextScheduled = false;
 
         Anim->Montage_Play(PunchData.Montage_Normal);
@@ -105,7 +111,11 @@ void UGA_Attack::StartPunch()
     {
         if (ComboCount < MaxCombo - 1)
         {
+            bIsAttacked = true;
+            Char->SetIsAttacked(true);
+
             ComboCount++;
+            UE_LOG(LogTemp, Warning, TEXT("Current Combo is %d"), ComboCount + 1);
             Anim->Montage_JumpToSection(GetPunchSectionName(ComboCount), PunchData.Montage_Normal);
             bNextScheduled = true;
             bComboQueued = false;
@@ -125,7 +135,6 @@ void UGA_Attack::PunchHitNotify()
 
 void UGA_Attack::StartKick()
 {
-    UE_LOG(LogTemp, Warning, TEXT("Kick Start!"));
     if (bIsAttacked) return;
 
     AARRangerCharacter* Char = Cast<AARRangerCharacter>(GetAvatarActorFromActorInfo());
@@ -154,7 +163,6 @@ void UGA_Attack::KickHitNotify()
 
 void UGA_Attack::RotateOwnerToTarget()
 {
-    UE_LOG(LogTemp, Warning, TEXT("Rotate To Target"));
     AARRangerCharacter* Char = Cast<AARRangerCharacter>(GetAvatarActorFromActorInfo());
     if (!Char || !Char->LockOnComponent || !Char->LockOnComponent->GetIsLockedOn()) return;
 
@@ -206,7 +214,6 @@ void UGA_Attack::PlayAttackMontage(const FAttackData& Attack)
 
 void UGA_Attack::AttackHit(const FAttackData& Attack)
 {
-    UE_LOG(LogTemp, Warning, TEXT("Hit!"));
     AARRangerCharacter* Char = Cast<AARRangerCharacter>(GetAvatarActorFromActorInfo());
     if (!Char)
     {
@@ -300,11 +307,11 @@ void UGA_Attack::ScheduleNextPunch()
     Anim->Montage_SetNextSection(CurSection, NextSection, PunchData.Montage_Normal);
 
     bNextScheduled = true;
-    ComboCount++;
 }
 
 void UGA_Attack::OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted)
 {
+    UE_LOG(LogTemp, Warning, TEXT("Montage End"));
     bIsAttacked = false;
     bIsStrongAttack = false;
     bIsBlowedAwayEnemy = false;
@@ -325,29 +332,22 @@ void UGA_Attack::OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted)
 
 void UGA_Attack::ComboWindowStart()
 {
+    UE_LOG(LogTemp, Warning, TEXT("Combo Start"));
     bInComboWindow = true;
 }
 
 void UGA_Attack::ComboWindowEnd()
 {
+    UE_LOG(LogTemp, Warning, TEXT("Combo End"));
     bInComboWindow = false;
 
-    if (bComboQueued)
+    // 次段入力なし → 現在のモンタージュを終了
+    AARRangerCharacter* Char = Cast<AARRangerCharacter>(GetAvatarActorFromActorInfo());
+    if (Char && PunchData.Montage_Normal)
     {
-        // 次段をスケジュール
-        ScheduleNextPunch();
-        bComboQueued = false;
-    }
-    else
-    {
-        // 次段入力なし → 現在のモンタージュを終了
-        AARRangerCharacter* Char = Cast<AARRangerCharacter>(GetAvatarActorFromActorInfo());
-        if (Char && PunchData.Montage_Normal)
+        if (UAnimInstance* Anim = Char->GetMesh()->GetAnimInstance())
         {
-            if (UAnimInstance* Anim = Char->GetMesh()->GetAnimInstance())
-            {
-                Anim->Montage_Stop(0.05f, PunchData.Montage_Normal);
-            }
+            Anim->Montage_Stop(0.05f, PunchData.Montage_Normal);
         }
     }
 }

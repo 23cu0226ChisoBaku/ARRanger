@@ -469,8 +469,6 @@ void AARRangerCharacter::DoJumpEnd()
 
 void AARRangerCharacter::Input_Punch()
 {
-	UE_LOG(LogTemp, Warning, TEXT("Punch Input!"));
-
 	// GA_Attackがなければ処理しない
 	if (!GA_AttackClass)
 	{
