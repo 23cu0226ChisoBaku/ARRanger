@@ -342,9 +342,12 @@ void AOutlineTickActor::BlinkOutlineActorAtCursor(float deltaTime)
 {
 	if (m_BlinkingActorAtAtCursor == nullptr) { return; }
 	AMagnetizableActor* MagnetActor = Cast<AMagnetizableActor>(m_BlinkingActorAtAtCursor);
-	if(MagnetActor->GetMagnetismType() != EARMagnetismType::None)
+	if(MagnetActor != nullptr)
 	{
-		return;
+		if(MagnetActor->GetMagnetismType() != EARMagnetismType::None)
+		{
+			return;
+		}
 	}
 
 	// メッシュコンポーネントを取得
