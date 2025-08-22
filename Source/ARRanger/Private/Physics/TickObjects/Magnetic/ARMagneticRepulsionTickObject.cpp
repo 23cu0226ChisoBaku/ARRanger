@@ -2,8 +2,8 @@
 
 
 #include "Physics/TickObjects/Magnetic/ARMagneticRepulsionTickObject.h"
+
 #include "IARMagnetizableInterface.h"
-#include "GameFramework/Character.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ARMagneticRepulsionTickObject)
 
@@ -20,7 +20,7 @@ UARMagneticRepulsionTickObject::UARMagneticRepulsionTickObject()
 void UARMagneticRepulsionTickObject::OnTick(const FARPhysicsTickParameters& TickParams, FARPhysicsEvaluationResult& Result)
 {
   check(Target != nullptr);
-  AActor* targetActor = Target->GetActor();
+  const AActor* targetActor = Target->GetActor();
   if (targetActor == nullptr)
   {
     return;

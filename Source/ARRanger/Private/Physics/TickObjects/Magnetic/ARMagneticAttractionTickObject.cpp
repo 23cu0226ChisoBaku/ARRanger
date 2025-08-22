@@ -26,7 +26,7 @@ UARMagneticAttractionTickObject::UARMagneticAttractionTickObject()
 
 void UARMagneticAttractionTickObject::OnTick(const FARPhysicsTickParameters& TickParams, FARPhysicsEvaluationResult& Result)
 {
-  AActor* targetActor = Target->GetActor();
+  const AActor* targetActor = Target->GetActor();
   if (targetActor == nullptr)
   {
     AR_LOG(LogARPhysics, Error, TEXT("Target actor is nullptr.Do you override IARMagnetizableInterface::GetActor()? "));
@@ -49,8 +49,6 @@ void UARMagneticAttractionTickObject::OnTick(const FARPhysicsTickParameters& Tic
       
       Result.ForceResult += pushForce;
 
-      // // TODO testCode
-      // targetActor->AddActorWorldOffset(pushForce, true);
     }
   }
 }
