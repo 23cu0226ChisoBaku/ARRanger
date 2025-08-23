@@ -34,14 +34,8 @@ private:
     bool bIsBlowedAwayEnemy = false;
     bool bIsAttractingEnemy = false;
 
-    // 現在のコンボ段階
-    int32 ComboCount = 0;
-
     // 最大コンボ回数
     int32 MaxCombo = 3;
-
-    // 受付中
-    bool bInComboWindow = false;
 
     // 窓外で押されたらバッファ
     bool bComboQueued = false;

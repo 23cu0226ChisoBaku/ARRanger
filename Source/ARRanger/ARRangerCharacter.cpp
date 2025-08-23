@@ -456,7 +456,6 @@ void AARRangerCharacter::DoJumpStart()
     bIsJumping = true;
   }
 
-
 	// ジャンプ処理
 	Jump();
 }

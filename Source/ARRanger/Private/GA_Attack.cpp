@@ -80,7 +80,9 @@ void UGA_Attack::StartPunch()
 
     RotateOwnerToTarget();
 
+    bool bInComboWindow = Char->GetIsInComboWindow();
     UE_LOG(LogTemp, Warning, TEXT("Combo OK? %s"), bInComboWindow ? TEXT("true") : TEXT("false"));
+
 
     UAnimInstance* Anim = Char->GetMesh()->GetAnimInstance();
     if (!Anim)
@@ -89,6 +91,9 @@ void UGA_Attack::StartPunch()
         return;
     }
         
+    int32 ComboCount = Char->GetComboCount();
+    UE_LOG(LogTemp, Warning, TEXT("Combo Count is %d"), ComboCount + 1);
+
     // モンタージュ未再生 → 1段目から開始
     if (!Anim->Montage_IsPlaying(PunchData.Montage_Normal))
     {
@@ -96,7 +101,7 @@ void UGA_Attack::StartPunch()
         bIsAttacked = true;
         Char->SetIsAttacked(true);
 
-        ComboCount = 0;
+        Char->ResetComboCount();
         bComboQueued = false;
         bNextScheduled = false;
 
@@ -109,14 +114,14 @@ void UGA_Attack::StartPunch()
     // モンタージュ再生中 → コンボ窓内なら次段にジャンプ
     if (bInComboWindow)
     {
-        if (ComboCount < MaxCombo - 1)
+        if (Char->GetComboCount() < MaxCombo - 1)
         {
             bIsAttacked = true;
             Char->SetIsAttacked(true);
 
-            ComboCount++;
-            UE_LOG(LogTemp, Warning, TEXT("Current Combo is %d"), ComboCount + 1);
-            Anim->Montage_JumpToSection(GetPunchSectionName(ComboCount), PunchData.Montage_Normal);
+            Char->AddComboCount();
+            UE_LOG(LogTemp, Warning, TEXT("Current Combo is %d"), Char->GetComboCount() + 1);
+            Anim->Montage_JumpToSection(GetPunchSectionName(Char->GetComboCount()), PunchData.Montage_Normal);
             bNextScheduled = true;
             bComboQueued = false;
         }
@@ -293,10 +298,11 @@ void UGA_Attack::AttackHit(const FAttackData& Attack)
 
 void UGA_Attack::ScheduleNextPunch()
 {
-    if (ComboCount >= MaxCombo - 1) return;
-
     AARRangerCharacter* Char = Cast<AARRangerCharacter>(GetAvatarActorFromActorInfo());
     if (!Char || !PunchData.Montage_Normal) return;
+
+    int32 ComboCount = Char->GetComboCount();
+    if (ComboCount >= MaxCombo - 1) return;  
 
     UAnimInstance* Anim = Char->GetMesh()->GetAnimInstance();
     if (!Anim) return;
@@ -317,39 +323,43 @@ void UGA_Attack::OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted)
     bIsBlowedAwayEnemy = false;
     bIsAttractingEnemy = false;
 
-    bInComboWindow = false;
     bComboQueued = false;
     bNextScheduled = false;
-    ComboCount = 0;
 
     if (AARRangerCharacter* Char = Cast<AARRangerCharacter>(GetAvatarActorFromActorInfo()))
     {
         Char->SetIsAttacked(false);
         Char->SetIsStrongAttacked(false);
         Char->SetIsAttracted(false);
+        Char->ResetComboCount();
     }
 }
 
 void UGA_Attack::ComboWindowStart()
 {
     UE_LOG(LogTemp, Warning, TEXT("Combo Start"));
-    bInComboWindow = true;
+    AARRangerCharacter* Char = Cast<AARRangerCharacter>(GetAvatarActorFromActorInfo());
+    if (Char)
+    {
+        Char->SetInComboWindow(true);
+    }
 }
 
 void UGA_Attack::ComboWindowEnd()
 {
-    UE_LOG(LogTemp, Warning, TEXT("Combo End"));
-    bInComboWindow = false;
-
-    // 次段入力なし → 現在のモンタージュを終了
     AARRangerCharacter* Char = Cast<AARRangerCharacter>(GetAvatarActorFromActorInfo());
-    if (Char && PunchData.Montage_Normal)
+    if (Char)
     {
+        Char->SetInComboWindow(false);
+
+        // 次段入力なしならモンタージュ終了
         if (UAnimInstance* Anim = Char->GetMesh()->GetAnimInstance())
         {
             Anim->Montage_Stop(0.05f, PunchData.Montage_Normal);
         }
     }
+
+    UE_LOG(LogTemp, Warning, TEXT("Combo End"));
 }
 
 FName UGA_Attack::GetPunchSectionName(int32 Index) const

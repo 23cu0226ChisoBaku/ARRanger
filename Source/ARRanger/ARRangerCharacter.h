@@ -241,6 +241,21 @@ public:
 	// 引き寄せ中フラグをセット
 	void SetIsAttracted(bool IsAttracted) { isAttracted = IsAttracted; }
 
+	// コンボ受付フラグをセット
+	void SetInComboWindow(bool bIn) { bIsInComboWindow = bIn; }
+
+	// コンボ受付フラグを取得
+	bool GetIsInComboWindow() const { return bIsInComboWindow; }
+
+	// コンボカウントを加算
+	void AddComboCount() { ++ComboCount; }
+
+	// コンボカウントをリセット
+	void ResetComboCount() { ComboCount = 0; }
+
+	// コンボカウントを取得
+	int32 GetComboCount() { return ComboCount; }
+
 	// 引力クライム中フラグを取得
 	bool GetIsClimbed() { return isClimbed; }
 
@@ -266,6 +281,11 @@ private:
 	// 引き寄せ中フラグ
 	bool isAttracted = false;
 
+	// コンボ受付中かどうか
+	bool bIsInComboWindow = false;
+
+	// コンボカウント
+	int32 ComboCount = 0;
 
 	UFUNCTION()
 	void OnMagneticForceFieldBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
