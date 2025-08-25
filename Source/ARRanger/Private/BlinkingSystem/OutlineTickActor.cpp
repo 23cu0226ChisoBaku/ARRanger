@@ -171,6 +171,8 @@ void AOutlineTickActor::UpdateOutlineTargets()
 		m_OutlineActors.Add(newTarget);
 	}
 
+	// 削除するターゲットを一時保持
+	TArray<AActor*> Removetargets;
 	// リストからなくなったものは削除
 	for (int32 i = m_OutlineActors.Num() - 1; i >= 0; --i)
     {
@@ -182,6 +184,8 @@ void AOutlineTickActor::UpdateOutlineTargets()
             {
                 target._meshComponent->SetOverlayMaterial(nullptr);
             }
+			// 削除するリストに追加する
+			//Removetarget.Add(m_OutlineActors[i]);
             // リストから削除
             m_OutlineActors.RemoveAt(i);
         }
