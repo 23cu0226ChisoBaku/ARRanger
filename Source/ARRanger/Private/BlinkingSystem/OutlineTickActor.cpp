@@ -29,7 +29,7 @@ void AOutlineTickActor::Tick(float DeltaTime)
 
 	// 参照配列に変更があれば反映
 	UpdateOutlineTargets();
-	UpdateBlinkingTargets();
+	//UpdateBlinkingTargets();
 
 	if(m_BlinkingActorAtAtCursor != nullptr)
 	{
@@ -171,6 +171,8 @@ void AOutlineTickActor::UpdateOutlineTargets()
 		m_OutlineActors.Add(newTarget);
 	}
 
+	// 削除するターゲットを一時保持
+	TArray<AActor*> Removetargets;
 	// リストからなくなったものは削除
 	for (int32 i = m_OutlineActors.Num() - 1; i >= 0; --i)
     {
@@ -182,6 +184,8 @@ void AOutlineTickActor::UpdateOutlineTargets()
             {
                 target._meshComponent->SetOverlayMaterial(nullptr);
             }
+			// 削除するリストに追加する
+			//Removetarget.Add(m_OutlineActors[i]);
             // リストから削除
             m_OutlineActors.RemoveAt(i);
         }
@@ -342,11 +346,12 @@ void AOutlineTickActor::BlinkOutlineActorAtCursor(float deltaTime)
 {
 	if (m_BlinkingActorAtAtCursor == nullptr) { return; }
 	AMagnetizableActor* MagnetActor = Cast<AMagnetizableActor>(m_BlinkingActorAtAtCursor);
+	if(MagnetActor == nullptr) {return;}
 	if(MagnetActor->GetMagnetismType() != EARMagnetismType::None)
 	{
 		return;
 	}
-
+	
 	// メッシュコンポーネントを取得
 	UMeshComponent* meshComponent = nullptr;
 	TArray<UMeshComponent*> meshComponents;

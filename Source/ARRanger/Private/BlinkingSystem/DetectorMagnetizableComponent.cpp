@@ -97,6 +97,7 @@ void UDetectorMagnetizableComponent::ApplyMagnetism()
 	{
 		if(MagnetActor->CanSetMagnetismType())
 		{
+			MagnetActor->ElapsedBlinkTime = 0.0f;
 			//MagnetActor->SetType(m_OwnerActor->GetCurrentARType());
 			SetActorOnBlinkingOutline.ExecuteIfBound(m_TargetMagnetizableActor);
 			//MagnetActor->SetCanSetMagnetismType(false);
