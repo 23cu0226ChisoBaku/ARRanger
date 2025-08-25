@@ -22,12 +22,4 @@ public:
     // 引力クライム中フラグ
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Climb")
     bool IsClimbing = false;
-
-    // 速度（cm/s）
-    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Animation")
-    float Speed = 0.f;
-
-    // アニメを最低限継続させるフラグ
-    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Animation")
-    bool bForceMoveAnim = false;
 };

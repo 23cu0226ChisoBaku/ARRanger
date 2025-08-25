@@ -13,12 +13,21 @@ class ARRANGER_API UAttackComponent : public UActorComponent
 {
     GENERATED_BODY()
 
+protected:
+    // AbilitySystemComponentを保存
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Abilities")
+    UAbilitySystemComponent* AbilitySystemComp;
+
 public:
     UAttackComponent();
 
     virtual void BeginPlay() override;
 
     virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+
+
+    // IAbilitySystemInterface の必須実装
+    virtual UAbilitySystemComponent* GetAbilitySystemComponent() const;
 
     // パンチの際に呼び出される
     void StartPunch();
