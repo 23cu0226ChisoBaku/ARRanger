@@ -102,7 +102,7 @@ void UGA_Attack::StartPunch()
         return;
     }
 
-    if (EARMagnetismType::Attraction == Char->GetMagnetismType() && Char->GetIsLockedOn())
+    if (EARMagnetismType::Attraction == Char->GetMagnetismType() && Char->GetIsLockedOn() && !Char->GetIsAttracted())
     {
         if (AEnemy* Enemy = Cast<AEnemy>(Char->LockOnComponent->GetLockedOnTarget()))
         {
@@ -120,7 +120,7 @@ void UGA_Attack::StartPunch()
     }
     
     // モンタージュ未再生 → 1段目から開始
-    if (!Anim->Montage_IsPlaying(PunchData.Montage_Normal))
+    if (!Anim->Montage_IsPlaying(PunchData.Montage_Normal) && !Char->GetIsAttracted())
     {
         UE_LOG(LogTemp, Warning, TEXT("Combo 1"));
         bIsAttacked = true;

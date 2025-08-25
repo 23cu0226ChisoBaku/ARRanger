@@ -244,6 +244,9 @@ public:
 	// 引き寄せ中フラグをセット
 	void SetIsAttracted(bool IsAttracted) { isAttracted = IsAttracted; }
 
+	// 引き寄せ中フラグを取得
+	bool GetIsAttracted() { return isAttracted; }
+
 	// 引き寄せ完了フラグをセット
 	void SetIsApproachedEnemy(bool IsApproachedEnemy) { isApproachedEnemy = IsApproachedEnemy; }
 

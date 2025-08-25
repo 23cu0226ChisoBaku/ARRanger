@@ -50,6 +50,7 @@ void AEnemy::Tick(float DeltaTime)
 				if (UGA_Attack* AttackAbility = Player->GA_AttackInstance)
 				{
 					// プレイヤーに引き寄せ完了通知
+					UE_LOG(LogTemp, Warning, TEXT("Attraction Done"));
 					Player->OnAttractionCompleted();
 				}
 				return;
