@@ -1,6 +1,8 @@
 ﻿#include "ARRangerCharacter.h"
+
+#include "AbilitySystemBlueprintLibrary.h"
+#include "AbilitySystemComponent.h"
 #include "ARRangerAnimInstance.h"
-#include "AttackComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Components/BoxComponent.h"
 #include "Components/CapsuleComponent.h"
@@ -9,6 +11,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/Controller.h"
+#include "GA_Attack.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "InputActionValue.h"
@@ -55,8 +58,8 @@ AARRangerCharacter::AARRangerCharacter()
 
 	// 各種コンポーネントを取得
 	LockOnComponent = CreateDefaultSubobject<ULockOnComponent>(TEXT("LockOnComponent"));
-	AttackComponent = CreateDefaultSubobject<UAttackComponent>(TEXT("AttackComponent"));
-	AbilitySystemComp = CreateDefaultSubobject<UAbilitySystemComponent>(TEXT("AbilitySystemComp"));
+	AbilitySystemComp = CreateDefaultSubobject<UAbilitySystemComponent>(TEXT("AbilitySystem"));
+	AbilitySystemComp->SetIsReplicated(true);
 }
 
 void AARRangerCharacter::BeginPlay()
@@ -85,6 +88,18 @@ void AARRangerCharacter::BeginPlay()
   GetCapsuleComponent()->OnComponentBeginOverlap.AddDynamic(this, &AARRangerCharacter::OnMagneticForceFieldBeginOverlap);
   GetCapsuleComponent()->OnComponentEndOverlap.AddDynamic(this, &AARRangerCharacter::OnMagneticForceFieldEndOverlap);
   GetCapsuleComponent()->OnComponentHit.AddDynamic(this, &AARRangerCharacter::OnMagnetizedObjectHit);
+
+  if (GA_AttackClass && AbilitySystemComp)
+  {
+	  // AbilitySystemComp に渡すためのSpecを作る
+	  FGameplayAbilitySpec PunchSpec(GA_AttackClass, 1, 0);
+	  PunchHandle = AbilitySystemComp->GiveAbility(PunchSpec);
+
+	  FGameplayAbilitySpec KickSpec(GA_AttackClass, 1, 1);
+	  KickHandle = AbilitySystemComp->GiveAbility(KickSpec);
+
+	  AbilitySystemComp->InitAbilityActorInfo(this, this);
+  }
 }
 
 // 麦
@@ -124,8 +139,8 @@ void AARRangerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 		EnhancedInputComponent->BindAction(SwitchTargetLeftAction, ETriggerEvent::Triggered, LockOnComponent, &ULockOnComponent::SwitchTargetLeft);
 
 		// 攻撃(パンチ、キック)
-		EnhancedInputComponent->BindAction(PunchAction, ETriggerEvent::Started, AttackComponent, &UAttackComponent::StartPunch);
-		EnhancedInputComponent->BindAction(KickAction, ETriggerEvent::Started, AttackComponent, &UAttackComponent::StartKick);
+		EnhancedInputComponent->BindAction(PunchAction, ETriggerEvent::Started, this, &AARRangerCharacter::Input_Punch);
+		EnhancedInputComponent->BindAction(KickAction, ETriggerEvent::Started, this, &AARRangerCharacter::Input_Kick);
 
 		// 変身
 		EnhancedInputComponent->BindAction(TransformAction, ETriggerEvent::Started, this, &AARRangerCharacter::Transform);
@@ -160,43 +175,6 @@ void AARRangerCharacter::Tick(float DeltaTime)
 				}
 			}
 		}
-	}
-
-	const float CurrentSpeed = GetVelocity().Size();
-
-	// デバッグ表示
-	//if (GEngine)
-	//{
-	//	GEngine->AddOnScreenDebugMessage(
-	//		-1, // key（-1は毎フレーム追加表示）
-	//		0.f, // 表示時間（0で1フレーム）
-	//		FColor::Yellow,
-	//		FString::Printf(TEXT("Speed: %.2f"), CurrentSpeed)
-	//	);
-	//}
-
-	// 移動中なら最後の移動時間を記録
-	if (CurrentSpeed > 100.0f) // 1cm/s以下は停止扱い
-	{
-		LastMoveTime = GetWorld()->GetTimeSeconds();
-	}
-
-	// 最低移動アニメ継続時間判定
-	const bool bForceMoveAnim = (GetWorld()->GetTimeSeconds() - LastMoveTime) < MinMoveAnimTime;
-
-	float AnimSpeedToSend = CurrentSpeed;
-
-	// 最低継続時間中はSpeedを固定値にする（例：150cm/s）
-	if (bForceMoveAnim && CurrentSpeed < 150.f)
-	{
-		AnimSpeedToSend = 150.f;
-	}
-
-	// アニメBPに値を渡す
-	if (UARRangerAnimInstance* Anim = Cast<UARRangerAnimInstance>(GetMesh()->GetAnimInstance()))
-	{
-		Anim->Speed = AnimSpeedToSend;
-		Anim->bForceMoveAnim = bForceMoveAnim;
 	}
 
 	// ヒステリシスを用いてダッシュ判定
@@ -254,7 +232,7 @@ void AARRangerCharacter::Tick(float DeltaTime)
 		FVector FootPosition = ActorLocation - wallNormal * (HalfHeight - 5.0f);
 
 		FVector Start = FootPosition;
-		FVector End = Start - wallNormal * 30.0f;
+		FVector End = Start - wallNormal * 7.0f;
 
 		FHitResult HitResult;
 		FCollisionQueryParams Params;
@@ -323,12 +301,8 @@ void AARRangerCharacter::OnClimbSurfaceOverlap(
 
 void AARRangerCharacter::DoMove(float Right, float Forward)
 {
-	bool isAttacked =AttackComponent->GetIsAttacked();
-	bool isStrongAttacked = AttackComponent->GetIsStrongAttacked();
-	bool isAttractingEnemy = AttackComponent->GetIsAttractingEnemy();
-
 	// コントローラーがない、引き寄せ中または攻撃中なら処理しない
-	if (GetController() == nullptr || isAttractingEnemy || isAttacked || isStrongAttacked)
+	if (GetController() == nullptr || isAttracted || isAttacked || isStrongAttacked)
 	{
 		return;
 	}
@@ -462,11 +436,8 @@ void AARRangerCharacter::DoLook(float Yaw, float Pitch)
 
 void AARRangerCharacter::DoJumpStart()
 {
-	bool isAttacked = AttackComponent->GetIsAttacked();
-	bool isStrongAttacked = AttackComponent->GetIsStrongAttacked();
-
-	// 攻撃中は処理しない
-	if (isAttacked || isStrongAttacked)
+	// 攻撃中・引き寄せ中は処理しない
+	if (isAttacked || isStrongAttacked || isAttracted)
 	{
 		return;
 	}
@@ -485,7 +456,6 @@ void AARRangerCharacter::DoJumpStart()
     bIsJumping = true;
   }
 
-
 	// ジャンプ処理
 	Jump();
 }
@@ -494,6 +464,58 @@ void AARRangerCharacter::DoJumpEnd()
 {
 	// ジャンプをやめる
 	StopJumping();
+}
+
+void AARRangerCharacter::Input_Punch()
+{
+	// GA_Attackがなければ処理しない
+	if (!GA_AttackClass)
+	{
+		return;
+	}
+	// 強攻撃・引き寄せ中は処理しない
+	if (isStrongAttacked || isAttracted)
+	{
+		return;
+	}
+
+	if (AbilitySystemComp && PunchHandle.IsValid())
+	{
+		AbilitySystemComp->TryActivateAbility(PunchHandle);
+	}
+}
+
+void AARRangerCharacter::Input_Kick()
+{
+	UE_LOG(LogTemp, Warning, TEXT("Kick Input!"));
+
+	// GA_Attackがなければ処理しない
+	if (!GA_AttackClass)
+	{
+		return;
+	}
+
+	// 強攻撃・引き寄せ中は処理しない
+	if (isStrongAttacked || isAttracted)
+	{
+		return;
+	}
+
+	if (AbilitySystemComp && KickHandle.IsValid())
+	{
+		AbilitySystemComp->TryActivateAbility(KickHandle);
+	}
+}
+
+void AARRangerCharacter::OnAttractionCompleted()
+{
+	// 引き寄せ完了フラグを立てる
+	SetIsApproachedEnemy(true);
+	UE_LOG(LogTemp, Warning, TEXT("Attraction Punch Start!"));
+	if (GA_AttackInstance)
+	{
+		GA_AttackInstance->StartPunch();
+	}
 }
 
 void AARRangerCharacter::OnAttackHitNotify()
@@ -505,11 +527,8 @@ void AARRangerCharacter::OnAttackHitNotify()
 
 void AARRangerCharacter::Transform()
 {
-	bool isAttacked = AttackComponent->GetIsAttacked();
-	bool isStrongAttacked = AttackComponent->GetIsStrongAttacked();
-
-	// 攻撃中は処理しない
-	if (isAttacked || isStrongAttacked)
+	// 攻撃中・引き寄せ中は処理しない
+	if (isAttacked || isStrongAttacked || isAttracted)
 	{
 		return;
 	}

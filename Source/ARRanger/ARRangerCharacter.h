@@ -3,9 +3,9 @@
 #include "AbilitySystemInterface.h"
 #include "AbilitySystemComponent.h"
 #include "GameplayEffectTypes.h" 
-#include "AttackComponent.h"
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "GA_Attack.h"
 #include "IARMagnetizableInterface.h"
 #include "InsekiClimbingObject.h"
 #include "LockOnComponent.h"
@@ -95,6 +95,14 @@ class AARRangerCharacter :  public ACharacter,
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	bool isClimbed;
 
+	// AbilitySystemComponentを保存
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Abilities")
+	UAbilitySystemComponent* AbilitySystemComp;
+
+	// GA_Attack参照
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Abilities")
+	TSubclassOf<UGA_Attack> GA_AttackClass;
+
 public:
 
 	// コンストラクタ
@@ -109,10 +117,6 @@ protected:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 protected:
-	// AbilitySystemComponentを保存
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Abilities")
-	UAbilitySystemComponent* AbilitySystemComp;
-
 	// 移動入力のために呼び出される
 	void Move(const FInputActionValue& Value);
 
@@ -128,9 +132,6 @@ private:
 
 	// 補間速度
 	float ArmLengthInterpSpeed;
-
-	// 最後に移動していた時間
-	float LastMoveTime = 0.f;
 
 	// 変身の際に呼び出される
 	void Transform();
@@ -182,6 +183,12 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Input")
 	virtual void DoJumpEnd();
 
+	// パンチの際に呼び出される
+	void Input_Punch();
+
+	// キックの際に呼び出される
+	void Input_Kick();
+
 	UFUNCTION(BlueprintPure, Category = "AR|Player")
 	float GetDefaultArmLength() const { return DefaultArmLength; }
 
@@ -196,10 +203,6 @@ public:
 	UPROPERTY(EditAnywhere, Category = "PlayerMesh")
 	USkeletalMesh* RepulsionMesh;
 
-	// 移動アニメを最低限継続させる時間
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
-	float MinMoveAnimTime = 0.6f;
-
 	// ダッシュ中フラグ
 	UPROPERTY(BlueprintReadWrite)
 	bool IsDashed;
@@ -208,10 +211,6 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	ULockOnComponent* LockOnComponent;
 
-	// アタックコンポーネント
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Attack")
-	UAttackComponent* AttackComponent;
-
 	// 引力クライム時のアニメーションモンタージュ
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gravity")
 	UAnimMontage* Montage_AttractionClimb;
@@ -219,9 +218,58 @@ public:
 public:
 	virtual void Tick(float DeltaTime) override;
 
+	// パンチハンドラ
+	FGameplayAbilitySpecHandle PunchHandle;
+
+	// キックハンドラ
+	FGameplayAbilitySpecHandle KickHandle;
+
+	// GA_Attackを保存
+	UPROPERTY(BlueprintReadWrite, VisibleAnywhere, Category = "Abilities")
+	UGA_Attack* GA_AttackInstance = nullptr;
+
 	// 現在のプレイヤーのモードを取得
 	UFUNCTION(BlueprintPure)
 	EARMagnetismType GetCurrentARType();
+
+	// 攻撃中フラグをセット
+	void SetIsAttacked(bool IsAttacked) { isAttacked = IsAttacked; }
+
+	// 強攻撃中フラグをセット
+	void SetIsStrongAttacked(bool IsStrongAttacked) { isStrongAttacked = IsStrongAttacked; }
+
+	// ロックオンフラグを取得
+	bool GetIsLockedOn() { return LockOnComponent->GetIsLockedOn(); }
+
+	// 引き寄せ中フラグをセット
+	void SetIsAttracted(bool IsAttracted) { isAttracted = IsAttracted; }
+
+	// 引き寄せ中フラグを取得
+	bool GetIsAttracted() { return isAttracted; }
+
+	// 引き寄せ完了フラグをセット
+	void SetIsApproachedEnemy(bool IsApproachedEnemy) { isApproachedEnemy = IsApproachedEnemy; }
+
+	// 引き寄せ完了フラグを取得
+	bool GetIsApproachedEnemy() { return isApproachedEnemy; }
+
+	// 引き寄せ完了時に呼びだされる関数
+	void OnAttractionCompleted();
+
+	// コンボ受付フラグをセット
+	void SetInComboWindow(bool bIn) { bIsInComboWindow = bIn; }
+
+	// コンボ受付フラグを取得
+	bool GetIsInComboWindow() const { return bIsInComboWindow; }
+
+	// コンボカウントを加算
+	void AddComboCount() { ++ComboCount; }
+
+	// コンボカウントをリセット
+	void ResetComboCount() { ComboCount = 0; }
+
+	// コンボカウントを取得
+	int32 GetComboCount() { return ComboCount; }
 
 	// 引力クライム中フラグを取得
 	bool GetIsClimbed() { return isClimbed; }
@@ -239,6 +287,24 @@ public:
 	}
 
 private:
+	// 攻撃中フラグ
+	bool isAttacked = false;
+
+	// 強攻撃中フラグ
+	bool isStrongAttacked = false;
+
+	// 引き寄せ中フラグ
+	bool isAttracted = false;
+
+	// 敵引き寄せ完了フラグ
+	bool isApproachedEnemy = false;
+
+	// コンボ受付中かどうか
+	bool bIsInComboWindow = false;
+
+	// コンボカウント
+	int32 ComboCount = 0;
+
 	UFUNCTION()
 	void OnMagneticForceFieldBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
@@ -250,6 +316,6 @@ private:
 
   /**Start IARMagnetizableInterface interface */
   ARRANGER_API virtual void OnRepulsionEvaluated(const FARMagneticForceResult& Result) override;
-	ARRANGER_API virtual AActor* GetActor() override { return this; }
+  ARRANGER_API virtual AActor* GetActor() override { return this; }
   /**End IARMagnetizableInterface interface */
 };
