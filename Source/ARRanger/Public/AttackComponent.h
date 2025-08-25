@@ -14,7 +14,7 @@ class ARRANGER_API UAttackComponent : public UActorComponent
     GENERATED_BODY()
 
 protected:
-    // AbilitySystemComponent‚ğ•Û‘¶
+    // AbilitySystemComponentï¿½ï¿½Û‘ï¿½
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Abilities")
     UAbilitySystemComponent* AbilitySystemComp;
 
@@ -26,75 +26,75 @@ public:
     virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 
-    // IAbilitySystemInterface ‚Ì•K{À‘•
-    virtual UAbilitySystemComponent* GetAbilitySystemComponent() const;
+    // // IAbilitySystemInterface ï¿½Ì•Kï¿½{ï¿½ï¿½ï¿½ï¿½
+    // virtual UAbilitySystemComponent* GetAbilitySystemComponent() const;
 
-    // ƒpƒ“ƒ`‚ÌÛ‚ÉŒÄ‚Ño‚³‚ê‚é
+    // ï¿½pï¿½ï¿½ï¿½`ï¿½ÌÛ‚ÉŒÄ‚Ñoï¿½ï¿½ï¿½ï¿½ï¿½
     void StartPunch();
 
-    // ƒLƒbƒN‚ÌÛ‚ÉŒÄ‚Ño‚³‚ê‚é
+    // ï¿½Lï¿½bï¿½Nï¿½ÌÛ‚ÉŒÄ‚Ñoï¿½ï¿½ï¿½ï¿½ï¿½
     void StartKick();
 
-    // ƒpƒ“ƒ`‚ÌAnimNotify‚Ì’Ê’m‚ğó‚¯æ‚é
+    // ï¿½pï¿½ï¿½ï¿½`ï¿½ï¿½AnimNotifyï¿½Ì’Ê’mï¿½ï¿½ï¿½ó‚¯ï¿½ï¿½
     UFUNCTION(BlueprintCallable)
     void PunchHitNotify();
 
-    // ƒLƒbƒN‚ÌAnimNotify‚Ì’Ê’m‚ğó‚¯æ‚é
+    // ï¿½Lï¿½bï¿½Nï¿½ï¿½AnimNotifyï¿½Ì’Ê’mï¿½ï¿½ï¿½ó‚¯ï¿½ï¿½
     UFUNCTION(BlueprintCallable)
     void KickHitNotify();
 
-    // UŒ‚‚ªI‚í‚Á‚½Û‚ÌƒR[ƒ‹ƒoƒbƒN
+    // ï¿½Uï¿½ï¿½ï¿½ï¿½ï¿½Iï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Û‚ÌƒRï¿½[ï¿½ï¿½ï¿½oï¿½bï¿½N
     UFUNCTION()
     void OnAttackMontageEnded(UAnimMontage* Montage, bool IsInterrupted);
 
 private:
-    // “G‚ğˆø‚«Šñ‚¹’†‚Ìƒtƒ‰ƒO
+    // ï¿½Gï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ñ‚¹’ï¿½ï¿½Ìƒtï¿½ï¿½ï¿½O
     bool isAttractingEnemy;
 
-    // “G‚ğ‚«”ò‚Î‚·ƒtƒ‰ƒO
+    // ï¿½Gï¿½ğ‚ï¿½ï¿½ï¿½Î‚ï¿½ï¿½tï¿½ï¿½ï¿½O
     bool isBlowedAwayEnemy;
 
-    // ‹­‚¢UŒ‚‚©‚Ç‚¤‚©‚Ìƒtƒ‰ƒO
+    // ï¿½ï¿½ï¿½ï¿½ï¿½Uï¿½ï¿½ï¿½ï¿½ï¿½Ç‚ï¿½ï¿½ï¿½ï¿½Ìƒtï¿½ï¿½ï¿½O
     bool isStrongAttack;
 
-    // UŒ‚‚ÉƒvƒŒƒCƒ„[‚ğƒ^[ƒQƒbƒg‚Ì•ûŒü‚ÉŒü‚©‚¹‚é
+    // ï¿½Uï¿½ï¿½ï¿½ï¿½ï¿½Éƒvï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½[ï¿½ï¿½ï¿½^ï¿½[ï¿½Qï¿½bï¿½gï¿½Ì•ï¿½ï¿½ï¿½ï¿½ÉŒï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
     void RotateOwnerToTarget();
 
-    // UŒ‚ƒAƒjƒ[ƒVƒ‡ƒ“‚ÌÄ¶—pŠÖ”
+    // ï¿½Uï¿½ï¿½ï¿½Aï¿½jï¿½ï¿½ï¿½[ï¿½Vï¿½ï¿½ï¿½ï¿½ï¿½ÌÄï¿½ï¿½pï¿½Öï¿½
     void PlayAttackMontage(const FAttackData& Attack);
 
-    // “–‚½‚è”»’è‚Ìˆ—
+    // ï¿½ï¿½ï¿½ï¿½ï¿½è”»ï¿½ï¿½Ìï¿½ï¿½ï¿½
     void AttackHit(const FAttackData& Attack);
 
-    // ƒvƒŒƒCƒ„[‚ÌƒI[ƒi[
+    // ï¿½vï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½[ï¿½ÌƒIï¿½[ï¿½iï¿½[
     AARRangerCharacter* ownerPawn;
 
-    // ƒvƒŒƒCƒ„[‚ÌƒRƒ“ƒgƒ[ƒ‰[
+    // ï¿½vï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½[ï¿½ÌƒRï¿½ï¿½ï¿½gï¿½ï¿½ï¿½[ï¿½ï¿½ï¿½[
     APlayerController* ownerController;
 
 public:
-    // ƒpƒ“ƒ`ƒf[ƒ^iBlueprint‚©‚çİ’èj
+    // ï¿½pï¿½ï¿½ï¿½`ï¿½fï¿½[ï¿½^ï¿½iBlueprintï¿½ï¿½ï¿½ï¿½İ’ï¿½j
     UPROPERTY(EditAnywhere, Category = "Attack")
     FAttackData PunchData;
 
-    // ƒLƒbƒNƒf[ƒ^iBlueprint‚©‚çİ’èj
+    // ï¿½Lï¿½bï¿½Nï¿½fï¿½[ï¿½^ï¿½iBlueprintï¿½ï¿½ï¿½ï¿½İ’ï¿½j
     UPROPERTY(EditAnywhere, Category = "Attack")
     FAttackData KickData;
 
-    // UŒ‚’†ƒtƒ‰ƒO
+    // ï¿½Uï¿½ï¿½ï¿½ï¿½ï¿½tï¿½ï¿½ï¿½O
     UPROPERTY(BlueprintReadOnly)
     bool IsAttacked;
 
-    // ƒqƒbƒgƒGƒtƒFƒNƒg—p‚ÌƒAƒNƒ^[
+    // ï¿½qï¿½bï¿½gï¿½Gï¿½tï¿½Fï¿½Nï¿½gï¿½pï¿½ÌƒAï¿½Nï¿½^ï¿½[
     UPROPERTY(EditAnywhere, Category = "Effects")
     TSubclassOf<AActor> HitEffectActor;
 
-    // ˆø‚«Šñ‚¹’†ƒtƒ‰ƒO‚ğæ“¾
+    // ï¿½ï¿½ï¿½ï¿½ï¿½ñ‚¹’ï¿½ï¿½tï¿½ï¿½ï¿½Oï¿½ï¿½ï¿½æ“¾
     bool GetIsAttractingEnemy() { return isAttractingEnemy; }
 
-    // UŒ‚’†ƒtƒ‰ƒO‚ğæ“¾
+    // ï¿½Uï¿½ï¿½ï¿½ï¿½ï¿½tï¿½ï¿½ï¿½Oï¿½ï¿½ï¿½æ“¾
     bool GetIsAttacked() { return IsAttacked; }
 
-    //‹­UŒ‚ƒtƒ‰ƒO‚ğæ“¾
+    //ï¿½ï¿½ï¿½Uï¿½ï¿½ï¿½tï¿½ï¿½ï¿½Oï¿½ï¿½ï¿½æ“¾
     bool GetIsStrongAttacked() { return isStrongAttack; }
 };
