@@ -26,9 +26,6 @@ public:
     virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 
-    // IAbilitySystemInterface の必須実装
-    virtual UAbilitySystemComponent* GetAbilitySystemComponent() const;
-
     // パンチの際に呼び出される
     void StartPunch();
 
