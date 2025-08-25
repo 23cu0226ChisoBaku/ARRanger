@@ -15,6 +15,7 @@ EBTNodeResult::Type UBTT_SetChasing::ExecuteTask(UBehaviorTreeComponent& OwnerCo
         if (AEnemy_Zako* Enemy = Cast<AEnemy_Zako>(AICon->GetPawn()))
         {
             Enemy->SetIsChasing(bChasing);
+            Enemy->SetIsChasing(bIsSearch);
             return EBTNodeResult::Succeeded;
         }
     }

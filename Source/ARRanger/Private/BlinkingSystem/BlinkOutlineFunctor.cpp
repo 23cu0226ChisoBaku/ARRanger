@@ -13,11 +13,9 @@
 */
 BlinkOutlineFunctor::BlinkOutlineFunctor()
 {
-
 }
 BlinkOutlineFunctor::~BlinkOutlineFunctor()
 {
-
 }
 /*
 * End BlinkOutlineFunctor Lifecycle Functions
@@ -28,8 +26,19 @@ BlinkOutlineFunctor::~BlinkOutlineFunctor()
  * 
  * @param 点滅処理を行うためのパラメータ,１フレームの時間
  */
-void BlinkOutlineFunctor::OutlineBlink(UObject* targetObject, UMeshComponent* targetmeshComponent, FBlinkingActorData* blinkingData, float DeltaTime)
+void BlinkOutlineFunctor::OutlineBlink(AActor* targetObject, UMeshComponent* targetmeshComponent, FBlinkingActorData* blinkingData, float DeltaTime)
 {
+    /*デバッグ用*/
+	if (GEngine)
+	{
+        GEngine->AddOnScreenDebugMessage(
+            -1,                // Key (-1 = 自動割り当て)
+            1.0f,              // 表示時間（秒）
+            FColor::Green,     // 色
+            TEXT("SSSSS")              // 表示内容
+        );
+	} 
+
     if(targetObject == nullptr || targetmeshComponent == nullptr || blinkingData == nullptr){ return; }
 
     // 妥協処理
@@ -41,9 +50,6 @@ void BlinkOutlineFunctor::OutlineBlink(UObject* targetObject, UMeshComponent* ta
     // 動的マテリアルの生成・セット
     if(targetmeshComponent != nullptr)
     {
-        // blinkingData->m_DynamicMaterial = CreateDynamicMaterial(blinkingData->_blinkMaterial, targetObject);
-        // targetmeshComponent->SetOverlayMaterial(blinkingData->m_DynamicMaterial);
-
         // 妥協処理
         if (AMagnetizableActor* MagnetActor = Cast<AMagnetizableActor>(targetObject))
 		{
@@ -52,75 +58,56 @@ void BlinkOutlineFunctor::OutlineBlink(UObject* targetObject, UMeshComponent* ta
         }
     }
 
-    // 妥協処理(本来はNoneTypeだった場合のみ、なんならここに書きたくない)
-    if(blinkingData->_blinkType != EBlinkType::Constant)
-    {
-        // 経過時間を加算
-        //blinkingData->_elapsedTime += DeltaTime;
-        // 妥協処理
-        if (AMagnetizableActor* MagnetActor = Cast<AMagnetizableActor>(targetObject))
-		{
-            MagnetActor->ElapsedBlinkTime += DeltaTime;
-
-            // ログ表示
-            if (GEngine)
-            {
-                // 第1引数: キー (同じキーなら上書き表示)
-                // 第2引数: 表示時間 (秒)
-                // 第3引数: 色
-                GEngine->AddOnScreenDebugMessage(
-                    -1,
-                    0.f,
-                    FColor::Green,
-                    //FString::Printf(TEXT("ElapsedTime: %.2f"), blinkingData->_elapsedTime)
-                    FString::Printf(TEXT("ElapsedTime: %.2f"), MagnetActor->ElapsedBlinkTime)
-                );
-            }
-        }
-
-        // // ログ表示
-        // if (GEngine)
-        // {
-        //     // 第1引数: キー (同じキーなら上書き表示)
-        //     // 第2引数: 表示時間 (秒)
-        //     // 第3引数: 色
-        //     GEngine->AddOnScreenDebugMessage(
-        //         -1,
-        //         0.f,
-        //         FColor::Green,
-        //         FString::Printf(TEXT("ElapsedTime: %.2f"), blinkingData->_elapsedTime)
-        //         FString::Printf(TEXT("ElapsedTime: %.2f"), targetObject->ElapsedBlinkTime)
-        //     );
-        // }
-    }
-
-    // ディレイ中なら処理しない
-    //if (blinkingData->_elapsedTime < blinkingData->_blinkDelay){ return; }
     // 妥協処理
     if (AMagnetizableActor* MagnetActor = Cast<AMagnetizableActor>(targetObject))
     {
-        if (MagnetActor->ElapsedBlinkTime < blinkingData->_blinkDelay){ return; }
+        // 経過時間を加算
+        MagnetActor->ElapsedBlinkTime += DeltaTime;
+
+        /*デバッグ用*/
+        if (GEngine)
+        {
+            // 第1引数: キー (同じキーなら上書き表示)
+            // 第2引数: 表示時間 (秒)
+            // 第3引数: 色
+            GEngine->AddOnScreenDebugMessage(
+                -1,
+                0.f,
+                FColor::Green,
+                //FString::Printf(TEXT("ElapsedTime: %.2f"), blinkingData->_elapsedTime)
+                FString::Printf(TEXT("ElapsedTime: %.2f"), MagnetActor->ElapsedBlinkTime)
+            );
+        }
+    } 
+
+    // ディレイ中は処理をしない
+    if (AMagnetizableActor* MagnetActor = Cast<AMagnetizableActor>(targetObject))
+    {
+        if(MagnetActor->ElapsedBlinkTime <= blinkingData->_blinkDelay)
+        {
+            return;
+        }
     }
     
-
     // 指定された種類の点滅を行う
     // 等間隔の点滅
     if(blinkingData->_blinkType == EBlinkType::Constant)
     {
-        ConstantBlink();
+        ConstantBlink(targetObject, blinkingData->_blinkInterval, blinkingData->_blinkSpeed);
     }
     // 徐々に早める点滅
     else if(blinkingData->_blinkType == EBlinkType::Accelerated)
     {
-        AcceleratedBlink();
+        AcceleratedBlink(targetObject, blinkingData->_blinkInterval, blinkingData->_blinkSpeed);
     }
     
-   
+    // 点滅時間過ぎたら終了
     if (AMagnetizableActor* MagnetActor = Cast<AMagnetizableActor>(targetObject))
     {
-        if(blinkingData->_blinkInterval  <=  MagnetActor->ElapsedBlinkTime)
+        // ディレイ時間を含めた点滅時間を過ぎるまで処理しない
+        if(blinkingData->_blinkInterval + blinkingData->_blinkDelay  <=  MagnetActor->ElapsedBlinkTime)
         {
-            // コールバック呼び出し
+            // 点滅処理を止めて登録リストから削除
             if (OnBlinkEnd != nullptr)
             {
                 if (AActor* targetActor = Cast<AActor>(targetObject))
@@ -130,20 +117,6 @@ void BlinkOutlineFunctor::OutlineBlink(UObject* targetObject, UMeshComponent* ta
             }
         }
     }    
-
-    
-    // // 点滅する時間が過ぎていたら点滅終了(点滅し始めてからの経過時間で計測)
-    // //if(blinkingData->_blinkInterval  <=  blinkingData->_elapsedTime)
-    // {
-    //     // コールバック呼び出し
-    //     if (OnBlinkEnd != nullptr)
-    //     {
-    //         if (AActor* targetActor = Cast<AActor>(targetObject))
-    //         {
-    //             OnBlinkEnd(targetActor);
-    //         }
-    //     }
-    // }
 } 
 
 /**
@@ -176,9 +149,46 @@ UMaterialInstanceDynamic* BlinkOutlineFunctor::CreateDynamicMaterial(UMaterialIn
  * 
  * @param 
  */
-void BlinkOutlineFunctor::ConstantBlink()
+void BlinkOutlineFunctor::ConstantBlink(AActor* targetObject, float blinkInterval, float blinkSpeed)
 {
+    if (targetObject == nullptr) {return;}
 
+    AMagnetizableActor* magnetActor = Cast<AMagnetizableActor>(targetObject);
+    if (magnetActor == nullptr || magnetActor->DynamicBlinkMaterial == nullptr) {return;}
+
+    // 点滅計算 (半周期で ON/OFF)
+    float phase = FMath::Fmod(magnetActor->ElapsedBlinkTime, blinkInterval);
+    float alpha = (phase < blinkInterval / 2.0f) ? 1.0f : 0.0f;
+
+    // FLinearColor outlineColor{};
+    // FHashedMaterialParameterInfo paramInfo{TEXT("OutlineColor")};
+    // if (!magnetActor->DynamicBlinkMaterial->GetVectorParameterValue(paramInfo ,outlineColor))
+    // {
+    //     UE_LOG(LogTemp, Error, TEXT("OSOI!!!!!"));
+    //     return;
+    // }
+
+    // static float s_TempTime = 0.0f;
+    // s_TempTime += FApp::GetDeltaTime();
+
+    // outlineColor *= FMath::Abs(FMath::Cos(s_TempTime * 3.1415926535f)) * 10;
+
+    // // TODO Hard coding
+    // magnetActor->DynamicBlinkMaterial->SetVectorParameterValue(TEXT("OutlineColor"), outlineColor);
+
+    // TODO Hard coding
+    magnetActor->DynamicBlinkMaterial->SetScalarParameterValue(TEXT("BlinkAlpha"), alpha);
+
+    /*デバッグ用*/
+	if (GEngine)
+	{
+        GEngine->AddOnScreenDebugMessage(
+            -1,                // Key (-1 = 自動割り当て)
+            5.0f,              // 表示時間（秒）
+            FColor::Green,     // 色
+            FString::Printf(TEXT("alpha: %.2f"), alpha)              // 表示内容
+        );
+	}
 }
 
 /**
@@ -186,7 +196,28 @@ void BlinkOutlineFunctor::ConstantBlink()
  * 
  * @param 
  */
-void BlinkOutlineFunctor::AcceleratedBlink()
+void BlinkOutlineFunctor::AcceleratedBlink(AActor* targetObject, float blinkInterval, float blinkSpeed)
 {
-    
+    if (targetObject == nullptr) {return;}
+
+    AMagnetizableActor* magnetActor = Cast<AMagnetizableActor>(targetObject);
+    if (magnetActor == nullptr || magnetActor->DynamicBlinkMaterial == nullptr) {return;}
+
+    // 徐々に早くなる点滅
+    float interval = FMath::Max(blinkInterval - magnetActor->ElapsedBlinkTime * blinkSpeed, 0.05f);
+    float phase = FMath::Fmod(magnetActor->ElapsedBlinkTime, interval);
+    float alpha = (phase < interval / 2.0f) ? 1.0f : 0.0f;
+
+    magnetActor->DynamicBlinkMaterial->SetScalarParameterValue(TEXT("BlinkAlpha"), alpha);
+
+    /*デバッグ用*/
+	if (GEngine)
+	{
+        GEngine->AddOnScreenDebugMessage(
+            -1,                // Key (-1 = 自動割り当て)
+            5.0f,              // 表示時間（秒）
+            FColor::Green,     // 色
+            FString::Printf(TEXT("alpha: %.2f"), alpha)              // 表示内容
+        );
+	}       
 }

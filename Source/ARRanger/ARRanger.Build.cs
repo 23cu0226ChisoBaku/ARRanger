@@ -27,7 +27,9 @@ public class ARRanger : ModuleRules
       "NavigationSystem"
     });
 
-    PrivateDependencyModuleNames.AddRange(new string[] { });
+    PrivateDependencyModuleNames.AddRange(new string[] {
+
+     });
 
     PublicIncludePaths.AddRange(new string[] {
       "ARRanger",

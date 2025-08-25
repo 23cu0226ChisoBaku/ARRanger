@@ -21,9 +21,21 @@ public:
 	/**
 	 * @brief 点滅処理を行う関数
 	 */
-	void OutlineBlink( UObject* targetObject, UMeshComponent* targetmeshComponent, FBlinkingActorData* blinkingData, float DeltaTime); 
+	void OutlineBlink(AActor* targetObject, UMeshComponent* targetmeshComponent, FBlinkingActorData* blinkingData, float DeltaTime); 
 
-private:
+	/**
+	 * @brief 指定されたパラメータに応じて等間隔で点滅を行う
+	 * 
+	 * @param 
+	 */
+	void ConstantBlink(AActor* targetObject, float blinkInterval, float blinkSpeed);
+
+	/**
+	 * @brief 指定されたパラメータに応じて徐々に早くなる点滅を行う
+	 * 
+	 * @param 
+	 */
+	void AcceleratedBlink(AActor* targetObject, float blinkInterval, float blinkSpeed);
 
 	/**
 	 * @brief 動的なマテリアルを生成する
@@ -31,18 +43,4 @@ private:
 	 * @param 点滅させるマテリアル
 	 */
 	UMaterialInstanceDynamic* CreateDynamicMaterial(UMaterialInterface* blinkMaterial, UObject* targetObject);
-
-	/**
-	 * @brief 指定されたパラメータに応じて等間隔で点滅を行う
-	 * 
-	 * @param 
-	 */
-	void ConstantBlink();
-
-	/**
-	 * @brief 指定されたパラメータに応じて徐々に早くなる点滅を行う
-	 * 
-	 * @param 
-	 */
-	void AcceleratedBlink();
 };

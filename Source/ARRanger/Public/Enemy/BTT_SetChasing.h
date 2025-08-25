@@ -17,6 +17,9 @@ protected:
     UPROPERTY(EditAnywhere, Category = "AI")
     bool bChasing;
 
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "AI")
+    bool bIsSearch;
+
     virtual EBTNodeResult::Type ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;
 
 };
