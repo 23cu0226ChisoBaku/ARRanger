@@ -18,7 +18,6 @@
 #include "Physics/Gameplay/ARPhysicsGlobal.h"
 #include "Physics/Core/ARPhysicsTickProcessorActor.h"
 #include "Public/BlinkingSystem/BlinkingOutlineWorldSubsystem.h"
-#include "InstantScripts/LineTraceSingleARObjectComponent.h"
 
 // TODO May move initialize function to another file
 #include "Physics/IARPhysicsSystemHost.h"
@@ -60,10 +59,10 @@ void AInsekiGameMode::BeginPlay()
 		if (PC != nullptr && PC->GetPawn() != nullptr)
 		{
 			// プレイヤーのPawnからLineTraceSingleARObjectComponentを取得
-			ULineTraceSingleARObjectComponent* LineTraceComp = PC->GetPawn()->FindComponentByClass<ULineTraceSingleARObjectComponent>();
+			UDetectorMagnetizableComponent* DetectorMagnetizableComp = PC->GetPawn()->FindComponentByClass<UDetectorMagnetizableComponent>();
 
 			// TickActorClassを設定し、サブシステムにセットアップを依頼
-			WorldSubsystem->SetupBlinkingSystem(GetWorld(), LineTraceComp, BlinkTickActorClass);
+			WorldSubsystem->SetupBlinkingSystem(GetWorld(), DetectorMagnetizableComp, OutlineTickActorClass);
 		}
 	}
 
