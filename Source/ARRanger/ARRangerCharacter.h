@@ -238,8 +238,20 @@ public:
 	// 強攻撃中フラグをセット
 	void SetIsStrongAttacked(bool IsStrongAttacked) { isStrongAttacked = IsStrongAttacked; }
 
+	// ロックオンフラグを取得
+	bool GetIsLockedOn() { return LockOnComponent->GetIsLockedOn(); }
+
 	// 引き寄せ中フラグをセット
 	void SetIsAttracted(bool IsAttracted) { isAttracted = IsAttracted; }
+
+	// 引き寄せ完了フラグをセット
+	void SetIsApproachedEnemy(bool IsApproachedEnemy) { isApproachedEnemy = IsApproachedEnemy; }
+
+	// 引き寄せ完了フラグを取得
+	bool GetIsApproachedEnemy() { return isApproachedEnemy; }
+
+	// 引き寄せ完了時に呼びだされる関数
+	void OnAttractionCompleted();
 
 	// コンボ受付フラグをセット
 	void SetInComboWindow(bool bIn) { bIsInComboWindow = bIn; }
@@ -280,6 +292,9 @@ private:
 
 	// 引き寄せ中フラグ
 	bool isAttracted = false;
+
+	// 敵引き寄せ完了フラグ
+	bool isApproachedEnemy = false;
 
 	// コンボ受付中かどうか
 	bool bIsInComboWindow = false;

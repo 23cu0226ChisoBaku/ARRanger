@@ -56,15 +56,14 @@ void UGA_Attack::EndAbility(
     bool bReplicateEndAbility,
     bool bWasCancelled)
 {
-    UE_LOG(LogTemp, Warning, TEXT("Korega Konoyono Hate..."));
     bIsAttacked = false;
     bIsStrongAttack = false;
     bIsBlowedAwayEnemy = false;
     bIsAttractingEnemy = false;
+
     AARRangerCharacter* Char = Cast<AARRangerCharacter>(GetAvatarActorFromActorInfo());
     Char->SetIsAttacked(false);
     Char->SetIsStrongAttacked(false);
-    Char->SetIsAttracted(false);
 
     Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
@@ -72,17 +71,15 @@ void UGA_Attack::EndAbility(
 // =====================
 // AttackComponentから移植
 // =====================
+
 void UGA_Attack::StartPunch()
 {
-    UE_LOG(LogTemp, Warning, TEXT("Punch Start"));
     AARRangerCharacter* Char = Cast<AARRangerCharacter>(GetAvatarActorFromActorInfo());
     if (!Char || !PunchData.Montage_Normal) return;
 
     RotateOwnerToTarget();
 
     bool bInComboWindow = Char->GetIsInComboWindow();
-    UE_LOG(LogTemp, Warning, TEXT("Combo OK? %s"), bInComboWindow ? TEXT("true") : TEXT("false"));
-
 
     UAnimInstance* Anim = Char->GetMesh()->GetAnimInstance();
     if (!Anim)
@@ -90,10 +87,38 @@ void UGA_Attack::StartPunch()
         UE_LOG(LogTemp, Error, TEXT("NO AnimInstance at StartPunch!"));
         return;
     }
-        
-    int32 ComboCount = Char->GetComboCount();
-    UE_LOG(LogTemp, Warning, TEXT("Combo Count is %d"), ComboCount + 1);
 
+    if (Char->GetIsApproachedEnemy())
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Attraction Punch!"));
+        // 強攻撃フラグを上げる
+        // 引き寄せフラグを下げる
+        bIsStrongAttack = true;
+        Char->SetIsAttracted(false);
+        Char->SetIsApproachedEnemy(false);
+
+        // パンチを開始
+        PlayAttackMontage(PunchData);
+        return;
+    }
+
+    if (EARMagnetismType::Attraction == Char->GetMagnetismType() && Char->GetIsLockedOn())
+    {
+        if (AEnemy* Enemy = Cast<AEnemy>(Char->LockOnComponent->GetLockedOnTarget()))
+        {
+            // 敵に引き寄せを命令
+            Enemy->StartAttraction(Char); 
+            Char->SetIsAttracted(true);
+
+            // 引き寄せアニメーションを再生
+            if (PunchData.Montage_AR && !Char->GetMesh()->GetAnimInstance()->Montage_IsPlaying(PunchData.Montage_AR))
+            {
+                Char->GetMesh()->GetAnimInstance()->Montage_Play(PunchData.Montage_AR);
+            }
+            return;
+        }
+    }
+    
     // モンタージュ未再生 → 1段目から開始
     if (!Anim->Montage_IsPlaying(PunchData.Montage_Normal))
     {
@@ -268,7 +293,7 @@ void UGA_Attack::AttackHit(const FAttackData& Attack)
                 if (bIsStrongAttack)
                 {
                     const bool bWillBeKilled = (Enemy->currentHP - (Attack.Damage + Attack.DamageModifier) <= 0);
-                    Enemy->ReceiveDamage(Attack.Damage + Attack.DamageModifier, LaunchDir, bWillBeKilled);
+                    Enemy->ReceiveDamage(bIsStrongAttack, Attack.Damage + Attack.DamageModifier, LaunchDir, bWillBeKilled);
 
                     // 斥力キック時は敵を吹っ飛ばす
                     if (bIsBlowedAwayEnemy)
@@ -280,7 +305,7 @@ void UGA_Attack::AttackHit(const FAttackData& Attack)
                             ImpulseDir.Z += 0.5f;
                             ImpulseDir.Normalize();
 
-                            float ImpulseStrength = 1500.f;
+                            float ImpulseStrength = 1300.f;
 
                             PrimComp->AddImpulse(ImpulseDir * ImpulseStrength, NAME_None, true);
                         }
@@ -289,30 +314,11 @@ void UGA_Attack::AttackHit(const FAttackData& Attack)
                 else
                 {
                     const bool bWillBeKilled = (Enemy->currentHP - Attack.Damage <= 0);
-                    Enemy->ReceiveDamage(Attack.Damage, LaunchDir, bWillBeKilled);
+                    Enemy->ReceiveDamage(bIsStrongAttack, Attack.Damage, LaunchDir, bWillBeKilled);
                 }
             }
         }
     }
-}
-
-void UGA_Attack::ScheduleNextPunch()
-{
-    AARRangerCharacter* Char = Cast<AARRangerCharacter>(GetAvatarActorFromActorInfo());
-    if (!Char || !PunchData.Montage_Normal) return;
-
-    int32 ComboCount = Char->GetComboCount();
-    if (ComboCount >= MaxCombo - 1) return;  
-
-    UAnimInstance* Anim = Char->GetMesh()->GetAnimInstance();
-    if (!Anim) return;
-
-    const FName CurSection = GetPunchSectionName(ComboCount);
-    const FName NextSection = GetPunchSectionName(ComboCount + 1);
-
-    Anim->Montage_SetNextSection(CurSection, NextSection, PunchData.Montage_Normal);
-
-    bNextScheduled = true;
 }
 
 void UGA_Attack::OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted)
@@ -330,7 +336,6 @@ void UGA_Attack::OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted)
     {
         Char->SetIsAttacked(false);
         Char->SetIsStrongAttacked(false);
-        Char->SetIsAttracted(false);
         Char->ResetComboCount();
     }
 }

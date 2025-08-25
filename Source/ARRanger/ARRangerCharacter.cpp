@@ -473,6 +473,11 @@ void AARRangerCharacter::Input_Punch()
 	{
 		return;
 	}
+	// 強攻撃・引き寄せ中は処理しない
+	if (isStrongAttacked || isAttracted)
+	{
+		return;
+	}
 
 	if (AbilitySystemComp && PunchHandle.IsValid())
 	{
@@ -490,9 +495,26 @@ void AARRangerCharacter::Input_Kick()
 		return;
 	}
 
+	// 強攻撃・引き寄せ中は処理しない
+	if (isStrongAttacked || isAttracted)
+	{
+		return;
+	}
+
 	if (AbilitySystemComp && KickHandle.IsValid())
 	{
 		AbilitySystemComp->TryActivateAbility(KickHandle);
+	}
+}
+
+void AARRangerCharacter::OnAttractionCompleted()
+{
+	// 引き寄せ完了フラグを立てる
+	SetIsApproachedEnemy(true);
+	UE_LOG(LogTemp, Warning, TEXT("Attraction Punch Start!"));
+	if (GA_AttackInstance)
+	{
+		GA_AttackInstance->StartPunch();
 	}
 }
 
@@ -505,7 +527,7 @@ void AARRangerCharacter::OnAttackHitNotify()
 
 void AARRangerCharacter::Transform()
 {
-	// 攻撃中・引き寄せ中はは処理しない
+	// 攻撃中・引き寄せ中は処理しない
 	if (isAttacked || isStrongAttacked || isAttracted)
 	{
 		return;

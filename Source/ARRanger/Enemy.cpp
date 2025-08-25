@@ -1,5 +1,7 @@
 #include "Enemy.h"
 
+#include "AbilitySystemComponent.h"
+#include "ARRangerCharacter.h"
 #include "Components/BoxComponent.h"
 #include "InsekiGameMode.h"
 #include "Kismet/GameplayStatics.h"
@@ -30,6 +32,34 @@ void AEnemy::BeginPlay()
 void AEnemy::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	if (bIsAttracted && attractionTarget && IsValid(attractionTarget))
+	{
+		FVector PlayerLocation = attractionTarget->GetActorLocation();
+		FVector EnemyLocation = GetActorLocation();
+		FVector Direction = (PlayerLocation - EnemyLocation);
+		float Distance = Direction.Size();
+
+		if (Distance <= MinDistance)
+		{
+			StopAttraction();
+
+			// プレイヤーに通知（パンチ開始用）
+			if (AARRangerCharacter* Player = Cast<AARRangerCharacter>(attractionTarget))
+			{
+				if (UGA_Attack* AttackAbility = Player->GA_AttackInstance)
+				{
+					// プレイヤーに引き寄せ完了通知
+					Player->OnAttractionCompleted();
+				}
+				return;
+			}
+			return;
+		}
+
+		FVector NewLocation = EnemyLocation + Direction.GetSafeNormal() * attractionSpeed * DeltaTime;
+		SetActorLocation(NewLocation);
+	}
 }
 
 void AEnemy::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -37,7 +67,7 @@ void AEnemy::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 }
 
-void AEnemy::ReceiveDamage(int DamageAmount, FVector LaunchDirection, bool bEnableHitStop)
+void AEnemy::ReceiveDamage(bool bIsStrongAttack, int DamageAmount, FVector LaunchDirection, bool bEnableHitStop)
 {
 	currentHP -= DamageAmount;
 
@@ -63,16 +93,20 @@ void AEnemy::ReceiveDamage(int DamageAmount, FVector LaunchDirection, bool bEnab
 		// ちょっと待ってから消す
 		SetLifeSpan(1.0f);
 	}
-	else
+	else if(!bIsStrongAttack)
 	{
 		// 途中の攻撃。軽く吹っ飛ばすだけ
 		if (UPrimitiveComponent* Comp = Cast<UPrimitiveComponent>(GetRootComponent()))
 		{
 			if (Comp->IsSimulatingPhysics())
 			{
-				Comp->AddImpulse(LaunchDirection * 600.f, NAME_None, true);
+				Comp->AddImpulse(LaunchDirection * 300.f, NAME_None, true);
 			}
 		}
+	}
+	else
+	{
+		// 吹っ飛び方はプレイヤー側の各強攻撃の方に任せる
 	}
 
 	// ヒットストップ：とどめの一撃だけ有効化
@@ -85,4 +119,16 @@ void AEnemy::ReceiveDamage(int DamageAmount, FVector LaunchDirection, bool bEnab
 				UGameplayStatics::SetGlobalTimeDilation(GWorld, 1.0f);
 			}, 0.03f, false);
 	}
+}
+
+void AEnemy::StartAttraction(AActor* Target)
+{
+	attractionTarget = Target;
+	bIsAttracted = true;
+}
+
+void AEnemy::StopAttraction()
+{
+	bIsAttracted = false;
+	attractionTarget = nullptr;
 }
