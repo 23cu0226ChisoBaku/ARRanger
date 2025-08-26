@@ -96,14 +96,19 @@ void UDetectorMagnetizableComponent::UpdateDetectedActors()
 			}
 		}
 
+		TArray<AActor*> RemoveActors;
 		// 検知しなくなったオブジェクトへの処理
 		for (AActor* Actor : m_DetectedMagnetizableActors)
 		{
 			if (!detectedActors.Contains(Actor))
 			{
-				m_DetectedMagnetizableActors.Remove(Actor);
+				RemoveActors.Add(Actor);
 				UnsetActorOnOutline.ExecuteIfBound(Actor);
 			}
+		}
+		for (AActor* Actor : RemoveActors)
+		{
+			m_DetectedMagnetizableActors.Remove(Actor);
 		}
 	}
 }

@@ -140,6 +140,10 @@ void AOutlineTickActor::UpdateOutlineTargets()
 			}
 		}
 
+		if(meshComp == nullptr)
+		{
+			return;
+		}
 		// リストに合ってアウトラインが適用されていないオブジェクトにアウトラインを適用
 		if(meshComp->GetOverlayMaterial() == nullptr)
 		{
@@ -172,7 +176,7 @@ void AOutlineTickActor::UpdateOutlineTargets()
 	}
 
 	// 削除するターゲットを一時保持
-	TArray<AActor*> Removetargets;
+	TArray<int32> RemovetargetsIndex;
 	// リストからなくなったものは削除
 	for (int32 i = m_OutlineActors.Num() - 1; i >= 0; --i)
     {
@@ -185,11 +189,15 @@ void AOutlineTickActor::UpdateOutlineTargets()
                 target._meshComponent->SetOverlayMaterial(nullptr);
             }
 			// 削除するリストに追加する
-			//Removetarget.Add(m_OutlineActors[i]);
-            // リストから削除
-            m_OutlineActors.RemoveAt(i);
+			RemovetargetsIndex.Add(i);
         }
     }
+
+	for(int32 idx : RemovetargetsIndex)
+	{
+		// リストから削除
+        m_OutlineActors.RemoveAt(idx);
+	}
 }
 
 
