@@ -45,6 +45,70 @@ void UDetectorMagnetizableComponent::SetPlayerCameraComponent(const UGameplayCam
 }
 
 /**
+ * @brief Playerを中心に指定した半径の磁性を持ったオブジェクトを検知
+ */
+void UDetectorMagnetizableComponent::UpdateDetectedActors()
+{
+	if (m_OwnerActor == nullptr) { return; }
+
+	TArray<AActor*> overlappedActors;
+	TArray<AActor*> detectedActors;
+
+	// プレイヤーを中心とした球体範囲内のアクターを取得
+	UKismetSystemLibrary::SphereOverlapActors(
+		GetWorld(),
+		m_OwnerActor->GetActorLocation(),			/*中心座標*/
+		m_DetectionRadius,							/*検知範囲*/
+		m_ObjectTypes,								/*検知するオブジェクトタイプ(UE側で指定)*/
+		nullptr,									/*すべてのクラスを検知するクラス*/
+		{ m_OwnerActor },							/*無視するアクター*/
+		overlappedActors							/*検知したアクターの格納場所*/
+	);
+
+	// IARMagnetizableInterface 実装しているアクターを抽出
+	for (AActor* Actor : overlappedActors)
+	{
+		if (Actor == nullptr) { continue; }
+
+		// クラスフィルタに合うか判定
+		for (TSubclassOf<AActor> AllowedClass : m_DetectionClassFilter)
+		{
+			if (Actor->IsA(AllowedClass))
+			{
+				if (!detectedActors.Contains(Actor))
+				{
+					detectedActors.Add(Actor);
+				}
+			}
+		}
+	}
+
+	// 検知したものが変わった場合処理
+	if (detectedActors != m_DetectedMagnetizableActors)
+	{
+		// 新しく検知したオブジェクトへの処理
+		for (AActor* Actor : detectedActors)
+		{
+			if (!m_DetectedMagnetizableActors.Contains(Actor))
+			{
+				m_DetectedMagnetizableActors.Add(Actor);
+				SetActorOnOutline.ExecuteIfBound(Actor);
+			}
+		}
+
+		// 検知しなくなったオブジェクトへの処理
+		for (AActor* Actor : m_DetectedMagnetizableActors)
+		{
+			if (!detectedActors.Contains(Actor))
+			{
+				m_DetectedMagnetizableActors.Remove(Actor);
+				UnsetActorOnOutline.ExecuteIfBound(Actor);
+			}
+		}
+	}
+}
+
+/**
  *  @brief 引力斥力を付与する対象のオブジェクトを他クラスに渡す処理
  */
 void UDetectorMagnetizableComponent::AssignTargetMagnetizableObject()
@@ -133,70 +197,6 @@ AActor* UDetectorMagnetizableComponent::TraceForMagnetizableObject(const FVector
 	}
 
 	return nullptr;
-}
-
-/**
- * @brief Playerを中心に指定した半径の磁性を持ったオブジェクトを検知
- */
-void UDetectorMagnetizableComponent::UpdateDetectedActors()
-{
-	if (m_OwnerActor == nullptr) { return; }
-
-	TArray<AActor*> overlappedActors;
-	TArray<AActor*> detectedActors;
-
-	// プレイヤーを中心とした球体範囲内のアクターを取得
-	UKismetSystemLibrary::SphereOverlapActors(
-		GetWorld(),
-		m_OwnerActor->GetActorLocation(),			/*中心座標*/
-		m_DetectionRadius,							/*検知範囲*/
-		m_ObjectTypes,								/*検知するオブジェクトタイプ(UE側で指定)*/
-		nullptr,									/*すべてのクラスを検知するクラス*/
-		{ m_OwnerActor },							/*無視するアクター*/
-		overlappedActors							/*検知したアクターの格納場所*/
-	);
-
-	// IARMagnetizableInterface 実装しているアクターを抽出
-	for (AActor* Actor : overlappedActors)
-	{
-		if (Actor == nullptr) { continue; }
-
-		// クラスフィルタに合うか判定
-		for (TSubclassOf<AActor> AllowedClass : m_DetectionClassFilter)
-		{
-			if (Actor->IsA(AllowedClass))
-			{
-				if (!detectedActors.Contains(Actor))
-				{
-					detectedActors.Add(Actor);
-				}
-			}
-		}
-	}
-
-	// 検知したものが変わった場合処理
-	if (detectedActors != m_DetectedMagnetizableActors)
-	{
-		// 新しく検知したオブジェクトへの処理
-		for (AActor* Actor : detectedActors)
-		{
-			if (!m_DetectedMagnetizableActors.Contains(Actor))
-			{
-				m_DetectedMagnetizableActors.Add(Actor);
-				SetActorOnOutline.ExecuteIfBound(Actor);
-			}
-		}
-
-		// 検知しなくなったオブジェクトへの処理
-		for (AActor* Actor : m_DetectedMagnetizableActors)
-		{
-			if (!detectedActors.Contains(Actor))
-			{
-				m_DetectedMagnetizableActors.Remove(Actor);
-				UnsetActorOnOutline.ExecuteIfBound(Actor);
-			}
-		}
-	}
 }
 
 /**
