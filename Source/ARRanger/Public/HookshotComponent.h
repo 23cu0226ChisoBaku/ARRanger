@@ -18,9 +18,18 @@ public:
 	UHookshotComponent();
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;		
 
+    UFUNCTION(BlueprintCallable)
     void HookshotAction(AActor* targetActor);
-    FVector CalculationDirection();
 
+    /**
+     * @brief 始点から終点に対しての方向ベクトルを計算
+     * 
+     * @param 始点,終点
+     * 
+     * @return 正規化した方向ベクトル
+     */
+    UFUNCTION()
+    FVector CalculationDirection(FVector StartPos, FVector EndPos);
 
 private:
 
