@@ -31,7 +31,9 @@ void UHookshotComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAc
 }
 
 /**
- * @brief フックショットを始める際の処理
+ * @brief BPから呼ぶフックショット開始関数
+ * 
+ * @param 移動先ターゲットアクター
  */
 void UHookshotComponent::StartHookshot(AActor* targetActor)
 {
@@ -40,6 +42,18 @@ void UHookshotComponent::StartHookshot(AActor* targetActor)
         return;
     }
 
+    /*プレイヤーにかかっている加速度をリセット*/
+    if (ACharacter* character = Cast<ACharacter>(GetOwner()))
+    {
+        if (UCharacterMovementComponent* moveComp = character->GetCharacterMovement())
+        {
+            moveComp->StopMovementImmediately(); 
+            moveComp->GravityScale = 0.f;  
+            character->GetCharacterMovement()->SetMovementMode(MOVE_Flying);     
+        }
+    }
+
+    /*引力フックショットに必要なパラメータを設定*/
     m_TargetActor = targetActor;
     m_IsHookshotAction = true;
     m_CurrentHookshotSpeed = m_HookshotMinSpeed;
@@ -65,7 +79,7 @@ void UHookshotComponent::HookshotAction(float deltaTime)
     } 
 
     /*重力をゼロにする*/
-    character->GetCharacterMovement()->GravityScale = 0.f;
+    //character->GetCharacterMovement()->GravityScale = 0.f;
 
     /*フックショットのスピードを増加*/
     IncreaseHookshotSpeed(deltaTime);
@@ -78,6 +92,7 @@ void UHookshotComponent::HookshotAction(float deltaTime)
     FVector newLocation = ownerLocation + direction * m_CurrentHookshotSpeed * deltaTime;
     GetOwner()->SetActorLocation(newLocation);
 
+    /*BoxCollisionが何かしらに接触した場合止める*/
     if(HitCheckOnHookshot(ownerLocation,direction))
     {
         StopHookshot();
@@ -94,7 +109,7 @@ void UHookshotComponent::HookshotAction(float deltaTime)
  */
 FVector UHookshotComponent::CalculationDirection(FVector StartPos, FVector EndPos)
 {
-	return (StartPos - EndPos).GetSafeNormal();
+	return (EndPos - StartPos).GetSafeNormal();
 }
 
 /**
@@ -104,13 +119,13 @@ FVector UHookshotComponent::CalculationDirection(FVector StartPos, FVector EndPo
  */
 void UHookshotComponent::IncreaseHookshotSpeed(float deltaTime)
 {
-    // TMap で登録済みのラムダ関数を呼ぶ
+    /*TMap で登録済みのラムダ関数を呼ぶ*/
     if (SpeedCurveFunctions.Contains(SpeedCurve))
     {
         SpeedCurveFunctions[SpeedCurve](deltaTime);
     }
 
-    /*上限チェック（安全策）*/
+    /*上限チェック（安全対策)*/
     m_CurrentHookshotSpeed = FMath::Min(m_CurrentHookshotSpeed, m_HookshotMaxSpeed);
 }
 
@@ -123,17 +138,17 @@ void UHookshotComponent::IncreaseHookshotSpeed(float deltaTime)
  */
 bool UHookshotComponent::HitCheckOnHookshot(const FVector& ownerLocation ,const FVector& direction)
 {
-    // 開始位置にオフセットを加える
+    /*開始位置にオフセットを加える*/
     FVector startLocation = ownerLocation + m_HookshotBoxTraceOffset;
     FVector endLocation = startLocation + direction * m_HookshotBoxTraceDistance;
 
-    // BoxTrace のサイズ
+    /*BoxTrace のサイズ*/
     FCollisionShape BoxShape = FCollisionShape::MakeBox(m_HookshotBoxExtent);
     FHitResult HitResult;
     FCollisionQueryParams Params;
     Params.AddIgnoredActor(GetOwner());
 
-    // BoxTraceを進行方向に飛ばす
+    /*BoxTraceを進行方向に飛ばす*/
     bool bHit = GetWorld()->SweepSingleByChannel(
         HitResult,
         startLocation,
@@ -150,7 +165,7 @@ bool UHookshotComponent::HitCheckOnHookshot(const FVector& ownerLocation ,const 
     DrawDebugLine(GetWorld(), startLocation, endLocation, FColor::Blue, false, 1.f, 0, 2.f);
 #endif
 
-    // ヒットしたらフックショットを停止
+    /*ヒットしたらフックショットを停止*/
     return bHit;
 }
 
@@ -159,9 +174,10 @@ bool UHookshotComponent::HitCheckOnHookshot(const FVector& ownerLocation ,const 
  */
 void UHookshotComponent::StopHookshot()
 {
-     // ②重力を元に戻す
+    /*重力を元に戻す*/
     if (ACharacter* character = Cast<ACharacter>(GetOwner()))
     {
+        character->GetCharacterMovement()->SetMovementMode(MOVE_Walking);
         character->GetCharacterMovement()->GravityScale = 1.7f;
     }
 
