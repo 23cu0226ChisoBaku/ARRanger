@@ -72,4 +72,6 @@ void UARMagneticRepulsionTickObject::OnEndTickObject()
   result.FinalForce = GetEvaluatedResult().ForceResult;
   
   Target->OnRepulsionEvaluated(result);
+
+  Super::OnEndTickObject();
 }

@@ -64,4 +64,6 @@ void UARMagneticAttractionTickObject::OnEndTickObject()
   result.FinalForce = GetEvaluatedResult().ForceResult;
 
   Target->OnAttractionEvaluated(result);
+
+  Super::OnEndTickObject();
 }
