@@ -42,17 +42,22 @@ void AEnemy::Tick(float DeltaTime)
 
 		if (Distance <= MinDistance)
 		{
-			StopAttraction();
+			// プレイヤーに引き寄せ完了通知
+			UE_LOG(LogTemp, Warning, TEXT("Attraction Done"));
+
+			if (attractionTarget == nullptr)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("attractionTarget is NULL!"));
+			}
 
 			// プレイヤーに通知（パンチ開始用）
 			if (AARRangerCharacter* Player = Cast<AARRangerCharacter>(attractionTarget))
 			{
-				if (UGA_Attack* AttackAbility = Player->GA_AttackInstance)
-				{
-					// プレイヤーに引き寄せ完了通知
-					UE_LOG(LogTemp, Warning, TEXT("Attraction Done"));
-					Player->OnAttractionCompleted();
-				}
+				// プレイヤーに引き寄せ完了通知
+				UE_LOG(LogTemp, Warning, TEXT("Call Player"));
+				Player->OnAttractionCompleted();
+				StopAttraction();
+
 				return;
 			}
 			return;

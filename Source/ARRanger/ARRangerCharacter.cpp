@@ -216,12 +216,15 @@ void AARRangerCharacter::Tick(float DeltaTime)
 	if (isClimbed)
 	{
 		// DoMoveが呼ばれない際はここで入力値を反映
-		const FVector Input = GetLastMovementInputVector();
+		/*const FVector Input = GetLastMovementInputVector();
 		if (UARRangerAnimInstance* MyAnim = Cast<UARRangerAnimInstance>(GetMesh()->GetAnimInstance()))
 		{
 			MyAnim->ClimbUpSpeed = Input.Y;
 			MyAnim->ClimbRightSpeed = Input.X;
-		}
+		}*/
+		const float ClimbSpeed = 700.0f; // 上昇速度
+		AddActorWorldOffset(FVector(0, 0, ClimbSpeed * DeltaTime), true);
+
 
 		// 壁回転処理
 		// 足元の位置（Capsuleの底の位置）
