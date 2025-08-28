@@ -178,7 +178,7 @@ void UHookshotComponent::StopHookshot()
     if (ACharacter* character = Cast<ACharacter>(GetOwner()))
     {
         character->GetCharacterMovement()->SetMovementMode(MOVE_Walking);
-        character->GetCharacterMovement()->GravityScale = 1.7f;
+        //character->GetCharacterMovement()->GravityScale = 1.7f;
     }
 
     m_IsHookshotAction = false;
