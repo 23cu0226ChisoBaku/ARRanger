@@ -1,5 +1,5 @@
 
-#include "Enemy/BTT_PunchAttack.h"
+#include "Enemy/BTT/BTT_PunchAttack.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "AIController.h"
 #include "GameFramework/Character.h"
@@ -14,52 +14,28 @@ UBTT_PunchAttack::UBTT_PunchAttack()
 
 EBTNodeResult::Type UBTT_PunchAttack::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
-	// 攻撃対象を取得
-	AAIController* AIController = OwnerComp.GetAIOwner();
-	if (!AIController) return EBTNodeResult::Failed;
+    AAIController* AIController = OwnerComp.GetAIOwner();
+    ACharacter* AICharacter = Cast<ACharacter>(AIController->GetPawn());
+    if (!AICharacter) return EBTNodeResult::Failed;
 
-	ACharacter* AICharacter = Cast<ACharacter>(AIController->GetPawn());
-	if (!AICharacter) return EBTNodeResult::Failed;
+    if (UAnimInstance* AnimInstance = AICharacter->GetMesh()->GetAnimInstance())
+    {
+        if (AttackMontage)
+        {
+            AnimInstance->Montage_Play(AttackMontage);
 
-	UBlackboardComponent* BlackboardComp = OwnerComp.GetBlackboardComponent();
-	if (!BlackboardComp) return EBTNodeResult::Failed;
+            // デリゲートで終了検知
+            FOnMontageEnded EndDelegate;
+            EndDelegate.BindUObject(this, &UBTT_PunchAttack::OnMontageEnded, &OwnerComp);
+            AnimInstance->Montage_SetEndDelegate(EndDelegate, AttackMontage);
 
-	AActor* TargetActor = Cast<AActor>(BlackboardComp->GetValueAsObject(TargetActorKey.SelectedKeyName));
-	if (!TargetActor) return EBTNodeResult::Failed;
+            return EBTNodeResult::InProgress; // ここでタスク継続
+        }
+    }
+    return EBTNodeResult::Failed;
+}
 
-	// 攻撃アニメーションの再生（モンタージュ割り込み）
-	if (AttackMontage)
-	{
-		if (UAnimInstance* AnimInstance = AICharacter->GetMesh()->GetAnimInstance())
-		{
-			// 即時再生（ステートマシンより優先される）
-			AnimInstance->Montage_Play(AttackMontage);
-		}
-	}
-
-	// 攻撃判定
-	// 敵とプレイヤーの距離をチェック
-	float Distance = FVector::Dist(AICharacter->GetActorLocation(), TargetActor->GetActorLocation());
-	
-	if (Distance <= AttackRange)
-	{
-		// 攻撃がヒットした場合の処理
-		// ダメージを与える
-		//UGameplayStatics::ApplyDamage(TargetActor, Damage, AIController, AICharacter, UDamageType::StaticClass());
-		
-		// パーティクルエフェクトとサウンドを再生
-		FVector HitLocation = TargetActor->GetActorLocation();
-		if (HitParticle)
-		{
-			UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), HitParticle, HitLocation);
-		}
-		if (HitSound)
-		{
-			UGameplayStatics::PlaySoundAtLocation(GetWorld(), HitSound, HitLocation);
-		}
-
-		return EBTNodeResult::Succeeded;
-	}
-
-	return EBTNodeResult::Failed;
+void UBTT_PunchAttack::OnMontageEnded(UAnimMontage* Montage, bool bInterrupted, UBehaviorTreeComponent* OwnerComp)
+{
+    FinishLatentTask(*OwnerComp, EBTNodeResult::Succeeded); // 再生完了後に成功扱い
 }

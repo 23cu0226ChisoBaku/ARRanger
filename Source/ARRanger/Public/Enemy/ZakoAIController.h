@@ -39,22 +39,19 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Blackboard Keys")
 	FName TargetActorKey = "TargetActor";
 
-private:
+protected:
 	// 認識イベントのコールバック関数
 	UFUNCTION()
 	void OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus);
 
 	// 近くの味方に警告をブロードキャストする関数
-	void BroadcastAlert(AActor* SeenActor);
+	virtual void BroadcastAlert(AActor* SeenActor);
 
 	FTimerHandle LostSightTimerHandle;
-
-	// クラス定義内に追加するメンバ関数と変数
-protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "AI")
 	float LostSightDelay = 3.0f;
 
-	void StopChasing();
+	virtual void StopChasing();
 	
 };
