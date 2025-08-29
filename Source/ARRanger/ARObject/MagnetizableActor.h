@@ -40,8 +40,8 @@ public:
 	UFUNCTION(BlueprintCallable)
 	static void CallRepulsion(AMagnetizableActor* actor)
 	{
-    // FIXME Remove this
-    FARMagneticForceResult result;
+		// FIXME Remove this
+		FARMagneticForceResult result;
 		actor->OnRepulsionEvaluated(result);
 	}
 

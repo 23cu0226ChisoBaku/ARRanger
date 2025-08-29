@@ -13,6 +13,11 @@ class ARRANGER_API UAttackComponent : public UActorComponent
 {
     GENERATED_BODY()
 
+protected:
+    // AbilitySystemComponent�ｽ�ｽﾛ托ｿｽ
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Abilities")
+    UAbilitySystemComponent* AbilitySystemComp;
+
 public:
     UAttackComponent();
 
@@ -20,72 +25,72 @@ public:
 
     virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
-    // �p���`�̍ۂɌĂяo�����
+    // パンチの際に呼び出される
     void StartPunch();
 
-    // �L�b�N�̍ۂɌĂяo�����
+    // �ｽL�ｽb�ｽN�ｽﾌ際に呼び出�ｽ�ｽ�ｽ�ｽ�ｽ
     void StartKick();
 
-    // �p���`��AnimNotify�̒ʒm���󂯎��
+    // �ｽp�ｽ�ｽ�ｽ`�ｽ�ｽAnimNotify�ｽﾌ通知�ｽ�ｽ�ｽｯ趣ｿｽ�ｽ
     UFUNCTION(BlueprintCallable)
     void PunchHitNotify();
 
-    // �L�b�N��AnimNotify�̒ʒm���󂯎��
+    // �ｽL�ｽb�ｽN�ｽ�ｽAnimNotify�ｽﾌ通知�ｽ�ｽ�ｽｯ趣ｿｽ�ｽ
     UFUNCTION(BlueprintCallable)
     void KickHitNotify();
 
-    // �U�����I������ۂ̃R�[���o�b�N
+    // �ｽU�ｽ�ｽ�ｽ�ｽ�ｽI�ｽ�ｽ�ｽ�ｽ�ｽ�ｽﾛのコ�ｽ[�ｽ�ｽ�ｽo�ｽb�ｽN
     UFUNCTION()
     void OnAttackMontageEnded(UAnimMontage* Montage, bool IsInterrupted);
 
 private:
-    // �G�������񂹒��̃t���O
+    // �ｽG�ｽ�ｽ�ｽ�ｽ�ｽ�ｽ�ｽｹ抵ｿｽ�ｽﾌフ�ｽ�ｽ�ｽO
     bool isAttractingEnemy;
 
-    // �G�𐁂���΂��t���O
+    // �ｽG�ｽ≠�ｽ�ｽ�ｽﾎゑｿｽ�ｽt�ｽ�ｽ�ｽO
     bool isBlowedAwayEnemy;
 
-    // �����U�����ǂ����̃t���O
+    // �ｽ�ｽ�ｽ�ｽ�ｽU�ｽ�ｽ�ｽ�ｽ�ｽﾇゑｿｽ�ｽ�ｽ�ｽﾌフ�ｽ�ｽ�ｽO
     bool isStrongAttack;
 
-    // �U�����Ƀv���C���[���^�[�Q�b�g�̕����Ɍ�������
+    // �ｽU�ｽ�ｽ�ｽ�ｽ�ｽﾉプ�ｽ�ｽ�ｽC�ｽ�ｽ�ｽ[�ｽ�ｽ�ｽ^�ｽ[�ｽQ�ｽb�ｽg�ｽﾌ包ｿｽ�ｽ�ｽ�ｽﾉ鯉ｿｽ�ｽ�ｽ�ｽ�ｽ�ｽ�ｽ
     void RotateOwnerToTarget();
 
-    // �U���A�j���[�V�����̍Đ��p�֐�
+    // �ｽU�ｽ�ｽ�ｽA�ｽj�ｽ�ｽ�ｽ[�ｽV�ｽ�ｽ�ｽ�ｽ�ｽﾌ再撰ｿｽ�ｽp�ｽﾖ撰ｿｽ
     void PlayAttackMontage(const FAttackData& Attack);
 
-    // �����蔻��̏���
+    // �ｽ�ｽ�ｽ�ｽ�ｽ阡ｻ�ｽ�ｽﾌ擾ｿｽ�ｽ�ｽ
     void AttackHit(const FAttackData& Attack);
 
-    // �v���C���[�̃I�[�i�[
+    // �ｽv�ｽ�ｽ�ｽC�ｽ�ｽ�ｽ[�ｽﾌオ�ｽ[�ｽi�ｽ[
     AARRangerCharacter* ownerPawn;
 
-    // �v���C���[�̃R���g���[���[
+    // �ｽv�ｽ�ｽ�ｽC�ｽ�ｽ�ｽ[�ｽﾌコ�ｽ�ｽ�ｽg�ｽ�ｽ�ｽ[�ｽ�ｽ�ｽ[
     APlayerController* ownerController;
 
 public:
-    // �p���`�f�[�^�iBlueprint����ݒ�j
+    // �ｽp�ｽ�ｽ�ｽ`�ｽf�ｽ[�ｽ^�ｽiBlueprint�ｽ�ｽ�ｽ�ｽﾝ抵ｿｽj
     UPROPERTY(EditAnywhere, Category = "Attack")
     FAttackData PunchData;
 
-    // �L�b�N�f�[�^�iBlueprint����ݒ�j
+    // �ｽL�ｽb�ｽN�ｽf�ｽ[�ｽ^�ｽiBlueprint�ｽ�ｽ�ｽ�ｽﾝ抵ｿｽj
     UPROPERTY(EditAnywhere, Category = "Attack")
     FAttackData KickData;
 
-    // �U�����t���O
+    // �ｽU�ｽ�ｽ�ｽ�ｽ�ｽt�ｽ�ｽ�ｽO
     UPROPERTY(BlueprintReadOnly)
     bool IsAttacked;
 
-    // �q�b�g�G�t�F�N�g�p�̃A�N�^�[
+    // �ｽq�ｽb�ｽg�ｽG�ｽt�ｽF�ｽN�ｽg�ｽp�ｽﾌア�ｽN�ｽ^�ｽ[
     UPROPERTY(EditAnywhere, Category = "Effects")
     TSubclassOf<AActor> HitEffectActor;
 
-    // �����񂹒��t���O���擾
+    // �ｽ�ｽ�ｽ�ｽ�ｽｹ抵ｿｽ�ｽt�ｽ�ｽ�ｽO�ｽ�ｽ�ｽ謫ｾ
     bool GetIsAttractingEnemy() { return isAttractingEnemy; }
 
-    // �U�����t���O���擾
+    // �ｽU�ｽ�ｽ�ｽ�ｽ�ｽt�ｽ�ｽ�ｽO�ｽ�ｽ�ｽ謫ｾ
     bool GetIsAttacked() { return IsAttacked; }
 
-    //���U���t���O���擾
+    //�ｽ�ｽ�ｽU�ｽ�ｽ�ｽt�ｽ�ｽ�ｽO�ｽ�ｽ�ｽ謫ｾ
     bool GetIsStrongAttacked() { return isStrongAttack; }
 };

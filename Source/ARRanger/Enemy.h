@@ -25,10 +25,27 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Inseki, meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UBoxComponent> Box;
 
+	// 引き寄せられ中フラグ
+	bool bIsAttracted = false;
+
+	// 引き寄せられる対象(プレイヤー)
+	AActor* attractionTarget = nullptr;
+
+	// 引き寄せ停止関数
+	void StopAttraction();
+
 protected:
 	// 最大HP
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Enemy")
 	int maxHP;
+
+	// 引き寄せ時のスピード
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Enemy")
+	float attractionSpeed = 800.f;
+
+	// 引き寄せの最低距離(これ以下になったらパンチ開始)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Enemy")
+	float MinDistance = 150.f;
 
 public:	
 	virtual void Tick(float DeltaTime) override;
@@ -45,5 +62,8 @@ public:
 
 	// ダメージを受ける関数
 	UFUNCTION()
-	void ReceiveDamage(int DamageAmount, FVector LaunchDirection, bool bEnableHitStop);
+	void ReceiveDamage(bool bIsStrongAttack, int DamageAmount, FVector LaunchDirection, bool bEnableHitStop);
+
+	// 引き寄せ開始関数
+	void StartAttraction(AActor* Target);
 };
