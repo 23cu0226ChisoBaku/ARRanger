@@ -159,7 +159,7 @@ bool UHookshotComponent::HitCheckOnHookshot(const FVector& ownerLocation ,const 
         Params
     );
 
-#if true
+#if false
     DrawDebugBox(GetWorld(), startLocation, m_HookshotBoxExtent, FQuat::Identity, FColor::Green, false, 1.f);
     DrawDebugBox(GetWorld(), endLocation, m_HookshotBoxExtent, FQuat::Identity, FColor::Red, false, 1.f);
     DrawDebugLine(GetWorld(), startLocation, endLocation, FColor::Blue, false, 1.f, 0, 2.f);
@@ -178,7 +178,7 @@ void UHookshotComponent::StopHookshot()
     if (ACharacter* character = Cast<ACharacter>(GetOwner()))
     {
         character->GetCharacterMovement()->SetMovementMode(MOVE_Walking);
-        //character->GetCharacterMovement()->GravityScale = 1.7f;
+        character->GetCharacterMovement()->GravityScale = 1.7f;
     }
 
     m_IsHookshotAction = false;
