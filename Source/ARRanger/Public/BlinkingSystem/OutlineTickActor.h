@@ -136,6 +136,14 @@ public:
 	void SetBlinkOutlineActorAtCursor(AActor* targetObject);
 
 	/**
+	 * @brief カーソルが外れた付与可能なオブジェクトを解除する
+	 * 
+	 * @param 解除するアクター
+	 */
+	void UnsetBlinkOutlineActorAtCursor(AActor* targetObject);
+
+
+	/**
 	 * @brief カーソルのある付与可能なオブジェクトのアウトラインを点滅させる
 	 * 
 	 * @param １フレームの経過時間

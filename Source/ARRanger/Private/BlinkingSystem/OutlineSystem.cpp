@@ -56,6 +56,19 @@ void FOutlineSystem::BlinkOutlineActorAtCursorDelegate(AActor* targetObject)
 }
 
 /*
+* @brief カーソルが外れたオブジェクトの点滅を終了させるデリゲート関数
+*
+* @param 点滅するアウトラインをつける対象のオブジェクトポインタ
+*/
+void FOutlineSystem::StopBlinkOutlineActorAtCursorDelegate(AActor* targetObject)
+{
+	if(m_TickActor != nullptr)
+	{
+		m_TickActor->UnsetBlinkOutlineActorAtCursor(targetObject);			
+	}
+}
+
+/*
 * @brief アウトラインを付ける対象オブジェクトを設定するデリゲート関数
 *
 * @param アウトラインをつける対象のオブジェクトポインタ

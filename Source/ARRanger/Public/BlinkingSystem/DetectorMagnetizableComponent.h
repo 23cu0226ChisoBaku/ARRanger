@@ -12,6 +12,7 @@ class UGameplayCameraComponent;
 
 /*デリゲート宣言*/
 DECLARE_DELEGATE_OneParam(FStaticSetActorAtCursorDelegate, AActor*);
+DECLARE_DELEGATE_OneParam(FStaticUnsetActorAtCursorDelegate, AActor*);
 DECLARE_DELEGATE_OneParam(FStaticSetActorOnOutlineDelegate, AActor*);
 DECLARE_DELEGATE_OneParam(FStaticUnsetActorOnOutlineDelegate, AActor*);
 DECLARE_DELEGATE_OneParam(FStaticSetActorOnBlinkingOutlineDelegate, AActor*);
@@ -34,6 +35,11 @@ public:
 	* @brief カーソルがあっているオブジェクトをシステムに渡すデリゲート
 	*/
 	FStaticSetActorAtCursorDelegate SetMagnetizableObjectAtCursor;
+
+	/* 
+	* @brief カーソルがあっているオブジェクトをシステムに渡すデリゲート
+	*/
+	FStaticUnsetActorAtCursorDelegate UnsetMagnetizableObjectAtCursor;
 
 	/*
 	* @brief 検知範囲内に入ったオブジェクトをシステムに渡すデリゲート

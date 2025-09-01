@@ -192,19 +192,24 @@ void UHookshotComponent::StopHookshot()
 void UHookshotComponent::SetupSpeedCurveFunctions()
 {
     /*Linear*/
-    SpeedCurveFunctions.Add(EHookshotSpeedCurve::Linear, [this](float DeltaTime) {
+    SpeedCurveFunctions.Add(EHookshotSpeedCurve::Linear, [this](float DeltaTime) 
+    {
         m_CurrentHookshotSpeed += m_HookshotSpeedIncreaseValue * DeltaTime;
         m_CurrentHookshotSpeed = FMath::Min(m_CurrentHookshotSpeed, m_HookshotMaxSpeed);
     });
 
     /*Exponential*/
-    SpeedCurveFunctions.Add(EHookshotSpeedCurve::Exponential, [this](float DeltaTime) {
+    SpeedCurveFunctions.Add(EHookshotSpeedCurve::Exponential, [this](float DeltaTime) 
+    {
         m_CurrentHookshotSpeed = FMath::FInterpTo(m_CurrentHookshotSpeed, m_HookshotMaxSpeed, DeltaTime, m_HookshotSpeedIncreaseValue);
     });
 
     /*Logarithmic*/
-    SpeedCurveFunctions.Add(EHookshotSpeedCurve::Logarithmic, [this](float DeltaTime) {
+    SpeedCurveFunctions.Add(EHookshotSpeedCurve::Logarithmic, [this](float DeltaTime) 
+    {
         m_ElapsedTime += DeltaTime;
         m_CurrentHookshotSpeed = m_HookshotMaxSpeed * FMath::Clamp(FMath::Loge(1.f + m_HookshotSpeedIncreaseValue * m_ElapsedTime), 0.f, 1.f);
     });
+    
+    /**/
 }

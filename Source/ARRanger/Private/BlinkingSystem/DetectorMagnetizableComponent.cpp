@@ -139,7 +139,7 @@ void UDetectorMagnetizableComponent::AssignTargetMagnetizableObject()
 		// 前の対象を解除
 		if (m_TargetMagnetizableActor != nullptr && m_TargetMagnetizableActor->GetClass()->ImplementsInterface(UARMagnetizableInterface::StaticClass()))
 		{
-			SetMagnetizableObjectAtCursor.ExecuteIfBound(nullptr);
+			UnsetMagnetizableObjectAtCursor.ExecuteIfBound(m_TargetMagnetizableActor);
 		}
 
 		// 新しい対象を設定

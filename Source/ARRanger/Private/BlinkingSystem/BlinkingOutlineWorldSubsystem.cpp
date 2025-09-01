@@ -53,6 +53,11 @@ void UBlinkingOutlineWorldSubsystem::BindBlinkingMagnetizableObjectDelegate()
 			&FOutlineSystem::BlinkOutlineActorAtCursorDelegate
 		);
 
+		m_DetectorMagnetizableComponent->UnsetMagnetizableObjectAtCursor.BindRaw(
+			m_OutlineSystem.Get(),
+			&FOutlineSystem::StopBlinkOutlineActorAtCursorDelegate
+		);
+
 		m_DetectorMagnetizableComponent->SetActorOnOutline.BindRaw(
 			m_OutlineSystem.Get(),
 			&FOutlineSystem::AddOutlineActorDelegate

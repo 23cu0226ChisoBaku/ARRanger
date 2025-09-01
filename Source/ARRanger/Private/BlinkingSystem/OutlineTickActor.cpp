@@ -342,8 +342,23 @@ void AOutlineTickActor::RemoveBlinkingActor(AActor* removeActor)
  */
 void AOutlineTickActor::SetBlinkOutlineActorAtCursor(AActor* targetObject)
 {
-	m_BlinkingActorAtAtCursor = targetObject;
+	if(targetObject != nullptr)
+	{
+		m_BlinkingActorAtAtCursor = targetObject;
+	}
 }
+
+/**
+ * @brief カーソルが外れた付与可能なオブジェクトを解除する
+ * 
+ * @param 解除するアクター
+ */
+void AOutlineTickActor::UnsetBlinkOutlineActorAtCursor(AActor* targetObject)
+{
+	m_BlinkingActorAtAtCursor = nullptr;
+	m_BlinkOutlineFunctor->ResetMaterialParam(targetObject);
+}
+
 
 /**
  * @brief カーソルのある付与可能なオブジェクトのアウトラインを点滅させる

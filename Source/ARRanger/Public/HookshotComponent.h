@@ -11,9 +11,10 @@
 UENUM(BlueprintType)
 enum class EHookshotSpeedCurve : uint8
 {
-    Linear      UMETA(DisplayName="Linear"),       /*一定速度で上昇*/ 
-    Exponential UMETA(DisplayName="Exponential"),  /*だんだん増加が緩やかに*/ 
-    Logarithmic UMETA(DisplayName="Logarithmic")   /*初め急に上がり後で緩やかに*/ 
+    Linear      UMETA(DisplayName="Linear"),                /*一定速度で上昇*/ 
+    Exponential UMETA(DisplayName="Exponential"),           /*だんだん増加が緩やかに*/ 
+    Logarithmic UMETA(DisplayName="Logarithmic"),           /*初め急に上がり後で緩やかに*/  
+    CurveAsset  UMETA(DisplayName="Custom | CurveAsset")    /*カーブアセットの*/
 };
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
@@ -83,29 +84,33 @@ private:
     void SetupSpeedCurveFunctions();
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Hookshot|Collision", meta = (AllowPrivateAccess = "true"))
-    FVector m_HookshotBoxExtent;        /*フックショットを止めるためのBoxCollision*/
+    FVector m_HookshotBoxExtent;            /*フックショットを止めるためのBoxCollision*/
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Hookshot|Collision", meta = (AllowPrivateAccess = "true"))
-    float m_HookshotBoxTraceDistance;   /*BoxCollision の検出距離*/
+    float m_HookshotBoxTraceDistance;       /*BoxCollision の検出距離*/
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Hookshot|Collision", meta = (AllowPrivateAccess = "true"))
-    FVector m_HookshotBoxTraceOffset;   /*BoxCollision のオフセット*/ 
+    FVector m_HookshotBoxTraceOffset;       /*BoxCollision のオフセット*/ 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Hookshot|Speed", meta = (AllowPrivateAccess = "true"))
-    EHookshotSpeedCurve SpeedCurve;     /*フックショットのスピードタイプ*/
+    EHookshotSpeedCurve SpeedCurve;         /*フックショットのスピードタイプ*/
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Hookshot|Speed", meta = (AllowPrivateAccess = "true"))
-    float m_HookshotSpeedIncreaseValue; /*フックショットの加算スピード*/
+    float m_HookshotSpeedIncreaseValue;     /*フックショットの加算スピード*/
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Hookshot|Speed", meta = (AllowPrivateAccess = "true"))
-    float m_HookshotMaxSpeed;           /*フックショットの最高スピード*/
+    float m_HookshotMaxSpeed;               /*フックショットの最高スピード*/
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Hookshot|Speed", meta = (AllowPrivateAccess = "true"))
-    float m_HookshotMinSpeed;           /*フックショットの最低スピード*/
+    float m_HookshotMinSpeed;               /*フックショットの最低スピード*/
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Hookshot|Speed", meta = (AllowPrivateAccess = "true"))
+    float m_RatioBetweenPlayerAndTarget;    /*スピードを変える、プレイヤーとターゲットとの距離の比率の境*/
     UPROPERTY()
-    TObjectPtr<AActor> m_TargetActor;   /*ターゲットのアクター*/
+    TObjectPtr<AActor> m_TargetActor;       /*ターゲットのアクター*/
     UPROPERTY()
-    float m_CurrentHookshotSpeed;       /*現在のフックショットスピード*/
+    float m_CurrentHookshotSpeed;           /*現在のフックショットスピード*/
     UPROPERTY()
-    float m_ElapsedTime;                /*フックショットの経過時間*/
+    float m_ElapsedTime;                    /*フックショットの経過時間*/
     UPROPERTY()
-    bool m_CanHookshot;                 /*フックショットが出来るか*/
+    float m_CurrentRatio;                   /*現在のプレイヤーからターゲットへの距離の比率*/
     UPROPERTY()
-    bool m_IsHookshotAction;            /*フックショットを行っているか*/
+    bool m_CanHookshot;                     /*フックショットが出来るか*/
+    UPROPERTY()
+    bool m_IsHookshotAction;                /*フックショットを行っているか*/
 
     // フックショットのスピードタイプを切り替えるためのマップ
     TMap<EHookshotSpeedCurve, TFunction<void(float)>> SpeedCurveFunctions;

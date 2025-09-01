@@ -120,6 +120,22 @@ void BlinkOutlineFunctor::OutlineBlink(AActor* targetObject, UMeshComponent* tar
 } 
 
 /**
+ * @brief 点滅処理を行う関数
+ *
+ * @param 対象アクター
+ */
+void BlinkOutlineFunctor::ResetMaterialParam(AActor* targetActor)
+{
+    if (targetActor == nullptr) {return;}
+
+    AMagnetizableActor* magnetActor = Cast<AMagnetizableActor>(targetActor);
+    if (magnetActor == nullptr || magnetActor->DynamicBlinkMaterial == nullptr) {return;}
+
+    magnetActor->DynamicBlinkMaterial->SetScalarParameterValue(TEXT("BlinkAlpha"), -1.0f);
+}
+
+
+/**
  * @brief 動的なマテリアルを生成する
  * 
  * @param 点滅させるマテリアル
