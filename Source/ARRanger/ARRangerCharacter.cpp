@@ -21,6 +21,8 @@
 #include "LockOnComponent.h"
 #include "PunchCameraShake.h"
 
+#include "MLibrary.h"
+
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
 AARRangerCharacter::AARRangerCharacter()
@@ -584,5 +586,6 @@ void AARRangerCharacter::OnMagnetizedObjectHit(UPrimitiveComponent* HitComponent
 
 void AARRangerCharacter::OnRepulsionEvaluated(const FARMagneticForceResult& Result)
 {
+  MDebug::LogError("OnRepulsionEvaluated");
   LaunchCharacter(Result.FinalForce, true, false);
 }
