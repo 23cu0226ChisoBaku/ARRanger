@@ -7,6 +7,7 @@
 
 class UParticleSystem;
 class UAnimMontage;
+class USoundCue;
 
 UCLASS()
 class ARRANGER_API UBTT_PunchAttack : public UBTTaskNode
