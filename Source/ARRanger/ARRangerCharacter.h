@@ -6,6 +6,8 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "GA_Attack.h"
+#include "GA_Kick.h"
+#include "GA_Punch.h"
 #include "IARMagnetizableInterface.h"
 #include "InsekiClimbingObject.h"
 #include "LockOnComponent.h"
@@ -228,6 +230,22 @@ public:
 	UPROPERTY(BlueprintReadWrite, VisibleAnywhere, Category = "Abilities")
 	UGA_Attack* GA_AttackInstance = nullptr;
 
+	// GA_Punchを保存
+	UPROPERTY(BlueprintReadWrite, VisibleAnywhere, Category = "Abilities")
+	UGA_Punch* GA_PunchInstance = nullptr;
+
+	// GA_Kickを保存
+	UPROPERTY(BlueprintReadWrite, VisibleAnywhere, Category = "Abilities")
+	UGA_Kick* GA_KickInstance = nullptr;
+
+	// 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Abilities")
+	float MoveDeadZone = 0.15f;
+
+	//
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Abilities")
+	float MinInput = 0.3f;
+
 	// 現在のプレイヤーのモードを取得
 	UFUNCTION(BlueprintPure)
 	EARMagnetismType GetCurrentARType();
@@ -255,6 +273,9 @@ public:
 
 	// 引き寄せ完了時に呼びだされる関数
 	void OnAttractionCompleted();
+
+	// 敵死亡時に呼び出される関数
+	void OnDeadEnemy();
 
 	// コンボ受付フラグをセット
 	void SetInComboWindow(bool bIn) { bIsInComboWindow = bIn; }

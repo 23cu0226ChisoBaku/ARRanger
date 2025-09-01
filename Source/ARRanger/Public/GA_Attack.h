@@ -95,6 +95,9 @@ public:
     // 引き寄せ中フラグを取得
     bool GetIsAttractingEnemy() { return bIsAttractingEnemy; }
 
+    // 引き寄せ中フラグをセット
+    void SetIsAttractingEnemy(bool IsAttracting) { bIsAttractingEnemy = IsAttracting; }
+
     // 攻撃中フラグを取得
     bool GetIsAttacked() { return bIsAttacked; }
 

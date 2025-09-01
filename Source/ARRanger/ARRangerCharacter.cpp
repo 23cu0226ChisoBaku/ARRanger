@@ -244,7 +244,7 @@ void AARRangerCharacter::Tick(float DeltaTime)
 		bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_Visibility, Params);
 
 		// デバッグラインで確認
-		DrawDebugLine(GetWorld(), Start, End, bHit ? FColor::Green : FColor::Red, false, 0.1f, 0, 2.0f);
+		//DrawDebugLine(GetWorld(), Start, End, bHit ? FColor::Green : FColor::Red, false, 0.1f, 0, 2.0f);
 
 		// ライントレースで壁を判定
 		// 壁がないか、または引力クライム中に斥力状態に変身したらクライムを解除
@@ -310,13 +310,10 @@ void AARRangerCharacter::DoMove(float Right, float Forward)
 		return;
 	}
 
-	// 最低入力値（デッドゾーン＆最低速度）を設定
-	const float DeadZone = 0.15f;
-	const float MinInput = 0.3f;
-
 	// 入力値の絶対値をチェックしてデッドゾーン以下は0に
-	if (FMath::Abs(Forward) < DeadZone) Forward = 0.f;
-	if (FMath::Abs(Right) < DeadZone) Right = 0.f;
+	float radiusSquared = (Forward * Forward) + (Right * Right);
+	if (FMath::Abs(radiusSquared) < (MoveDeadZone * MoveDeadZone)) Forward = 0.f;
+	if (FMath::Abs(radiusSquared) < (MoveDeadZone * MoveDeadZone)) Right = 0.f;
 
 	// 0じゃないなら最低入力値に補正（符号は保持）
 	if (Forward != 0.f)
@@ -519,6 +516,11 @@ void AARRangerCharacter::OnAttractionCompleted()
 	{
 		GA_AttackInstance->StartPunch();
 	}
+}
+
+void AARRangerCharacter::OnDeadEnemy()
+{
+	// ばぐのおきないよう
 }
 
 void AARRangerCharacter::OnAttackHitNotify()
