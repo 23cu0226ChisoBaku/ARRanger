@@ -22,6 +22,31 @@ namespace Detector
 
 class UPrimitiveDetectorData;
 
+UENUM(BlueprintType)
+enum struct EDetectorTargetType : uint8
+{
+  /**アクター */
+  Actor,
+
+  /**アンリアル インターフェイス */
+  Interface,
+};
+
+USTRUCT(BlueprintType)
+struct FDetectorTarget
+{
+  GENERATED_BODY()
+
+  UPROPERTY(EditDefaultsOnly)
+  EDetectorTargetType TargetType;
+
+  UPROPERTY(EditDefaultsOnly, meta = (DisplayName = "Target Actor Class"))
+  TSubclassOf<AActor> TargetActor;
+
+  UPROPERTY(EditDefaultsOnly, meta = (DisplayName = "Target UInterface Class"))
+  TSubclassOf<UInterface> TargetInterface;
+};
+
 USTRUCT(BlueprintType)
 struct FDetectorAssetEntry
 {
@@ -30,7 +55,10 @@ struct FDetectorAssetEntry
   UPROPERTY(EditDefaultsOnly, Category = "RangeDetector|Data", meta = (DisplayName = "AssetPtr"))
   TObjectPtr<UPrimitiveDetectorData> DetectorData;
 
-  UPROPERTY(EditDefaultsOnly, Category = "RangeDetector|Data")
+  UPROPERTY(EditDefaultsOnly, Category = "RangeDetector|Target", meta = (EditCondition = "DetectorData != nullptr", EditConditionHides))
+  FDetectorTarget Target;
+
+  UPROPERTY(EditDefaultsOnly, Category = "RangeDetector|Data", meta = (EditCondition = "DetectorData != nullptr", EditConditionHides))
   int32 Priority;
 };
 

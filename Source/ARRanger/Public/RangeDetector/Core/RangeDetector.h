@@ -5,6 +5,20 @@
 
 class UPrimitiveDetectorData;
 
+struct FRangeDetectorEvaluationParameter
+{
+  /**Game world */
+  TObjectPtr<UWorld> World = nullptr;
+
+  /**Origin Actor */
+  TObjectPtr<AActor> OriginActor = nullptr;
+};
+
+struct FRangeDetectorEvaluationResult
+{
+  TArray<TObjectPtr<AActor>> DetectedActors{};
+};
+
 namespace ARRanger
 {
 
@@ -19,7 +33,7 @@ namespace Detector
       ARRANGER_API void Enable();
       ARRANGER_API void Disable();
       ARRANGER_API FString GetDataTagName() const;
-      ARRANGER_API int32 EvaluateDetector(TArray<AActor*>& OutResult) const;
+      ARRANGER_API int32 EvaluateDetector(const FRangeDetectorEvaluationParameter& EvaluationParam, FRangeDetectorEvaluationResult& OutResult) const;
 
       const UPrimitiveDetectorData* GetData_Const() const { return m_constData.Get(); }
       int32 GetPriority() const { return m_priority; }

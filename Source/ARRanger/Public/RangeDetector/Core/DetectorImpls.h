@@ -8,7 +8,7 @@ class UConeCollisionDataAsset;
 
 
 #define DECLARE_DETECT_TARGETS_IMPL(DetectorDataType) \
-  extern ARRANGER_API int32 DetectTargetsImpl(const DetectorDataType& InData, TArray<AActor*>& OutResult);
+  extern ARRANGER_API int32 DetectTargetsImpl(UWorld* World, AActor* OriginActor, const DetectorDataType& InData, TArray<TObjectPtr<AActor>>& OutResult);
 
 namespace ARRanger
 {

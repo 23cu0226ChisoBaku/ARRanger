@@ -5,6 +5,9 @@
 
 #include "IDetailCustomization.h"
 
+/**
+ * DEPRECATED
+ */
 class FRangeDetectorCustomization : public IDetailCustomization
 {
   public:

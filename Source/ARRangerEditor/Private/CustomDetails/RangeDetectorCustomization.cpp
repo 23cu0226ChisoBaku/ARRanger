@@ -1,10 +1,13 @@
-﻿#include "CustomDetails/RangeDetectorCustomization.h"
+﻿/**
+ * DEPRECATED
+ */
+#include "CustomDetails/RangeDetectorCustomization.h"
 
 #include "DetailCategoryBuilder.h"
 #include "DetailLayoutBuilder.h"
 
 #include "Misc/ClassFilters/InterfaceClassFilter.h"
-#include "Test/TestUInterface.h"
+#include "RangeDetector/GameFramework/RangeDetectorComponent.h"
 
 #include "ClassViewerModule.h"
 #include "DetailWidgetRow.h"
@@ -19,7 +22,7 @@ TSharedRef<IDetailCustomization> FRangeDetectorCustomization::MakeInstance()
 
 void FRangeDetectorCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 { 
-  m_targetInterfaceProp = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UTestUInterface, TargetInterface), UTestUInterface::StaticClass());
+  m_targetInterfaceProp = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(FDetectorTarget, TargetInterface), FDetectorTarget::StaticStruct());
   DetailBuilder.HideProperty(m_targetInterfaceProp);
 
   IDetailCategoryBuilder& categoryBuilder = DetailBuilder.EditCategory("TestUInterface");

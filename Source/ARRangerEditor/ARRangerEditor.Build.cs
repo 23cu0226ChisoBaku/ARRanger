@@ -19,6 +19,7 @@ public class ARRangerEditor : ModuleRules
         "UnrealEd",
         "UMG",
         "ScriptableEditorWidgets",
+        "PropertyEditor",
 			}
 		);
 	}

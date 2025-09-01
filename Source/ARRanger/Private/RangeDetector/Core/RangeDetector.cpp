@@ -41,7 +41,7 @@ namespace Detector
     return m_constData != nullptr ? m_constData->DataTag.GetTagName().ToString() : FString{};
   }
 
-  int32 FRangeDetector::EvaluateDetector(TArray<AActor*>& OutResult) const
+  int32 FRangeDetector::EvaluateDetector(const FRangeDetectorEvaluationParameter& EvaluationParam, FRangeDetectorEvaluationResult& OutResult) const
   {
     if (!IsActivate() || (m_constData == nullptr))
     {
@@ -49,7 +49,7 @@ namespace Detector
       return 0;
     }
 
-    return m_constData->DetectTargets(OutResult);
+    return m_constData->DetectTargets(EvaluationParam.World, EvaluationParam.OriginActor, OutResult.DetectedActors);
   }
 
 

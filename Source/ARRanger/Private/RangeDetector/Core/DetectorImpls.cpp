@@ -2,21 +2,58 @@
 
 #include "RangeDetector/Core/PrimitiveDetectorData.h"
 #include "RangeDetector/DetectorDatas/ConeCollisionDataAsset.h"
-#include "Kismet/KismetSystemLibrary.h"
+#include "RangeDetector/Utils/CollisionTraceFunctionLibrary.h"
 
 namespace ARRanger
 {
 
 namespace Detector
 {
-  int32 DetectTargetsImpl(const UPrimitiveDetectorData& InData, TArray<AActor*>& OutResult)
+  int32 DetectTargetsImpl(UWorld* World, AActor* OriginActor, const UPrimitiveDetectorData& InData, TArray<TObjectPtr<AActor>>& OutResult)
   {
     return 0;
   }
 
-  int32 DetectTargetsImpl(const UConeCollisionDataAsset& InData, TArray<AActor*>& OutResult)
+  int32 DetectTargetsImpl(UWorld* World, AActor* OriginActor, const UConeCollisionDataAsset& InData, TArray<TObjectPtr<AActor>>& OutResult)
   {
-    return 0;
+    if (World == nullptr)
+    {
+      return 0;
+    }
+
+    OutResult.Reset();
+
+    TArray<FHitResult> hitResults{};
+
+    // Ignore origin actor
+    TArray<TObjectPtr<AActor>> ignoreActors{};
+    ignoreActors.Add(OriginActor);
+
+    const FVector startPosition = InData.CenterPosition + InData.CenterPositionOffset + (OriginActor != nullptr ? OriginActor->GetActorLocation() : FVector::ZeroVector);
+
+    // TODO Channelに変更する
+    const int32 resultNum = UCollisionTraceFunctionLibrary::SweepConeMulti(
+                              World, 
+                              startPosition,
+                              InData.LocalDirectionRotator,
+                              InData.Height,
+                              InData.ConeAngle / 2.0f,
+                              ignoreActors,
+                              hitResults);
+
+    if (resultNum < 1)
+    {
+      UE_LOG(LogTemp, Warning, TEXT("Cone hit nothing"));
+    }
+
+    // Sweep multi will hit all components.So we should ignore same actor adding into array
+    /**同じActorの複数のコンポネントが追加される可能性があるため、同じActorを一つだけ入れる */
+    for (int32 idx = 0; idx < resultNum; ++idx)
+    {
+      OutResult.AddUnique(hitResults[idx].GetActor());
+    }
+
+    return resultNum;
   }
 }
 
