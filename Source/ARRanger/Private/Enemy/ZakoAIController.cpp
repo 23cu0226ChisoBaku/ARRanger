@@ -58,7 +58,6 @@ void AZakoAIController::BeginPlay()
 	if (BlackboardAsset && BehaviorTreeAsset)
 	{
 		RunBehaviorTree(BehaviorTreeAsset);
-		//UE_LOG(LogTemp, Warning, TEXT("RunBT!!"));
 
 		// 初期テスト用
 		//APawn* PlayerPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
@@ -114,7 +113,6 @@ void AZakoAIController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Sti
 
 void AZakoAIController::BroadcastAlert(AActor* SeenActor)
 {
-	UE_LOG(LogTemp, Warning, TEXT("BroadcastAlert called!"));
 	if (!SeenActor) return;
 	APawn* SelfPawn = GetPawn();
 	if (!SelfPawn) return;
@@ -137,9 +135,8 @@ void AZakoAIController::BroadcastAlert(AActor* SeenActor)
 
 	if (!bHit || Overlaps.Num() == 0) return;
 
-	UE_LOG(LogTemp, Warning, TEXT("%s detected %s, notifying allies..."),
-		*SelfPawn->GetName(),
-		*SeenActor->GetName());
+		/**SelfPawn->GetName(),
+		*SeenActor->GetName());*/
 
 	for (const FOverlapResult& Result : Overlaps)
 	{
@@ -155,11 +152,6 @@ void AZakoAIController::BroadcastAlert(AActor* SeenActor)
 					BB->SetValueAsObject("TargetActor", SeenActor);
 					BB->SetValueAsBool("IsPlayerDetected", true);
 					BB->SetValueAsBool("IsInAlertState", true); 
-
-					UE_LOG(LogTemp, Warning,
-						TEXT("  -> Notified ally: %s (Controller: %s)"),
-						*AllyChar->GetName(),
-						*AllyAI->GetName());
 				}
 			}
 		}
