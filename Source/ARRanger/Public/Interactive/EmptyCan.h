@@ -29,4 +29,7 @@ private:
 	 */
 	UFUNCTION()
 	float GetFlyForceByDamage();
+
+	UPROPERTY(VisibleAnywhere)
+    UStaticMeshComponent* MeshComponent;
 };
