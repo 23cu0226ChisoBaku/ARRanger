@@ -113,6 +113,7 @@ void UGA_Attack::StartPunch()
             // 引き寄せアニメーションを再生
             if (PunchData.Montage_AR && !Char->GetMesh()->GetAnimInstance()->Montage_IsPlaying(PunchData.Montage_AR))
             {
+                UE_LOG(LogTemp, Warning, TEXT("Attraction Start!"));
                 Char->GetMesh()->GetAnimInstance()->Montage_Play(PunchData.Montage_AR);
             }
             return;
@@ -308,8 +309,19 @@ void UGA_Attack::AttackHit(const FAttackData& Attack)
                             float ImpulseStrength = 1300.f;
 
                             PrimComp->AddImpulse(ImpulseDir * ImpulseStrength, NAME_None, true);
+                            return;
                         }
                     }
+
+                    // 引力パンチ時は斥力キック時よりも控えめに吹っ飛ばす
+                    UPrimitiveComponent* PrimComp = Cast<UPrimitiveComponent>(Enemy->GetRootComponent());
+                    FVector ImpulseDir = (Enemy->GetActorLocation() - Char->GetActorLocation()).GetSafeNormal();
+                    ImpulseDir.Z += 0.5f;
+                    ImpulseDir.Normalize();
+
+                    float ImpulseStrength = 1000.f;
+
+                    PrimComp->AddImpulse(ImpulseDir * ImpulseStrength, NAME_None, true);
                 }
                 else
                 {
