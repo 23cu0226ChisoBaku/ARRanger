@@ -18,7 +18,17 @@ public:
 private:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AttractActor Paramater", meta = (AllowPrivateAccess = "true"))
-	TArray<TSubclassOf<AActor>> m_TargetAttractionActors;
+	TArray<TSubclassOf<AActor>> m_AttractionClassFilter;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"), Category = "Detection Paramater")
+	TArray<TEnumAsByte<EObjectTypeQuery>> m_ObjectTypes;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AttractActor Paramater", meta = (AllowPrivateAccess = "true"))
-	float m_AttractForce;
+	float m_DetectionRadius;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AttractActor Paramater", meta = (AllowPrivateAccess = "true"))
+	float m_AttractSpeed;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AttractActor Paramater", meta = (AllowPrivateAccess = "true"))
+	bool m_IsMoveRotate;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AttractActor Paramater", meta = (AllowPrivateAccess = "true"))
+	float m_RotationSpeed;
+
 };
