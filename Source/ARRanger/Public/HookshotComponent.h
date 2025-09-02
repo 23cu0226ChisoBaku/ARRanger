@@ -99,6 +99,8 @@ private:
     float m_HookshotMinSpeed;               /*フックショットの最低スピード*/
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Hookshot|Speed", meta = (AllowPrivateAccess = "true"))
     float m_RatioBetweenPlayerAndTarget;    /*スピードを変える、プレイヤーとターゲットとの距離の比率の境*/
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Hookshot|Speed", meta = (AllowPrivateAccess = "true"))
+    UCurveFloat* m_CustomCurveSpeed;
     UPROPERTY()
     TObjectPtr<AActor> m_TargetActor;       /*ターゲットのアクター*/
     UPROPERTY()

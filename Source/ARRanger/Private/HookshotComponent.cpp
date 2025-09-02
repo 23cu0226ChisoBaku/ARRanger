@@ -98,6 +98,17 @@ void UHookshotComponent::HookshotAction(float deltaTime)
         StopHookshot();
         return;
     }
+
+    /*デバッグ用*/
+    if (GEngine)
+    {
+        GEngine->AddOnScreenDebugMessage(
+            -1,                                                         /*Key (-1 = 自動割り当て)*/
+            1.0f,                                                       /*表示時間(秒)*/
+            FColor::Green,                                              /*色*/ 
+            FString::Printf(TEXT("ElapsedTime: %.2f"), m_ElapsedTime)   /*表示内容*/ 
+        );
+    } 
 }
 
 /**
@@ -211,5 +222,13 @@ void UHookshotComponent::SetupSpeedCurveFunctions()
         m_CurrentHookshotSpeed = m_HookshotMaxSpeed * FMath::Clamp(FMath::Loge(1.f + m_HookshotSpeedIncreaseValue * m_ElapsedTime), 0.f, 1.f);
     });
     
-    /**/
+    /*CurveAsset*/
+    SpeedCurveFunctions.Add(EHookshotSpeedCurve::CurveAsset, [this](float DeltaTime) 
+    {
+        if(m_CustomCurveSpeed != nullptr)
+        {
+            m_ElapsedTime += DeltaTime;
+            m_CurrentHookshotSpeed = m_CustomCurveSpeed->GetFloatValue(m_ElapsedTime) * 100.0f;
+        }
+    });
 }

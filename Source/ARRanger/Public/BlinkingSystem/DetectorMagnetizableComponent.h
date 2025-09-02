@@ -76,10 +76,12 @@ public:
 	void AssignTargetMagnetizableObject();
 
 	/**
-	 *  @brief プレイヤーの状態(斥力・引力)をカーソルのあっているオブジェクトに付与する
+	 *  @brief プレイヤーの状態(斥力・引力)をオブジェクトに付与する
+	 * 
+	 *  @param 付与する対象のアクター
 	 */
 	UFUNCTION(BlueprintCallable)
-	void ApplyMagnetism();
+	void ApplyMagnetism(AActor* targetActor);
 
 	/*
 	* @brief ライントレースを行って付与できるオブジェクトを検知

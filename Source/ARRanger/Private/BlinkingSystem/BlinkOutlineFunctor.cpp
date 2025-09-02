@@ -131,6 +131,7 @@ void BlinkOutlineFunctor::ResetMaterialParam(AActor* targetActor)
     AMagnetizableActor* magnetActor = Cast<AMagnetizableActor>(targetActor);
     if (magnetActor == nullptr || magnetActor->DynamicBlinkMaterial == nullptr) {return;}
 
+    magnetActor->ElapsedBlinkTime = 0.0f;
     magnetActor->DynamicBlinkMaterial->SetScalarParameterValue(TEXT("BlinkAlpha"), -1.0f);
 }
 

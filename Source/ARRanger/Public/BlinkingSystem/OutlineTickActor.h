@@ -150,7 +150,7 @@ public:
 	 */
 	void BlinkOutlineActorAtCursor(float deltaTime);
 
-	/*テスト */
+	/*テスト*/
 	UFUNCTION(BlueprintCallable)
 	TArray<AActor*> GetBlinkingActors_Actors() const
 	{
@@ -181,6 +181,15 @@ private:
 	 * @return 存在したいかどうか
 	 */
 	bool ContainsActor(AActor* actor);
+
+	/**
+	 * @brief そのアクターの状態にあったマテリアルを返す関数
+	 * 
+	 * @param アウトラインを付ける対象アクター 
+	 * 
+	 * @return アウトラインのマテリアル
+	 */
+	UMaterialInterface* GetOutlineMaterial(AActor* targetActor);
 
 	/**
 	 * @brief 点滅させる対象のアクターのデータ構造体から変更分を更新する

@@ -124,13 +124,13 @@ void AOutlineTickActor::UpdateOutlineTargets()
 	// すでに管理しているアクターと比較して差分を見つける
 	for (TWeakObjectPtr<AActor> actorPtr : *m_OutlineActorsReference)
 	{
-		AActor* actor = actorPtr.Get();
-		if (actor == nullptr) continue;
+		AActor* targetactor = actorPtr.Get();
+		if (targetactor == nullptr) continue;
 	
 		// タグ付きのメッシュコンポーネントを探す
 		UMeshComponent* meshComp = nullptr;
 		TArray<UMeshComponent*> meshComponents;
-		actor->GetComponents(meshComponents);
+		targetactor->GetComponents(meshComponents);
 		for (UMeshComponent* comp : meshComponents)
 		{
 			if (comp && comp->ComponentHasTag(TEXT("OutLineMeshComponent")))
@@ -147,14 +147,14 @@ void AOutlineTickActor::UpdateOutlineTargets()
 		// リストに合ってアウトラインが適用されていないオブジェクトにアウトラインを適用
 		if(meshComp->GetOverlayMaterial() == nullptr)
 		{
-			meshComp->SetOverlayMaterial(m_BlinkDatas.GetNoneBlinkMaterial());;
+			meshComp->SetOverlayMaterial(GetOutlineMaterial(targetactor));;
 		}
 
 		// すでに追加済みかチェック
 		bool bAlreadyRegistered = false;
 		for (const FBlinkingTarget& target : m_OutlineActors)
 		{
-			if (target._actor == actor)
+			if (target._actor == targetactor)
 			{
 				bAlreadyRegistered = true;
 				break;
@@ -166,11 +166,11 @@ void AOutlineTickActor::UpdateOutlineTargets()
 		if (meshComp == nullptr) {continue;}
 
 		// アウトライン適用
-		meshComp->SetOverlayMaterial(m_BlinkDatas.GetNoneBlinkMaterial());
+		meshComp->SetOverlayMaterial(GetOutlineMaterial(targetactor));
 
 		// m_OutlineActors に追加
 		FBlinkingTarget newTarget;
-		newTarget._actor = actor;
+		newTarget._actor = targetactor;
 		newTarget._meshComponent = meshComp;
 		m_OutlineActors.Add(newTarget);
 	}
@@ -356,9 +356,11 @@ void AOutlineTickActor::SetBlinkOutlineActorAtCursor(AActor* targetObject)
 void AOutlineTickActor::UnsetBlinkOutlineActorAtCursor(AActor* targetObject)
 {
 	m_BlinkingActorAtAtCursor = nullptr;
-	m_BlinkOutlineFunctor->ResetMaterialParam(targetObject);
+	if(targetObject != nullptr)
+	{
+		m_BlinkOutlineFunctor->ResetMaterialParam(targetObject);
+	}
 }
-
 
 /**
  * @brief カーソルのある付与可能なオブジェクトのアウトラインを点滅させる
@@ -368,9 +370,9 @@ void AOutlineTickActor::UnsetBlinkOutlineActorAtCursor(AActor* targetObject)
 void AOutlineTickActor::BlinkOutlineActorAtCursor(float deltaTime)
 {
 	if (m_BlinkingActorAtAtCursor == nullptr) { return; }
-	AMagnetizableActor* MagnetActor = Cast<AMagnetizableActor>(m_BlinkingActorAtAtCursor);
-	if(MagnetActor == nullptr) {return;}
-	if(MagnetActor->GetMagnetismType() != EARMagnetismType::None)
+	AMagnetizableActor* magnetActor = Cast<AMagnetizableActor>(m_BlinkingActorAtAtCursor);
+	if(magnetActor == nullptr) {return;}
+	if(magnetActor->GetMagnetismType() != EARMagnetismType::None)
 	{
 		return;
 	}
@@ -419,4 +421,21 @@ bool AOutlineTickActor::ContainsActor(AActor* actor)
         }
     }
     return false;
+}
+
+/**
+ * @brief そのアクターの状態にあったマテリアルを返す関数
+ * 
+ * @param アウトラインを付ける対象アクター 
+ * 
+ * @return アウトラインのマテリアル
+ */
+UMaterialInterface* AOutlineTickActor::GetOutlineMaterial(AActor* targetActor)
+{
+	if(targetActor == nullptr)
+	{
+		return m_BlinkDatas.GetNoneBlinkMaterial();
+	}
+
+	return m_BlinkDatas.GetBlinkData(targetActor)->_blinkMaterial;
 }

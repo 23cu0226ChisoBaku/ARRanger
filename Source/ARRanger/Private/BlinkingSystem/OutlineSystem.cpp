@@ -49,7 +49,7 @@ void FOutlineSystem::CreateTickingActor(UWorld* world, TSubclassOf<AOutlineTickA
 */
 void FOutlineSystem::BlinkOutlineActorAtCursorDelegate(AActor* targetObject)
 {
-	if(m_TickActor != nullptr)
+	if(targetObject != nullptr)
 	{
 		m_TickActor->SetBlinkOutlineActorAtCursor(targetObject);			
 	}
@@ -62,9 +62,13 @@ void FOutlineSystem::BlinkOutlineActorAtCursorDelegate(AActor* targetObject)
 */
 void FOutlineSystem::StopBlinkOutlineActorAtCursorDelegate(AActor* targetObject)
 {
-	if(m_TickActor != nullptr)
+	if(targetObject != nullptr)
 	{
 		m_TickActor->UnsetBlinkOutlineActorAtCursor(targetObject);			
+	}
+	else
+	{
+		m_TickActor->UnsetBlinkOutlineActorAtCursor(nullptr);
 	}
 }
 
