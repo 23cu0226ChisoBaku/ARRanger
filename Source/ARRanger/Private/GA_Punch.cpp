@@ -108,6 +108,8 @@ void UGA_Punch::StartPunch()
 
         Anim->Montage_Play(PunchData.Montage_Normal);
         Anim->Montage_JumpToSection(GetPunchSectionName(0), PunchData.Montage_Normal);
+        // モンタージュ終了通知登録
+        Anim->OnMontageEnded.AddDynamic(this, &UGA_Punch::OnAttackMontageEnded);
 
         return;
     }
@@ -175,4 +177,25 @@ void UGA_Punch::ComboWindowEnd()
 void UGA_Punch::PunchHitNotify()
 {
     attackBaseComp->AttackHit(PunchData);
+}
+
+void UGA_Punch::OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted)
+{
+    // 最後の段の終了で Ability を終了
+    EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, bInterrupted);
+
+    // 状態リセット
+    if (AARRangerCharacter* Char = Cast<AARRangerCharacter>(GetAvatarActorFromActorInfo()))
+    {
+        Char->SetIsAttacked(false);
+        Char->SetIsStrongAttacked(false);
+        Char->ResetComboCount();
+    }
+
+    if (attackBaseComp)
+    {
+        attackBaseComp->SetIsAttacked(false);
+        attackBaseComp->SetIsStrongAttacked(false);
+        attackBaseComp->SetIsAttractingEnemy(false);
+    }
 }

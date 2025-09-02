@@ -58,6 +58,9 @@ public:
 	// 引き寄せ中フラグをセット
 	void SetIsAttractingEnemy(bool IsAttracting) { bIsAttractingEnemy = IsAttracting; }
 
+	// 敵吹き飛ばしフラグをセット
+	void SetIsBlowedAwayEnemy(bool IsBlowedAwayEnemy) { bIsBlowedAwayEnemy = IsBlowedAwayEnemy; }
+
 	// 攻撃中フラグを取得
 	bool GetIsAttacked() { return bIsAttacked; }
 

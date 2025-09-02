@@ -33,7 +33,7 @@ protected:
 
 private:
     // AttackBaseComponentを保存
-    UAttackBaseComponent* attackBaseComp;
+    UAttackBaseComponent* attackBaseComp = nullptr;
 
     // 最大コンボ回数
     int32 MaxCombo = 3;
@@ -45,6 +45,10 @@ protected:
     // パンチのデータ
     UPROPERTY(EditAnywhere, Category = "Attack")
     FAttackData PunchData;
+
+    // Montage終了イベント
+    UFUNCTION()
+    void OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted);
 
 public:
     // コンボ用のモンタージュ

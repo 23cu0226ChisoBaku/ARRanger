@@ -111,7 +111,7 @@ class AARRangerCharacter :  public ACharacter,
 
 	// GA_Kick参照
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Abilities")
-	TSubclassOf<UGA_Punch> GA_KickClass;
+	TSubclassOf<UGA_Kick> GA_KickClass;
 
 public:
 

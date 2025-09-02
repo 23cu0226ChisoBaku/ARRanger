@@ -97,7 +97,7 @@ void AARRangerCharacter::BeginPlay()
 	  FGameplayAbilitySpec PunchSpec(GA_PunchClass, 1, 0);
 	  PunchHandle = AbilitySystemComp->GiveAbility(PunchSpec);
 
-	  FGameplayAbilitySpec KickSpec(GA_AttackClass, 1, 1);
+	  FGameplayAbilitySpec KickSpec(GA_KickClass, 1, 1);
 	  KickHandle = AbilitySystemComp->GiveAbility(KickSpec);
 
 	  AbilitySystemComp->InitAbilityActorInfo(this, this);
