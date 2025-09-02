@@ -36,4 +36,6 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "Attack")
 	UAnimMontage* AttackMontage;
+
+
 };
