@@ -37,9 +37,9 @@ AZakoAIController::AZakoAIController()
 
 	SightConfig = CreateDefaultSubobject<UAISenseConfig_Sight>(TEXT("SightConfig"));
 
-	SightConfig->SightRadius = 700.0f;
-	SightConfig->LoseSightRadius = 800.0f;
-	SightConfig->PeripheralVisionAngleDegrees = 90.0f;
+	SightConfig->SightRadius = 1000.0f;
+	SightConfig->LoseSightRadius = 1200.0f;
+	SightConfig->PeripheralVisionAngleDegrees = 150.0f;
 
 	SightConfig->DetectionByAffiliation.bDetectEnemies = true;
 	SightConfig->DetectionByAffiliation.bDetectFriendlies = true;
@@ -93,6 +93,9 @@ void AZakoAIController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Sti
 		BB->SetValueAsObject(TargetActorKey, Actor);
 		BB->SetValueAsBool("IsPlayerDetected", true);
 
+		// 周囲の仲間に警告を送る
+		BroadcastAlert(Actor);
+
 		// 追跡停止タイマーをクリア
 		GetWorld()->GetTimerManager().ClearTimer(LostSightTimerHandle);
 	}
@@ -111,6 +114,7 @@ void AZakoAIController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Sti
 
 void AZakoAIController::BroadcastAlert(AActor* SeenActor)
 {
+	UE_LOG(LogTemp, Warning, TEXT("BroadcastAlert called!"));
 	if (!SeenActor) return;
 	APawn* SelfPawn = GetPawn();
 	if (!SelfPawn) return;

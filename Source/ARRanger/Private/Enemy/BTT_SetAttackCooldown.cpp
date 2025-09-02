@@ -1,5 +1,5 @@
 
-#include "Enemy/BTT_SetAttackCooldown.h"
+#include "Enemy/BTT/BTT_SetAttackCooldown.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "TimerManager.h"
 #include "AIController.h"

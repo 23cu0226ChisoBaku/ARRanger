@@ -1,6 +1,6 @@
 
 
-#include "Enemy/BTT_SetRandomPatrolLocation.h"
+#include "Enemy/BTT/BTT_SetRandomPatrolLocation.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "AIController.h"
 #include "NavigationSystem.h"
