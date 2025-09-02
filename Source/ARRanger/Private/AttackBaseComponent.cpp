@@ -69,7 +69,7 @@ void UAttackBaseComponent::PlayAttackMontage(const FAttackData& Attack)
     bIsAttacked = true;
     Char->SetIsAttacked(true);
 
-    if (bIsStrongAttack && Attack.Montage_Strong)
+    if (bIsStrongAttacked && Attack.Montage_Strong)
     {
         Anim->Montage_Play(Attack.Montage_Strong);
     }
@@ -127,10 +127,10 @@ void UAttackBaseComponent::AttackHit(const FAttackData& Attack)
                 LaunchDir.Normalize();
 
                 // ダメージを与える(強攻撃ならダメージを上乗せ)
-                if (bIsStrongAttack)
+                if (bIsStrongAttacked)
                 {
                     const bool bWillBeKilled = (Enemy->currentHP - (Attack.Damage + Attack.DamageModifier) <= 0);
-                    Enemy->ReceiveDamage(bIsStrongAttack, Attack.Damage + Attack.DamageModifier, LaunchDir, bWillBeKilled);
+                    Enemy->ReceiveDamage(bIsStrongAttacked, Attack.Damage + Attack.DamageModifier, LaunchDir, bWillBeKilled);
 
                     // 斥力キック時は敵を吹っ飛ばす
                     if (bIsBlowedAwayEnemy)
@@ -162,7 +162,7 @@ void UAttackBaseComponent::AttackHit(const FAttackData& Attack)
                 else
                 {
                     const bool bWillBeKilled = (Enemy->currentHP - Attack.Damage <= 0);
-                    Enemy->ReceiveDamage(bIsStrongAttack, Attack.Damage, LaunchDir, bWillBeKilled);
+                    Enemy->ReceiveDamage(bIsStrongAttacked, Attack.Damage, LaunchDir, bWillBeKilled);
                 }
             }
         }
@@ -173,7 +173,7 @@ void UAttackBaseComponent::OnAttackMontageEnded(UAnimMontage* Montage, bool bInt
 {
     UE_LOG(LogTemp, Warning, TEXT("Montage End"));
     bIsAttacked = false;
-    bIsStrongAttack = false;
+    bIsStrongAttacked = false;
     bIsBlowedAwayEnemy = false;
     bIsAttractingEnemy = false;
 

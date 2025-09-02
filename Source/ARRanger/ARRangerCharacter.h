@@ -105,6 +105,14 @@ class AARRangerCharacter :  public ACharacter,
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Abilities")
 	TSubclassOf<UGA_Attack> GA_AttackClass;
 
+	// GA_Punch参照
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Abilities")
+	TSubclassOf<UGA_Punch> GA_PunchClass;
+
+	// GA_Kick参照
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Abilities")
+	TSubclassOf<UGA_Punch> GA_KickClass;
+
 public:
 
 	// コンストラクタ
@@ -226,6 +234,9 @@ public:
 	// キックハンドラ
 	FGameplayAbilitySpecHandle KickHandle;
 
+	// AttackBaseComponentを保存
+	UAttackBaseComponent* AttackBaseComp = nullptr;
+
 	// GA_Attackを保存
 	UPROPERTY(BlueprintReadWrite, VisibleAnywhere, Category = "Abilities")
 	UGA_Attack* GA_AttackInstance = nullptr;
@@ -238,11 +249,11 @@ public:
 	UPROPERTY(BlueprintReadWrite, VisibleAnywhere, Category = "Abilities")
 	UGA_Kick* GA_KickInstance = nullptr;
 
-	// 
+	// 移動時のデッドゾーン(下回ると移動しない)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Abilities")
 	float MoveDeadZone = 0.15f;
 
-	//
+	// 移動時インプットの最低値(デッドゾーンを上回っている際の最低値)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Abilities")
 	float MinInput = 0.3f;
 

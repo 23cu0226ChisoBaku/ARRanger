@@ -38,7 +38,7 @@ private:
 	bool bIsAttacked = false;
 
 	// 強攻撃フラグ
-	bool bIsStrongAttack = false;
+	bool bIsStrongAttacked = false;
 
 	// 敵吹き飛ばしフラグ
 	bool bIsBlowedAwayEnemy = false;
@@ -61,8 +61,14 @@ public:
 	// 攻撃中フラグを取得
 	bool GetIsAttacked() { return bIsAttacked; }
 
-	//強攻撃フラグを取得
-	bool GetIsStrongAttacked() { return bIsStrongAttack; }
+	// 攻撃中フラグをセット
+	void SetIsAttacked(bool IsAttacked) { bIsAttacked = IsAttacked; }
+
+	// 強攻撃フラグを取得
+	bool GetIsStrongAttacked() { return bIsStrongAttacked; }
+
+	// 強攻撃中フラグをセット
+	void SetIsStrongAttacked(bool IsStrongAttacked) { bIsStrongAttacked = IsStrongAttacked; }
 
 	//　プレイヤーを敵の方向に向かせる
 	void RotateOwnerToTarget();

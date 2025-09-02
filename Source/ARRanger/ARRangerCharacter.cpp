@@ -3,6 +3,7 @@
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
 #include "ARRangerAnimInstance.h"
+#include "AttackBaseComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Components/BoxComponent.h"
 #include "Components/CapsuleComponent.h"
@@ -60,6 +61,7 @@ AARRangerCharacter::AARRangerCharacter()
 	LockOnComponent = CreateDefaultSubobject<ULockOnComponent>(TEXT("LockOnComponent"));
 	AbilitySystemComp = CreateDefaultSubobject<UAbilitySystemComponent>(TEXT("AbilitySystem"));
 	AbilitySystemComp->SetIsReplicated(true);
+	AttackBaseComp = CreateDefaultSubobject<UAttackBaseComponent>(TEXT("AttackBaseComponent"));
 }
 
 void AARRangerCharacter::BeginPlay()
@@ -92,7 +94,7 @@ void AARRangerCharacter::BeginPlay()
   if (GA_AttackClass && AbilitySystemComp)
   {
 	  // AbilitySystemComp に渡すためのSpecを作る
-	  FGameplayAbilitySpec PunchSpec(GA_AttackClass, 1, 0);
+	  FGameplayAbilitySpec PunchSpec(GA_PunchClass, 1, 0);
 	  PunchHandle = AbilitySystemComp->GiveAbility(PunchSpec);
 
 	  FGameplayAbilitySpec KickSpec(GA_AttackClass, 1, 1);
@@ -468,9 +470,10 @@ void AARRangerCharacter::DoJumpEnd()
 
 void AARRangerCharacter::Input_Punch()
 {
-	// GA_Attackがなければ処理しない
-	if (!GA_AttackClass)
+	// GA_Punchがなければ処理しない
+	if (!GA_PunchClass)
 	{
+		UE_LOG(LogTemp, Error, TEXT("NO Punch Class!"));
 		return;
 	}
 	// 強攻撃・引き寄せ中は処理しない
@@ -512,9 +515,9 @@ void AARRangerCharacter::OnAttractionCompleted()
 	// 引き寄せ完了フラグを立てる
 	SetIsApproachedEnemy(true);
 	UE_LOG(LogTemp, Warning, TEXT("Attraction Punch Start!"));
-	if (GA_AttackInstance)
+	if (GA_PunchInstance)
 	{
-		GA_AttackInstance->StartPunch();
+		GA_PunchInstance->StartPunch();
 	}
 }
 
