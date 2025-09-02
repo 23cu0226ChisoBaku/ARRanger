@@ -28,16 +28,16 @@ BlinkOutlineFunctor::~BlinkOutlineFunctor()
  */
 void BlinkOutlineFunctor::OutlineBlink(AActor* targetObject, UMeshComponent* targetmeshComponent, FBlinkingActorData* blinkingData, float DeltaTime)
 {
-    /*デバッグ用*/
-	if (GEngine)
-	{
-        GEngine->AddOnScreenDebugMessage(
-            -1,                // Key (-1 = 自動割り当て)
-            1.0f,              // 表示時間（秒）
-            FColor::Green,     // 色
-            TEXT("SSSSS")              // 表示内容
-        );
-	} 
+    // /*デバッグ用*/
+	// if (GEngine)
+	// {
+    //     GEngine->AddOnScreenDebugMessage(
+    //         -1,                // Key (-1 = 自動割り当て)
+    //         1.0f,              // 表示時間（秒）
+    //         FColor::Green,     // 色
+    //         TEXT("SSSSS")              // 表示内容
+    //     );
+	// } 
 
     if(targetObject == nullptr || targetmeshComponent == nullptr || blinkingData == nullptr){ return; }
 
@@ -64,20 +64,20 @@ void BlinkOutlineFunctor::OutlineBlink(AActor* targetObject, UMeshComponent* tar
         // 経過時間を加算
         MagnetActor->ElapsedBlinkTime += DeltaTime;
 
-        /*デバッグ用*/
-        if (GEngine)
-        {
-            // 第1引数: キー (同じキーなら上書き表示)
-            // 第2引数: 表示時間 (秒)
-            // 第3引数: 色
-            GEngine->AddOnScreenDebugMessage(
-                -1,
-                0.f,
-                FColor::Green,
-                //FString::Printf(TEXT("ElapsedTime: %.2f"), blinkingData->_elapsedTime)
-                FString::Printf(TEXT("ElapsedTime: %.2f"), MagnetActor->ElapsedBlinkTime)
-            );
-        }
+        // /*デバッグ用*/
+        // if (GEngine)
+        // {
+        //     // 第1引数: キー (同じキーなら上書き表示)
+        //     // 第2引数: 表示時間 (秒)
+        //     // 第3引数: 色
+        //     GEngine->AddOnScreenDebugMessage(
+        //         -1,
+        //         0.f,
+        //         FColor::Green,
+        //         //FString::Printf(TEXT("ElapsedTime: %.2f"), blinkingData->_elapsedTime)
+        //         FString::Printf(TEXT("ElapsedTime: %.2f"), MagnetActor->ElapsedBlinkTime)
+        //     );
+        // }
     } 
 
     // ディレイ中は処理をしない
@@ -118,6 +118,23 @@ void BlinkOutlineFunctor::OutlineBlink(AActor* targetObject, UMeshComponent* tar
         }
     }    
 } 
+
+/**
+ * @brief 点滅処理を行う関数
+ *
+ * @param 対象アクター
+ */
+void BlinkOutlineFunctor::ResetMaterialParam(AActor* targetActor)
+{
+    if (targetActor == nullptr) {return;}
+
+    AMagnetizableActor* magnetActor = Cast<AMagnetizableActor>(targetActor);
+    if (magnetActor == nullptr || magnetActor->DynamicBlinkMaterial == nullptr) {return;}
+
+    magnetActor->ElapsedBlinkTime = 0.0f;
+    magnetActor->DynamicBlinkMaterial->SetScalarParameterValue(TEXT("BlinkAlpha"), -1.0f);
+}
+
 
 /**
  * @brief 動的なマテリアルを生成する
@@ -179,16 +196,16 @@ void BlinkOutlineFunctor::ConstantBlink(AActor* targetObject, float blinkInterva
     // TODO Hard coding
     magnetActor->DynamicBlinkMaterial->SetScalarParameterValue(TEXT("BlinkAlpha"), alpha);
 
-    /*デバッグ用*/
-	if (GEngine)
-	{
-        GEngine->AddOnScreenDebugMessage(
-            -1,                // Key (-1 = 自動割り当て)
-            5.0f,              // 表示時間（秒）
-            FColor::Green,     // 色
-            FString::Printf(TEXT("alpha: %.2f"), alpha)              // 表示内容
-        );
-	}
+    // /*デバッグ用*/
+	// if (GEngine)
+	// {
+    //     GEngine->AddOnScreenDebugMessage(
+    //         -1,                // Key (-1 = 自動割り当て)
+    //         5.0f,              // 表示時間（秒）
+    //         FColor::Green,     // 色
+    //         FString::Printf(TEXT("alpha: %.2f"), alpha)              // 表示内容
+    //     );
+	// }
 }
 
 /**
@@ -210,14 +227,14 @@ void BlinkOutlineFunctor::AcceleratedBlink(AActor* targetObject, float blinkInte
 
     magnetActor->DynamicBlinkMaterial->SetScalarParameterValue(TEXT("BlinkAlpha"), alpha);
 
-    /*デバッグ用*/
-	if (GEngine)
-	{
-        GEngine->AddOnScreenDebugMessage(
-            -1,                // Key (-1 = 自動割り当て)
-            5.0f,              // 表示時間（秒）
-            FColor::Green,     // 色
-            FString::Printf(TEXT("alpha: %.2f"), alpha)              // 表示内容
-        );
-	}       
+    // /*デバッグ用*/
+	// if (GEngine)
+	// {
+    //     GEngine->AddOnScreenDebugMessage(
+    //         -1,                // Key (-1 = 自動割り当て)
+    //         5.0f,              // 表示時間（秒）
+    //         FColor::Green,     // 色
+    //         FString::Printf(TEXT("alpha: %.2f"), alpha)              // 表示内容
+    //     );
+	// }       
 }

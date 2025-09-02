@@ -24,7 +24,7 @@ protected:
 public:
 
 	// Œ»İ‚ÌHP
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Enemy")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Enemy")
 	int currentHP;
 
 	// €–Sƒtƒ‰ƒO

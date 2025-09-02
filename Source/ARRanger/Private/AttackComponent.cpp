@@ -2,6 +2,7 @@
 
 #include "ARRangerCharacter.h"
 #include "Enemy/Enemy_Zako.h"
+#include "Enemy/Enemy_MiddleBoss.h"
 #include "Kismet/KismetSystemLibrary.h"
 
 UAttackComponent::UAttackComponent()
