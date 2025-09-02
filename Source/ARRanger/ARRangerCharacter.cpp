@@ -594,3 +594,16 @@ void AARRangerCharacter::OnRepulsionEvaluated(const FARMagneticForceResult& Resu
   MDebug::LogError("OnRepulsionEvaluated");
   LaunchCharacter(Result.FinalForce, true, false);
 }
+
+
+/**Start IARAttackerInterface implementation */
+#pragma region IARAttackerInterface implementation
+
+void AARRangerCharacter::OnNotifyAttackResult_Success(const ARRanger::Battle::FARAttackNotifyParameter& InNotifyParams)
+{
+  // ヒット音を再生
+  OnAttackHitNotify();
+}
+
+#pragma endregion IARAttackerInterface implementation
+/**End IARAttackerInterface implementation */
