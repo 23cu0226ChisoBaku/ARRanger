@@ -16,7 +16,7 @@ class ARRANGER_API UAttackComponent : public UActorComponent
 protected:
     // AbilitySystemComponent�ｽ�ｽﾛ托ｿｽ
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Abilities")
-    UAbilitySystemComponent* AbilitySystemComp;
+    class UAbilitySystemComponent* AbilitySystemComp;
 
 public:
     UAttackComponent();
