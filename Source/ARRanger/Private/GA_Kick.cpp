@@ -63,6 +63,10 @@ void UGA_Kick::StartKick()
         
     attackBaseComp->RotateOwnerToTarget();
 
+    // モンタージュ終了通知登録
+    UAnimInstance* Anim = Char->GetMesh()->GetAnimInstance();
+    Anim->OnMontageEnded.AddDynamic(this, &UGA_Kick::OnAttackMontageEnded);
+
     if (Char->GetMagnetismType() == EARMagnetismType::Repulsion &&
         Char->LockOnComponent->GetIsLockedOn())
     {
