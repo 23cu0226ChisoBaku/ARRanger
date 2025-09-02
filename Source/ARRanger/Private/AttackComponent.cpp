@@ -284,6 +284,7 @@ void UAttackComponent::AttackHit(const FAttackData& Attack)
 
 void UAttackComponent::OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted)
 {
+	UE_LOG(LogTemp, Warning, TEXT("Montage Ended"));
 	IsAttacked = false;
 	isBlowedAwayEnemy = false;
 	isStrongAttack = false;

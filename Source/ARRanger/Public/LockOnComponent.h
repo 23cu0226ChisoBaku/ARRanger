@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "Enemy.h"
 
 #include "LockOnComponent.generated.h"
 
@@ -49,7 +50,7 @@ protected:
 
     // ロックオン中のターゲット
     UPROPERTY()
-    AActor* lockedOnTarget;
+    AEnemy* lockedOnTarget;
 
     // 敵検索用のタグ
     UPROPERTY(EditAnywhere, Category = "LockOn")
@@ -60,7 +61,7 @@ private:
     void SwitchTarget(bool IsRight);
 
     // ロックオン可能な敵を探す
-    AActor* FindNearestEnemy(AActor* IgnoreActor = nullptr);
+    AEnemy* FindNearestEnemy(AActor* IgnoreActor = nullptr);
 
     // プレイヤーのオーナー
     APawn* ownerPawn;

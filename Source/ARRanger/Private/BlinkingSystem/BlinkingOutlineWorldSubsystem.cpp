@@ -42,7 +42,7 @@ void UBlinkingOutlineWorldSubsystem::SetupBlinkingSystem(UWorld* world, UDetecto
 }
 
 /*
-* @brief BlinkingOutlineSystem の関数を DetectorMagnetizableComponent のデリゲートにバインド 
+* @brief OutlineSystem の関数を DetectorMagnetizableComponent のデリゲートにバインド 
 */
 void UBlinkingOutlineWorldSubsystem::BindBlinkingMagnetizableObjectDelegate()
 {
@@ -52,21 +52,24 @@ void UBlinkingOutlineWorldSubsystem::BindBlinkingMagnetizableObjectDelegate()
 			m_OutlineSystem.Get(),
 			&FOutlineSystem::BlinkOutlineActorAtCursorDelegate
 		);
-
+		m_DetectorMagnetizableComponent->UnsetMagnetizableObjectAtCursor.BindRaw(
+			m_OutlineSystem.Get(),
+			&FOutlineSystem::StopBlinkOutlineActorAtCursorDelegate
+		);
 		m_DetectorMagnetizableComponent->SetActorOnOutline.BindRaw(
 			m_OutlineSystem.Get(),
 			&FOutlineSystem::AddOutlineActorDelegate
 		);
-
 		m_DetectorMagnetizableComponent->UnsetActorOnOutline.BindRaw(
 			m_OutlineSystem.Get(),
 			&FOutlineSystem::RemoveOutlineActorDelegate
 		);
-
 		m_DetectorMagnetizableComponent->SetActorOnBlinkingOutline.BindRaw(
 			m_OutlineSystem.Get(),
 			&FOutlineSystem::AddBlinkingOutlineActorDelegate
 		);
+
+		
 	}
 }
 
@@ -78,6 +81,7 @@ void UBlinkingOutlineWorldSubsystem::UnBindDelegate()
 	if (m_DetectorMagnetizableComponent != nullptr)
 	{
 		m_DetectorMagnetizableComponent->SetMagnetizableObjectAtCursor.Unbind();
+		m_DetectorMagnetizableComponent->UnsetMagnetizableObjectAtCursor.Unbind();
 		m_DetectorMagnetizableComponent->SetActorOnOutline.Unbind();
 		m_DetectorMagnetizableComponent->UnsetActorOnOutline.Unbind();
 		m_DetectorMagnetizableComponent->SetActorOnBlinkingOutline.Unbind();

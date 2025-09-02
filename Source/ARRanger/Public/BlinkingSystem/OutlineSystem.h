@@ -29,6 +29,13 @@ public:
 	void BlinkOutlineActorAtCursorDelegate(AActor* targetObject);
 
 	/*
+	* @brief カーソルが外れたオブジェクトの点滅を終了させるデリゲート関数
+	*
+	* @param 点滅するアウトラインをつける対象のオブジェクトポインタ
+	*/
+	void StopBlinkOutlineActorAtCursorDelegate(AActor* targetObject);
+
+	/*
 	* @brief アウトライン対象を追加するデリゲート関数
 	*
 	* @param アウトラインをつける対象のオブジェクトポインタ 

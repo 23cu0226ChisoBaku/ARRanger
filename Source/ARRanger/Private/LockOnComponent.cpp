@@ -1,5 +1,6 @@
 #include "LockOnComponent.h"
 
+#include "Enemy.h"
 #include "Kismet/GameplayStatics.h"
 
 ULockOnComponent::ULockOnComponent()
@@ -36,10 +37,10 @@ void ULockOnComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 			isLockedOn = false;
 		}
 
-        // ロックオン中の敵が消えたら処理
-        if (!IsValid(lockedOnTarget) || lockedOnTarget->IsActorBeingDestroyed())
+        // ロックオン中の敵が死んだら処理
+        if (!IsValid(lockedOnTarget) || lockedOnTarget->isDead)
         {
-            AActor* NewTarget = FindNearestEnemy(lockedOnTarget);
+            AEnemy* NewTarget = FindNearestEnemy(lockedOnTarget);
             // 新しくターゲットを設定
             if (NewTarget)
             {
@@ -72,7 +73,7 @@ void ULockOnComponent::ToggleLockOn()
     else
     {
         // 最も近い敵を探してロックオン
-        AActor* Candidate = FindNearestEnemy();
+        AEnemy* Candidate = FindNearestEnemy();
         if (Candidate && IsTargetVisible(Candidate))
         {
             lockedOnTarget = Candidate;
@@ -146,7 +147,7 @@ void ULockOnComponent::SwitchTarget(bool bRight)
         float Distance = FVector::Dist(MyLocation, Candidate->GetActorLocation());
         if (Distance <= maxLockOnDistance && IsTargetVisible(Candidate))
         {
-            lockedOnTarget = Candidate;
+            lockedOnTarget = Cast<AEnemy>(Candidate);
             return;
         }
 
@@ -154,7 +155,7 @@ void ULockOnComponent::SwitchTarget(bool bRight)
     }
 }
 
-AActor* ULockOnComponent::FindNearestEnemy(AActor* IgnoreActor)
+AEnemy* ULockOnComponent::FindNearestEnemy(AActor* IgnoreActor)
 {
     // プレイヤーがいなければ処理しない
     if (!ownerPawn)
@@ -166,7 +167,7 @@ AActor* ULockOnComponent::FindNearestEnemy(AActor* IgnoreActor)
     TArray<AActor*> Enemies;
     UGameplayStatics::GetAllActorsWithTag(GetWorld(), enemyTag, Enemies);
 
-    AActor* NearestEnemy = nullptr;
+    AEnemy* NearestEnemy = nullptr;
     float MinDistSq = FLT_MAX;
     FVector MyLocation = ownerPawn->GetActorLocation();
     float MaxDistSq = maxLockOnDistance * maxLockOnDistance;
@@ -182,7 +183,7 @@ AActor* ULockOnComponent::FindNearestEnemy(AActor* IgnoreActor)
         if (DistSq <= MaxDistSq && DistSq < MinDistSq && IsTargetVisible(Enemy))
         {
             MinDistSq = DistSq;
-            NearestEnemy = Enemy;
+            NearestEnemy = Cast<AEnemy>(Enemy);
         }
     }
 

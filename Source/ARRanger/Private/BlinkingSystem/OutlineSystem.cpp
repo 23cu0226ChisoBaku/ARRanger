@@ -49,9 +49,26 @@ void FOutlineSystem::CreateTickingActor(UWorld* world, TSubclassOf<AOutlineTickA
 */
 void FOutlineSystem::BlinkOutlineActorAtCursorDelegate(AActor* targetObject)
 {
-	if(m_TickActor != nullptr)
+	if(targetObject != nullptr)
 	{
 		m_TickActor->SetBlinkOutlineActorAtCursor(targetObject);			
+	}
+}
+
+/*
+* @brief カーソルが外れたオブジェクトの点滅を終了させるデリゲート関数
+*
+* @param 点滅するアウトラインをつける対象のオブジェクトポインタ
+*/
+void FOutlineSystem::StopBlinkOutlineActorAtCursorDelegate(AActor* targetObject)
+{
+	if(targetObject != nullptr)
+	{
+		m_TickActor->UnsetBlinkOutlineActorAtCursor(targetObject);			
+	}
+	else
+	{
+		m_TickActor->UnsetBlinkOutlineActorAtCursor(nullptr);
 	}
 }
 
