@@ -19,6 +19,9 @@ void ASpecialAttackAttractActor::Tick(float DeltaTime)
 	TArray<AActor*> overlappedActors;
 	TArray<AActor*> detectedActors;
 
+	TArray<AActor*> ActorsToIgnore;
+	ActorsToIgnore.Add(this); 
+
 	/*プレイヤーを中心とした球体範囲内のアクターを取得*/ 
 	UKismetSystemLibrary::SphereOverlapActors(
 		GetWorld(),
@@ -26,7 +29,7 @@ void ASpecialAttackAttractActor::Tick(float DeltaTime)
 		m_DetectionRadius,			/*検知範囲*/
 		m_ObjectTypes,				/*すべてのオブジェクトタイプを検知*/
 		nullptr,					/*すべてのクラスを検知*/
-		this,						/*自分自身は無視*/
+		ActorsToIgnore,				/*自分自身は無視*/
 		overlappedActors			/*検知したアクターの格納場所*/
 	);
 
@@ -57,7 +60,7 @@ void ASpecialAttackAttractActor::Tick(float DeltaTime)
 			FVector currentLocation = actor->GetActorLocation();
 			FVector movedirection = (GetActorLocation() - currentLocation).GetSafeNormal();
 			FVector newLocation = currentLocation + movedirection * m_AttractSpeed * DeltaTime;        
-			Actor->SetActorLocation(NewLocation);
+			actor->SetActorLocation(newLocation);
 
 			#if m_IsMoveRotate  
 				/*目的地を中心に周りをまわる*/
@@ -72,4 +75,17 @@ void ASpecialAttackAttractActor::Tick(float DeltaTime)
 			#endif
         }
     }
+
+#if true
+	DrawDebugSphere
+	(
+		GetWorld(),
+		GetActorLocation(),     /*中心*/
+		m_DetectionRadius,      /*半径*/
+		16,                     /*セグメント数(丸さ)*/
+		FColor::Blue,           /*色*/
+		false,                  /*永続表示するか*/
+		-1.0f                   /*表示時間(秒)*/
+	);
+#endif
 }

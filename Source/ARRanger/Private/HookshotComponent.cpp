@@ -109,7 +109,7 @@ void UHookshotComponent::HookshotAction(float deltaTime)
             FColor::Green,                                              /*色*/ 
             FString::Printf(TEXT("ElapsedTime: %.2f"), m_ElapsedTime)   /*表示内容*/ 
         );
-    } 
+    }
 }
 
 /**
@@ -141,7 +141,7 @@ void UHookshotComponent::IncreaseHookshotSpeed(float deltaTime)
     m_CurrentHookshotSpeed = FMath::Min(m_CurrentHookshotSpeed, m_HookshotMaxSpeed);
 }
 
- /**
+/**
  * @brief フックショットの移動と障害物判定を行う
  * 
  * @param  コンポーネント所有者の座標 ,進行方向ベクトル(正規化済み)
