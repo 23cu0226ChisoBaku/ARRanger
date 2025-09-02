@@ -12,7 +12,7 @@ class FUECollectionsLibrary
   /// @param outCollection Unreal Engine コレクションタイプ
   ///
   template<typename UECollectionType>
-  MLIBRARY_API static void Shuffle(UECollectionType& outCollection);
+  static void Shuffle(UECollectionType& outCollection);
 
   public:
     FUECollectionsLibrary() = delete;

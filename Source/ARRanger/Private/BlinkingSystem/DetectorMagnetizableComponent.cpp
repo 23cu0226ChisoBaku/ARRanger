@@ -139,7 +139,7 @@ void UDetectorMagnetizableComponent::AssignTargetMagnetizableObject()
 		// 前の対象を解除
 		if (m_TargetMagnetizableActor != nullptr && m_TargetMagnetizableActor->GetClass()->ImplementsInterface(UARMagnetizableInterface::StaticClass()))
 		{
-			SetMagnetizableObjectAtCursor.ExecuteIfBound(nullptr);
+			UnsetMagnetizableObjectAtCursor.ExecuteIfBound(m_TargetMagnetizableActor);
 		}
 
 		// 新しい対象を設定
@@ -158,19 +158,36 @@ void UDetectorMagnetizableComponent::AssignTargetMagnetizableObject()
 /**
  *  @brief プレイヤーの状態(斥力・引力)をカーソルのあっているオブジェクトに付与する
  */
-void UDetectorMagnetizableComponent::ApplyMagnetism()
+void UDetectorMagnetizableComponent::ApplyMagnetism(AActor* targetActor)
 {
-	if(m_TargetMagnetizableActor == nullptr){return;}
+	/*付与ってボタンの仕様があった時の処理*/
+	// if(m_TargetMagnetizableActor == nullptr){return;}
 
-	if (AMagnetizableActor* MagnetActor = Cast<AMagnetizableActor>(m_TargetMagnetizableActor))
+	// if (AMagnetizableActor* MagnetActor = Cast<AMagnetizableActor>(m_TargetMagnetizableActor))
+	// {
+	// 	if(MagnetActor->CanSetMagnetismType())
+	// 	{
+	// 		MagnetActor->ElapsedBlinkTime = 0.0f;
+	// 		SetActorOnBlinkingOutline.ExecuteIfBound(m_TargetMagnetizableActor);
+	// 	}
+	// }
+
+	if(m_OwnerActor == nullptr)
 	{
-		if(MagnetActor->CanSetMagnetismType())
-		{
-			MagnetActor->ElapsedBlinkTime = 0.0f;
-			//MagnetActor->SetType(m_OwnerActor->GetCurrentARType());
-			SetActorOnBlinkingOutline.ExecuteIfBound(m_TargetMagnetizableActor);
-			//MagnetActor->SetCanSetMagnetismType(false);
-		}
+		return;
+	}
+
+	IARMagnetizableInterface* playerCharacter = Cast<IARMagnetizableInterface>(m_OwnerActor);
+	if (playerCharacter == nullptr)
+	{
+		return;
+	}
+
+	if (AMagnetizableActor* magnetActor = Cast<AMagnetizableActor>(targetActor))
+	{
+		magnetActor->SetType(playerCharacter->GetMagnetismType());
+		magnetActor->ElapsedBlinkTime = 0.0f;
+		SetActorOnOutline.ExecuteIfBound(targetActor);
 	}
 }
 
