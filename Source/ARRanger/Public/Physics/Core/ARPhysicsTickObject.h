@@ -49,6 +49,8 @@ class UARPhysicsTickObject : public UObject
     ARRANGER_API void RegisterPhysicsTickFunction();
     ARRANGER_API void TickPhysics(const FARPhysicsTickParameters& TickParams);    
     ARRANGER_API void UnregisterPhysicsTickFunction();
+
+    ARRANGER_API void SetFrequency(EARPhysicsTickFrequency InFrequency);
     
     FARPhysicsEvaluationResult GetLastFrameResult() const { return PreviousResult; }
     FARPhysicsEvaluationResult GetEvaluatedResult() const { return EvaluatedResult; }
