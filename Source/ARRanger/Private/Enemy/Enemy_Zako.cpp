@@ -7,14 +7,11 @@
 #include "Components/CapsuleComponent.h"
 
 AEnemy_Zako::AEnemy_Zako()
-: maxHP(100)
-, currentHP(maxHP)
-, isDead(false)
+    : maxHP(100)
+    , currentHP(maxHP)
+    , isDead(false)
 {
-    // AIController の指定（C++でもできる）
     AIControllerClass = AZakoAIController::StaticClass();
-
-    // プレイヤーではないので自動制御をAIに
     AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 }
 
@@ -28,47 +25,64 @@ void AEnemy_Zako::SetIsChasing(bool bChasing)
 
 void AEnemy_Zako::ReceiveDamage(int DamageAmount, FVector LaunchDirection, bool bEnableHitStop)
 {
-	currentHP -= DamageAmount;
+    currentHP -= DamageAmount;
 
-	if (currentHP <= 0)
-	{
-		// 死亡フラグを上げる
-		isDead = true;
+    if (currentHP <= 0 && !isDead)
+    {
+        isDead = true;
 
-		// GameModeに通知
-		if (AInsekiGameMode* GM = Cast<AInsekiGameMode>(UGameplayStatics::GetGameMode(this)))
-		{
-			GM->OnEnemyKilled();
-		}
+        if (AInsekiGameMode* GM = Cast<AInsekiGameMode>(UGameplayStatics::GetGameMode(this)))
+        {
+            GM->OnEnemyKilled();
+        }
 
-		// 死亡時 → ラグドール化
-		GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision); // カプセルは無効化
-		GetMesh()->SetCollisionProfileName(TEXT("Ragdoll"));
-		GetMesh()->SetSimulatePhysics(true);
-		GetMesh()->SetAllBodiesSimulatePhysics(true);
-		GetMesh()->SetAllBodiesPhysicsBlendWeight(1.0f);
-		GetMesh()->bBlendPhysics = true;
+        GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+        GetMesh()->SetCollisionProfileName(TEXT("Ragdoll"));
+        GetMesh()->SetSimulatePhysics(true);
+        GetMesh()->SetAllBodiesSimulatePhysics(true);
+        GetMesh()->SetAllBodiesPhysicsBlendWeight(1.0f);
+        GetMesh()->bBlendPhysics = true;
 
-		// 最後の一撃！強く吹っ飛ばす
-		GetMesh()->AddImpulse(LaunchDirection * 5000.0f, NAME_None, true);
+        GetMesh()->AddImpulse(LaunchDirection * 5000.0f, NAME_None, true);
+        SetLifeSpan(3.0f);
+    }
+    else
+    {
+        LaunchCharacter(LaunchDirection * 600.f, true, true);
+    }
 
-		// ちょっと待ってから消す
-		SetLifeSpan(3.0f);
-	}
-	else
-	{
-		// 途中の攻撃。軽く吹っ飛ばすだけ
-		LaunchCharacter(LaunchDirection * 600.f, true, true);
-	}
+    if (bEnableHitStop)
+    {
+        UGameplayStatics::SetGlobalTimeDilation(GetWorld(), 0.1f);
+        FTimerHandle TimerHandle;
+        GetWorldTimerManager().SetTimer(TimerHandle, []()
+            {
+                UGameplayStatics::SetGlobalTimeDilation(GWorld, 1.0f);
+            }, 0.03f, false);
+    }
+}
 
-	// ヒットストップ：とどめの一撃だけ有効化
-	if (bEnableHitStop)
-	{
-		UGameplayStatics::SetGlobalTimeDilation(GetWorld(), 0.1f);
-		FTimerHandle TimerHandle;
-		GetWorldTimerManager().SetTimer(TimerHandle, []()
-			{
-				UGameplayStatics::SetGlobalTimeDilation(GWorld, 1.0f);
-			}, 0.03f, false);
-	}
+// ==== IARAttackable 実装 ====
+void AEnemy_Zako::OnPreAttacked(const FARAttackParameters& InAttackParams,ARRanger::Battle::FARAttackResult& OutAttackResult)
+{
+    if (isDead)
+    {
+        OutAttackResult.Result = ARRanger::Battle::EARAttackResult::Inmune;
+        return;
+    }
+    OutAttackResult.Result = ARRanger::Battle::EARAttackResult::Success;
+}
+
+void AEnemy_Zako::OnDamaged(const ARRanger::Battle::FARDamageResult& InDamageResult)
+{
+    //既存の ReceiveDamage を利用
+    ReceiveDamage(static_cast<int32>(InDamageResult.FinalDamage),
+        InDamageResult.FinalLaunchDirection,
+            (currentHP - InDamageResult.FinalDamage <= 0));
+}
+
+void AEnemy_Zako::OnPostAttacked(const FARAttackParameters& InAttackParams)
+{
+    //ヒットエフェクトやSEをここで再生
+
 }

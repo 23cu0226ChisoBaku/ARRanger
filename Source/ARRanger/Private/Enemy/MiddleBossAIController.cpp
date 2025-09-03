@@ -27,7 +27,7 @@ AMiddleBossAIController::AMiddleBossAIController()
     // éãäEÇéGãõÇÊÇËçLÇ≠Ç∑ÇÈ
     SightConfig->SightRadius = 2000.0f;
     SightConfig->LoseSightRadius = 2500.0f;
-    SightConfig->PeripheralVisionAngleDegrees = 180.0f;
+    SightConfig->PeripheralVisionAngleDegrees = 120.0f;
 }
 
 void AMiddleBossAIController::BeginPlay()
@@ -42,9 +42,6 @@ void AMiddleBossAIController::BeginPlay()
 
 void AMiddleBossAIController::StopChasing()
 {
-    // íÜÉ{ÉXÇÕÇ∑ÇÆÇ…ÇÕí˙ÇﬂÇ»Ç¢ Å® 5ïbÇ≈ñYÇÍÇÈ
-    //UE_LOG(LogTemp, Warning, TEXT("Boss StopChasing called"));
-
     UBlackboardComponent* BB = GetBlackboardComponent();
     if (BB)
     {

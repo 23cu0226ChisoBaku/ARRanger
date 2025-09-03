@@ -135,9 +135,6 @@ void AZakoAIController::BroadcastAlert(AActor* SeenActor)
 
 	if (!bHit || Overlaps.Num() == 0) return;
 
-		/**SelfPawn->GetName(),
-		*SeenActor->GetName());*/
-
 	for (const FOverlapResult& Result : Overlaps)
 	{
 		AActor* OtherActor = Result.GetActor();

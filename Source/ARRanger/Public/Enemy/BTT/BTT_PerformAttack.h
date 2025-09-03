@@ -43,6 +43,9 @@ protected:
     UAnimMontage* JumpAttackMontage;
 
     UPROPERTY(EditAnywhere, Category = "Attack")
+    UAnimMontage* SlammedMontage;
+
+    UPROPERTY(EditAnywhere, Category = "Attack")
     UAnimMontage* RoarMontage;
 
     UPROPERTY()

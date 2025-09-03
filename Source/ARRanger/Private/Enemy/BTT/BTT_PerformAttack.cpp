@@ -72,13 +72,6 @@ EBTNodeResult::Type UBTT_PerformAttack::ExecuteTask(UBehaviorTreeComponent& Owne
         JumpTargetLocation = TargetActor->GetActorLocation();
         bHasStartedJump = true;
 
-        // Root Motion ‚ð–³Œø‰»‚µ‚Ä C++‚ÅˆÚ“®
-        /*UAnimInstance* AnimInst = Boss->GetMesh()->GetAnimInstance();
-        if (AnimInst)
-        {
-            AnimInst->RootMotionMode = ERootMotionMode::IgnoreRootMotion;
-        }*/
-
         return PlayAttackMontage(Boss, JumpAttackMontage, AttackType);
     }
 
@@ -93,6 +86,19 @@ EBTNodeResult::Type UBTT_PerformAttack::ExecuteTask(UBehaviorTreeComponent& Owne
             Boss->SetActorRotation(Dir.Rotation());
 
         return PlayAttackMontage(Boss, RoarMontage, AttackType);
+    }
+
+    case EAttackType::Slammed:
+    {
+        if (!SlammedMontage) return EBTNodeResult::Failed;
+
+        // Œü‚«’²®
+        FVector Dir = (TargetActor->GetActorLocation() - Boss->GetActorLocation());
+        Dir.Z = 0.f;
+        if (!Dir.IsNearlyZero())
+            Boss->SetActorRotation(Dir.Rotation());
+
+        return PlayAttackMontage(Boss, SlammedMontage, AttackType);
     }
 
     default:
