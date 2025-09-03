@@ -15,6 +15,9 @@
 #include "Physics/IARPhysicsSystemHost.h"
 #include "PlayerObservation/IObservableSubjectInterface.h"
 
+#include "BattleSystem/IARAttackerInterface.h"
+#include "BattleSystem/IARAttackable.h"
+
 #include "ARRangerCharacter.generated.h"
 
 class UAbilitySystemComponent;
@@ -31,11 +34,14 @@ DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);
  *  シンプルでプレイヤーが操作可能な三人称視点キャラクター
  *  制御可能な軌道カメラの実装
  */
+// TODO Maybe we should reduce interface
 UCLASS(Abstract)
 class AARRangerCharacter :  public ACharacter,
                             public IObservableSubjectInterface,
                             public IARMagnetizableInterface,
-                            public IARPhysicsSystemHost
+                            public IARPhysicsSystemHost,
+                            public IARAttackable,               // 攻撃を受けられるインターフェイス
+                            public IARAttackerInterface         // 攻撃できるインターフェイス
 {
 	GENERATED_BODY()
 	
@@ -350,4 +356,12 @@ private:
   ARRANGER_API virtual void OnRepulsionEvaluated(const FARMagneticForceResult& Result) override;
   ARRANGER_API virtual AActor* GetActor() override { return this; }
   /**End IARMagnetizableInterface interface */
+
+  /**Start IARAttackable Interface */
+
+  /**End IARAttackable Interface */
+
+  /**Start IARAttackerInterface Interface */
+  ARRANGER_API virtual void OnNotifyAttackResult_Success(const ARRanger::Battle::FARAttackNotifyParameter& InNotifyParams) override;
+  /**End IARAttackerInterface Interface */
 };

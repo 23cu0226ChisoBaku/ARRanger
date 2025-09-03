@@ -18,6 +18,7 @@
 #include "Physics/Gameplay/ARPhysicsGlobal.h"
 #include "Physics/Core/ARPhysicsTickProcessorActor.h"
 #include "Public/BlinkingSystem/BlinkingOutlineWorldSubsystem.h"
+#include "BlinkingSystem/DetectorMagnetizableComponent.h"
 
 
 // TODO May move initialize function to another file

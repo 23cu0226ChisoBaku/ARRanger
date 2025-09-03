@@ -4,17 +4,31 @@
 #pragma once
 
 #include "GameFramework/Actor.h"
+
+#include "BattleSystem/IARAttackable.h"
+
 #include "EmptyCan.generated.h"
 
 UCLASS()
-class ARRANGER_API AEmptyCan : public AActor
+class AEmptyCan : public AActor,
+                  public IARAttackable
 {
 	GENERATED_BODY()
 
 public:	
-	AEmptyCan();
-	virtual void BeginPlay() override;
-	virtual void Tick(float DeltaTime) override;
+	ARRANGER_API AEmptyCan();
+	ARRANGER_API virtual void BeginPlay() override;
+	ARRANGER_API virtual void Tick(float DeltaTime) override;
+
+
+/**Start IARAttackable Interface */
+public:
+  ARRANGER_API virtual AActor* GetActor() override { return this; }
+
+protected:
+  ARRANGER_API virtual void OnPreAttacked(const FARAttackParameters& InAttackParams, ARRanger::Battle::FARAttackResult& OutAttackResult) override;
+  ARRANGER_API virtual void OnPostAttacked(const FARAttackParameters& InAttackParams) override;
+/**End IARAttackable Interface */
 
 private:
 
@@ -28,8 +42,8 @@ private:
 	 * @param 飛ぶ力
 	 */
 	UFUNCTION()
-	float GetFlyForceByDamage();
+	ARRANGER_API float GetFlyForceByDamage();
 
-	UPROPERTY(VisibleAnywhere)
-    UStaticMeshComponent* MeshComponent;
+	UPROPERTY(EditDefaultsOnly)
+  TObjectPtr<UStaticMeshComponent> MeshComponent;
 };
