@@ -73,8 +73,6 @@ void AZakoAIController::StopChasing()
 	{
 		BB->ClearValue(TargetActorKey);
 		BB->ClearValue("IsPlayerDetected");
-
-		// パトロールに戻るためのロジックがあればここに追加
 	}
 }
 
@@ -88,7 +86,7 @@ void AZakoAIController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Sti
 
 	if (Stimulus.WasSuccessfullySensed())
 	{
-		// プレイヤーを発見した
+		// プレイヤーを発見した場合
 		BB->SetValueAsObject(TargetActorKey, Actor);
 		BB->SetValueAsBool("IsPlayerDetected", true);
 
@@ -100,10 +98,8 @@ void AZakoAIController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Sti
 	}
 	else
 	{
-		// プレイヤーを見失った
+		// プレイヤーを見失った場合
 		// 最後に発見した場所を記憶するために、TargetActorKeyはクリアしない
-		// BB->ClearValue(TargetActorKey);
-
 		BB->SetValueAsBool("IsPlayerDetected", false);
 
 		// 2秒後に追跡を停止するタイマーを開始
@@ -117,7 +113,7 @@ void AZakoAIController::BroadcastAlert(AActor* SeenActor)
 	APawn* SelfPawn = GetPawn();
 	if (!SelfPawn) return;
 
-	const float AlertRadius = 1000.0f;
+	const float AlertRadius = 500.0f;
 	FVector Origin = SelfPawn->GetActorLocation();
 
 	TArray<FOverlapResult> Overlaps;

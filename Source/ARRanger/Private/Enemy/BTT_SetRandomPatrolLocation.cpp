@@ -12,35 +12,34 @@ UBTT_SetRandomPatrolLocation::UBTT_SetRandomPatrolLocation()
 EBTNodeResult::Type UBTT_SetRandomPatrolLocation::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
     AAIController* AIController = OwnerComp.GetAIOwner();
-    if (!AIController) return EBTNodeResult::Failed;
+    if (!AIController) return EBTNodeResult::Succeeded;
 
     APawn* AIPawn = AIController->GetPawn();
-    if (!AIPawn) return EBTNodeResult::Failed;
+    if (!AIPawn) return EBTNodeResult::Succeeded;
 
     UNavigationSystemV1* NavSys = UNavigationSystemV1::GetCurrent(AIController->GetWorld());
-    if (!NavSys) return EBTNodeResult::Failed;
+    if (!NavSys) return EBTNodeResult::Succeeded;
 
     UBlackboardComponent* BlackboardComp = OwnerComp.GetBlackboardComponent();
-    if (!BlackboardComp) return EBTNodeResult::Failed;
+    if (!BlackboardComp) return EBTNodeResult::Succeeded;
 
     FVector Origin = BlackboardComp->GetValueAsVector(PatrolOriginKey.SelectedKeyName);
-
-    //
-    if (!FMath::IsFinite(Origin.X) || !FMath::IsFinite(Origin.Y) || !FMath::IsFinite(Origin.Z))
+    if (!BlackboardComp->IsVectorValueSet(PatrolOriginKey.SelectedKeyName))
     {
         Origin = AIPawn->GetActorLocation();
         BlackboardComp->SetValueAsVector(PatrolOriginKey.SelectedKeyName, Origin);
-        UE_LOG(LogTemp, Warning, TEXT("Start Location Set: %s"), *Origin.ToString());
     }
 
     FNavLocation RandomPatrolLocation;
     if (NavSys->GetRandomPointInNavigableRadius(Origin, SearchRadius, RandomPatrolLocation))
     {
         BlackboardComp->SetValueAsVector(PatrolLocationKey.SelectedKeyName, RandomPatrolLocation.Location);
-
-        UE_LOG(LogTemp, Warning, TEXT("New Patrol Location: %s"), *RandomPatrolLocation.Location.ToString());
-        return EBTNodeResult::Succeeded;
+    }
+    else
+    {
+        // フォールバック: NavMesh外なら Origin をそのまま使う
+        BlackboardComp->SetValueAsVector(PatrolLocationKey.SelectedKeyName, Origin);
     }
 
-    return EBTNodeResult::Failed;
+    return EBTNodeResult::Succeeded; // ここで必ず成功にする
 }
