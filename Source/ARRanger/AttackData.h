@@ -12,18 +12,6 @@ struct FAttackData
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	UAnimMontage* Montage_Normal;
 
-	// 通常攻撃アニメーションモンタージュ(1段目)
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	UAnimMontage* Montage_Normal_1;
-
-	// 通常攻撃アニメーションモンタージュ(2段目)
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	UAnimMontage* Montage_Normal_2;
-
-	// 通常攻撃アニメーションモンタージュ(3段目)
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	UAnimMontage* Montage_Normal_3;
-
 	// 強攻撃アニメーションモンタージュ
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	UAnimMontage* Montage_Strong;
@@ -31,6 +19,10 @@ struct FAttackData
 	// 強攻撃時の引力・斥力のアニメーションモンタージュ(引き寄せ、吹き飛ばし)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	UAnimMontage* Montage_AR;
+
+	// ヒット時のエフェクトを保存
+	UPROPERTY(EditAnywhere, Category = "Effects")
+	TSubclassOf<AActor> HitEffectActor;
 
 	// 当たり判定の半径
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)

@@ -357,8 +357,8 @@ void AARRangerCharacter::DoMove(float Right, float Forward)
 		}
 
 		// 壁に対して上下左右に動かす
-		AddMovementInput(GetActorForwardVector(), Forward);
-		AddMovementInput(GetActorRightVector(), Right);
+		//AddMovementInput(GetActorForwardVector(), Forward);
+		//AddMovementInput(GetActorRightVector(), Right);
 	}
 }
 
@@ -563,6 +563,13 @@ void AARRangerCharacter::Transform()
 EARMagnetismType AARRangerCharacter::GetCurrentARType()
 {
 	return GetMagnetismType();
+}
+
+void AARRangerCharacter::ResetIsAttacked()
+{
+	SetIsAttacked(false);
+	SetIsStrongAttacked(false);
+	UE_LOG(LogTemp, Warning, TEXT("ResetAttack → IsAttacked = false"));
 }
 
 void AARRangerCharacter::OnMagneticForceFieldBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)

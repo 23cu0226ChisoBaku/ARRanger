@@ -26,7 +26,7 @@ void AEnemy_Zako::SetIsChasing(bool bChasing)
     }
 }
 
-void AEnemy_Zako::ReceiveDamage(int DamageAmount, FVector LaunchDirection, bool bEnableHitStop)
+void AEnemy_Zako::ReceiveDamage(bool isStrongAttacked, int DamageAmount, FVector LaunchDirection, bool bEnableHitStop)
 {
 	currentHP -= DamageAmount;
 
@@ -55,10 +55,20 @@ void AEnemy_Zako::ReceiveDamage(int DamageAmount, FVector LaunchDirection, bool 
 		// ちょっと待ってから消す
 		SetLifeSpan(3.0f);
 	}
-	else
+	else if (!isStrongAttacked)
 	{
 		// 途中の攻撃。軽く吹っ飛ばすだけ
-		LaunchCharacter(LaunchDirection * 600.f, true, true);
+		if (UPrimitiveComponent* Comp = Cast<UPrimitiveComponent>(GetRootComponent()))
+		{
+			if (Comp->IsSimulatingPhysics())
+			{
+				Comp->AddImpulse(LaunchDirection * 300.f, NAME_None, true);
+			}
+		}
+	}
+	else
+	{
+		// 吹っ飛び方はプレイヤー側の各強攻撃の方に任せる
 	}
 
 	// ヒットストップ：とどめの一撃だけ有効化

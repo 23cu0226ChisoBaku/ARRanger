@@ -267,6 +267,13 @@ public:
 	UFUNCTION(BlueprintPure)
 	EARMagnetismType GetCurrentARType();
 
+	// 攻撃フラグをリセット
+	UFUNCTION(BlueprintCallable)
+	void ResetIsAttacked();
+
+	// 攻撃中フラグを取得
+	bool GetIsAttacked() { return isAttacked; }
+
 	// 攻撃中フラグをセット
 	void SetIsAttacked(bool IsAttacked) { isAttacked = IsAttacked; }
 

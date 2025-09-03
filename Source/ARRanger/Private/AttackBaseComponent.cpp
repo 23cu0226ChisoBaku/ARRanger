@@ -1,6 +1,7 @@
 #include "AttackBaseComponent.h"
 
 #include "ARRangerCharacter.h"
+#include "Enemy/Enemy_Zako.h"   
 #include "Kismet/KismetSystemLibrary.h"
 
 UAttackBaseComponent::UAttackBaseComponent()
@@ -20,6 +21,9 @@ void UAttackBaseComponent::BeginPlay()
 void UAttackBaseComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+
+    AARRangerCharacter* Char = Cast<AARRangerCharacter>(ownerPawn);
+    UE_LOG(LogTemp, Warning, TEXT("bisAttacked = %s"), Char->GetIsAttacked() ? TEXT("true") : TEXT("false"));
 }
 
 void UAttackBaseComponent::RotateOwnerToTarget()
@@ -110,7 +114,7 @@ void UAttackBaseComponent::AttackHit(const FAttackData& Attack)
     {
         if (HitActor->ActorHasTag(Attack.TargetTag))
         {
-            AEnemy* Enemy = Cast<AEnemy>(HitActor);
+            AEnemy_Zako* Enemy = Cast<AEnemy_Zako>(HitActor);
 
             if (Enemy && !Enemy->isDead)
             {
@@ -121,7 +125,7 @@ void UAttackBaseComponent::AttackHit(const FAttackData& Attack)
                 FVector SpawnLocation = Enemy->GetActorLocation();
                 FRotator SpawnRotation = FRotator::ZeroRotator;
 
-                GetWorld()->SpawnActor<AActor>(HitEffectActor, SpawnLocation, SpawnRotation);
+                GetWorld()->SpawnActor<AActor>(Attack.HitEffectActor, SpawnLocation, SpawnRotation);
 
                 FVector LaunchDir = Char->GetActorForwardVector() + FVector(0, 0, 0.2f);
                 LaunchDir.Normalize();

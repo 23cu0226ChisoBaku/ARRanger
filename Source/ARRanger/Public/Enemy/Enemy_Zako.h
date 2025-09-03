@@ -33,6 +33,6 @@ public:
 
 	// ƒ_ƒ[ƒW‚ğó‚¯‚éŠÖ”
 	UFUNCTION()
-	void ReceiveDamage(int DamageAmount, FVector LaunchDirection, bool bEnableHitStop);
+	void ReceiveDamage(bool isStrongAttacked, int DamageAmount, FVector LaunchDirection, bool bEnableHitStop);
 
 };

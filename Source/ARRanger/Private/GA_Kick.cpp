@@ -25,6 +25,8 @@ void UGA_Kick::ActivateAbility(
     attackBaseComp->SetIsAttractingEnemy(false);
 
     StartKick();
+
+    Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 }
 
 void UGA_Kick::EndAbility(
@@ -63,8 +65,9 @@ void UGA_Kick::StartKick()
         
     attackBaseComp->RotateOwnerToTarget();
 
-    // ƒ‚ƒ“ƒ^[ƒWƒ…I—¹’Ê’m“o˜^
+    // ƒ‚ƒ“ƒ^[ƒWƒ…I—¹’Ê’m“o˜^(Šù‘¶‚Ì“o˜^‚ðŽ–‘O‚Éíœ‚µ‚Ä‚¨‚­)
     UAnimInstance* Anim = Char->GetMesh()->GetAnimInstance();
+    Anim->OnMontageEnded.RemoveDynamic(this, &UGA_Kick::OnAttackMontageEnded);
     Anim->OnMontageEnded.AddDynamic(this, &UGA_Kick::OnAttackMontageEnded);
 
     if (Char->GetMagnetismType() == EARMagnetismType::Repulsion &&

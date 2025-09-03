@@ -36,10 +36,6 @@ private:
     UAttackBaseComponent* attackBaseComp = nullptr;
 
 protected:
-    // ヒット時のエフェクトを保存
-    UPROPERTY(EditAnywhere, Category = "Effects")
-    TSubclassOf<AActor> HitEffectActor;
-
     // キックのデータ
     UPROPERTY(EditAnywhere, Category = "Attack")
     FAttackData KickData;
