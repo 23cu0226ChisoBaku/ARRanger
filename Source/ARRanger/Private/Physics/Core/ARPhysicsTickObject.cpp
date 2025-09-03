@@ -29,6 +29,16 @@ void UARPhysicsTickObject::TickPhysics(const FARPhysicsTickParameters& TickParam
   EndTickObject();
 }
 
+void UARPhysicsTickObject::UnregisterPhysicsTickFunction()
+{
+  PrimaryPhysicsTick.UnregisterPhysicsTickFunction();
+}
+
+void UARPhysicsTickObject::SetFrequency(EARPhysicsTickFrequency InFrequency)
+{
+  PrimaryPhysicsTick.Frequency = InFrequency;
+}
+
 void UARPhysicsTickObject::BeginTickObject()
 {
   PreviousResult = EvaluatedResult;
@@ -66,10 +76,7 @@ void UARPhysicsTickObject::EndTickObject()
   }
 }
 
-void UARPhysicsTickObject::UnregisterPhysicsTickFunction()
-{
-  PrimaryPhysicsTick.UnregisterPhysicsTickFunction();
-}
+
 
 void UARPhysicsTickObject::BeginDestroy()
 {

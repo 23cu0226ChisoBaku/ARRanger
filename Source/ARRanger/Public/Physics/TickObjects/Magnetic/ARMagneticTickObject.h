@@ -34,5 +34,8 @@ class UARMagneticTickObject : public UARPhysicsTickObject
     IARMagnetizableInterface* Target;
     TArray<IARMagnetizableInterface*> AffectedMagnetizedObjects;
     FARPhysicsEngineProxy* PhysicsEngineProxy;
+
+  private:
+
 };
 

@@ -64,9 +64,9 @@ namespace MLibrary
   };
 }
 
-#define GetComponent(ActorPtr, ComponentType) 			MLibrary::GetAddComponent::GetComponent<ComponentType>(ActorPtr);
-#define AddComponent(ActorPtr, ComponentType) 			MLibrary::GetAddComponent::AddComponent<ComponentType>(ActorPtr);
-#define AddComponent_Name(ActorPtr, ComponentType, Name) MLibrary::GetAddComponent::AddComponent<ComponentType>(ActorPtr, Name);
-#define GetOrAddComponent(ActorPtr, ComponentType) 	MLibrary::GetAddComponent::GetOrAddComponent<ComponentType>(ActorPtr);
+#define MLIB_GetComponent(ActorPtr, ComponentType) 			MLibrary::GetAddComponent::GetComponent<ComponentType>(ActorPtr);
+#define MLIB_AddComponent(ActorPtr, ComponentType) 			MLibrary::GetAddComponent::AddComponent<ComponentType>(ActorPtr);
+#define MLIB_AddComponent_Name(ActorPtr, ComponentType, Name) MLibrary::GetAddComponent::AddComponent<ComponentType>(ActorPtr, Name);
+#define MLIB_GetOrAddComponent(ActorPtr, ComponentType) 	MLibrary::GetAddComponent::GetOrAddComponent<ComponentType>(ActorPtr);
 
 #endif

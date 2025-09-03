@@ -136,13 +136,21 @@ public:
 	void SetBlinkOutlineActorAtCursor(AActor* targetObject);
 
 	/**
+	 * @brief カーソルが外れた付与可能なオブジェクトを解除する
+	 * 
+	 * @param 解除するアクター
+	 */
+	void UnsetBlinkOutlineActorAtCursor(AActor* targetObject);
+
+
+	/**
 	 * @brief カーソルのある付与可能なオブジェクトのアウトラインを点滅させる
 	 * 
 	 * @param １フレームの経過時間
 	 */
 	void BlinkOutlineActorAtCursor(float deltaTime);
 
-	/*テスト */
+	/*テスト*/
 	UFUNCTION(BlueprintCallable)
 	TArray<AActor*> GetBlinkingActors_Actors() const
 	{
@@ -173,6 +181,15 @@ private:
 	 * @return 存在したいかどうか
 	 */
 	bool ContainsActor(AActor* actor);
+
+	/**
+	 * @brief そのアクターの状態にあったマテリアルを返す関数
+	 * 
+	 * @param アウトラインを付ける対象アクター 
+	 * 
+	 * @return アウトラインのマテリアル
+	 */
+	UMaterialInterface* GetOutlineMaterial(AActor* targetActor);
 
 	/**
 	 * @brief 点滅させる対象のアクターのデータ構造体から変更分を更新する

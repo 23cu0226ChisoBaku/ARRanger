@@ -69,13 +69,15 @@ void FARPhysicsTickTask::RemoveTickFunction(FARPhysicsTickFunctionInterface* Tic
   {
     case Enabled:
     {
-      check(m_enabledTickFunctions.Remove(TickFunction) == 1);
+      const int32 RemovedNum = m_enabledTickFunctions.Remove(TickFunction);
+      check(RemovedNum == 1);
     }
     break;
 
     case Disabled:
     {
-      check(m_disabledTickFunctions.Remove(TickFunction) == 1);
+      const int32 RemovedNum = m_enabledTickFunctions.Remove(TickFunction);
+      check(RemovedNum == 1);
     }
     break;
   }

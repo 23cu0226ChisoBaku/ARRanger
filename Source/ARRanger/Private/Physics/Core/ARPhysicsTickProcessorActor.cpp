@@ -7,7 +7,6 @@
 #include "Physics/Core/ARPhysicsTickManagerInterface.h"
 #include "IARMagnetizableInterface.h"
 
-// FIXME For temporary use
 #include "Physics/TickObjects/Magnetic/ARMagneticAttractionTickObject.h"
 #include "Physics/TickObjects/Magnetic/ARMagneticRepulsionTickObject.h"
 
@@ -48,9 +47,6 @@ AARPhysicsTickProcessorActor::AARPhysicsTickProcessorActor()
   // エンジンの物理演算を行う前に処理する
   PrimaryActorTick.TickGroup = TG_PrePhysics;
   bAsyncPhysicsTickEnabled = true;
-
-  // AttractionTickClass = UARMagneticTickObject::StaticClass();
-  // RepulsionTickClass = UARMagneticTickObject::StaticClass();
 
   AttractionTickClass = UARMagneticAttractionTickObject::StaticClass();
   RepulsionTickClass = UARMagneticRepulsionTickObject::StaticClass();
@@ -135,10 +131,10 @@ void AARPhysicsTickProcessorActor::Tick(float DeltaTime)
 }
 
 
-void AARPhysicsTickProcessorActor::RegisterMagneticTask(IARMagnetizableInterface* InSource, IARMagnetizableInterface* InTarget, EPhysicsRegistryType InRequestType)
+void AARPhysicsTickProcessorActor::RegisterMagneticTask(IARMagnetizableInterface* InSource, IARMagnetizableInterface* InTarget, EPhysicsRegistryType InRequestType, EPhysicsExecuteFrequency InFrequency)
 {
-  RegisterMagneticTarget(InSource, InTarget, InRequestType);
-  RegisterMagneticTarget(InTarget, InSource, InRequestType);
+  RegisterMagneticTarget(InSource, InTarget, InRequestType, InFrequency);
+  RegisterMagneticTarget(InTarget, InSource, InRequestType, InFrequency);
 }
 
 void AARPhysicsTickProcessorActor::UnregisterMagneticTask(IARMagnetizableInterface* InSource, IARMagnetizableInterface* InTarget)
@@ -184,7 +180,7 @@ void AARPhysicsTickProcessorActor::UnregisterQueuedTickObject()
   UnregisterTickObjectQueue.Reset();
 }
 
-void AARPhysicsTickProcessorActor::RegisterMagneticTarget(IARMagnetizableInterface* InTarget, IARMagnetizableInterface* InAffectedObj, EPhysicsRegistryType InRequestType)
+void AARPhysicsTickProcessorActor::RegisterMagneticTarget(IARMagnetizableInterface* InTarget, IARMagnetizableInterface* InAffectedObj, EPhysicsRegistryType InRequestType, EPhysicsExecuteFrequency InFrequency)
 {
   if (InTarget == nullptr)
   {
@@ -217,6 +213,29 @@ void AARPhysicsTickProcessorActor::RegisterMagneticTarget(IARMagnetizableInterfa
 
   check(foundEntry != nullptr);
   foundEntry->AffectedObjectInterfaces.AddUnique(InAffectedObj);
+
+  switch (InFrequency)
+  {
+    case EPhysicsExecuteFrequency::Once:
+    {
+      foundEntry->TickObject->SetFrequency(EARPhysicsTickFrequency::TF_Once);
+    }
+    break;
+
+    case EPhysicsExecuteFrequency::Constantly:
+    {
+      foundEntry->TickObject->SetFrequency(EARPhysicsTickFrequency::TF_Default);
+    }
+    break;
+
+    // Not allowed Frequency that is not implemented
+    default:
+    {
+      check(false);
+    } 
+    break;
+  }
+
   
 }
 

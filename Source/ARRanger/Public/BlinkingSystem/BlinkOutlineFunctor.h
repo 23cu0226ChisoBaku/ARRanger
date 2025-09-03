@@ -24,6 +24,13 @@ public:
 	void OutlineBlink(AActor* targetObject, UMeshComponent* targetmeshComponent, FBlinkingActorData* blinkingData, float DeltaTime); 
 
 	/**
+	 * @brief 点滅処理を行う関数
+	 *
+	 * @param 対象アクター
+	 */
+	void ResetMaterialParam(AActor* targetActor); 
+
+	/**
 	 * @brief 指定されたパラメータに応じて等間隔で点滅を行う
 	 * 
 	 * @param 
@@ -43,4 +50,6 @@ public:
 	 * @param 点滅させるマテリアル
 	 */
 	UMaterialInstanceDynamic* CreateDynamicMaterial(UMaterialInterface* blinkMaterial, UObject* targetObject);
+
+
 };

@@ -6,12 +6,17 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "GA_Attack.h"
+#include "GA_Kick.h"
+#include "GA_Punch.h"
 #include "IARMagnetizableInterface.h"
 #include "InsekiClimbingObject.h"
 #include "LockOnComponent.h"
 #include "Logging/LogMacros.h"
 #include "Physics/IARPhysicsSystemHost.h"
 #include "PlayerObservation/IObservableSubjectInterface.h"
+
+#include "BattleSystem/IARAttackerInterface.h"
+#include "BattleSystem/IARAttackable.h"
 
 #include "ARRangerCharacter.generated.h"
 
@@ -29,11 +34,14 @@ DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);
  *  シンプルでプレイヤーが操作可能な三人称視点キャラクター
  *  制御可能な軌道カメラの実装
  */
+// TODO Maybe we should reduce interface
 UCLASS(Abstract)
 class AARRangerCharacter :  public ACharacter,
                             public IObservableSubjectInterface,
                             public IARMagnetizableInterface,
-                            public IARPhysicsSystemHost
+                            public IARPhysicsSystemHost,
+                            public IARAttackable,               // 攻撃を受けられるインターフェイス
+                            public IARAttackerInterface         // 攻撃できるインターフェイス
 {
 	GENERATED_BODY()
 	
@@ -102,6 +110,14 @@ class AARRangerCharacter :  public ACharacter,
 	// GA_Attack参照
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Abilities")
 	TSubclassOf<UGA_Attack> GA_AttackClass;
+
+	// GA_Punch参照
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Abilities")
+	TSubclassOf<UGA_Punch> GA_PunchClass;
+
+	// GA_Kick参照
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Abilities")
+	TSubclassOf<UGA_Kick> GA_KickClass;
 
 public:
 
@@ -224,9 +240,28 @@ public:
 	// キックハンドラ
 	FGameplayAbilitySpecHandle KickHandle;
 
+	// AttackBaseComponentを保存
+	UAttackBaseComponent* AttackBaseComp = nullptr;
+
 	// GA_Attackを保存
 	UPROPERTY(BlueprintReadWrite, VisibleAnywhere, Category = "Abilities")
 	UGA_Attack* GA_AttackInstance = nullptr;
+
+	// GA_Punchを保存
+	UPROPERTY(BlueprintReadWrite, VisibleAnywhere, Category = "Abilities")
+	UGA_Punch* GA_PunchInstance = nullptr;
+
+	// GA_Kickを保存
+	UPROPERTY(BlueprintReadWrite, VisibleAnywhere, Category = "Abilities")
+	UGA_Kick* GA_KickInstance = nullptr;
+
+	// 移動時のデッドゾーン(下回ると移動しない)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Abilities")
+	float MoveDeadZone = 0.15f;
+
+	// 移動時インプットの最低値(デッドゾーンを上回っている際の最低値)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Abilities")
+	float MinInput = 0.3f;
 
 	// 現在のプレイヤーのモードを取得
 	UFUNCTION(BlueprintPure)
@@ -255,6 +290,9 @@ public:
 
 	// 引き寄せ完了時に呼びだされる関数
 	void OnAttractionCompleted();
+
+	// 敵死亡時に呼び出される関数
+	void OnDeadEnemy();
 
 	// コンボ受付フラグをセット
 	void SetInComboWindow(bool bIn) { bIsInComboWindow = bIn; }
@@ -318,4 +356,12 @@ private:
   ARRANGER_API virtual void OnRepulsionEvaluated(const FARMagneticForceResult& Result) override;
   ARRANGER_API virtual AActor* GetActor() override { return this; }
   /**End IARMagnetizableInterface interface */
+
+  /**Start IARAttackable Interface */
+
+  /**End IARAttackable Interface */
+
+  /**Start IARAttackerInterface Interface */
+  ARRANGER_API virtual void OnNotifyAttackResult_Success(const ARRanger::Battle::FARAttackNotifyParameter& InNotifyParams) override;
+  /**End IARAttackerInterface Interface */
 };
