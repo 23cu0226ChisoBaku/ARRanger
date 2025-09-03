@@ -63,21 +63,7 @@ void FARPhysicsEngine::RegisterPhysicsTask(const FARPhysicsRegistry& Registry)
   // 磁力タスク登録
   if (Registry.IsMagneticForceType())
   {
-    using enum EPhysicsExecuteFrequency;
-    switch (Registry.Frequency)
-    {
-      case Once:
-      {
-        // FIXME Test purpose
-        // FIXME Currently set tick function frequency in tick object class
-        m_tickProcessorActor->RegisterMagneticTask(Registry.Source, Registry.Target, Registry.Type);
-      }
-      case Constantly:
-      {
-        m_tickProcessorActor->RegisterMagneticTask(Registry.Source, Registry.Target, Registry.Type);
-      }
-      break;
-    }
+    m_tickProcessorActor->RegisterMagneticTask(Registry.Source, Registry.Target, Registry.Type, Registry.Frequency);
   }
 }
 

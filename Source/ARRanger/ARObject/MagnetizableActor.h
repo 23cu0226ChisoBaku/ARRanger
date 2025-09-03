@@ -10,7 +10,7 @@
 
 UCLASS(Blueprintable)
 class AMagnetizableActor :  public AActor, 
-							public IARMagnetizableInterface
+                            public IARMagnetizableInterface
 {
 	GENERATED_BODY()
 

@@ -14,7 +14,6 @@ namespace
 
 UARMagneticRepulsionTickObject::UARMagneticRepulsionTickObject()
 {
-  PrimaryPhysicsTick.Frequency = EARPhysicsTickFrequency::TF_Once;
 }
 
 void UARMagneticRepulsionTickObject::OnTick(const FARPhysicsTickParameters& TickParams, FARPhysicsEvaluationResult& Result)
@@ -72,4 +71,6 @@ void UARMagneticRepulsionTickObject::OnEndTickObject()
   result.FinalForce = GetEvaluatedResult().ForceResult;
   
   Target->OnRepulsionEvaluated(result);
+
+  Super::OnEndTickObject();
 }

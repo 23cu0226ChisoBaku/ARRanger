@@ -7,6 +7,10 @@
 #include "GameFramework/Character.h"
 #include "Kismet/KismetSystemLibrary.h"
 
+#include "BattleSystem/IBattleSystemInterface.h"
+#include "BattleSystem/IARAttackerInterface.h"
+#include "BattleSystem/IARAttackable.h"
+
 UGA_Attack::UGA_Attack()
 {
     InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerExecution;
@@ -30,7 +34,7 @@ void UGA_Attack::ActivateAbility(
     AARRangerCharacter* Char = Cast<AARRangerCharacter>(GetAvatarActorFromActorInfo());
     if (UAnimInstance* AnimInstance = Char->GetMesh()->GetAnimInstance())
     {
-        // AnimInstance‚ÉƒoƒCƒ“ƒh
+        // AnimInstanceï¿½Éƒoï¿½Cï¿½ï¿½ï¿½h
         AnimInstance->OnMontageEnded.AddDynamic(this, &UGA_Attack::OnAttackMontageEnded);
     }
     else
@@ -38,7 +42,7 @@ void UGA_Attack::ActivateAbility(
         UE_LOG(LogTemp, Error, TEXT("NO AnimInstance at ActivateAbility!"));
     }
 
-    // ‚Ç‚Ì AbilitySpec ‚ª”­“®‚µ‚½‚©”»’è
+    // ï¿½Ç‚ï¿½ AbilitySpec ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
     if (Handle == Cast<AARRangerCharacter>(GetAvatarActorFromActorInfo())->PunchHandle)
     {
         StartPunch();
@@ -69,7 +73,7 @@ void UGA_Attack::EndAbility(
 }
 
 // =====================
-// AttackComponent‚©‚çˆÚA
+// AttackComponentï¿½ï¿½ï¿½ï¿½ÚA
 // =====================
 
 void UGA_Attack::StartPunch()
@@ -91,13 +95,13 @@ void UGA_Attack::StartPunch()
     if (Char->GetIsApproachedEnemy())
     {
         UE_LOG(LogTemp, Warning, TEXT("Attraction Punch!"));
-        // ‹­UŒ‚ƒtƒ‰ƒO‚ğã‚°‚é
-        // ˆø‚«Šñ‚¹ƒtƒ‰ƒO‚ğ‰º‚°‚é
+        // ï¿½ï¿½ï¿½Uï¿½ï¿½ï¿½tï¿½ï¿½ï¿½Oï¿½ï¿½ï¿½ã‚°ï¿½ï¿½
+        // ï¿½ï¿½ï¿½ï¿½ï¿½ñ‚¹ƒtï¿½ï¿½ï¿½Oï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
         bIsStrongAttack = true;
         Char->SetIsAttracted(false);
         Char->SetIsApproachedEnemy(false);
 
-        // ƒpƒ“ƒ`‚ğŠJn
+        // ï¿½pï¿½ï¿½ï¿½`ï¿½ï¿½ï¿½Jï¿½n
         PlayAttackMontage(PunchData);
         return;
     }
@@ -106,11 +110,11 @@ void UGA_Attack::StartPunch()
     {
         if (AEnemy* Enemy = Cast<AEnemy>(Char->LockOnComponent->GetLockedOnTarget()))
         {
-            // “G‚Éˆø‚«Šñ‚¹‚ğ–½—ß
+            // ï¿½Gï¿½Éˆï¿½ï¿½ï¿½ï¿½ñ‚¹‚ğ–½—ï¿½
             Enemy->StartAttraction(Char); 
             Char->SetIsAttracted(true);
 
-            // ˆø‚«Šñ‚¹ƒAƒjƒ[ƒVƒ‡ƒ“‚ğÄ¶
+            // ï¿½ï¿½ï¿½ï¿½ï¿½ñ‚¹ƒAï¿½jï¿½ï¿½ï¿½[ï¿½Vï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Äï¿½
             if (PunchData.Montage_AR && !Char->GetMesh()->GetAnimInstance()->Montage_IsPlaying(PunchData.Montage_AR))
             {
                 UE_LOG(LogTemp, Warning, TEXT("Attraction Start!"));
@@ -120,7 +124,7 @@ void UGA_Attack::StartPunch()
         }
     }
     
-    // ƒ‚ƒ“ƒ^[ƒWƒ…–¢Ä¶ ¨ 1’i–Ú‚©‚çŠJn
+    // ï¿½ï¿½ï¿½ï¿½ï¿½^ï¿½[ï¿½Wï¿½ï¿½ï¿½ï¿½ï¿½Äï¿½ ï¿½ï¿½ 1ï¿½iï¿½Ú‚ï¿½ï¿½ï¿½Jï¿½n
     if (!Anim->Montage_IsPlaying(PunchData.Montage_Normal) && !Char->GetIsAttracted())
     {
         UE_LOG(LogTemp, Warning, TEXT("Combo 1"));
@@ -137,7 +141,7 @@ void UGA_Attack::StartPunch()
         return;
     }
 
-    // ƒ‚ƒ“ƒ^[ƒWƒ…Ä¶’† ¨ ƒRƒ“ƒ{‘‹“à‚È‚çŸ’i‚ÉƒWƒƒƒ“ƒv
+    // ï¿½ï¿½ï¿½ï¿½ï¿½^ï¿½[ï¿½Wï¿½ï¿½ï¿½Äï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Rï¿½ï¿½ï¿½{ï¿½ï¿½ï¿½ï¿½ï¿½È‚çŸï¿½iï¿½ÉƒWï¿½ï¿½ï¿½ï¿½ï¿½v
     if (bInComboWindow)
     {
         if (Char->GetComboCount() < MaxCombo - 1)
@@ -154,7 +158,7 @@ void UGA_Attack::StartPunch()
     }
     else
     {
-        // ƒRƒ“ƒ{‘‹ŠO‚Å‚àƒ{ƒ^ƒ“‰Ÿ‚µ‚½‚çƒoƒbƒtƒ@
+        // ï¿½Rï¿½ï¿½ï¿½{ï¿½ï¿½ï¿½Oï¿½Å‚ï¿½ï¿½{ï¿½^ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½oï¿½bï¿½tï¿½@
         //bComboQueued = true;
     }
 }
@@ -210,21 +214,21 @@ void UGA_Attack::RotateOwnerToTarget()
 
 void UGA_Attack::PlayAttackMontage(const FAttackData& Attack)
 {
-    // ƒvƒŒƒCƒ„[‚ª‚¢‚È‚¢‚©AMontage‚ªİ’è‚³‚ê‚Ä‚¢‚È‚¯‚ê‚Îˆ—‚µ‚È‚¢
+    // ï¿½vï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½[ï¿½ï¿½ï¿½ï¿½ï¿½È‚ï¿½ï¿½ï¿½ï¿½AMontageï¿½ï¿½ï¿½İ’è‚³ï¿½ï¿½Ä‚ï¿½ï¿½È‚ï¿½ï¿½ï¿½Îï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È‚ï¿½
     AARRangerCharacter* Char = Cast<AARRangerCharacter>(GetAvatarActorFromActorInfo());
     if (!Char || !Attack.Montage_Normal)
     {
         return;
     }
 
-    // AnimInstance‚ª‚È‚¯‚ê‚Îˆ—‚µ‚È‚¢
+    // AnimInstanceï¿½ï¿½ï¿½È‚ï¿½ï¿½ï¿½Îï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È‚ï¿½
     UAnimInstance* Anim = Char->GetMesh()->GetAnimInstance();
     if (!Anim)
     {
         return;
     }
 
-    // Šù‚É“¯‚¶ƒ‚ƒ“ƒ^[ƒWƒ…Ä¶’†‚È‚ç‚±‚±‚Å‰½‚à‚µ‚È‚¢(ƒpƒ“ƒ`‚ÍStartPunch‚ª–Ê“|‚ğŒ©‚é)
+    // ï¿½ï¿½ï¿½É“ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½^ï¿½[ï¿½Wï¿½ï¿½ï¿½Äï¿½ï¿½ï¿½ï¿½È‚ç‚±ï¿½ï¿½ï¿½Å‰ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È‚ï¿½(ï¿½pï¿½ï¿½ï¿½`ï¿½ï¿½StartPunchï¿½ï¿½ï¿½Ê“|ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½)
     if (Anim->Montage_IsPlaying(Attack.Montage_Normal))
     {
         return;
@@ -245,92 +249,75 @@ void UGA_Attack::PlayAttackMontage(const FAttackData& Attack)
 
 void UGA_Attack::AttackHit(const FAttackData& Attack)
 {
-    AARRangerCharacter* Char = Cast<AARRangerCharacter>(GetAvatarActorFromActorInfo());
-    if (!Char)
+  AActor* avatarActor = GetAvatarActorFromActorInfo();
+  if (avatarActor == nullptr)
+  {
+    return;
+  }
+
+  const float AttackOffset = 100.0f;
+  const FVector Origin = avatarActor->GetActorLocation() + avatarActor->GetActorForwardVector() * AttackOffset;
+  TArray<AActor*> HitActors{};
+
+  const bool bHit = UKismetSystemLibrary::SphereOverlapActors(
+                      avatarActor,
+                      Origin,
+                      Attack.HitRadius,
+                      { UEngineTypes::ConvertToObjectType(ECC_Pawn), UEngineTypes::ConvertToObjectType(ECC_WorldDynamic) },
+                      nullptr,
+                      { avatarActor },
+                      HitActors
+                    );
+  if (!bHit)
+  {
+    return;
+  }
+
+  for (AActor* HitActor : HitActors)
+  {
+    // Edited by MAI
+    if (HitActor->GetClass()->ImplementsInterface(UARAttackable::StaticClass()))
     {
-        return;
-    }
+      IARAttackable* attackable = ::Cast<IARAttackable>(HitActor);
 
-    FVector Origin = Char->GetActorLocation() + Char->GetActorForwardVector() * 100.f;
-    TArray<AActor*> HitActors;
+      // NOTE Call this inside AARRangerCharacter
+      // // NotifyHandlerï¿½Í‚ï¿½ï¿½ï¿½ï¿½ï¿½Å‚ÍGï¿½ê‚¸ï¿½Aï¿½vï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½[ï¿½ï¿½ï¿½É”Cï¿½ï¿½ï¿½ï¿½
+      // Char->OnAttackHitNotify();
 
-    // “–‚½‚è”»’è‚ğì¬
-    bool bHit = UKismetSystemLibrary::SphereOverlapActors(
-        Char,
-        Origin,
-        Attack.HitRadius,
-        { UEngineTypes::ConvertToObjectType(ECC_Pawn), UEngineTypes::ConvertToObjectType(ECC_WorldDynamic) },
-        nullptr,
-        { Char },
-        HitActors
-    );
-
-    if (!bHit)
-    {
-        return;
-    }
-
-    for (AActor* HitActor : HitActors)
-    {
-        if (HitActor->ActorHasTag(Attack.TargetTag))
+      // æ”»æ’ƒå‡¦ç†
+      if (avatarActor->GetClass()->ImplementsInterface(UARAttackerInterface::StaticClass()))
+      {
+        FARAttackParameters attackParam{};
+        attackParam.Instigator = avatarActor;
+        attackParam.bUseAttackerActor = false;
+        
+        attackParam.Damage = Attack.Damage;
+        if (bIsStrongAttack)
         {
-            AEnemy* Enemy = Cast<AEnemy>(HitActor);
-
-            if (Enemy && !Enemy->isDead)
-            {
-                // NotifyHandler‚Í‚±‚¿‚ç‚Å‚ÍG‚ê‚¸AƒvƒŒƒCƒ„[‘¤‚É”C‚¹‚é
-                Char->OnAttackHitNotify();
-
-                // ƒqƒbƒgƒGƒtƒFƒNƒg—p‚ÌƒAƒNƒ^[‚ğSpawn
-                FVector SpawnLocation = Enemy->GetActorLocation();
-                FRotator SpawnRotation = FRotator::ZeroRotator;
-
-                GetWorld()->SpawnActor<AActor>(HitEffectActor, SpawnLocation, SpawnRotation);
-
-                FVector LaunchDir = Char->GetActorForwardVector() + FVector(0, 0, 0.2f);
-                LaunchDir.Normalize();
-
-                // ƒ_ƒ[ƒW‚ğ—^‚¦‚é(‹­UŒ‚‚È‚çƒ_ƒ[ƒW‚ğãæ‚¹)
-                if (bIsStrongAttack)
-                {
-                    const bool bWillBeKilled = (Enemy->currentHP - (Attack.Damage + Attack.DamageModifier) <= 0);
-                    Enemy->ReceiveDamage(bIsStrongAttack, Attack.Damage + Attack.DamageModifier, LaunchDir, bWillBeKilled);
-
-                    // Ë—ÍƒLƒbƒN‚Í“G‚ğ‚Á”ò‚Î‚·
-                    if (bIsBlowedAwayEnemy)
-                    {
-                        UPrimitiveComponent* PrimComp = Cast<UPrimitiveComponent>(Enemy->GetRootComponent());
-                        if (PrimComp && PrimComp->IsSimulatingPhysics())
-                        {
-                            FVector ImpulseDir = (Enemy->GetActorLocation() - Char->GetActorLocation()).GetSafeNormal();
-                            ImpulseDir.Z += 0.5f;
-                            ImpulseDir.Normalize();
-
-                            float ImpulseStrength = 1300.f;
-
-                            PrimComp->AddImpulse(ImpulseDir * ImpulseStrength, NAME_None, true);
-                            return;
-                        }
-                    }
-
-                    // ˆø—Íƒpƒ“ƒ`‚ÍË—ÍƒLƒbƒN‚æ‚è‚àT‚¦‚ß‚É‚Á”ò‚Î‚·
-                    UPrimitiveComponent* PrimComp = Cast<UPrimitiveComponent>(Enemy->GetRootComponent());
-                    FVector ImpulseDir = (Enemy->GetActorLocation() - Char->GetActorLocation()).GetSafeNormal();
-                    ImpulseDir.Z += 0.5f;
-                    ImpulseDir.Normalize();
-
-                    float ImpulseStrength = 1000.f;
-
-                    PrimComp->AddImpulse(ImpulseDir * ImpulseStrength, NAME_None, true);
-                }
-                else
-                {
-                    const bool bWillBeKilled = (Enemy->currentHP - Attack.Damage <= 0);
-                    Enemy->ReceiveDamage(bIsStrongAttack, Attack.Damage, LaunchDir, bWillBeKilled);
-                }
-            }
+          attackParam.Damage += Attack.DamageModifier;
         }
+
+        FVector LaunchDir{EForceInit::ForceInitToZero};
+        if (bIsBlowedAwayEnemy)
+        {
+          const FVector ImpulseDir_Norm = ((HitActor->GetActorLocation() - avatarActor->GetActorLocation()).GetSafeNormal() + FVector{0.0, 0.0, 0.5}).GetSafeNormal();
+          LaunchDir = avatarActor->GetActorForwardVector() + FVector{0.0, 0.0, 0.2};
+          LaunchDir.Normalize();
+          LaunchDir += ImpulseDir_Norm;
+          LaunchDir.Normalize();
+        }
+        attackParam.LaunchDirection = LaunchDir;
+
+        // ã‚¿ãƒ¼ã‚²ãƒƒãƒˆã‚’æ”»æ’ƒã™ã‚‹
+        (void)attackable->AttackTarget(::Cast<IARAttackerInterface>(GetAvatarActorFromActorInfo()), attackParam);
+
+        // Hitã‚¨ãƒ•ã‚§ã‚¯ãƒˆã‚’ç”Ÿæˆ
+        const FVector SpawnLocation = HitActor->GetActorLocation();
+        const FRotator SpawnRotation = FRotator::ZeroRotator;
+        GetWorld()->SpawnActor<AActor>(HitEffectActor, SpawnLocation, SpawnRotation);
+      }
     }
+  }
 }
 
 void UGA_Attack::OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted)
@@ -369,7 +356,7 @@ void UGA_Attack::ComboWindowEnd()
     {
         Char->SetInComboWindow(false);
 
-        // Ÿ’i“ü—Í‚È‚µ‚È‚çƒ‚ƒ“ƒ^[ƒWƒ…I—¹
+        // ï¿½ï¿½ï¿½iï¿½ï¿½ï¿½Í‚È‚ï¿½ï¿½È‚çƒ‚ï¿½ï¿½ï¿½^ï¿½[ï¿½Wï¿½ï¿½ï¿½Iï¿½ï¿½
         if (UAnimInstance* Anim = Char->GetMesh()->GetAnimInstance())
         {
             Anim->Montage_Stop(0.05f, PunchData.Montage_Normal);
@@ -381,7 +368,7 @@ void UGA_Attack::ComboWindowEnd()
 
 FName UGA_Attack::GetPunchSectionName(int32 Index) const
 {
-    // ƒZƒNƒVƒ‡ƒ“–¼‚ğæ“¾
+    // ï¿½Zï¿½Nï¿½Vï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½æ“¾
     int32 Clamped = FMath::Clamp(Index, 0, MaxCombo - 1);
     switch (Clamped)
     {
