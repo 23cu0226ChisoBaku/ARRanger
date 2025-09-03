@@ -57,22 +57,32 @@ void ASpecialAttackAttractActor::Tick(float DeltaTime)
         if (actor)
         {
 			/*目的地に引き寄せられる*/
-			FVector currentLocation = actor->GetActorLocation();
-			FVector movedirection = (GetActorLocation() - currentLocation).GetSafeNormal();
-			FVector newLocation = currentLocation + movedirection * m_AttractSpeed * DeltaTime;        
-			actor->SetActorLocation(newLocation);
+			const FVector currentLocation = actor->GetActorLocation();
+			const FVector movedirection = (GetActorLocation() - currentLocation).GetSafeNormal();
+			FVector newLocation = currentLocation + movedirection * m_AttractSpeed * DeltaTime;
+			
+			/*目的地を中心に周りをまわる*/
+			const FVector rotationAxis = GetActorUpVector().Cross(-movedirection);
+			float Theta = 1000.f * DeltaTime;
+			FVector v2 = -rotationAxis; 
+			FVector verticalV = -movedirection - v2;
+			FVector w = rotationAxis * -movedirection;
+			FVector DashVerticalV  = FMath::Cos(Theta) * verticalV + FMath::Sin(Theta) * w;
+			FVector DashV = DashVerticalV + v2;
+			newLocation +=  DashV * m_RotationSpeed;
 
-			#if m_IsMoveRotate  
-				/*目的地を中心に周りをまわる*/
-				FQuat rotation = FQuat(FVector(0.0f, 0.0f, 1.0f), FMath::DegreesToRadians(m_RotationSpeed * DeltaTime));
-				FVector rotatedDirection = rotation.RotateVector(movedirection);
-				FVector finalLocation = GetActorLocation() + rotatedDirection * m_DetectionRadius;
-				Actor->SetActorLocation(finalLocation);
+			actor->SetActorLocation(newLocation, true);
 
-				/*アクターの向きを移動方向に向かせる*/
-				FRotator newRotation = UKismetMathLibrary::FindLookAtRotation(currentLocation, finalLocation);
-				actor->SetActorRotation(newRotation);
-			#endif
+			if(GEngine)
+			{
+				/*デバッグ用*/				
+				GEngine->AddOnScreenDebugMessage(
+					-1,                                                         /*Key (-1 = 自動割り当て)*/
+					10.0f,                                                      /*表示時間(秒)*/
+					FColor::Green,                                              /*色*/ 
+					FString::Printf(TEXT("DashV: [%s]"), *DashV.ToString())     /*表示内容*/ 
+				);
+			}
         }
     }
 

@@ -27,7 +27,5 @@ private:
 	float m_AttractSpeed;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AttractActor Paramater", meta = (AllowPrivateAccess = "true"))
-	bool m_IsMoveRotate;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AttractActor Paramater", meta = (AllowPrivateAccess = "true"))
 	float m_RotationSpeed;
 };
