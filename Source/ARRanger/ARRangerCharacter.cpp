@@ -144,7 +144,8 @@ void AARRangerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 
 		// 攻撃(パンチ、キック)
 		EnhancedInputComponent->BindAction(PunchAction, ETriggerEvent::Started, this, &AARRangerCharacter::Input_Punch);
-		EnhancedInputComponent->BindAction(KickAction, ETriggerEvent::Started, this, &AARRangerCharacter::Input_Kick);
+		EnhancedInputComponent->BindAction(KickInputAction, ETriggerEvent::Started, this, &AARRangerCharacter::Input_Kick);
+		EnhancedInputComponent->BindAction(KickReleaseAction, ETriggerEvent::Completed, this, &AARRangerCharacter::Release_Kick);
 
 		// 変身
 		EnhancedInputComponent->BindAction(TransformAction, ETriggerEvent::Started, this, &AARRangerCharacter::Transform);
@@ -357,8 +358,8 @@ void AARRangerCharacter::DoMove(float Right, float Forward)
 		}
 
 		// 壁に対して上下左右に動かす
-		AddMovementInput(GetActorForwardVector(), Forward);
-		AddMovementInput(GetActorRightVector(), Right);
+		//AddMovementInput(GetActorForwardVector(), Forward);
+		//AddMovementInput(GetActorRightVector(), Right);
 	}
 }
 
@@ -512,6 +513,14 @@ void AARRangerCharacter::Input_Kick()
 	}
 }
 
+void AARRangerCharacter::Release_Kick()
+{
+	if (GA_KickInstance)
+	{
+		GA_KickInstance->InputReleased();
+	}
+}
+
 void AARRangerCharacter::OnAttractionCompleted()
 {
 	// 引き寄せ完了フラグを立てる
@@ -563,6 +572,13 @@ void AARRangerCharacter::Transform()
 EARMagnetismType AARRangerCharacter::GetCurrentARType()
 {
 	return GetMagnetismType();
+}
+
+void AARRangerCharacter::ResetIsAttacked()
+{
+	SetIsAttacked(false);
+	SetIsStrongAttacked(false);
+	UE_LOG(LogTemp, Warning, TEXT("ResetAttack → IsAttacked = false"));
 }
 
 void AARRangerCharacter::OnMagneticForceFieldBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
