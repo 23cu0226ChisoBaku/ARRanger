@@ -21,9 +21,6 @@ void UAttackBaseComponent::BeginPlay()
 void UAttackBaseComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-
-    AARRangerCharacter* Char = Cast<AARRangerCharacter>(ownerPawn);
-    UE_LOG(LogTemp, Warning, TEXT("bisAttacked = %s"), Char->GetIsAttacked() ? TEXT("true") : TEXT("false"));
 }
 
 void UAttackBaseComponent::RotateOwnerToTarget()
@@ -125,6 +122,7 @@ void UAttackBaseComponent::AttackHit(const FAttackData& Attack)
                 FVector SpawnLocation = Enemy->GetActorLocation();
                 FRotator SpawnRotation = FRotator::ZeroRotator;
 
+                UE_LOG(LogTemp, Warning, TEXT("Hit Effect Spawn"));
                 GetWorld()->SpawnActor<AActor>(Attack.HitEffectActor, SpawnLocation, SpawnRotation);
 
                 FVector LaunchDir = Char->GetActorForwardVector() + FVector(0, 0, 0.2f);
