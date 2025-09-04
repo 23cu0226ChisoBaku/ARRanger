@@ -4,6 +4,7 @@
 #pragma once
 
 #include "GameFramework/Actor.h"
+
 #include "SpecialAttackAttractActor.generated.h"
 
 UCLASS()
@@ -18,9 +19,9 @@ public:
 private:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AttractActor Paramater", meta = (AllowPrivateAccess = "true"))
-	TArray<TSubclassOf<AActor>> m_AttractionClassFilter;
+	TSet<TSubclassOf<AActor>> m_AttractionClassFilter;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AttractActor Paramater", meta = (AllowPrivateAccess = "true"))
-	TArray<TEnumAsByte<EObjectTypeQuery>> m_ObjectTypes;
+	TSet<TEnumAsByte<EObjectTypeQuery>> m_ObjectTypes;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AttractActor Paramater", meta = (AllowPrivateAccess = "true"))
 	float m_DetectionRadius;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AttractActor Paramater", meta = (AllowPrivateAccess = "true"))
