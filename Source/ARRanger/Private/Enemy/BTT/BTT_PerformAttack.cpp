@@ -72,20 +72,33 @@ EBTNodeResult::Type UBTT_PerformAttack::ExecuteTask(UBehaviorTreeComponent& Owne
         JumpTargetLocation = TargetActor->GetActorLocation();
         bHasStartedJump = true;
 
-        // Root Motion ‚ð–³Œø‰»‚µ‚Ä C++‚ÅˆÚ“®
-        UAnimInstance* AnimInst = Boss->GetMesh()->GetAnimInstance();
-        if (AnimInst)
-        {
-            AnimInst->RootMotionMode = ERootMotionMode::IgnoreRootMotion;
-        }
-
         return PlayAttackMontage(Boss, JumpAttackMontage, AttackType);
     }
 
     case EAttackType::Roar:
     {
         if (!RoarMontage) return EBTNodeResult::Failed;
+
+        // Œü‚«’²®
+        FVector Dir = (TargetActor->GetActorLocation() - Boss->GetActorLocation());
+        Dir.Z = 0.f;
+        if (!Dir.IsNearlyZero())
+            Boss->SetActorRotation(Dir.Rotation());
+
         return PlayAttackMontage(Boss, RoarMontage, AttackType);
+    }
+
+    case EAttackType::Slammed:
+    {
+        if (!SlammedMontage) return EBTNodeResult::Failed;
+
+        // Œü‚«’²®
+        FVector Dir = (TargetActor->GetActorLocation() - Boss->GetActorLocation());
+        Dir.Z = 0.f;
+        if (!Dir.IsNearlyZero())
+            Boss->SetActorRotation(Dir.Rotation());
+
+        return PlayAttackMontage(Boss, SlammedMontage, AttackType);
     }
 
     default:
@@ -125,7 +138,7 @@ void UBTT_PerformAttack::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* Node
             AEnemy_MiddleBoss* BossChar = Cast<AEnemy_MiddleBoss>(Boss);
             if (BossChar)
             {
-                BossChar->CurrentSpeed = PunchMoveSpeed; // AnimBP‘¤‚ÅBlendSpace‚âState‚É”½‰f
+                BossChar->CurrentSpeed = PunchMoveSpeed; 
             }
         }
     }
