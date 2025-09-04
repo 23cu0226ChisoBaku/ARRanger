@@ -13,6 +13,8 @@ class UMStateInstance;
 class UMStateDefinition;
 class FMStateContext;
 
+#define UE_API MSTATEMACHINE_API
+
 /**
  * ステートを抜ける理由列挙
  */
@@ -33,22 +35,22 @@ struct FMStateHandle
   
   friend class UMStateMachineComponent;
 
-  MSTATEMACHINE_API FMStateHandle();
-  MSTATEMACHINE_API FMStateHandle(const UMStateInstance* State, const UActorComponent* OwnerComp, const FGameplayTag& StateTag);
+  UE_API FMStateHandle();
+  UE_API FMStateHandle(const UMStateInstance* State, const UActorComponent* OwnerComp, const FGameplayTag& StateTag);
 
   /**
    * @brief Handle有効化チェック
    * 
    * @return インスタンス、コンポーネント、タグがすべて有効値だったらtrue、それ以外はfalseを返す
    */
-  MSTATEMACHINE_API bool IsValid() const;
+  UE_API bool IsValid() const;
 
   /**
    * @brief ステートタグを取得
    * 
    * @return タグが無効だったらFGameplayTag::EmptyTagを返す
    */
-  MSTATEMACHINE_API FGameplayTag GetStateTag() const;
+  UE_API FGameplayTag GetStateTag() const;
   
 private:
 
@@ -180,18 +182,18 @@ class UMStateMachineComponent : public UActorComponent
   GENERATED_BODY()
 
 public:	
-  MSTATEMACHINE_API UMStateMachineComponent(const FObjectInitializer& = FObjectInitializer::Get());
+  UE_API UMStateMachineComponent(const FObjectInitializer& = FObjectInitializer::Get());
 
 protected:
 
   /**Start UActorComponent interface */
   #pragma region UActorComponent Interface
 
-  MSTATEMACHINE_API virtual void BeginPlay() override;  
+  UE_API virtual void BeginPlay() override;  
 public:	
-  MSTATEMACHINE_API virtual void InitializeComponent() override;
-  MSTATEMACHINE_API virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
-  MSTATEMACHINE_API virtual void UninitializeComponent() override;
+  UE_API virtual void InitializeComponent() override;
+  UE_API virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+  UE_API virtual void UninitializeComponent() override;
   
   #pragma endregion UActorComponent Interface
   /**End UActorComponent interface */
@@ -201,25 +203,25 @@ public:
    * 
    * @param Params ステートマシン初期化専用パラメータ
    */
-  MSTATEMACHINE_API void Initialize(const FStateMachineInitializationParameters& Params);
+  UE_API void Initialize(const FStateMachineInitializationParameters& Params);
   
   /**
    * @brief ステートマシンを起動する
    */
   UFUNCTION(BlueprintCallable, Category = "MStateMachine")
-  MSTATEMACHINE_API void StartTickState();
+  UE_API void StartTickState();
 
   /**
    * @brief ステートマシンを止める
    */
   UFUNCTION(BlueprintCallable, Category = "MStateMachine")
-  MSTATEMACHINE_API void StopTickState();
+  UE_API void StopTickState();
 
   /**
    * @brief ステートマシンの初期ステートを設定
    */
   UFUNCTION(BlueprintCallable, Category = "MStateMachine")
-  MSTATEMACHINE_API void SetEntryState(const FGameplayTag& EntryStateTag);
+  UE_API void SetEntryState(const FGameplayTag& EntryStateTag);
 
   /**
    * @brief 新しいステートを追加する
@@ -229,7 +231,7 @@ public:
    * @return 追加成功したら有効なハンドル、それ以外は無効なハンドル
    */
   UFUNCTION(BlueprintCallable, Category = "MStateMachine")
-  MSTATEMACHINE_API FMStateHandle AddNewState(TSubclassOf<UMStateDefinition> StateDefClass);
+  UE_API FMStateHandle AddNewState(TSubclassOf<UMStateDefinition> StateDefClass);
 
   /**
    * @brief 複数のステートを追加する
@@ -238,7 +240,7 @@ public:
    * @param OutHandles  　  ステートハンドル配列(ハンドルの順番はDefinitionの順番と同じ)
    */
   UFUNCTION(BlueprintCallable, Category = "MStateMachine")
-  MSTATEMACHINE_API void AddStates(const TArray<TSubclassOf<UMStateDefinition>>& StateDefClasses, TArray<FMStateHandle>& OutHandles);
+  UE_API void AddStates(const TArray<TSubclassOf<UMStateDefinition>>& StateDefClasses, TArray<FMStateHandle>& OutHandles);
 
   /**
    * @brief ステートを削除する
@@ -246,7 +248,7 @@ public:
    * @param StateHandle ステートハンドル
    */
   UFUNCTION(BlueprintCallable, Category = "MStateMachine")
-  MSTATEMACHINE_API void RemoveState(const FMStateHandle& StateHandle);
+  UE_API void RemoveState(const FMStateHandle& StateHandle);
 
   /**
    * @brief 次のステートに切り替える
@@ -256,7 +258,7 @@ public:
    * @return 切り替えが成功したらtrue, ステートが存在しない、タグが無効な場合はfalse 
    */
   UFUNCTION(BlueprintCallable, Category = "MStateMachine")
-  MSTATEMACHINE_API bool SwitchNextState(const FGameplayTag& NextStateTag);
+  UE_API bool SwitchNextState(const FGameplayTag& NextStateTag);
 
   /**
    * @brief ステートタグが存在するかを確認する
@@ -266,7 +268,7 @@ public:
    * @return 見つかったらtrue、それ以外はfalse
    */
   UFUNCTION(BlueprintCallable, Category = "MStateMachine|Data")
-  MSTATEMACHINE_API bool ContainsStateTag(const FGameplayTag& Tag) const;
+  UE_API bool ContainsStateTag(const FGameplayTag& Tag) const;
 
   /**
    * @brief 次のステートに切り替えられるかを確認する
@@ -277,7 +279,7 @@ public:
    *         それ以外はfalse
    */
   UFUNCTION(BlueprintPure, Category = "MStateMachine")
-  MSTATEMACHINE_API bool CanSwitchToNext(const FGameplayTag& NextStateTag) const;
+  UE_API bool CanSwitchToNext(const FGameplayTag& NextStateTag) const;
 
   /**
    * @brief 今のステートタグを取得する
@@ -285,7 +287,7 @@ public:
    * @return ステートが有効だったらステートにバインドされたタグを返す、それ以外はFGameplayTagを返す
    */
   UFUNCTION(BlueprintPure, Category = "MStateMachine")
-  MSTATEMACHINE_API FGameplayTag GetCurrentStateTag() const;
+  UE_API FGameplayTag GetCurrentStateTag() const;
 
   /**
    * @brief ステートインスタンスでタグを取得する
@@ -296,7 +298,7 @@ public:
    *         それ以外はFGameplayTag::EmptyTagを返す
    */
   UFUNCTION(BlueprintPure, Category = "MStateMachine")
-  MSTATEMACHINE_API FGameplayTag GetStateTagByInstance(const UMStateInstance* StateInstance) const;
+  UE_API FGameplayTag GetStateTagByInstance(const UMStateInstance* StateInstance) const;
 
   /**
    * @brief ステートコンテキストを取得する
@@ -312,7 +314,7 @@ public:
    * 
    * @return 見つけたステートタグの数
    */
-  int32 GetAvailableTransitionTags(TArray<FGameplayTag>& OutTags) const;
+  UE_API int32 GetAvailableTransitionTags(TArray<FGameplayTag>& OutTags) const;
 
 private:
 
@@ -356,3 +358,5 @@ private:
   uint8 m_bCanTickStateMachine : 1;                               // ステートマシンをTickできるかを表すフラグ
     
 };
+
+#undef UE_API
