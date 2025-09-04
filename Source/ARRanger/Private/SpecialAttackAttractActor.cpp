@@ -44,7 +44,7 @@ void ASpecialAttackAttractActor::Tick(float DeltaTime)
 	for (AActor* actor : overlappedActors)
 	{
 		/*クラスフィルタに合うか判定*/ 
-		for (TSubclassOf<AActor> allowedClass : m_AttractionClassFilter)
+		for (UClass* allowedClass : m_AttractionClassFilter)
 		{
 			if (actor->IsA(allowedClass))
 			{
@@ -56,6 +56,17 @@ void ASpecialAttackAttractActor::Tick(float DeltaTime)
 	/*detectedActors に含まれるすべてのアクターに対して処理を実行*/ 
     for (AActor* actor : detectedActors)
     {
+		/*吸引しているアクターを保持(重複なし)*/
+		if(!m_previousDetectedActors.Contains(actor))
+		{
+			ISpecialAttractInterface* InterfacePtr = Cast<ISpecialAttractInterface>(actor);
+			if(InterfacePtr != nullptr)
+			{
+				m_previousDetectedActors.Add(actor);
+				InterfacePtr->OnStartSpecialAttractNotify();
+			}
+		}
+
 		/*一時物理挙動を解除する*/
 		UPrimitiveComponent* actorMeshComponent = actor->FindComponentByClass<UPrimitiveComponent>();
 		if(actorMeshComponent != nullptr)
@@ -66,23 +77,6 @@ void ASpecialAttackAttractActor::Tick(float DeltaTime)
 			}
 			actorMeshComponent->SetPhysicsLinearVelocity(FVector::ZeroVector);
 		}
-
-		// /*新規アクターに対しての処理*/
-		// TSet<AActor*> currentDetectedActors(detectedActors);
-		// for (AActor* currentActor : currentDetectedActors)
-		// {
-		// 	if (!m_previousDetectedActors.Contains(currentActor))
-		// 	{
-		// 		// 新規アクターに対して処理を行う
-		// 		if (currentActor->GetClass()->ImplementsInterface(ISpecialAttractInterface::StaticClass()))
-		// 		{
-		// 			ISpecialAttractInterface::OnStartSpecialAttractNotify();
-		// 		}
-		// 	}
-		// }
-		// // 次のフレーム用に保存
-		// m_previousDetectedActors = currentDetectedActors;
-
 
 		/*目的地に引き寄せられる*/
 		const FVector currentLocation = actor->GetActorLocation();
@@ -129,4 +123,26 @@ void ASpecialAttackAttractActor::Tick(float DeltaTime)
 		-1.0f                   /*表示時間(秒)*/
 	);
 #endif
+}
+
+void ASpecialAttackAttractActor::BeginDestroy()
+{
+	for(AActor* actor : m_previousDetectedActors)
+	{
+		/*吸引されているアクターを解除・またそのアクターに通知*/
+		ISpecialAttractInterface* InterfacePtr = Cast<ISpecialAttractInterface>(actor);
+		if(InterfacePtr != nullptr)
+		{
+			m_previousDetectedActors.Remove(actor);
+			InterfacePtr->OnEndSpecialAttractNotify();
+		}
+
+		/*爆散させる*/
+		FVector explosionDirection = (actor->GetActorLocation() - GetActorLocation()).GetSafeNormal();
+		UPrimitiveComponent* meshComp = actor->FindComponentByClass<UPrimitiveComponent>();
+		if(meshComp != nullptr)
+		{
+			meshComp->AddImpulse(explosionDirection * m_ExplosionPower);
+		}
+	}
 }

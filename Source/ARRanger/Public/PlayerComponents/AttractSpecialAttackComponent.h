@@ -45,28 +45,43 @@ public:
 private:
 
 	/**
-	 * @brief Playerについているカメラの回転(Rotation) を取得するための関数(後からなくなる)
+	 * @brief 引力必殺技を始めた際の処理
 	 */
-	FVector GetPlayerCameraRotation();
+	UFUNCTION(BlueprintCallable)
+	void OnStartSpecialAttract();
 
 	/**
 	 * @brief 対象のオブジェクトを引き寄せる物体を生成する
 	 */
-	void GeneratAttractActor();
+	void GenerateAttractActor();
+
+	/**
+	 * @brief 対象のアクターを引き寄せている場所にキック!!
+	 */
+	void SpecialFinishKick();
+
+	/**
+	 * @brief Playerについているカメラの回転(Rotation) を取得するための関数(後からなくなる)
+	 */
+	FVector GetPlayerCameraRotation();
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AttractSpecialAttack|Player", meta = (AllowPrivateAccess = "true"))
-	float m_Speed;
+	float m_KickSpeed;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AttractSpecialAttack|Player", meta = (AllowPrivateAccess = "true"))
 	float m_AttractTime;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AttractSpecialAttack|AttractionActor", meta = (AllowPrivateAccess = "true"))//, MustImplement = "ARAttackable"))
-	TSubclassOf<ASpecialAttackAttractActor> m_AttractActor;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AttractSpecialAttack|AttractionActor", meta = (AllowPrivateAccess = "true"))
-	float m_GeneratDistance;
+	ASpecialAttackAttractActor* m_AttractActor;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AttractSpecialAttack|AttractionActor", meta = (AllowPrivateAccess = "true"))
-	float m_OffsetGeneratDistance;
+	float m_GenerateDistance;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AttractSpecialAttack|AttractionActor", meta = (AllowPrivateAccess = "true"))
+	float m_OffsetGenerateDistance;
 
 	UPROPERTY()
 	TObjectPtr<UGameplayCameraComponent> m_PlayerCameraComponent;	/*プレイヤーについているカメラ*/
+	UPROPERTY()
+	FTimerHandle m_DelayTimerHandle;
+	UPROPERTY()
+    float m_CurrentKickSpeed;
 	UPROPERTY()
     float m_ElapsedTime;
 	UPROPERTY()

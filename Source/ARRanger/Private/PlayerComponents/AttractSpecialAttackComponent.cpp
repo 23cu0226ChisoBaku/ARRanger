@@ -20,13 +20,34 @@ void UAttractSpecialAttackComponent::TickComponent(float DeltaTime, ELevelTick T
 }
 
 /**
+ * @brief 引力必殺技を始めた際の処理
+ */
+void UAttractSpecialAttackComponent::OnStartSpecialAttract()
+{
+	m_IsAttractSpecialAttack = true;
+
+	/*引き寄せるアクターを生成*/
+	GenerateAttractActor();
+
+	/*指定した時間後キック！*/
+    GetWorld()->GetTimerManager().SetTimer(
+        m_DelayTimerHandle,
+        this,
+        &UAttractSpecialAttackComponent::SpecialFinishKick,
+		m_AttractTime,   
+        false   
+    );
+}
+
+/**
  * @brief 対象のオブジェクトを引き寄せる物体を生成する
  */
-void UAttractSpecialAttackComponent::GeneratAttractActor()
+void UAttractSpecialAttackComponent::GenerateAttractActor()
 {
 	/*ライントレースの始点と終点*/
 	FVector startLocation = GetOwner()->GetActorLocation();
-	FVector endLocation = startLocation + GetPlayerCameraRotation() * m_GeneratDistance;
+	FVector generateDirection = FVector(0.0f ,0.0f, GetPlayerCameraRotation().GetSafeNormal().Z);
+	FVector endLocation = startLocation + generateDirection * m_GenerateDistance;
 
 	FHitResult hitResult;
 	FCollisionQueryParams params;
@@ -42,10 +63,10 @@ void UAttractSpecialAttackComponent::GeneratAttractActor()
 	);
 
 	/*引力アクターを生成する座標*/
-	FVector generatLocation = hitResult.Location - m_OffsetGeneratDistance;
+	FVector generatLocation = hitResult.Location - m_OffsetGenerateDistance;
 
 	FActorSpawnParameters SpawnParams;
-	GetWorld()->SpawnActor<ASpecialAttackAttractActor>(
+	GetWorld()->SpawnActor<>(
 		m_AttractActor,
 		generatLocation,
 		FRotator::ZeroRotator,
@@ -70,4 +91,13 @@ FVector UAttractSpecialAttackComponent::GetPlayerCameraRotation()
 		}
 	}
 	return FVector::ZeroVector;
+}
+
+/**
+ * @brief 対象のアクターを引き寄せている場所にキック!!
+ */
+void UAttractSpecialAttackComponent::SpecialFinishKick()
+{
+	FVector kickdirection = ( m_AttractActor->GetActorLocation() - GetOwner()->GetActorLocation() ).GetSafeNormal();
+
 }

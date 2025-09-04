@@ -16,6 +16,7 @@ public:
 	ASpecialAttackAttractActor();
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
+    virtual void BeginDestroy() override;
 
 private:
 
@@ -29,17 +30,19 @@ private:
      */
     void OnEndSpecialttact();
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AttractActor Paramater", meta = (AllowPrivateAccess = "true", MustImplement = "ARAttackable"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AttractActor Paramater|Target", meta = (AllowPrivateAccess = "true", MustImplement = "ARAttackable"))
 	TSet<TSubclassOf<AActor>> m_AttractionClassFilter;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AttractActor Paramater", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AttractActor Paramater|Target", meta = (AllowPrivateAccess = "true"))
 	TSet<TEnumAsByte<EObjectTypeQuery>> m_ObjectTypes;
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AttractActor Paramater", meta = (AllowPrivateAccess = "true"))
-	TArray<TSubclassOf<AActor>> m_previousDetectedActors;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AttractActor Paramater", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AttractActor Paramater|Attract", meta = (AllowPrivateAccess = "true"))
 	float m_DetectionRadius;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AttractActor Paramater", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AttractActor Paramater|Attract ", meta = (AllowPrivateAccess = "true"))
 	float m_AttractSpeed;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AttractActor Paramater", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AttractActor Paramater|Attract", meta = (AllowPrivateAccess = "true"))
 	float m_RotationSpeed;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AttractActor Paramater|Explosion", meta = (AllowPrivateAccess = "true"))
+	float m_ExplosionPower;
+
+    UPROPERTY()
+	TArray<AActor*> m_previousDetectedActors;
 };

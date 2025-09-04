@@ -228,7 +228,7 @@ void UHookshotComponent::SetupSpeedCurveFunctions()
     {
         if(m_CustomCurveSpeed != nullptr)
         {
-            m_ElapsedTime += DeltaTime;
+            m_ElapsedTime = (m_ElapsedTime + DeltaTime);
             m_CurrentHookshotSpeed = m_CustomCurveSpeed->GetFloatValue(m_ElapsedTime) * 100.0f;
         }
     });

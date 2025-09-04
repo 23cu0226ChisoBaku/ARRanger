@@ -32,7 +32,7 @@ public:
 	virtual void OnUpdateSpecialAttractNotify(float elapsed){;}
 
 	/** 
-	 * @brief 引力必殺技の中間通知 
+	 * @brief 引力必殺技の終了通知 
 	 */
 	virtual void OnEndSpecialAttractNotify(){;}
 };
