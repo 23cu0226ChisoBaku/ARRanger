@@ -4,11 +4,12 @@
 #pragma once
 
 #include "GameFramework/Actor.h"
-
+#include "ISpecialAttractInterface.h"
 #include "SpecialAttackAttractActor.generated.h"
 
 UCLASS()
-class ARRANGER_API ASpecialAttackAttractActor : public AActor
+class ARRANGER_API ASpecialAttackAttractActor : public AActor,
+                                                public ISpecialAttractInterface
 {
 	GENERATED_BODY()	
 public:	
@@ -18,10 +19,22 @@ public:
 
 private:
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AttractActor Paramater", meta = (AllowPrivateAccess = "true"))
+    /**
+     * @brief 引力必殺技の開始処理
+     */
+    void OnStartSpecialAttact();
+
+    /**
+     * @brief 引力必殺技の開始処理
+     */
+    void OnEndSpecialttact();
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AttractActor Paramater", meta = (AllowPrivateAccess = "true", MustImplement = "ARAttackable"))
 	TSet<TSubclassOf<AActor>> m_AttractionClassFilter;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AttractActor Paramater", meta = (AllowPrivateAccess = "true"))
 	TSet<TEnumAsByte<EObjectTypeQuery>> m_ObjectTypes;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AttractActor Paramater", meta = (AllowPrivateAccess = "true"))
+	TArray<TSubclassOf<AActor>> m_previousDetectedActors;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AttractActor Paramater", meta = (AllowPrivateAccess = "true"))
 	float m_DetectionRadius;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AttractActor Paramater", meta = (AllowPrivateAccess = "true"))

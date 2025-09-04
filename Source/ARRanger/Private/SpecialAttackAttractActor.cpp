@@ -26,8 +26,8 @@ void ASpecialAttackAttractActor::Tick(float DeltaTime)
 	overlappedActors.Reset();
 	detectedActors.Reset();
 
-	TArray<AActor*> ActorsToIgnore;
-	ActorsToIgnore.Add(this); 
+	TArray<AActor*> actorsToIgnore;
+	actorsToIgnore.Add(this); 
 
 	/*プレイヤーを中心とした球体範囲内のアクターを取得*/ 
 	UKismetSystemLibrary::SphereOverlapActors(
@@ -36,7 +36,7 @@ void ASpecialAttackAttractActor::Tick(float DeltaTime)
 		m_DetectionRadius,			/*検知範囲*/
 		m_ObjectTypes.Array(),		/*すべてのオブジェクトタイプを検知*/
 		nullptr,					/*すべてのクラスを検知*/
-		ActorsToIgnore,				/*自分自身は無視*/
+		actorsToIgnore,				/*自分自身は無視*/
 		overlappedActors			/*検知したアクターの格納場所*/
 	);
 
@@ -53,19 +53,36 @@ void ASpecialAttackAttractActor::Tick(float DeltaTime)
 		}
 	}
 
-
 	/*detectedActors に含まれるすべてのアクターに対して処理を実行*/ 
     for (AActor* actor : detectedActors)
     {
-		// /*一時物理挙動を解除する*/
-		//UPrimitiveComponent* actorMesComponent = actor->FindComponentByClass<UPrimitiveComponent>();
-		// if(actorMesComponent != nullptr)
+		/*一時物理挙動を解除する*/
+		UPrimitiveComponent* actorMeshComponent = actor->FindComponentByClass<UPrimitiveComponent>();
+		if(actorMeshComponent != nullptr)
+		{
+			if(actorMeshComponent->IsSimulatingPhysics())
+			{
+				actorMeshComponent->SetSimulatePhysics(false);
+			}
+			actorMeshComponent->SetPhysicsLinearVelocity(FVector::ZeroVector);
+		}
+
+		// /*新規アクターに対しての処理*/
+		// TSet<AActor*> currentDetectedActors(detectedActors);
+		// for (AActor* currentActor : currentDetectedActors)
 		// {
-		// 	if(actorMesComponent->IsSimulatingPhysics())
+		// 	if (!m_previousDetectedActors.Contains(currentActor))
 		// 	{
-		// 		//actorMesComponent->SetSimulatePhysics(false);
+		// 		// 新規アクターに対して処理を行う
+		// 		if (currentActor->GetClass()->ImplementsInterface(ISpecialAttractInterface::StaticClass()))
+		// 		{
+		// 			ISpecialAttractInterface::OnStartSpecialAttractNotify();
+		// 		}
 		// 	}
 		// }
+		// // 次のフレーム用に保存
+		// m_previousDetectedActors = currentDetectedActors;
+
 
 		/*目的地に引き寄せられる*/
 		const FVector currentLocation = actor->GetActorLocation();
@@ -80,10 +97,9 @@ void ASpecialAttackAttractActor::Tick(float DeltaTime)
 		FVector w = rotationAxis * -movedirection;
 		FVector DashVerticalV  = FMath::Cos(Theta) * verticalV + FMath::Sin(Theta) * w;
 		FVector DashV = DashVerticalV + v2;
-		newLocation +=  DashV * m_RotationSpeed;
+		newLocation = newLocation + DashV * m_RotationSpeed;
 
 		actor->SetActorLocation(newLocation, true);
-
 
 #if WITH_EDITOR
 		if(GEngine)
@@ -95,6 +111,8 @@ void ASpecialAttackAttractActor::Tick(float DeltaTime)
 				FColor::Green,                                              /*色*/ 
 				FString::Printf(TEXT("DashV: [%s]"), *DashV.ToString())     /*表示内容*/ 
 			);
+
+			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, FString::Printf(TEXT("[%s] new location: [%s]"), *actor->GetName(), *newLocation.ToString()));
 		}
 #endif
 	}
