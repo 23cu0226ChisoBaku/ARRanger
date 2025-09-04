@@ -144,7 +144,8 @@ void AARRangerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 
 		// 攻撃(パンチ、キック)
 		EnhancedInputComponent->BindAction(PunchAction, ETriggerEvent::Started, this, &AARRangerCharacter::Input_Punch);
-		EnhancedInputComponent->BindAction(KickAction, ETriggerEvent::Started, this, &AARRangerCharacter::Input_Kick);
+		EnhancedInputComponent->BindAction(KickInputAction, ETriggerEvent::Started, this, &AARRangerCharacter::Input_Kick);
+		EnhancedInputComponent->BindAction(KickReleaseAction, ETriggerEvent::Completed, this, &AARRangerCharacter::Release_Kick);
 
 		// 変身
 		EnhancedInputComponent->BindAction(TransformAction, ETriggerEvent::Started, this, &AARRangerCharacter::Transform);
@@ -509,6 +510,14 @@ void AARRangerCharacter::Input_Kick()
 	if (AbilitySystemComp && KickHandle.IsValid())
 	{
 		AbilitySystemComp->TryActivateAbility(KickHandle);
+	}
+}
+
+void AARRangerCharacter::Release_Kick()
+{
+	if (GA_KickInstance)
+	{
+		GA_KickInstance->InputReleased();
 	}
 }
 
