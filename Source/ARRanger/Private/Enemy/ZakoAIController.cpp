@@ -58,7 +58,6 @@ void AZakoAIController::BeginPlay()
 	if (BlackboardAsset && BehaviorTreeAsset)
 	{
 		RunBehaviorTree(BehaviorTreeAsset);
-		//UE_LOG(LogTemp, Warning, TEXT("RunBT!!"));
 
 		// 初期テスト用
 		//APawn* PlayerPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
@@ -74,8 +73,6 @@ void AZakoAIController::StopChasing()
 	{
 		BB->ClearValue(TargetActorKey);
 		BB->ClearValue("IsPlayerDetected");
-
-		// パトロールに戻るためのロジックがあればここに追加
 	}
 }
 
@@ -89,7 +86,7 @@ void AZakoAIController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Sti
 
 	if (Stimulus.WasSuccessfullySensed())
 	{
-		// プレイヤーを発見した
+		// プレイヤーを発見した場合
 		BB->SetValueAsObject(TargetActorKey, Actor);
 		BB->SetValueAsBool("IsPlayerDetected", true);
 
@@ -101,10 +98,8 @@ void AZakoAIController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Sti
 	}
 	else
 	{
-		// プレイヤーを見失った
+		// プレイヤーを見失った場合
 		// 最後に発見した場所を記憶するために、TargetActorKeyはクリアしない
-		// BB->ClearValue(TargetActorKey);
-
 		BB->SetValueAsBool("IsPlayerDetected", false);
 
 		// 2秒後に追跡を停止するタイマーを開始
@@ -114,12 +109,11 @@ void AZakoAIController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Sti
 
 void AZakoAIController::BroadcastAlert(AActor* SeenActor)
 {
-	UE_LOG(LogTemp, Warning, TEXT("BroadcastAlert called!"));
 	if (!SeenActor) return;
 	APawn* SelfPawn = GetPawn();
 	if (!SelfPawn) return;
 
-	const float AlertRadius = 1000.0f;
+	const float AlertRadius = 500.0f;
 	FVector Origin = SelfPawn->GetActorLocation();
 
 	TArray<FOverlapResult> Overlaps;
@@ -137,10 +131,6 @@ void AZakoAIController::BroadcastAlert(AActor* SeenActor)
 
 	if (!bHit || Overlaps.Num() == 0) return;
 
-	UE_LOG(LogTemp, Warning, TEXT("%s detected %s, notifying allies..."),
-		*SelfPawn->GetName(),
-		*SeenActor->GetName());
-
 	for (const FOverlapResult& Result : Overlaps)
 	{
 		AActor* OtherActor = Result.GetActor();
@@ -155,11 +145,6 @@ void AZakoAIController::BroadcastAlert(AActor* SeenActor)
 					BB->SetValueAsObject("TargetActor", SeenActor);
 					BB->SetValueAsBool("IsPlayerDetected", true);
 					BB->SetValueAsBool("IsInAlertState", true); 
-
-					UE_LOG(LogTemp, Warning,
-						TEXT("  -> Notified ally: %s (Controller: %s)"),
-						*AllyChar->GetName(),
-						*AllyAI->GetName());
 				}
 			}
 		}

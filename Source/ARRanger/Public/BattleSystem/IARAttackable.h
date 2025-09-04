@@ -11,9 +11,6 @@ namespace ARRanger
 
 namespace Battle
 {
-  /**
-   * @brief 攻撃結果を表す列挙型
-   */
   enum struct EARAttackResult : uint8
   {
     Success,  // 成功
