@@ -1,38 +1,42 @@
-
 #pragma once
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "BattleSystem/IARAttackable.h" 
 #include "Enemy_Zako.generated.h"
 
 UCLASS()
-class ARRANGER_API AEnemy_Zako : public ACharacter
+class ARRANGER_API AEnemy_Zako : public ACharacter, public IARAttackable
 {
-	GENERATED_BODY()
+    GENERATED_BODY()
 
 public:
-	AEnemy_Zako();
+    AEnemy_Zako();
+
+    void SetIsChasing(bool bChasing);
+
+    // 既存のダメージ処理
+    void ReceiveDamage(int DamageAmount, FVector LaunchDirection, bool bEnableHitStop);
 
 public:
-	void SetIsChasing(bool bChasing);
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Enemy|Stats")
+    int32 maxHP;
 
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Enemy|Stats")
+    int32 currentHP;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Enemy|Stats")
+    bool isDead;
+
+    // IARAttackable のオーバーライド
 protected:
-	// 最大HP
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Enemy")
-	int maxHP;
+    virtual void OnPreAttacked(
+        const FARAttackParameters& InAttackParams,
+        ARRanger::Battle::FARAttackResult& OutAttackResult) override;
 
-public:
+    virtual void OnDamaged(
+        const ARRanger::Battle::FARDamageResult& InDamageResult) override;
 
-	// 現在のHP
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Enemy")
-	int currentHP;
-
-	// 死亡フラグ
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "State")
-	bool isDead;
-
-	// ダメージを受ける関数
-	UFUNCTION()
-	void ReceiveDamage(bool isStrongAttacked, int DamageAmount, FVector LaunchDirection, bool bEnableHitStop);
-
+    virtual void OnPostAttacked(
+        const FARAttackParameters& InAttackParams) override;
 };

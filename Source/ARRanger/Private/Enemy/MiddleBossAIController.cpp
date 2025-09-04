@@ -3,6 +3,11 @@
 #include "BehaviorTree/BlackboardComponent.h"
 #include "BehaviorTree/BehaviorTree.h"
 #include "Kismet/GameplayStatics.h"
+#include "Perception/AIPerceptionComponent.h"
+#include "Perception/AISenseConfig_Sight.h"
+#include "Perception/AISense_Sight.h"
+#include "Perception/AISense.h"
+#include "Perception/AIPerceptionTypes.h"
 #include "Enemy/Enemy_Zako.h"
 
 AMiddleBossAIController::AMiddleBossAIController()
@@ -20,9 +25,9 @@ AMiddleBossAIController::AMiddleBossAIController()
     }
 
     // ‹ŠE‚ğG‹›‚æ‚èL‚­‚·‚é
-    //SightConfig->SightRadius = 2000.0f;
-    //SightConfig->LoseSightRadius = 2500.0f;
-    //SightConfig->PeripheralVisionAngleDegrees = 180.0f;
+    SightConfig->SightRadius = 2000.0f;
+    SightConfig->LoseSightRadius = 2500.0f;
+    SightConfig->PeripheralVisionAngleDegrees = 120.0f;
 }
 
 void AMiddleBossAIController::BeginPlay()
@@ -32,15 +37,11 @@ void AMiddleBossAIController::BeginPlay()
     if (BlackboardAsset && BehaviorTreeAsset)
     {
         RunBehaviorTree(BehaviorTreeAsset);
-        UE_LOG(LogTemp, Warning, TEXT("Boss BT Running!"));
     }
 }
 
 void AMiddleBossAIController::StopChasing()
 {
-    // ’†ƒ{ƒX‚Í‚·‚®‚É‚Í’ú‚ß‚È‚¢ ¨ 5•b‚Å–Y‚ê‚é
-    UE_LOG(LogTemp, Warning, TEXT("Boss StopChasing called"));
-
     UBlackboardComponent* BB = GetBlackboardComponent();
     if (BB)
     {
@@ -58,8 +59,6 @@ void AMiddleBossAIController::StopChasing()
 
 void AMiddleBossAIController::BroadcastAlert(AActor* SeenActor)
 {
-    UE_LOG(LogTemp, Warning, TEXT("Boss broadcasting to minions!"));
-
     // G‹›‚ğW‚ß‚é‚½‚ß‚ÉeƒNƒ‰ƒX‚Ìˆ—‚ğŒÄ‚ñ‚Å‚à‚¢‚¢
     Super::BroadcastAlert(SeenActor);
 
