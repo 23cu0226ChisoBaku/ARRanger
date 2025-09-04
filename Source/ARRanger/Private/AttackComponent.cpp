@@ -254,7 +254,7 @@ void UAttackComponent::AttackHit(const FAttackData& Attack)
 				if (isStrongAttack)
 				{
 					const bool bWillBeKilled = (Enemy->currentHP - (Attack.Damage + Attack.DamageModifier) <= 0);
-					Enemy->ReceiveDamage(isStrongAttack, Attack.Damage + Attack.DamageModifier, LaunchDir, bWillBeKilled);
+					Enemy->ReceiveDamage(Attack.Damage + Attack.DamageModifier, LaunchDir, bWillBeKilled);
 
 					// Ë—ÍƒLƒbƒNŽž‚Í“G‚ð‚Á”ò‚Î‚·
 					if (isBlowedAwayEnemy)
@@ -275,7 +275,7 @@ void UAttackComponent::AttackHit(const FAttackData& Attack)
 				else
 				{
 					const bool bWillBeKilled = (Enemy->currentHP - Attack.Damage <= 0);
-					Enemy->ReceiveDamage(isStrongAttack, Attack.Damage, LaunchDir, bWillBeKilled);
+					Enemy->ReceiveDamage(Attack.Damage, LaunchDir, bWillBeKilled);
 				}
 			}
 		}

@@ -174,7 +174,7 @@ void UAttackBaseComponent::AttackHit(const FAttackData& Attack)
       // Hitエフェクトを生成
       const FVector SpawnLocation = HitActor->GetActorLocation();
       const FRotator SpawnRotation = FRotator::ZeroRotator;
-      GetWorld()->SpawnActor<AActor>(HitEffectActor, SpawnLocation, SpawnRotation);   
+      GetWorld()->SpawnActor<AActor>(Attack.HitEffectActor, SpawnLocation, SpawnRotation);   
     }
   }
 }

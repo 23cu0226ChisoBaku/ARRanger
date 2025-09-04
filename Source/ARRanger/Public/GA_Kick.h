@@ -35,6 +35,15 @@ private:
     // AttackBaseComponentを保存
     UAttackBaseComponent* attackBaseComp = nullptr;
 
+    // チャージ開始時間
+    float chargeStartTime = 0.0f;
+
+    // チャージ継続時間
+    float chargeDuration = 0.0f;
+
+    // チャージの段階
+    int32 chargeLevel = 0;
+
 protected:
     // キックのデータ
     UPROPERTY(EditAnywhere, Category = "Attack")
@@ -51,4 +60,7 @@ public:
     // キックのAnimNotifyの通知を受け取る
     UFUNCTION(BlueprintCallable)
     void KickHitNotify();
+
+    // ボタンを離した際に呼び出される
+    void InputReleased();
 };
