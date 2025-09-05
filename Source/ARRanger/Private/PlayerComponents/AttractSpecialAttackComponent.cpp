@@ -17,6 +17,11 @@ void UAttractSpecialAttackComponent::BeginPlay()
 void UAttractSpecialAttackComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+
+	if(m_IsAttractKick)
+	{
+		SpecialFinishKick(DeltaTime);
+	}
 }
 
 /**
@@ -30,13 +35,19 @@ void UAttractSpecialAttackComponent::OnStartSpecialAttract()
 	GenerateAttractActor();
 
 	/*指定した時間後キック！*/
-    GetWorld()->GetTimerManager().SetTimer(
-        m_DelayTimerHandle,
-        this,
-        &UAttractSpecialAttackComponent::SpecialFinishKick,
-		m_AttractTime,   
-        false   
-    );
+	FTimerDelegate TimerDelegate;
+	TimerDelegate.BindLambda([this]()
+	{
+		m_kickDirection = ( m_GenerateArractActor->GetActorLocation() - GetOwner()->GetActorLocation() ).GetSafeNormal();
+		m_IsAttractKick = true;
+	});
+
+	GetWorld()->GetTimerManager().SetTimer(
+		m_DelayTimerHandle,
+		TimerDelegate,
+		m_AttractTime,
+		false
+	);
 }
 
 /**
@@ -46,7 +57,7 @@ void UAttractSpecialAttackComponent::GenerateAttractActor()
 {
 	/*ライントレースの始点と終点*/
 	FVector startLocation = GetOwner()->GetActorLocation();
-	FVector generateDirection = FVector(0.0f ,0.0f, GetPlayerCameraRotation().GetSafeNormal().Z);
+	FVector generateDirection = FVector(GetPlayerCameraRotation().X, GetPlayerCameraRotation().Y, 0.0f).GetSafeNormal();
 	FVector endLocation = startLocation + generateDirection * m_GenerateDistance;
 
 	FHitResult hitResult;
@@ -63,10 +74,18 @@ void UAttractSpecialAttackComponent::GenerateAttractActor()
 	);
 
 	/*引力アクターを生成する座標*/
-	FVector generatLocation = hitResult.Location - m_OffsetGenerateDistance;
+	FVector generatLocation;
+	if(bHit)
+	{
+		generatLocation = hitResult.Location - m_OffsetGenerateDistance;
+	}
+	else
+	{
+		generatLocation = endLocation;
+	}
 
 	FActorSpawnParameters SpawnParams;
-	GetWorld()->SpawnActor<>(
+	m_GenerateArractActor = GetWorld()->SpawnActor<AActor>(
 		m_AttractActor,
 		generatLocation,
 		FRotator::ZeroRotator,
@@ -95,9 +114,28 @@ FVector UAttractSpecialAttackComponent::GetPlayerCameraRotation()
 
 /**
  * @brief 対象のアクターを引き寄せている場所にキック!!
+ * 
+ * @param １フレームにかかる時間
  */
-void UAttractSpecialAttackComponent::SpecialFinishKick()
+void UAttractSpecialAttackComponent::SpecialFinishKick(float deltaTime)
 {
-	FVector kickdirection = ( m_AttractActor->GetActorLocation() - GetOwner()->GetActorLocation() ).GetSafeNormal();
+	/*指定時間が過ぎたらキックを終了する*/
+	if(m_KickTime <= m_ElapsedTime)
+	{
+		m_CurrentKickSpeed -= m_KickBrakingForce;
+		if(m_CurrentKickSpeed <= 0.0f)
+		{
+			m_ElapsedTime = 0.0f;
+			m_IsAttractKick = false;
+		}
+		return;
+	}
 
+	/*時間計測*/
+	m_ElapsedTime += deltaTime;
+
+	/*キック！*/
+    m_CurrentKickSpeed = m_CustomCurveSpeed->GetFloatValue(m_ElapsedTime);
+	FVector newLocation = GetOwner()->GetActorLocation() + m_kickDirection * m_CurrentKickSpeed;
+	GetOwner()->SetActorLocation(newLocation);
 }

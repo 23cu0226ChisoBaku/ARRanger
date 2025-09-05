@@ -57,33 +57,45 @@ private:
 
 	/**
 	 * @brief 対象のアクターを引き寄せている場所にキック!!
+	 * 
+	 * @param １フレームにかかる時間
 	 */
-	void SpecialFinishKick();
+	void SpecialFinishKick(float deltaTime);
 
 	/**
 	 * @brief Playerについているカメラの回転(Rotation) を取得するための関数(後からなくなる)
 	 */
 	FVector GetPlayerCameraRotation();
 
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AttractSpecialAttack|Player", meta = (AllowPrivateAccess = "true"))
+    UCurveFloat* m_CustomCurveSpeed;        /*フィニッシュキックのスピード*/
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AttractSpecialAttack|AttractionActor", meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<AActor> m_AttractActor;     /*対象オブジェクトを吸引オブジェクト*/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AttractSpecialAttack|Player", meta = (AllowPrivateAccess = "true"))
-	float m_KickSpeed;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AttractSpecialAttack|Player", meta = (AllowPrivateAccess = "true"))
-	float m_AttractTime;
+	float m_AttractTime;                    /*技発動からキックし始めるまでの時間*/
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AttractSpecialAttack|Player", meta = (AllowPrivateAccess = "true"))
+	float m_KickTime;                       /*キックし始めから終わりまでの時間*/
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AttractSpecialAttack|Player", meta = (AllowPrivateAccess = "true"))
+	float m_KickBrakingForce;               /*キックの勢いを止める力*/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AttractSpecialAttack|AttractionActor", meta = (AllowPrivateAccess = "true"))
-	ASpecialAttackAttractActor* m_AttractActor;
+	float m_GenerateDistance;               /*吸引オブジェクト生成する際のプレイヤーとの距離*/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AttractSpecialAttack|AttractionActor", meta = (AllowPrivateAccess = "true"))
-	float m_GenerateDistance;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AttractSpecialAttack|AttractionActor", meta = (AllowPrivateAccess = "true"))
-	float m_OffsetGenerateDistance;
+	float m_OffsetGenerateDistance;         /*生成位置が衝突していた際の調整距離*/
 
 	UPROPERTY()
 	TObjectPtr<UGameplayCameraComponent> m_PlayerCameraComponent;	/*プレイヤーについているカメラ*/
 	UPROPERTY()
-	FTimerHandle m_DelayTimerHandle;
+	FTimerHandle m_DelayTimerHandle;    /*タイマーハンドル*/
 	UPROPERTY()
-    float m_CurrentKickSpeed;
+	AActor* m_GenerateArractActor;      /*生成した吸引オブジェクト*/
 	UPROPERTY()
-    float m_ElapsedTime;
+	FVector m_kickDirection;			/*キックをする方向*/
 	UPROPERTY()
-	bool m_IsAttractSpecialAttack;
+    float m_CurrentKickSpeed;           /*現在のキックスピード*/
+	UPROPERTY()
+    float m_ElapsedTime;                /*経過時間計測用*/
+	UPROPERTY()
+	bool m_IsAttractSpecialAttack;      /*必殺技をしているか*/
+	UPROPERTY()
+	bool m_IsAttractKick;      			/*キックをしているか*/
 };

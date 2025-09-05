@@ -11,12 +11,15 @@ UCLASS()
 class ARRANGER_API ASpecialAttackAttractActor : public AActor,
                                                 public ISpecialAttractInterface
 {
-	GENERATED_BODY()	
+	GENERATED_BODY()
 public:	
 	ASpecialAttackAttractActor();
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
     virtual void BeginDestroy() override;
+
+	UFUNCTION()
+    void OnOverlapBegin(AActor* overlappedActor, AActor* otherActor);
 
 private:
 

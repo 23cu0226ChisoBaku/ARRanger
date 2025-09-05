@@ -4,6 +4,7 @@
 
 #include "SpecialAttackAttractActor.h"
 #include "Kismet/KismetSystemLibrary.h"
+#include "ARRangerCharacter.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(SpecialAttackAttractActor)
 
@@ -15,6 +16,8 @@ ASpecialAttackAttractActor::ASpecialAttackAttractActor()
 void ASpecialAttackAttractActor::BeginPlay()
 {
 	Super::BeginPlay();
+	OnStartSpecialAttractNotify();
+	OnActorBeginOverlap.AddDynamic(this, &ASpecialAttackAttractActor::OnOverlapBegin);
 }
 
 void ASpecialAttackAttractActor::Tick(float DeltaTime)
@@ -40,10 +43,9 @@ void ASpecialAttackAttractActor::Tick(float DeltaTime)
 		overlappedActors			/*検知したアクターの格納場所*/
 	);
 
-	/*IARMagnetizableInterface 実装しているアクターを抽出*/ 
+	/*指定したクラスのアクターを抽出*/ 
 	for (AActor* actor : overlappedActors)
 	{
-		/*クラスフィルタに合うか判定*/ 
 		for (UClass* allowedClass : m_AttractionClassFilter)
 		{
 			if (actor->IsA(allowedClass))
@@ -127,6 +129,11 @@ void ASpecialAttackAttractActor::Tick(float DeltaTime)
 
 void ASpecialAttackAttractActor::BeginDestroy()
 {
+	Super::BeginDestroy();
+}
+
+void ASpecialAttackAttractActor::OnOverlapBegin(AActor* OverlappedActor, AActor* OtherActor)
+{
 	for(AActor* actor : m_previousDetectedActors)
 	{
 		/*吸引されているアクターを解除・またそのアクターに通知*/
@@ -145,4 +152,15 @@ void ASpecialAttackAttractActor::BeginDestroy()
 			meshComp->AddImpulse(explosionDirection * m_ExplosionPower);
 		}
 	}
+
+	
+	/*オーバーラップしたキャラクターがプレイヤーなら自分自身を破棄*/
+    if (OtherActor!= nullptr && OtherActor != this)
+    {
+		// TODO Temporary
+        if (OtherActor->IsA(AARRangerCharacter::StaticClass()))
+        {
+            Destroy();  // 自分を削除
+        }
+    }
 }

@@ -24,15 +24,15 @@ public:
 	 */
 	virtual void OnStartSpecialAttractNotify(){;}
 
-	/** 
+	/**
 	 * @brief 引力必殺技の中間通知 
 	 * 
 	 * @param 経過時間
 	 */
 	virtual void OnUpdateSpecialAttractNotify(float elapsed){;}
 
-	/** 
-	 * @brief 引力必殺技の終了通知 
+	/**
+	 * @brief 引力必殺技の終了通知
 	 */
 	virtual void OnEndSpecialAttractNotify(){;}
 };

@@ -80,7 +80,7 @@ void UHookshotComponent::HookshotAction(float deltaTime)
     } 
 
     /*重力をゼロにする*/
-    //character->GetCharacterMovement()->GravityScale = 0.f;
+    character->GetCharacterMovement()->GravityScale = 0.f;
 
     /*フックショットのスピードを増加*/
     IncreaseHookshotSpeed(deltaTime);
