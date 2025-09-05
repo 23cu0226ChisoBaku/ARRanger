@@ -25,6 +25,8 @@ void UGA_Punch::ActivateAbility(
     attackBaseComp->SetIsAttractingEnemy(false);
 
     StartPunch();
+
+    Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 }
 
 void UGA_Punch::EndAbility(
@@ -51,7 +53,7 @@ void UGA_Punch::StartPunch()
     AARRangerCharacter* Char = Cast<AARRangerCharacter>(GetAvatarActorFromActorInfo());
     if (!Char || !PunchData.Montage_Normal)
     {
-
+        return;
     }
 
     attackBaseComp->RotateOwnerToTarget();
@@ -108,7 +110,9 @@ void UGA_Punch::StartPunch()
 
         Anim->Montage_Play(PunchData.Montage_Normal);
         Anim->Montage_JumpToSection(GetPunchSectionName(0), PunchData.Montage_Normal);
-        // ƒ‚ƒ“ƒ^[ƒWƒ…I—¹’Ê’m“o˜^
+
+        // ƒ‚ƒ“ƒ^[ƒWƒ…I—¹’Ê’m“o˜^(Šù‘¶‚Ì“o˜^‚ðŽ–‘O‚Éíœ‚µ‚Ä‚¨‚­)
+        Anim->OnMontageEnded.RemoveDynamic(this, &UGA_Punch::OnAttackMontageEnded);
         Anim->OnMontageEnded.AddDynamic(this, &UGA_Punch::OnAttackMontageEnded);
 
         return;
