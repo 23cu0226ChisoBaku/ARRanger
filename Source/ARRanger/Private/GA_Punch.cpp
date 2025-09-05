@@ -1,4 +1,4 @@
-#include "GA_Punch.h"
+ï»¿#include "GA_Punch.h"
 
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "ARRangerCharacter.h"
@@ -70,13 +70,13 @@ void UGA_Punch::StartPunch()
     if (Char->GetIsApproachedEnemy())
     {
         UE_LOG(LogTemp, Warning, TEXT("Attraction Punch!"));
-        // ‹­UŒ‚ƒtƒ‰ƒO‚ğã‚°‚é
-        // ˆø‚«Šñ‚¹ƒtƒ‰ƒO‚ğ‰º‚°‚é
+        // å¼·æ”»æ’ƒãƒ•ãƒ©ã‚°ã‚’ä¸Šã’ã‚‹
+        // å¼•ãå¯„ã›ãƒ•ãƒ©ã‚°ã‚’ä¸‹ã’ã‚‹
         attackBaseComp->SetIsAttacked(true);
         Char->SetIsAttracted(false);
         Char->SetIsApproachedEnemy(false);
 
-        // ƒpƒ“ƒ`‚ğŠJn
+        // ãƒ‘ãƒ³ãƒã‚’é–‹å§‹
         attackBaseComp->PlayAttackMontage(PunchData);
         return;
     }
@@ -85,11 +85,11 @@ void UGA_Punch::StartPunch()
     {
         if (AEnemy* Enemy = Cast<AEnemy>(Char->LockOnComponent->GetLockedOnTarget()))
         {
-            // “G‚Éˆø‚«Šñ‚¹‚ğ–½—ß
+            // æ•µã«å¼•ãå¯„ã›ã‚’å‘½ä»¤
             Enemy->StartAttraction(Char);
             Char->SetIsAttracted(true);
 
-            // ˆø‚«Šñ‚¹ƒAƒjƒ[ƒVƒ‡ƒ“‚ğÄ¶
+            // å¼•ãå¯„ã›ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã‚’å†ç”Ÿ
             if (PunchData.Montage_AR && !Char->GetMesh()->GetAnimInstance()->Montage_IsPlaying(PunchData.Montage_AR))
             {
                 UE_LOG(LogTemp, Warning, TEXT("Attraction Start!"));
@@ -99,7 +99,7 @@ void UGA_Punch::StartPunch()
         }
     }
 
-    // ƒ‚ƒ“ƒ^[ƒWƒ…–¢Ä¶ ¨ 1’i–Ú‚©‚çŠJn
+    // ãƒ¢ãƒ³ã‚¿ãƒ¼ã‚¸ãƒ¥æœªå†ç”Ÿ â†’ 1æ®µç›®ã‹ã‚‰é–‹å§‹
     if (!Anim->Montage_IsPlaying(PunchData.Montage_Normal) && !Char->GetIsAttracted())
     {
         UE_LOG(LogTemp, Warning, TEXT("Combo 1"));
@@ -111,14 +111,14 @@ void UGA_Punch::StartPunch()
         Anim->Montage_Play(PunchData.Montage_Normal);
         Anim->Montage_JumpToSection(GetPunchSectionName(0), PunchData.Montage_Normal);
 
-        // ƒ‚ƒ“ƒ^[ƒWƒ…I—¹’Ê’m“o˜^(Šù‘¶‚Ì“o˜^‚ğ–‘O‚Éíœ‚µ‚Ä‚¨‚­)
+        // ãƒ¢ãƒ³ã‚¿ãƒ¼ã‚¸ãƒ¥çµ‚äº†é€šçŸ¥ç™»éŒ²(æ—¢å­˜ã®ç™»éŒ²ã‚’äº‹å‰ã«å‰Šé™¤ã—ã¦ãŠã)
         Anim->OnMontageEnded.RemoveDynamic(this, &UGA_Punch::OnAttackMontageEnded);
         Anim->OnMontageEnded.AddDynamic(this, &UGA_Punch::OnAttackMontageEnded);
 
         return;
     }
 
-    // ƒ‚ƒ“ƒ^[ƒWƒ…Ä¶’† ¨ ƒRƒ“ƒ{‘‹“à‚È‚çŸ’i‚ÉƒWƒƒƒ“ƒv
+    // ãƒ¢ãƒ³ã‚¿ãƒ¼ã‚¸ãƒ¥å†ç”Ÿä¸­ â†’ ã‚³ãƒ³ãƒœçª“å†…ãªã‚‰æ¬¡æ®µã«ã‚¸ãƒ£ãƒ³ãƒ—
     if (bInComboWindow)
     {
         if (Char->GetComboCount() < MaxCombo - 1)
@@ -133,14 +133,14 @@ void UGA_Punch::StartPunch()
     }
     else
     {
-        // ƒRƒ“ƒ{‘‹ŠO‚Å‚àƒ{ƒ^ƒ“‰Ÿ‚µ‚½‚çƒoƒbƒtƒ@
+        // ã‚³ãƒ³ãƒœçª“å¤–ã§ã‚‚ãƒœã‚¿ãƒ³æŠ¼ã—ãŸã‚‰ãƒãƒƒãƒ•ã‚¡
         //bComboQueued = true;
     }
 }
 
 FName UGA_Punch::GetPunchSectionName(int32 Index) const
 {
-    // ƒZƒNƒVƒ‡ƒ“–¼‚ğæ“¾
+    // ã‚»ã‚¯ã‚·ãƒ§ãƒ³åã‚’å–å¾—
     int32 Clamped = FMath::Clamp(Index, 0, MaxCombo - 1);
     switch (Clamped)
     {
@@ -168,7 +168,7 @@ void UGA_Punch::ComboWindowEnd()
     {
         Char->SetInComboWindow(false);
 
-        // Ÿ’i“ü—Í‚È‚µ‚È‚çƒ‚ƒ“ƒ^[ƒWƒ…I—¹
+        // æ¬¡æ®µå…¥åŠ›ãªã—ãªã‚‰ãƒ¢ãƒ³ã‚¿ãƒ¼ã‚¸ãƒ¥çµ‚äº†
         if (UAnimInstance* Anim = Char->GetMesh()->GetAnimInstance())
         {
             Anim->Montage_Stop(0.05f, PunchData.Montage_Normal);
@@ -185,10 +185,10 @@ void UGA_Punch::PunchHitNotify()
 
 void UGA_Punch::OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted)
 {
-    // ÅŒã‚Ì’i‚ÌI—¹‚Å Ability ‚ğI—¹
+    // æœ€å¾Œã®æ®µã®çµ‚äº†ã§ Ability ã‚’çµ‚äº†
     EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, bInterrupted);
 
-    // ó‘ÔƒŠƒZƒbƒg
+    // çŠ¶æ…‹ãƒªã‚»ãƒƒãƒˆ
     if (AARRangerCharacter* Char = Cast<AARRangerCharacter>(GetAvatarActorFromActorInfo()))
     {
         Char->SetIsAttacked(false);
