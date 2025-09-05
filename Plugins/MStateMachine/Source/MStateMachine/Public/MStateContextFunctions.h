@@ -10,6 +10,8 @@
 struct FStateTransitionParameters;
 struct FStateTickParameters;
 
+#define UE_API MSTATEMACHINE_API
+
 UCLASS()
 class UMStateContextFunctions : public UBlueprintFunctionLibrary
 {
@@ -28,3 +30,5 @@ class UMStateContextFunctions : public UBlueprintFunctionLibrary
     UFUNCTION(BlueprintCallable, Category="State Tick|Context", meta=(WorldContext="WorldContextObject",DisplayName="Get Owner Controller In State Tick"))
     static MSTATEMACHINE_API AController* GetOwnerControllerByTickParams(const UObject* WorldContextObject, const FStateTickParameters& InParameters);
 };
+
+#undef UE_API

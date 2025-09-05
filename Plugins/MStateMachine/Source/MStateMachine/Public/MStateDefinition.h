@@ -10,6 +10,8 @@
 /**前方宣言 */
 class UMStateInstance;
 
+#define UE_API MSTATEMACHINE_API
+
 /**
  * ステートタグ情報
  */
@@ -24,7 +26,7 @@ public:
    * 
    * @return StateTag文字列
    */
-	FString ToString() const;
+	UE_API FString ToString() const;
 
   /**
    * ステートタグ
@@ -45,12 +47,12 @@ public:
  * ステート定義オブジェクト
  */
 UCLASS(BlueprintType, Blueprintable, Const, Abstract)
-class MSTATEMACHINE_API UMStateDefinition : public UObject
+class UMStateDefinition : public UObject
 {
 	GENERATED_BODY()
 
 public:
-	UMStateDefinition();
+	UE_API UMStateDefinition();
 	
 public:
 
@@ -66,3 +68,5 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "MState|Definition")
 	FMStateTagInfo TagInfo;
 };
+
+#undef UE_API
