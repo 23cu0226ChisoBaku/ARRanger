@@ -171,7 +171,7 @@ void UGA_Punch::ComboWindowEnd()
         // 次段入力なしならモンタージュ終了
         if (UAnimInstance* Anim = Char->GetMesh()->GetAnimInstance())
         {
-            Anim->Montage_Stop(0.05f, PunchData.Montage_Normal);
+            Anim->Montage_Stop(0.15f, PunchData.Montage_Normal);
         }
     }
 
