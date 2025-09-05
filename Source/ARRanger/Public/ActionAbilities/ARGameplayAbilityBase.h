@@ -11,10 +11,23 @@
 /**
  * 
  */
-UCLASS()
-class ARRANGER_API UARGameplayAbilityBase : public UGameplayAbility
+UCLASS(Abstract)
+class UARGameplayAbilityBase : public UGameplayAbility
 {
 	GENERATED_BODY()
+
+public:
+  UARGameplayAbilityBase();
+
+  void SetAbilityCancelable();
+  
+  void SetAbilityBlock();
+
+  bool GetAbilityCancelable() const { return bCanCancel; }
+
+private:
+  UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+  bool bCanCancel;
 	
 };
 

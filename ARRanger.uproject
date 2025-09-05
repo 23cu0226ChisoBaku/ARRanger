@@ -14,7 +14,8 @@
 				"UMG",
 				"MStateMachine",
 				"CoreUObject",
-				"GameplayAbilities"
+				"GameplayAbilities",
+				"EnhancedInput"
 			]
 		},
 		{

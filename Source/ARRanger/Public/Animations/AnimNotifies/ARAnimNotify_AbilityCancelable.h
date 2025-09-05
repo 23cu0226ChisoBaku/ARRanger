@@ -34,7 +34,7 @@ public:
 
 private:
 
-  UPROPERTY(EditDefaultsOnly, Category = "Cancel Parameter", meta = (DisplayName = "Notify Type", AllowPrivateAccess = "true"))
+  UPROPERTY(EditAnywhere, Category = "Cancel Parameter", meta = (DisplayName = "Notify Type", AllowPrivateAccess = "true"))
   EARAbilityCancelType CancelProcessType;
 };
 

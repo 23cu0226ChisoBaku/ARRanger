@@ -3,3 +3,16 @@
 
 #include "ActionAbilities/ARGameplayAbilityBase.h"
 
+UARGameplayAbilityBase::UARGameplayAbilityBase()
+  : bCanCancel{false}
+{ }
+
+void UARGameplayAbilityBase::SetAbilityCancelable()
+{
+  bCanCancel = true;
+}
+
+void UARGameplayAbilityBase::SetAbilityBlock()
+{
+  bCanCancel = false;
+}

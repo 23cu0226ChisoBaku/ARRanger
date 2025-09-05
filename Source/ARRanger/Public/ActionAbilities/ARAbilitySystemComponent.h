@@ -4,6 +4,8 @@
 
 #include "AbilitySystemComponent.h"
 
+#include <type_traits>
+
 #include "ARAbilitySystemComponent.generated.h"
 
 #define UE_API ARRANGER_API
@@ -18,7 +20,25 @@ class UARAbilitySystemComponent : public UAbilitySystemComponent
 	GENERATED_BODY()
 
 public:
-  // UE_API void NotifyAbilityCancelable();	
+
+  /**
+   * @brief 現在のアビリティがキャンセルできることを通知する
+   */
+  UE_API void NotifyAbilityCancelable();
+
+  /**
+   * @brief 現在のアビリティキャンセルをブロックすることを通知する
+   */
+  UE_API void NotifyAbilityBlock();
+
+
+  UE_API static UARAbilitySystemComponent* FindARAbilitySystemComponent(AActor* InActor);
+
+private:
+  UE_API static UAbilitySystemComponent* FindAbilitySystemComponentImpl(AActor* InActor);
+
 };
+
+
 
 #undef UE_API
