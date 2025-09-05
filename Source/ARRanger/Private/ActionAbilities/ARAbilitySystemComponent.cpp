@@ -18,6 +18,15 @@ namespace
   UAbilitySystemComponent* GetASCByInterface_PlayerState(const APlayerController* InPlayerController);
 }
 
+UARAbilitySystemComponent::UARAbilitySystemComponent(const FObjectInitializer& ObjectInitializer)
+  : Super(ObjectInitializer)
+  , m_inputPressedSpecHandles{}
+  , m_inputReleasedSpecHandles{}
+  , m_inputHeldSpecHandles{}
+{
+  ClearAbilityInputStates();
+}
+
 void UARAbilitySystemComponent::NotifyAbilityCancelable()
 {
   const TArray<FGameplayAbilitySpec>& allActivatableAbilites = GetActivatableAbilities();
@@ -46,6 +55,101 @@ void UARAbilitySystemComponent::NotifyAbilityBlock()
         gameplayAbility->SetAbilityBlock();
         break;
       }
+    }
+  }
+}
+
+void UARAbilitySystemComponent::ProcessAbilityInputs(const FARAbilityInputProcessParameter& InputProcessParam)
+{
+  static TArray<FGameplayAbilitySpecHandle> s_abilitiesToActivate{};
+  s_abilitiesToActivate.Reset();
+
+  // Process held input ability
+  for (const FGameplayAbilitySpecHandle& heldSpecHandle : m_inputHeldSpecHandles)
+  {
+    const FGameplayAbilitySpec* abilitySpec = FindAbilitySpecFromHandle(heldSpecHandle);
+    if (abilitySpec != nullptr)
+    {
+      if ((abilitySpec->Ability != nullptr) && !abilitySpec->IsActive())
+      {
+        s_abilitiesToActivate.AddUnique(heldSpecHandle);
+      }
+    }
+  }
+
+  // Process abilities that input pressed this frame
+  for (const FGameplayAbilitySpecHandle& pressedHandle : m_inputPressedSpecHandles)
+  {
+    FGameplayAbilitySpec* abilitySpec = FindAbilitySpecFromHandle(pressedHandle);
+    if (abilitySpec != nullptr)
+    {
+      if (abilitySpec->Ability != nullptr)
+      {
+        abilitySpec->InputPressed = true;
+
+        if (!abilitySpec->IsActive())
+        {
+          s_abilitiesToActivate.AddUnique(pressedHandle);
+        }
+      }
+    }
+  }
+
+  // Activate abilities from held and pressed
+  for (const FGameplayAbilitySpecHandle& abilitySpecHandleToActivate : s_abilitiesToActivate)
+  {
+    TryActivateAbility(abilitySpecHandleToActivate);
+  }
+
+  // Process abilities that input released this frame
+  for (const FGameplayAbilitySpecHandle& releasedHandle : m_inputReleasedSpecHandles)
+  {
+    FGameplayAbilitySpec* abilitySpec = FindAbilitySpecFromHandle(releasedHandle);
+    if (abilitySpec != nullptr)
+    {
+      if (abilitySpec->Ability != nullptr)
+      {
+        abilitySpec->InputPressed = false;
+      }
+    }
+  }
+
+  m_inputPressedSpecHandles.Reset();
+  m_inputReleasedSpecHandles.Reset();
+}
+
+void UARAbilitySystemComponent::AbilityInputTagPressed(const FGameplayTag& InTag)
+{
+  if (!InTag.IsValid())
+  {
+    return;
+  }
+
+  const TArray<FGameplayAbilitySpec>& abilitySpecs = GetActivatableAbilities();
+  for (const FGameplayAbilitySpec& abilitySpec : abilitySpecs)
+  {
+    if ((abilitySpec.Ability != nullptr) && abilitySpec.GetDynamicSpecSourceTags().HasTagExact(InTag))
+    {
+      m_inputPressedSpecHandles.AddUnique(abilitySpec.Handle);
+      m_inputHeldSpecHandles.AddUnique(abilitySpec.Handle);
+    }
+  }
+}
+
+void UARAbilitySystemComponent::AbilityInputTagReleased(const FGameplayTag& InTag)
+{
+  if (!InTag.IsValid())
+  {
+    return;
+  }
+
+  const TArray<FGameplayAbilitySpec>& abilitySpecs = GetActivatableAbilities();
+  for (const FGameplayAbilitySpec& abilitySpec : abilitySpecs)
+  {
+    if ((abilitySpec.Ability != nullptr) && abilitySpec.GetDynamicSpecSourceTags().HasTagExact(InTag))
+    {
+      m_inputPressedSpecHandles.AddUnique(abilitySpec.Handle);
+      m_inputHeldSpecHandles.Remove(abilitySpec.Handle);
     }
   }
 }
@@ -90,6 +194,13 @@ UAbilitySystemComponent* UARAbilitySystemComponent::FindAbilitySystemComponentIm
   }
 
   return result;
+}
+
+void UARAbilitySystemComponent::ClearAbilityInputStates()
+{
+  m_inputPressedSpecHandles.Reset();
+  m_inputHeldSpecHandles.Reset();
+  m_inputReleasedSpecHandles.Reset();
 }
 
 namespace

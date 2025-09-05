@@ -8,32 +8,50 @@
 
 /**Forward declaration */
 class UPrimitiveDetectorData; // 探知範囲データ
+class UAnimInstance;
+
+#define UE_API ARRANGER_API
 
 /**
  * 
  */
 UCLASS(Abstract)
-class ARRANGER_API UARGameplayAbility_Attack : public UARGameplayAbilityBase
+class UARGameplayAbility_Attack : public UARGameplayAbilityBase
 {
 	GENERATED_BODY()
 
 public:
-  UARGameplayAbility_Attack();
+  UE_API UARGameplayAbility_Attack();
+
+  UE_API void AddAttackRange();
+
+  UE_API void RemoveAttackRange();
 
 protected:
-    virtual void ActivateAbility(
-        const FGameplayAbilitySpecHandle Handle,
-        const FGameplayAbilityActorInfo* ActorInfo,
-        const FGameplayAbilityActivationInfo ActivationInfo,
-        const FGameplayEventData* TriggerEventData
-    ) override;
 
-    virtual void EndAbility(
-        const FGameplayAbilitySpecHandle Handle,
-        const FGameplayAbilityActorInfo* ActorInfo,
-        const FGameplayAbilityActivationInfo ActivationInfo,
-        bool bReplicateEndAbility, bool bWasCancelled
-    ) override;
+  /**Start UGameplayAbility Interface */
+  UE_API virtual void ActivateAbility(
+                          const FGameplayAbilitySpecHandle Handle,
+                          const FGameplayAbilityActorInfo* ActorInfo,
+                          const FGameplayAbilityActivationInfo ActivationInfo,
+                          const FGameplayEventData* TriggerEventData
+                      ) override;
+
+  UE_API virtual void EndAbility(
+                          const FGameplayAbilitySpecHandle Handle,
+                          const FGameplayAbilityActorInfo* ActorInfo,
+                          const FGameplayAbilityActivationInfo ActivationInfo,
+                          bool bReplicateEndAbility, bool bWasCancelled
+                      ) override;
+  /**End UGameplayAbility Interface */
+
+private:
+  void OnAttackAbilityActivated();
+  void OnAttackAbilityEnded(bool bWasCancelled);
+
+  void OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted);
+
+  UAnimInstance* FindAnimInstanceOnAvator() const;
 
 private:
 

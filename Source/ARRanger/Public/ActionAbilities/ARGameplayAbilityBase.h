@@ -19,15 +19,23 @@ class UARGameplayAbilityBase : public UGameplayAbility
 public:
   UARGameplayAbilityBase();
 
-  void SetAbilityCancelable();
+  UE_API void SetAbilityCancelable();
   
-  void SetAbilityBlock();
+  UE_API void SetAbilityBlock();
 
-  bool GetAbilityCancelable() const { return bCanCancel; }
+  UE_API bool IsAbilityCancelable() const;
 
-private:
-  UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-  bool bCanCancel;
+  /**Start UObject Interface */
+  UE_API virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+  /**End UObject Interface */
+
+  /**Start UGameplayAbility Interface */
+  UE_API virtual bool CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags = nullptr, const FGameplayTagContainer* TargetTags = nullptr, OUT FGameplayTagContainer* OptionalRelevantTags = nullptr) const override;
+  /**End UGameplayAbility Interface */
+
+public:
+  UPROPERTY(EditDefaultsOnly, meta = (DisplayName = "Cancelable from beginning"))
+  bool bCancelableAfterActivate = true;
 	
 };
 
