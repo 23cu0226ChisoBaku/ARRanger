@@ -15,7 +15,7 @@ namespace
   UAbilitySystemComponent* GetASCByInterface_ActorImpl(const AActor* InActor);
   UAbilitySystemComponent* GetASCByInterface_ActorComp(const AActor* InActor);
   UAbilitySystemComponent* GetASCByInterface_PawnController(const APawn* InPawn);
-  UAbilitySystemComponent* GetASCByInterface_PlayerState(const APlayerController* InPlayerController);
+  UAbilitySystemComponent* GetASCByInterface_PlayerState(const APawn* InPawn);
 }
 
 UARAbilitySystemComponent::UARAbilitySystemComponent(const FObjectInitializer& ObjectInitializer)
@@ -184,11 +184,9 @@ UAbilitySystemComponent* UARAbilitySystemComponent::FindAbilitySystemComponentIm
 
       // Find ASC on PlayerState
       if (result == nullptr)
-      {
-        if (APlayerController* playerController = ::Cast<APlayerController>(pawn->GetController()))
-        {
-          result = GetASCByInterface_PlayerState(playerController);
-        }
+      { 
+
+        result = GetASCByInterface_PlayerState(pawn);
       }
     }
   }
@@ -240,10 +238,10 @@ namespace
     return nullptr;
   }
 
-  UAbilitySystemComponent* GetASCByInterface_PlayerState(const APlayerController* InPlayerController)
+  UAbilitySystemComponent* GetASCByInterface_PlayerState(const APawn* InPawn)
   {
-    check(InPlayerController != nullptr);
-    APlayerState* playerState = InPlayerController->PlayerState;
+    check(InPawn != nullptr);
+    APlayerState* playerState = InPawn->GetPlayerState();
     if (playerState != nullptr && playerState->GetClass()->ImplementsInterface(UAbilitySystemInterface::StaticClass()))
     {
       return ::Cast<IAbilitySystemInterface>(playerState)->GetAbilitySystemComponent();

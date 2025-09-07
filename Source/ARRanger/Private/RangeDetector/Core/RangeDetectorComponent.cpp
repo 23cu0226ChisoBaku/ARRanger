@@ -81,8 +81,6 @@ void URangeDetectorComponent::TickComponent(float DeltaTime, ELevelTick TickType
         break;
       }
 
-      
-      
       // TODO For debug purpose
 #if WITH_EDITOR
 

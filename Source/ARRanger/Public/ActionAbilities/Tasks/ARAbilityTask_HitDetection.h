@@ -10,24 +10,36 @@
 
 class UPrimitiveDetectorData;
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FHitDetectionDelegate, const TArray<TObjectPtr<AActor>>&);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FHitDetectionTask);
 
-USTRUCT(BlueprintType)
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FHitDetectionDelegate, const TArray<AActor*>&, InHitActors);
+
+USTRUCT(BlueprintType, Blueprintable)
 struct FARHitDetectionParameter
 {
   GENERATED_BODY()
 
-  UPROPERTY(EditAnywhere, Category = "Ability|HitDetection", meta = (DisplayName = "Hit Detection Range Data"))
+  UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Ability|HitDetection", meta = (DisplayName = "Hit Detection Range Data"))
   TObjectPtr<UPrimitiveDetectorData> HitRange;
 
-  UPROPERTY(EditAnywhere, Category = "Ability|HitDetection", meta = (DisplayName = "Detect Duration"))
+  UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Ability|HitDetection", meta = (DisplayName = "Detect Duration"))
   float Duration;
+
+  UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Ability|HitDetection", meta = (DisplayName = "End On Hit Detected"))
+  bool bEndIfHit;
 };
 
-UCLASS(MininalAPI)
+UCLASS(MinimalAPI)
 class UARAbilityTask_HitDetection : public UAbilityTask
 {
 	GENERATED_BODY()
+
+  enum ETypeInternal
+  {
+    Internal_NotInit,
+    Internal_Actor,
+    Internal_Interface,
+  };
 
 public:
 
@@ -35,12 +47,18 @@ public:
 
 private:  
   UPROPERTY(BlueprintAssignable)
-  FHitDetectionDelegate OnHitDetectedDelegate;
+  FHitDetectionTask OnHitDetectionFinish;
+
+  UPROPERTY(BlueprintAssignable)
+  FHitDetectionDelegate OnHitDetected;
 	
 	UE_API virtual void InitSimulatedTask(UGameplayTasksComponent& InGameplayTasksComponent) override;
 
 	UFUNCTION(BlueprintCallable, Category = "Ability|Tasks", meta = (HidePin = "OwningAbility", DefaultToSelf = "OwningAbility", BlueprintInternalUseOnly = "TRUE"))
-	static UE_API UARAbilityTask_HitDetection* HitDetection(UGameplayAbility* OwningAbility, FName TaskInstanceName, const FARHitDetectionParameter& InHitDetectionParam);
+	static UE_API UARAbilityTask_HitDetection* HitDetection_Actor(UGameplayAbility* OwningAbility, FName TaskInstanceName, const FARHitDetectionParameter& InHitDetectionParam, TSubclassOf<AActor> TargetActorClass);
+
+	UFUNCTION(BlueprintCallable, Category = "Ability|Tasks", meta = (HidePin = "OwningAbility", DefaultToSelf = "OwningAbility", BlueprintInternalUseOnly = "TRUE"))
+	static UE_API UARAbilityTask_HitDetection* HitDetection_Interface(UGameplayAbility* OwningAbility, FName TaskInstanceName, const FARHitDetectionParameter& InHitDetectionParam, TSubclassOf<UInterface> TargetInterfaceClass);
 
 	UE_API virtual void Activate() override;
 
@@ -50,17 +68,25 @@ private:
 	UE_API virtual void OnDestroy(bool AbilityIsEnding) override;
 
 protected:
-  UE_API virtual void OnHitDetected(const TArray<TObjectPtr<AActor>>& InHitResult);
+  UE_API virtual void OnHit(const TArray<TObjectPtr<AActor>>& InHitResult) {}
+
+private:
+  void EndHitDetectionTask();
+  bool CanDetectHit() const;
 
 private:
 
   UPROPERTY()
   TObjectPtr<const UPrimitiveDetectorData> HitRange;
 
-  float m_duration = 0.0f;
+  TSubclassOf<UObject> m_detectionTargetClass;
 
-  float m_timeDetectionStarted;
+  float m_duration = 0.0f;
   float m_timeDetectionWillEnd;
+
+  ETypeInternal m_type = Internal_NotInit;
+
+  uint8 bEndIfHit : 1;
 };
 
 #undef UE_API

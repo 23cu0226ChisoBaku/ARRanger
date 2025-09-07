@@ -4,6 +4,8 @@
 
 #include "ActionAbilities/ARGameplayAbilityBase.h"
 
+#include "ActionAbilities/Abilities/IARGameplayAbilityNotifyInterface.h"
+
 #include "ARGameplayAbility_Attack.generated.h"
 
 /**Forward declaration */
@@ -16,16 +18,21 @@ class UAnimInstance;
  * 
  */
 UCLASS(Abstract)
-class UARGameplayAbility_Attack : public UARGameplayAbilityBase
+class UARGameplayAbility_Attack : public UARGameplayAbilityBase,
+                                  public IARGameplayAbilityNotifyInterface
 {
 	GENERATED_BODY()
 
 public:
   UE_API UARGameplayAbility_Attack();
 
-  UE_API void AddAttackRange();
+  UE_API void AddAttackRange(UPrimitiveDetectorData* RangeData);
 
-  UE_API void RemoveAttackRange();
+  UE_API void RemoveAttackRange(UPrimitiveDetectorData* RangeData);
+
+  /**Start IARGameplayAbilityNotifyInterface Interface*/
+  UE_API virtual void GANotify_ActorArray(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const TArray<TObjectPtr<AActor>>& InActorArray) override;
+  /**End IARGameplayAbilityNotifyInterface Interface */
 
 protected:
 
@@ -51,12 +58,15 @@ private:
 
   void OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted);
 
-  UAnimInstance* FindAnimInstanceOnAvator() const;
+  UAnimInstance* FindAnimInstanceOnAvatar() const;
 
 private:
 
   UPROPERTY(EditDefaultsOnly, Category = "Ability|Attack", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UAnimMontage> AttackMontage;
 
-  // TODO Need Attack Collision
+  // TODO Instead put damage in ability, Maybe it can be put in another structure(GameplayEffect or something else)
+  UPROPERTY(EditDefaultsOnly, Category = "Ability|Attack", meta = (AllowPrivateAccess = "true"))
+  float AttackDamage;
+
 };

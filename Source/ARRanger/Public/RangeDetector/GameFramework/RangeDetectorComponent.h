@@ -22,6 +22,8 @@ namespace Detector
 
 class UPrimitiveDetectorData;
 
+#define UE_API ARRANGER_API
+
 UENUM(BlueprintType)
 enum struct EDetectorTargetType : uint8
 {
@@ -64,21 +66,23 @@ struct FDetectorAssetEntry
 
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
-class ARRANGER_API URangeDetectorComponent : public UActorComponent
+class URangeDetectorComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
 public:	
 	// Sets default values for this component's properties
-	URangeDetectorComponent();
+	UE_API URangeDetectorComponent();
 
 protected:
 	// Called when the game starts
-	virtual void BeginPlay() override;
+	UE_API virtual void BeginPlay() override;
 
 public:	
 	// Called every frame
-	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+	UE_API virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+
+  UE_API void AddNewDetector(const FDetectorAssetEntry& Entry);
 
 private:
 
@@ -89,3 +93,5 @@ private:
   TArray< TPimplPtr< ARRanger::Detector::FRangeDetector > > m_rangeDetectorInsts;
 		
 };
+
+#undef UE_API

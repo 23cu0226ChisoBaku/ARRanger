@@ -1,11 +1,11 @@
 /.git
-/.vs
 /.vscode
 /Content
 /DerivedDataCache
 /enc_temp_folder
 /Intermediate
 /Saved
+/TestCodeField
 /Plugins/MotionDiff/Content
 /Plugins/MotionDiff/Intermediate
 /Plugins/MStateMachine/Intermediate
