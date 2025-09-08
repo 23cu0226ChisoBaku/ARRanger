@@ -4,7 +4,9 @@
 
 #include "Public/BlinkingSystem/DetectorMagnetizableComponent.h"
 #include "IARMagnetizableInterface.h"
+#include "ARObject/MagnetizableActor.h"
 #include "GameFramework/GameplayCameraComponent.h"
+#include "Kismet/KismetSystemLibrary.h"
 
 
 /*=============== Start UDetectorMagnetizableComponent Lifecycle Functions ===============*/
