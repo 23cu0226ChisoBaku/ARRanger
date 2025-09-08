@@ -6,7 +6,6 @@
 #include "Components/ActorComponent.h"
 #include "AttractSpecialAttackComponent.generated.h"
 
-
 /*前方宣言*/
 class UGameplayCameraComponent;
 class ASpecialAttackAttractActor;
