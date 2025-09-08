@@ -106,6 +106,9 @@ void UGA_Punch::StartPunch()
         attackBaseComp->SetIsAttacked(true);
         Char->SetIsAttacked(true);
 
+        // 念のためコンボ受付を切る
+        Char->SetInComboWindow(false);
+
         Char->ResetComboCount();
 
         Anim->Montage_Play(PunchData.Montage_Normal);
@@ -125,6 +128,9 @@ void UGA_Punch::StartPunch()
         {
             attackBaseComp->SetIsAttacked(true);
             Char->SetIsAttacked(true);
+
+            // 念のためコンボ受付を切っておく
+            Char->SetInComboWindow(false);
 
             Char->AddComboCount();
             UE_LOG(LogTemp, Warning, TEXT("Current Combo is %d"), Char->GetComboCount() + 1);
