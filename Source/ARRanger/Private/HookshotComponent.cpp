@@ -3,6 +3,7 @@
 //*************************************************
 
 #include "HookshotComponent.h"
+#include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
 UHookshotComponent::UHookshotComponent()

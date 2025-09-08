@@ -4,6 +4,7 @@
 
 #include "PlayerComponents/AttractSpecialAttackComponent.h"
 #include "GameFramework/GameplayCameraComponent.h"
+#include "GameFramework/PlayerController.h"
 #include "SpecialAttackAttractActor.h"
 
 UAttractSpecialAttackComponent::UAttractSpecialAttackComponent()
