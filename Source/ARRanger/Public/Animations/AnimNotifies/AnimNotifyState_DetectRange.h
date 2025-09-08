@@ -11,6 +11,8 @@ class UGameplayAbility;
 
 #define UE_API ARRANGER_API
 
+DECLARE_DELEGATE_TwoParams(FOnDetectionNotify, USkeletalMeshComponent*, UAnimSequenceBase*);
+
 UENUM()
 enum struct EANS_DetectRange_NotifyDetectionType : uint8
 {
@@ -32,6 +34,19 @@ UCLASS(editinlinenew, const, hidecategories = Object, collapsecategories, Minima
 class UAnimNotifyState_DetectRange : public UAnimNotifyState
 {
 	GENERATED_BODY()
+
+public:
+  class FDetectTickObject
+  {
+    public:
+      virtual ~FDetectTickObject() = default;
+
+      virtual void TickDetection(USkeletalMeshComponent * MeshComp, UAnimSequenceBase * Animation, float FrameDeltaTime) = 0;
+
+      FOnDetectionNotify DetectionNotify;
+  };
+
+private:
 
   /**Start of UAnimNotifyState Interface */
   UE_API virtual void NotifyBegin(USkeletalMeshComponent * MeshComp, UAnimSequenceBase * Animation, float TotalDuration, const FAnimNotifyEventReference& EventReference) override;
@@ -75,6 +90,10 @@ class UAnimNotifyState_DetectRange : public UAnimNotifyState
 
 private:
   bool ValidateParameters(USkeletalMeshComponent* MeshComp) const;
+
+  void NotifyAbility(USkeletalMeshComponent* MeshComp, UAnimSequenceBase * Animation);
+
+  TUniquePtr<FDetectTickObject> m_detectTickObject;
    
 };
 

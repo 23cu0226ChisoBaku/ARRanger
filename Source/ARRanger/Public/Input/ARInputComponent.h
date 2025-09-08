@@ -33,12 +33,12 @@ void UARInputComponent::BindAbilityActions(const UARInputConfig* InInputConfig, 
     {
       if (PressedFunc != nullptr)
       {
-        OutHandles.Add(BindAction(inputAction.InputAction, ETriggerEvent::Triggered, UserObject, PressedFunc, inputAction.InputTag));
+        OutHandles.AddUnique(BindAction(inputAction.InputAction, ETriggerEvent::Triggered, UserObject, PressedFunc, inputAction.InputTag).GetHandle());
       }
   
       if (ReleasedFunc != nullptr)
       {
-        OutHandles.Add(BindAction(inputAction.InputAction, ETriggerEvent::Completed, UserObject, ReleasedFunc, inputAction.InputTag));
+        OutHandles.AddUnique(BindAction(inputAction.InputAction, ETriggerEvent::Completed, UserObject, ReleasedFunc, inputAction.InputTag).GetHandle());
       }
     }
   }

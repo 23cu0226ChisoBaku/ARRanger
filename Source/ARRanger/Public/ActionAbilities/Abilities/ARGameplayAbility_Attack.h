@@ -70,3 +70,5 @@ private:
   float AttackDamage;
 
 };
+
+#undef UE_API

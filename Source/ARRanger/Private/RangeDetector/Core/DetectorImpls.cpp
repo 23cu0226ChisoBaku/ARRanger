@@ -68,17 +68,16 @@ DEFINE_PRIMITIVE_DETECTOR(UConeCollisionDataAsset)
 
   void UPrimitiveDetectorData::DebugDrawRange(const FVector& InOriginPosition, const FColor& InColor) const
   {
-    if (GEngine != nullptr)
+
+    if (const UWorld* world = GetWorld())
     {
-      if (const UWorld* playWorld = GEngine->GetCurrentPlayWorld())
-      {
-        DebugDrawRange(playWorld, InOriginPosition, InColor);
-      }
-      else
-      {
-        UE_LOG(LogTemp, Warning, TEXT("Can not draw range in invalid world"));
-      }
+      DebugDrawRange(world, InOriginPosition, InColor);
     }
+    else
+    {
+      UE_LOG(LogTemp, Warning, TEXT("Can not draw range in invalid world"));
+    }
+  
 
   }
 
