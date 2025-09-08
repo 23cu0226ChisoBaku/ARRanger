@@ -46,11 +46,6 @@ private:
 	// 敵引き寄せフラグ
 	bool bIsAttractingEnemy = false;
 
-protected:
-	// ヒット時のエフェクトを保存
-	UPROPERTY(EditAnywhere, Category = "Effects")
-	TSubclassOf<AActor> HitEffectActor;
-
 public:
 	// 引き寄せ中フラグを取得
 	bool GetIsAttractingEnemy() { return bIsAttractingEnemy; }

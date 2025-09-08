@@ -79,7 +79,5 @@ EBTNodeResult::Type UBTT_SelectAttack::ExecuteTask(UBehaviorTreeComponent& Owner
     BB->SetValueAsEnum("AttackType", static_cast<uint8>(ChosenAttack));
     BB->SetValueAsEnum("LastAttackType", static_cast<uint8>(ChosenAttack)); // ‘O‰ñUŒ‚‚Æ‚µ‚Ä•Û‘¶
 
-    UE_LOG(LogTemp, Log, TEXT("Boss chose attack: %d"), (uint8)ChosenAttack);
-
     return EBTNodeResult::Succeeded;
 }

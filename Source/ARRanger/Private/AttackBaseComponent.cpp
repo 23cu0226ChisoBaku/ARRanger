@@ -3,11 +3,14 @@
 #include "ARRangerCharacter.h"
 #include "Kismet/KismetSystemLibrary.h"
 
+#include "BattleSystem/IARAttackable.h"
+#include "BattleSystem/IARAttackerInterface.h"
+
 UAttackBaseComponent::UAttackBaseComponent()
 {
 	PrimaryComponentTick.bCanEverTick = true;
 
-    // ƒvƒŒƒCƒ„[‚Æ‚»‚ÌƒRƒ“ƒgƒ[ƒ‰[‚ğæ“¾
+    // ï¿½vï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½[ï¿½Æ‚ï¿½ï¿½ÌƒRï¿½ï¿½ï¿½gï¿½ï¿½ï¿½[ï¿½ï¿½ï¿½[ï¿½ï¿½ï¿½æ“¾
     ownerPawn = Cast<AARRangerCharacter>(GetOwner());
     ownerController = ownerPawn ? Cast<APlayerController>(ownerPawn->GetController()) : nullptr;
 }
@@ -46,21 +49,21 @@ void UAttackBaseComponent::RotateOwnerToTarget()
 
 void UAttackBaseComponent::PlayAttackMontage(const FAttackData& Attack)
 {
-    // ƒvƒŒƒCƒ„[‚ª‚¢‚È‚¢‚©AMontage‚ªİ’è‚³‚ê‚Ä‚¢‚È‚¯‚ê‚Îˆ—‚µ‚È‚¢
+    // ï¿½vï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½[ï¿½ï¿½ï¿½ï¿½ï¿½È‚ï¿½ï¿½ï¿½ï¿½AMontageï¿½ï¿½ï¿½İ’è‚³ï¿½ï¿½Ä‚ï¿½ï¿½È‚ï¿½ï¿½ï¿½Îï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È‚ï¿½
     AARRangerCharacter* Char = Cast<AARRangerCharacter>(ownerPawn);
     if (!Char || !Attack.Montage_Normal)
     {
         return;
     }
 
-    // AnimInstance‚ª‚È‚¯‚ê‚Îˆ—‚µ‚È‚¢
+    // AnimInstanceï¿½ï¿½ï¿½È‚ï¿½ï¿½ï¿½Îï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È‚ï¿½
     UAnimInstance* Anim = Char->GetMesh()->GetAnimInstance();
     if (!Anim)
     {
         return;
     }
 
-    // Šù‚É“¯‚¶ƒ‚ƒ“ƒ^[ƒWƒ…Ä¶’†‚È‚ç‚±‚±‚Å‰½‚à‚µ‚È‚¢(ƒpƒ“ƒ`‚ÍStartPunch‚ª–Ê“|‚ğŒ©‚é)
+    // ï¿½ï¿½ï¿½É“ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½^ï¿½[ï¿½Wï¿½ï¿½ï¿½Äï¿½ï¿½ï¿½ï¿½È‚ç‚±ï¿½ï¿½ï¿½Å‰ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È‚ï¿½(ï¿½pï¿½ï¿½ï¿½`ï¿½ï¿½StartPunchï¿½ï¿½ï¿½Ê“|ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½)
     if (Anim->Montage_IsPlaying(Attack.Montage_Normal))
     {
         return;
@@ -81,92 +84,99 @@ void UAttackBaseComponent::PlayAttackMontage(const FAttackData& Attack)
 
 void UAttackBaseComponent::AttackHit(const FAttackData& Attack)
 {
-    AARRangerCharacter* Char = Cast<AARRangerCharacter>(ownerPawn);
-    if (!Char)
+  AActor* avatarActor = GetOwner();
+  if (avatarActor == nullptr)
+  {
+    return;
+  }
+
+  const float AttackOffset = 100.0f;
+  const FVector Origin = avatarActor->GetActorLocation() + avatarActor->GetActorForwardVector() * AttackOffset;
+  TArray<AActor*> HitActors{};
+
+  const bool bHit = UKismetSystemLibrary::SphereOverlapActors(
+                      avatarActor,
+                      Origin,
+                      Attack.HitRadius,
+                      { UEngineTypes::ConvertToObjectType(ECC_Pawn), UEngineTypes::ConvertToObjectType(ECC_WorldDynamic) },
+                      nullptr,
+                      { avatarActor },
+                      HitActors
+                    );
+  if (!bHit)
+  {
+    return;
+  }
+
+  for (AActor* HitActor : HitActors)
+  {    
+
+    // Edited by MAI
+    static UClass* attackableInterfaceClass = UARAttackable::StaticClass();
+    IARAttackable* attackable{nullptr};
+
+    // Check if Actor implements interface
+    if (HitActor->GetClass()->ImplementsInterface(attackableInterfaceClass))
     {
-        return;
+      attackable = ::Cast<IARAttackable>(HitActor);
     }
 
-    FVector Origin = Char->GetActorLocation() + Char->GetActorForwardVector() * 100.f;
-    TArray<AActor*> HitActors;
-
-    // “–‚½‚è”»’è‚ğì¬
-    bool bHit = UKismetSystemLibrary::SphereOverlapActors(
-        Char,
-        Origin,
-        Attack.HitRadius,
-        { UEngineTypes::ConvertToObjectType(ECC_Pawn), UEngineTypes::ConvertToObjectType(ECC_WorldDynamic) },
-        nullptr,
-        { Char },
-        HitActors
-    );
-
-    if (!bHit)
+    // Search if any component in actor implements interface
+    if (attackable == nullptr)
     {
-        return;
+      TArray<UActorComponent*> interfaceImplementedComps = HitActor->GetComponentsByInterface(attackableInterfaceClass);
+      // Mark an exception if more than 1 component implements IARAttackable
+      check(interfaceImplementedComps.Num() < 2);
+      if (interfaceImplementedComps.Num() > 0)
+      {
+        attackable = ::Cast<IARAttackable>(interfaceImplementedComps[0]);
+      }
     }
 
-    for (AActor* HitActor : HitActors)
+    // Could not find IARAttackable, Stop attacking
+    if (attackable == nullptr)
     {
-        if (HitActor->ActorHasTag(Attack.TargetTag))
-        {
-            AEnemy* Enemy = Cast<AEnemy>(HitActor);
-
-            if (Enemy && !Enemy->isDead)
-            {
-                // NotifyHandler‚Í‚±‚¿‚ç‚Å‚ÍG‚ê‚¸AƒvƒŒƒCƒ„[‘¤‚É”C‚¹‚é
-                Char->OnAttackHitNotify();
-
-                // ƒqƒbƒgƒGƒtƒFƒNƒg—p‚ÌƒAƒNƒ^[‚ğSpawn
-                FVector SpawnLocation = Enemy->GetActorLocation();
-                FRotator SpawnRotation = FRotator::ZeroRotator;
-
-                GetWorld()->SpawnActor<AActor>(HitEffectActor, SpawnLocation, SpawnRotation);
-
-                FVector LaunchDir = Char->GetActorForwardVector() + FVector(0, 0, 0.2f);
-                LaunchDir.Normalize();
-
-                // ƒ_ƒ[ƒW‚ğ—^‚¦‚é(‹­UŒ‚‚È‚çƒ_ƒ[ƒW‚ğãæ‚¹)
-                if (bIsStrongAttacked)
-                {
-                    const bool bWillBeKilled = (Enemy->currentHP - (Attack.Damage + Attack.DamageModifier) <= 0);
-                    Enemy->ReceiveDamage(bIsStrongAttacked, Attack.Damage + Attack.DamageModifier, LaunchDir, bWillBeKilled);
-
-                    // Ë—ÍƒLƒbƒN‚Í“G‚ğ‚Á”ò‚Î‚·
-                    if (bIsBlowedAwayEnemy)
-                    {
-                        UPrimitiveComponent* PrimComp = Cast<UPrimitiveComponent>(Enemy->GetRootComponent());
-                        if (PrimComp && PrimComp->IsSimulatingPhysics())
-                        {
-                            FVector ImpulseDir = (Enemy->GetActorLocation() - Char->GetActorLocation()).GetSafeNormal();
-                            ImpulseDir.Z += 0.5f;
-                            ImpulseDir.Normalize();
-
-                            float ImpulseStrength = 1300.f;
-
-                            PrimComp->AddImpulse(ImpulseDir * ImpulseStrength, NAME_None, true);
-                            return;
-                        }
-                    }
-
-                    // ˆø—Íƒpƒ“ƒ`‚ÍË—ÍƒLƒbƒN‚æ‚è‚àT‚¦‚ß‚É‚Á”ò‚Î‚·
-                    UPrimitiveComponent* PrimComp = Cast<UPrimitiveComponent>(Enemy->GetRootComponent());
-                    FVector ImpulseDir = (Enemy->GetActorLocation() - Char->GetActorLocation()).GetSafeNormal();
-                    ImpulseDir.Z += 0.5f;
-                    ImpulseDir.Normalize();
-
-                    float ImpulseStrength = 1000.f;
-
-                    PrimComp->AddImpulse(ImpulseDir * ImpulseStrength, NAME_None, true);
-                }
-                else
-                {
-                    const bool bWillBeKilled = (Enemy->currentHP - Attack.Damage <= 0);
-                    Enemy->ReceiveDamage(bIsStrongAttacked, Attack.Damage, LaunchDir, bWillBeKilled);
-                }
-            }
-        }
+      UE_LOG(LogTemp, Error, TEXT("Actor or ActorComponents are not implemented [%s]. Actor name: [%s]"), *attackableInterfaceClass->GetName(), *avatarActor->GetName());
+      return;
     }
+
+    /**
+     * @brief å®Ÿéš›ã®æ”»æ’ƒå‡¦ç†ã€‚å‡¦ç†ã‚’åˆ¥ã®å ´æ‰€ã«ç§»å‹•ã—ãŸã„å ´åˆã¯ãƒŒãƒ«ãƒã‚§ãƒƒã‚¯ã‚’å«ã‚ã¦å…¨ã¦ç§»å‹•ã™ã‚‹ã‚ˆã†ã«ãŠé¡˜ã„ã—ã¾ã™ã€‚
+     * @see   #include "BattleSystem/IARAttackable.h"
+     * @see   #include "BattleSystem/IARAttackerInterface.h"
+     */
+    {
+      // æ”»æ’ƒãƒ€ãƒ¡ãƒ¼ã‚¸è¨ˆç®—ã‚„é£›ã°ã™è¨ˆç®—å‡¦ç†
+      FARAttackParameters attackParam{};
+      attackParam.Instigator = avatarActor;
+      attackParam.bUseAttackerActor = false;
+      
+      attackParam.Damage = Attack.Damage;
+      if (bIsStrongAttacked)
+      {
+        attackParam.Damage += Attack.DamageModifier;
+      }
+
+      FVector LaunchDir{EForceInit::ForceInitToZero};
+      if (bIsBlowedAwayEnemy)
+      {
+        const FVector ImpulseDir_Norm = ((HitActor->GetActorLocation() - avatarActor->GetActorLocation()).GetSafeNormal() + FVector{0.0, 0.0, 0.5}).GetSafeNormal();
+        LaunchDir = avatarActor->GetActorForwardVector() + FVector{0.0, 0.0, 0.2};
+        LaunchDir.Normalize();
+        LaunchDir += ImpulseDir_Norm;
+        LaunchDir.Normalize();
+      }
+      attackParam.LaunchDirection = LaunchDir;
+
+      // ã‚¿ãƒ¼ã‚²ãƒƒãƒˆã‚’æ”»æ’ƒã™ã‚‹
+      (void)attackable->AttackTarget(::Cast<IARAttackerInterface>(avatarActor), attackParam);
+
+      // Hitã‚¨ãƒ•ã‚§ã‚¯ãƒˆã‚’ç”Ÿæˆ
+      const FVector SpawnLocation = HitActor->GetActorLocation();
+      const FRotator SpawnRotation = FRotator::ZeroRotator;
+      GetWorld()->SpawnActor<AActor>(Attack.HitEffectActor, SpawnLocation, SpawnRotation);   
+    }
+  }
 }
 
 void UAttackBaseComponent::OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted)

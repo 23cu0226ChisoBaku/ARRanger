@@ -2,7 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "BehaviorTree/BTTaskNode.h"
-#include "Enemy/EnemyAttackTypes.h" // EAttackType ’è‹`
+#include "Enemy/EnemyAttackTypes.h" 
 #include "BTT_PerformAttack.generated.h"
 
 class ACharacter;
@@ -28,7 +28,7 @@ protected:
 
 protected:
     UPROPERTY(EditAnywhere, Category = "Attack")
-    float PunchRange = 200.f;
+    float PunchRange = 500.f;
 
     UPROPERTY(EditAnywhere, Category = "Attack")
     float PunchMoveSpeed = 300.f;
@@ -41,6 +41,9 @@ protected:
 
     UPROPERTY(EditAnywhere, Category = "Attack")
     UAnimMontage* JumpAttackMontage;
+
+    UPROPERTY(EditAnywhere, Category = "Attack")
+    UAnimMontage* SlammedMontage;
 
     UPROPERTY(EditAnywhere, Category = "Attack")
     UAnimMontage* RoarMontage;

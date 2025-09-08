@@ -32,11 +32,10 @@ const FARAttackParameters FARAttackParameters::BlankAttackParams = FARAttackPara
 // Add default functionality here for any IIARAttackable functions that are not pure virtual.
 bool IARAttackable::AttackTarget(IARAttackerInterface* Attacker, FARAttackParameters InAttackParams)
 {
-  check(Attacker != nullptr);
+  // Attackerが存在しないため、Attackerへの通知を送らない
   if (Attacker == nullptr)
   {
     AR_LOG(LogARBattle, Error, TEXT("Attacker is INVALID!!!"));
-    return false;
   }
 
   /**Preattack Phase */
@@ -44,7 +43,7 @@ bool IARAttackable::AttackTarget(IARAttackerInterface* Attacker, FARAttackParame
   const bool bUseIntigator = (InAttackParams.Instigator != nullptr) && InAttackParams.bUseAttackerActor;
   if (!bUseIntigator)
   {
-    InAttackParams.Instigator = Attacker->GetActor();
+    InAttackParams.Instigator = Attacker != nullptr ? Attacker->GetActor() : nullptr;
   }
 
   // Check attack result
@@ -52,9 +51,12 @@ bool IARAttackable::AttackTarget(IARAttackerInterface* Attacker, FARAttackParame
   OnPreAttacked(InAttackParams, outAttackResult);
 
   /**Notify attack state to attacker */
-  ARRanger::Battle::FARAttackNotifyParameter notifyParams{};
-  notifyParams.WeakAttackableObject = _getUObject();
-  Attacker->NotifyAttackResult(outAttackResult.Result, notifyParams);
+  if (Attacker != nullptr)
+  {
+    ARRanger::Battle::FARAttackNotifyParameter notifyParams{};
+    notifyParams.WeakAttackableObject = _getUObject();
+    Attacker->NotifyAttackResult(outAttackResult.Result, notifyParams);
+  }
 
   /**Postattack Phase */
   OnPostAttacked(InAttackParams);

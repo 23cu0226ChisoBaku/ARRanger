@@ -91,9 +91,13 @@ class AARRangerCharacter :  public ACharacter,
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	class UInputAction* PunchAction;
 
-	// キックアクション
+	// キック入力アクション
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
-	class UInputAction* KickAction;
+	class UInputAction* KickInputAction;
+
+	// キックボタン離しアクション
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	class UInputAction* KickReleaseAction;
 
 	// 変身アクション
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
@@ -205,6 +209,9 @@ public:
 	// キックの際に呼び出される
 	void Input_Kick();
 
+	// キックボタンを離した際に呼び出される
+	void Release_Kick();
+
 	UFUNCTION(BlueprintPure, Category = "AR|Player")
 	float GetDefaultArmLength() const { return DefaultArmLength; }
 
@@ -266,6 +273,13 @@ public:
 	// 現在のプレイヤーのモードを取得
 	UFUNCTION(BlueprintPure)
 	EARMagnetismType GetCurrentARType();
+
+	// 攻撃フラグをリセット
+	UFUNCTION(BlueprintCallable)
+	void ResetIsAttacked();
+
+	// 攻撃中フラグを取得
+	bool GetIsAttacked() { return isAttacked; }
 
 	// 攻撃中フラグをセット
 	void SetIsAttacked(bool IsAttacked) { isAttacked = IsAttacked; }

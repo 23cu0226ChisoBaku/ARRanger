@@ -3,6 +3,7 @@
 //*************************************************
 
 #include "HookshotComponent.h"
+#include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
 UHookshotComponent::UHookshotComponent()
@@ -80,7 +81,7 @@ void UHookshotComponent::HookshotAction(float deltaTime)
     } 
 
     /*重力をゼロにする*/
-    //character->GetCharacterMovement()->GravityScale = 0.f;
+    character->GetCharacterMovement()->GravityScale = 0.f;
 
     /*フックショットのスピードを増加*/
     IncreaseHookshotSpeed(deltaTime);
@@ -109,7 +110,7 @@ void UHookshotComponent::HookshotAction(float deltaTime)
             FColor::Green,                                              /*色*/ 
             FString::Printf(TEXT("ElapsedTime: %.2f"), m_ElapsedTime)   /*表示内容*/ 
         );
-    } 
+    }
 }
 
 /**
@@ -141,7 +142,7 @@ void UHookshotComponent::IncreaseHookshotSpeed(float deltaTime)
     m_CurrentHookshotSpeed = FMath::Min(m_CurrentHookshotSpeed, m_HookshotMaxSpeed);
 }
 
- /**
+/**
  * @brief フックショットの移動と障害物判定を行う
  * 
  * @param  コンポーネント所有者の座標 ,進行方向ベクトル(正規化済み)
@@ -228,7 +229,7 @@ void UHookshotComponent::SetupSpeedCurveFunctions()
     {
         if(m_CustomCurveSpeed != nullptr)
         {
-            m_ElapsedTime += DeltaTime;
+            m_ElapsedTime = (m_ElapsedTime + DeltaTime);
             m_CurrentHookshotSpeed = m_CustomCurveSpeed->GetFloatValue(m_ElapsedTime) * 100.0f;
         }
     });

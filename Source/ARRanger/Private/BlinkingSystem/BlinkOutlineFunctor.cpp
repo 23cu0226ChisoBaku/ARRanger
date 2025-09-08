@@ -4,8 +4,6 @@
 
 #include "Public/BlinkingSystem/BlinkOutlineFunctor.h"
 #include "Public/BlinkingSystem/BlinkDatas.h"
-
-// 妥協処理
 #include "ARObject/MagnetizableActor.h"
 
 /*

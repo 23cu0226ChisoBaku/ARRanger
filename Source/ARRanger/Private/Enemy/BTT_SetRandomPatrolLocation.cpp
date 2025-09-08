@@ -1,5 +1,4 @@
 
-
 #include "Enemy/BTT/BTT_SetRandomPatrolLocation.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "AIController.h"
@@ -12,46 +11,35 @@ UBTT_SetRandomPatrolLocation::UBTT_SetRandomPatrolLocation()
 
 EBTNodeResult::Type UBTT_SetRandomPatrolLocation::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
-	// AIコントローラーとポーンを取得
-	AAIController* AIController = OwnerComp.GetAIOwner();
-	if (!AIController)
-	{
-		return EBTNodeResult::Failed;
-	}
+    AAIController* AIController = OwnerComp.GetAIOwner();
+    if (!AIController) return EBTNodeResult::Succeeded;
 
-	APawn* AIPawn = AIController->GetPawn();
-	if (!AIPawn)
-	{
-		return EBTNodeResult::Failed;
-	}
+    APawn* AIPawn = AIController->GetPawn();
+    if (!AIPawn) return EBTNodeResult::Succeeded;
 
-	// ナビゲーションシステムを取得
-	UNavigationSystemV1* NavSys = UNavigationSystemV1::GetCurrent(GetWorld());
-	if (!NavSys)
-	{
-		return EBTNodeResult::Failed;
-	}
+    UNavigationSystemV1* NavSys = UNavigationSystemV1::GetCurrent(AIController->GetWorld());
+    if (!NavSys) return EBTNodeResult::Succeeded;
 
-	// 基礎となる位置を取得
-	if (!IsSetOrigin)
-	{
-		Origin = AIPawn->GetActorLocation();
-		IsSetOrigin = true;
-	}
+    UBlackboardComponent* BlackboardComp = OwnerComp.GetBlackboardComponent();
+    if (!BlackboardComp) return EBTNodeResult::Succeeded;
 
-	// 現在地からランダムなパトロール位置を検索
-	FNavLocation RandomPatrolLocation;
+    FVector Origin = BlackboardComp->GetValueAsVector(PatrolOriginKey.SelectedKeyName);
+    if (!BlackboardComp->IsVectorValueSet(PatrolOriginKey.SelectedKeyName))
+    {
+        Origin = AIPawn->GetActorLocation();
+        BlackboardComp->SetValueAsVector(PatrolOriginKey.SelectedKeyName, Origin);
+    }
 
-	if (NavSys->GetRandomPointInNavigableRadius(Origin, SearchRadius, RandomPatrolLocation))
-	{
-		// ブラックボードに新しいパトロール位置を保存
-		UBlackboardComponent* BlackboardComp = OwnerComp.GetBlackboardComponent();
-		if (BlackboardComp)
-		{
-			BlackboardComp->SetValueAsVector(PatrolLocationKey.SelectedKeyName, RandomPatrolLocation.Location);
-			return EBTNodeResult::Succeeded;
-		}
-	}
+    FNavLocation RandomPatrolLocation;
+    if (NavSys->GetRandomPointInNavigableRadius(Origin, SearchRadius, RandomPatrolLocation))
+    {
+        BlackboardComp->SetValueAsVector(PatrolLocationKey.SelectedKeyName, RandomPatrolLocation.Location);
+    }
+    else
+    {
+        // フォールバック: NavMesh外なら Origin をそのまま使う
+        BlackboardComp->SetValueAsVector(PatrolLocationKey.SelectedKeyName, Origin);
+    }
 
-	return EBTNodeResult::Failed;
+    return EBTNodeResult::Succeeded; // ここで必ず成功にする
 }

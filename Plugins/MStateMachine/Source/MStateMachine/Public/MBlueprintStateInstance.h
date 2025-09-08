@@ -6,6 +6,8 @@
 
 #include "MBlueprintStateInstance.generated.h"
 
+#define UE_API MSTATEMACHINE_API
+
 /**
  * ブループリントステートインスタンス
  */
@@ -17,7 +19,7 @@ class UMBlueprintStateInstance : public UMStateInstance
   public:
     /**Start UObject Interface */
 
-    virtual UWorld* GetWorld() const override;
+    UE_API virtual UWorld* GetWorld() const override;
 
     /**End UObject Interface */
     
@@ -26,22 +28,24 @@ class UMBlueprintStateInstance : public UMStateInstance
      * ステートに入るブループリントイベント
      */
     UFUNCTION(BlueprintImplementableEvent, Category = "MState|Instance", meta = (DisplayName = "EnterState"))
-    MSTATEMACHINE_API void K2_BlueprintEnterState(const FStateTransitionParameters& TransParams);
+    UE_API void K2_BlueprintEnterState(const FStateTransitionParameters& TransParams);
 
     /**
      * ステートを更新するブループリントイベント
      */
     UFUNCTION(BlueprintImplementableEvent, Category = "MState|Instance", meta = (DisplayName = "TickState"))
-    MSTATEMACHINE_API void K2_BlueprintTickState(const FStateTickParameters& TickParams);
+    UE_API void K2_BlueprintTickState(const FStateTickParameters& TickParams);
     
     /**
      * ステートを抜けるブループリントイベント
      */
     UFUNCTION(BlueprintImplementableEvent, Category = "MState|Instance", meta = (DisplayName = "ExitState"))
-    MSTATEMACHINE_API void K2_BlueprintExitState(const FStateTransitionParameters& TransParams);
+    UE_API void K2_BlueprintExitState(const FStateTransitionParameters& TransParams);
 
   private:
     void OnEnterState(const FStateTransitionParameters& TransParams) override final;
     void OnTickState(const FStateTickParameters& TickParams) override final;
     void OnExitState(const FStateTransitionParameters& TransParams) override final;
 };
+
+#undef UE_API
