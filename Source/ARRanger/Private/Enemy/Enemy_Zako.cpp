@@ -43,12 +43,17 @@ void AEnemy_Zako::ReceiveDamage(int DamageAmount, FVector LaunchDirection, bool 
         GetMesh()->SetAllBodiesPhysicsBlendWeight(1.0f);
         GetMesh()->bBlendPhysics = true;
 
-        GetMesh()->AddImpulse(LaunchDirection * 5000.0f, NAME_None, true);
+        // 死亡時は大きく吹っ飛ばす
+        FVector DeathImpulse = -GetActorForwardVector() * 5000.0f;
+        GetMesh()->AddImpulse(DeathImpulse, NAME_None, true);
+
         SetLifeSpan(3.0f);
     }
     else
     {
-        LaunchCharacter(LaunchDirection * 600.f, true, true);
+        // 生存時は前方ベクトルの逆方向にノックバック
+        FVector KnockbackDir = -GetActorForwardVector();
+        LaunchCharacter(KnockbackDir * 2000.f, true, true);
     }
 
     if (bEnableHitStop)
@@ -61,6 +66,65 @@ void AEnemy_Zako::ReceiveDamage(int DamageAmount, FVector LaunchDirection, bool 
             }, 0.03f, false);
     }
 }
+
+void AEnemy_Zako::Zako_PerformAttack()
+{
+    
+    if (isDead) return;
+
+    UE_LOG(LogTemp, Log, TEXT("Enemy_Zako: PerforAttack executed."));
+
+    //攻撃モンタージュ再生
+    if (UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance())
+    {
+        if (AttackMontage)
+        {
+            AnimInstance->Montage_Play(AttackMontage);
+        }
+    }
+
+    //攻撃判定
+    /*FVector AttackCenter = GetActorLocation() + GetActorForwardVector() * 100.f;
+    float AttackRadius = 150.f;
+
+    TArray<FOverlapResult> Overlaps;
+    FCollisionQueryParams Params;
+    Params.AddIgnoredActor(this);
+
+    bool bHit = GetWorld()->OverlapMultiByChannel(
+        Overlaps,
+        AttackCenter,
+        FQuat::Identity,
+        ECC_Pawn,
+        FCollisionShape::MakeSphere(AttackRadius),
+        Params
+    );
+
+    if (bHit)
+    {
+        for (auto& Result : Overlaps)
+        {
+            if (AActor* HitActor = Result.GetActor())
+            {
+                UE_LOG(LogTemp, Log, TEXT("Enemy_Zako hit: %s"), *HitActor->GetName());
+
+                // IARAttackable を持っていれば攻撃イベントを送る
+                if (HitActor->GetClass()->ImplementsInterface(UIARAttackable::StaticClass()))
+                {
+                    FARAttackParameters AttackParams;
+                    AttackParams.Attacker = this;
+                    AttackParams.Damage = 10; // ← 適宜調整
+                    AttackParams.LaunchDirection = GetActorForwardVector();
+
+                    ARRanger::Battle::FARAttackResult ResultData;
+                    IARAttackable::Execute_OnPreAttacked(HitActor, AttackParams, ResultData);
+                    IARAttackable::Execute_OnPostAttacked(HitActor, AttackParams);
+                }
+            }
+        }
+    }*/
+}
+
 
 // ==== IARAttackable 実装 ====
 void AEnemy_Zako::OnPreAttacked(const FARAttackParameters& InAttackParams,ARRanger::Battle::FARAttackResult& OutAttackResult)

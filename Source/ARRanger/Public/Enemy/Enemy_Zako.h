@@ -15,9 +15,9 @@ public:
 
     void SetIsChasing(bool bChasing);
 
-    // 既存のダメージ処理
     void ReceiveDamage(int DamageAmount, FVector LaunchDirection, bool bEnableHitStop);
 
+    virtual void Zako_PerformAttack();
 public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Enemy|Stats")
     int32 maxHP;
@@ -27,6 +27,12 @@ public:
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Enemy|Stats")
     bool isDead;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Enemy|Stats")
+    UAnimMontage* AttackMontage;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Enemy|Stats")
+    float PreferredDistance = 20.0f; 
 
     // IARAttackable のオーバーライド
 protected:
