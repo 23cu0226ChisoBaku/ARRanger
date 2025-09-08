@@ -98,6 +98,13 @@ public:
 
   UE_API bool IsDetectorEmpty() const;
 
+// Only for FComponentVisualizer Use
+#if WITH_EDITOR
+
+  UE_API void ED_DrawComponentVisualizer(class FPrimitiveDrawInterface* PDI) const;
+  
+#endif 
+
 private:
 
   UPROPERTY(EditDefaultsOnly, Category = "RangeDetector", meta = (DisplayName = "DataAssetEntry", AllowPrivateAccess = "true"))

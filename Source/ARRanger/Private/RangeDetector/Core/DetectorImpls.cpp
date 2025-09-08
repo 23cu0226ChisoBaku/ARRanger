@@ -4,6 +4,10 @@
 #include "RangeDetector/DetectorDatas/ConeCollisionDataAsset.h"
 #include "RangeDetector/Utils/CollisionTraceFunctionLibrary.h"
 
+#if WITH_EDITOR
+#include "SceneManagement.h" // Use of FPrimitiveDrawInterface
+#endif 
+
 namespace ARRanger
 {
 
@@ -69,16 +73,17 @@ DEFINE_PRIMITIVE_DETECTOR(UConeCollisionDataAsset)
   void UPrimitiveDetectorData::DebugDrawRange(const FVector& InOriginPosition, const FColor& InColor) const
   {
 
-    if (const UWorld* world = GetWorld())
+    if (GEngine != nullptr)
     {
-      DebugDrawRange(world, InOriginPosition, InColor);
+      if (const UWorld* world = GEngine->GetCurrentPlayWorld())
+      {
+        DebugDrawRange(world, InOriginPosition, InColor);
+      }
+      else
+      {
+        UE_LOG(LogTemp, Warning, TEXT("Can not draw range if world is invalid or non-play world"));
+      }
     }
-    else
-    {
-      UE_LOG(LogTemp, Warning, TEXT("Can not draw range in invalid world"));
-    }
-  
-
   }
 
   void UConeCollisionDataAsset::DebugDrawRange(const UWorld* InWorld, const FVector& InOriginPosition, const FColor& InColor) const
@@ -93,6 +98,32 @@ DEFINE_PRIMITIVE_DETECTOR(UConeCollisionDataAsset)
                     FMath::DegreesToRadians(ConeAngle / 2.0f),
                     NumSides,
                     InColor);
+  }
+
+  void UConeCollisionDataAsset::DebugDrawRange(FPrimitiveDrawInterface* PDI, const FVector& Location) const
+  {
+    if ((GEngine != nullptr) && (GEngine->WireframeMaterial != nullptr))
+    {
+      // TODO Temporary
+
+      FMatrix coneMatrix = FRotationMatrix::Make(LocalDirectionRotator);
+      coneMatrix.SetOrigin(Location + CenterPositionOffset);
+      coneMatrix = coneMatrix.ApplyScale(Height);
+      const FMaterialRenderProxy* materialProxy = GEngine->WireframeMaterial->GetRenderProxy();
+      const float angleToRad = FMath::DegreesToRadians(ConeAngle / 2.0f);
+
+      ::DrawCone(
+                  PDI, 
+                  coneMatrix, 
+                  angleToRad, 
+                  angleToRad, 
+                  NumSides,
+                  true,       // bDrawSideLines
+                  FLinearColor::Red,
+                  materialProxy,
+                  SDPG_World
+                );
+    }
   }
 
 #endif // WITH_EDITOR

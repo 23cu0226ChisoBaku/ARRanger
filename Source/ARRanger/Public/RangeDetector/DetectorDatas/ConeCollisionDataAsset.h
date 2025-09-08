@@ -41,6 +41,8 @@ public:
 private:
   ARRANGER_API virtual void DebugDrawRange(const UWorld* InWorld, const FVector& InOriginPosition, const FColor& InColor) const override;
 
+  ARRANGER_API virtual void DebugDrawRange(FPrimitiveDrawInterface* PDI, const FVector& Location) const override;
+
 #endif // WITH_EDITOR
 
 };

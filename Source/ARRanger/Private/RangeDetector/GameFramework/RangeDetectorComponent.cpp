@@ -6,6 +6,10 @@
 #include "RangeDetector/Core/RangeDetector.h"
 #include "RangeDetector/Core/PrimitiveDetectorData.h"
 
+#if WITH_EDITOR
+#include "SceneManagement.h" // Use of FPrimitiveDrawInterface
+#endif
+
 
 // Sets default values for this component's properties
 URangeDetectorComponent::URangeDetectorComponent()
@@ -185,4 +189,36 @@ bool URangeDetectorComponent::IsDetectorEmpty() const
 {
   return m_rangeDetectorInsts.Num() == 0;
 }
+
+#if WITH_EDITOR
+
+void URangeDetectorComponent::ED_DrawComponentVisualizer(FPrimitiveDrawInterface* PDI) const
+{
+  // Use detector if BeginPlay was called
+  if (HasBegunPlay())
+  {
+    for (const auto& detectorInst : m_rangeDetectorInsts)
+    {
+      if (detectorInst.IsValid())
+      {
+        if (const UPrimitiveDetectorData* data = detectorInst->GetData_Const())
+        {
+          data->DebugDrawRange(PDI, GetComponentLocation());
+        }
+      }
+    }
+  }
+  else
+  {
+    for (const auto& entry : DetectorAssetEntries)
+    {
+      if (entry.DetectorData != nullptr)
+      {
+        entry.DetectorData->DebugDrawRange(PDI, GetComponentLocation());
+      }
+    }
+  }
+}
+  
+#endif 
 

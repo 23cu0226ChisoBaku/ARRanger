@@ -4,7 +4,18 @@
 
 #include "CustomDetails/RangeDetectorTargetCustomization.h"
 
+#include "RangeDetector/GameFramework/RangeDetectorComponent.h"
+#include "CustomComponentVisualizer/ARRangeDetectorComponentVisualizer.h"
+
+#include "UnrealEdGlobals.h"        // Access GUnrealEd
+#include "Editor/UnrealEdEngine.h"
+
 IMPLEMENT_GAME_MODULE(FARRangerEditorModule, ARRangerEditor);
+
+#define LOCTEXT_NAMESPACE "FARRangerEditorModule"
+
+#define REGISTER_CUSTOM_COMPONENT_VISUALIZER(ActorComponentType, ComponentVisualizerSharedPtr) \
+  this->RegisterCustomComponentVisualizer(ActorComponentType::StaticClass()->GetFName(), ComponentVisualizerSharedPtr)
 
 namespace
 {
@@ -13,11 +24,7 @@ namespace
 
 void FARRangerEditorModule::StartupModule()
 {
-  // FPropertyEditorModule& propertyModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>("PropertyEditor");
-  // propertyModule.RegisterCustomClassLayout(
-  //   UTestUInterface::StaticClass()->GetFName(),
-  //   FOnGetDetailCustomizationInstance::CreateStatic(&FRangeDetectorCustomization::MakeInstance)
-  //   );
+  RegisterComponentVisualizers();
 
   RegisterPropertyTypeCustomizations();
 
@@ -28,9 +35,9 @@ void FARRangerEditorModule::StartupModule()
 
 void FARRangerEditorModule::ShutdownModule()
 {
-  if (FModuleManager::Get().IsModuleLoaded("PropertyEditor"))
+  if (FModuleManager::Get().IsModuleLoaded(PROPERTY_EDITOR_NAME))
   {
-    FPropertyEditorModule& propertyModule = FModuleManager::GetModuleChecked<FPropertyEditorModule>("PropertyEditor");
+    FPropertyEditorModule& propertyModule = FModuleManager::GetModuleChecked<FPropertyEditorModule>(PROPERTY_EDITOR_NAME);
     for (const auto& propertyTypeName : m_registeredPropertyTypes)
     {
       propertyModule.UnregisterCustomPropertyTypeLayout(propertyTypeName);
@@ -55,3 +62,35 @@ void FARRangerEditorModule::RegisterCustomPropertyTypeLayout(FName PropertyTypeN
   FPropertyEditorModule& propertyModule = FModuleManager::GetModuleChecked<FPropertyEditorModule>(PROPERTY_EDITOR_NAME);
   propertyModule.RegisterCustomPropertyTypeLayout(PropertyTypeName, PropertyTypeLayoutDelegate);
 }
+
+void FARRangerEditorModule::RegisterComponentVisualizers()
+{
+  REGISTER_CUSTOM_COMPONENT_VISUALIZER(URangeDetectorComponent, FARRangeDetectorComponentVisualizer::MakeInstance());
+}
+
+void FARRangerEditorModule::RegisterCustomComponentVisualizer(FName ClassName, TSharedPtr<FComponentVisualizer> VisualizerPtr)
+{
+  check(VisualizerPtr.IsValid());
+  check(ClassName != NAME_None);
+
+  if (GUnrealEd != nullptr)
+  {
+    m_registeredComponentVisualizerTypes.Add(ClassName);
+    GUnrealEd->RegisterComponentVisualizer(ClassName, VisualizerPtr);
+    VisualizerPtr->OnRegister();
+  }
+}
+
+void FARRangerEditorModule::UnregisterComponentVisualizers()
+{
+  if (GUnrealEd != nullptr)
+  {
+    for (const FName& registeredName : m_registeredComponentVisualizerTypes)
+    {
+      GUnrealEd->UnregisterComponentVisualizer(registeredName);
+    }
+  }
+}
+
+#undef LOCTEXT_NAMESPACE
+#undef REGISTER_CUSTOM_COMPONENT_VISUALIZER

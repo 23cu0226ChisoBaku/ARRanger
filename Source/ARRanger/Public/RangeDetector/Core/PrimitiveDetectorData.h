@@ -67,6 +67,8 @@ protected:
   public:
     ARRANGER_API void DebugDrawRange(const FVector& InOriginPosition, const FColor& InColor) const;
 
+    ARRANGER_API virtual void DebugDrawRange(class FPrimitiveDrawInterface* PDI, const FVector& Location) const { }
+
   private:
     ARRANGER_API virtual void DebugDrawRange(const UWorld* InWorld, const FVector& InOriginPosition, const FColor& InColor) const { }
 

@@ -3,6 +3,8 @@
 #include "Modules/ModuleInterface.h"
 #include "Modules/ModuleManager.h"
 
+class FComponentVisualizer;
+
 
 class FARRangerEditorModule : public IModuleInterface
 {
@@ -15,6 +17,14 @@ class FARRangerEditorModule : public IModuleInterface
 
     void RegisterCustomPropertyTypeLayout(FName PropertyTypeName, FOnGetPropertyTypeCustomizationInstance PropertyTypeLayoutDelegate);
 
+    void RegisterComponentVisualizers();
+
+    void RegisterCustomComponentVisualizer(FName ClassName, TSharedPtr<FComponentVisualizer> VisualizerPtr);
+
+    void UnregisterComponentVisualizers();
+
   private:
     TSet< FName > m_registeredPropertyTypes;
+
+    TSet< FName > m_registeredComponentVisualizerTypes; 
 };
