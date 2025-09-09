@@ -1,8 +1,9 @@
 #include "InsekiGameMode.h"
 
 #include "Blueprint/UserWidget.h"
-#include "Kismet/GameplayStatics.h"
 #include "GameFramework/Character.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "Kismet/GameplayStatics.h"
 
 #include "AudioSystem/ARAudioSystem.h"
 
@@ -34,7 +35,7 @@ void AInsekiGameMode::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// �^�O�t���̓G�����ׂĎ擾
+	// 敵を取得しておく
 	TArray<AActor*> FoundEnemies;
 	UGameplayStatics::GetAllActorsWithTag(GetWorld(), FName("Enemy"), FoundEnemies);
 
@@ -167,6 +168,24 @@ void AInsekiGameMode::OnEnemyKilled()
 			PC->SetShowMouseCursor(true);
 			PC->SetInputMode(FInputModeUIOnly());
 
+            // プレイヤー操作停止
+            PC->SetIgnoreMoveInput(true);
+            PC->SetIgnoreLookInput(true);
+            PC->SetShowMouseCursor(true);
+
+            // キャラクターの速度を完全にゼロにする
+            APawn* PlayerPawn = PC ? PC->GetPawn() : nullptr;
+            if (PlayerPawn)
+            {
+                if (UCharacterMovementComponent* MoveComp = Cast<UCharacterMovementComponent>(PlayerPawn->GetMovementComponent()))
+                {
+                    MoveComp->StopMovementImmediately();
+                }
+
+                // さらにAddMovementInputの残りを消すためにLocationの更新を止める
+                PlayerPawn->DisableInput(PC);
+            }
+
             FTimerHandle ClearTimerHandle;
             GetWorldTimerManager().SetTimer(ClearTimerHandle, this, &AInsekiGameMode::HandleGameClear, 3.0f, false);
 		}
@@ -175,15 +194,6 @@ void AInsekiGameMode::OnEnemyKilled()
 
 void AInsekiGameMode::HandleGameClear()
 {
-    // プレイヤー操作停止
-    APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0);
-    if (PC)
-    {
-        PC->SetIgnoreMoveInput(true);
-        PC->SetIgnoreLookInput(true);
-        PC->SetShowMouseCursor(true);
-    }
-
     // レベル遷移
     UGameplayStatics::OpenLevel(this, FName("GameClear"));
 }

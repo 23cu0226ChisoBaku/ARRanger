@@ -20,6 +20,8 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "LockOnComponent.h"
+#include "NiagaraFunctionLibrary.h"
+#include "NiagaraSystem.h"
 #include "PunchCameraShake.h"
 
 #include "MLibrary.h"
@@ -321,7 +323,7 @@ void AARRangerCharacter::DoMove(float Right, float Forward)
   // Modified By MAI
 	const float radiusSquared = FMath::Square(Forward) + FMath::Square(Right);
   const float moveDeadZoneSquared = FMath::Square(FMath::Max(0.0f, MoveDeadZone));
-  
+
   // デッドゾーン以下
 	if (radiusSquared <= moveDeadZoneSquared)
   {
@@ -586,6 +588,21 @@ void AARRangerCharacter::Transform()
 	if (NewMesh)
 	{
 		GetMesh()->SetSkeletalMesh(NewMesh);
+	}
+
+	// 変身エフェクトを再生
+	if (TransformEffect)
+	{
+		UNiagaraFunctionLibrary::SpawnSystemAtLocation(
+			GetWorld(),
+			TransformEffect,
+			GetActorLocation(),
+			GetActorRotation(),
+			FVector(1.0f),
+			true,
+			true,
+			ENCPoolMethod::AutoRelease
+		);
 	}
 }
 
