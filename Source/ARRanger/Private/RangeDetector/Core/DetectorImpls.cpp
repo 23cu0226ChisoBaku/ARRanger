@@ -2,23 +2,23 @@
 
 #include "RangeDetector/Core/PrimitiveDetectorData.h"
 #include "RangeDetector/DetectorDatas/ConeCollisionDataAsset.h"
-#include "RangeDetector/Utils/CollisionTraceFunctionLibrary.h"
+#include "RangeDetector/DetectorDatas/CapsuleDetectorData.h"
+#include "RangeDetector/DetectorDatas/SphereDetectorData.h"
 
-#if WITH_EDITOR
-#include "SceneManagement.h" // Use of FPrimitiveDrawInterface
-#endif 
+#include "RangeDetector/Utils/CollisionTraceFunctionLibrary.h"
+#include "Kismet/KismetSystemLibrary.h"
 
 namespace ARRanger
 {
 
 namespace Detector
 {
-  int32 DetectTargetsImpl(UWorld* World, AActor* OriginActor, const UPrimitiveDetectorData& InData, TArray<TObjectPtr<AActor>>& OutResult)
+  int32 DetectTargetsImpl(UWorld* World, AActor* OriginActor, const FVector& InOriginLocation, const FRotator& InOriginRotation, const FVector& InOriginScale3D, const UPrimitiveDetectorData& InData, TArray<TObjectPtr<AActor>>& OutResult)
   {
     return 0;
   }
 
-  int32 DetectTargetsImpl(UWorld* World, AActor* OriginActor, const UConeCollisionDataAsset& InData, TArray<TObjectPtr<AActor>>& OutResult)
+  int32 DetectTargetsImpl(UWorld* World, AActor* OriginActor, const FVector& InOriginLocation, const FRotator& InOriginRotation, const FVector& InOriginScale3D, const UConeCollisionDataAsset& InData, TArray<TObjectPtr<AActor>>& OutResult)
   {
     if (World == nullptr)
     {
@@ -33,15 +33,17 @@ namespace Detector
     TArray<TObjectPtr<AActor>> ignoreActors{};
     ignoreActors.Add(OriginActor);
 
-    const FVector startPosition = InData.CenterPosition + InData.CenterPositionOffset + (OriginActor != nullptr ? OriginActor->GetActorLocation() : FVector::ZeroVector);
+    const FVector startPosition = InOriginLocation + InData.CenterPositionOffset;
+    const FRotator finalRotation = InOriginRotation + InData.LocalDirectionRotator;
+    const float halfAngle = InData.ConeAngle / 2.0f;
 
     // TODO Channelに変更する
     const int32 resultNum = UCollisionTraceFunctionLibrary::SweepConeMulti(
                               World, 
                               startPosition,
-                              InData.LocalDirectionRotator,
+                              finalRotation,
                               InData.Height,
-                              InData.ConeAngle / 2.0f,
+                              halfAngle,
                               ignoreActors,
                               hitResults);
 
@@ -59,71 +61,96 @@ namespace Detector
 
     return resultNum;
   }
-}
 
-}
+  int32 DetectTargetsImpl(UWorld* World, AActor* OriginActor, const FVector& InOriginLocation, const FRotator& InOriginRotation, const FVector& InOriginScale3D, const UCapsuleDetectorData& InData, TArray<TObjectPtr<AActor>>& OutResult)
+  {
+    check(World != nullptr);
+    if (World == nullptr)
+    {
+      return 0;
+    }
+
+    OutResult.Reset();
+    TArray<AActor*> hitActors{};
+    // Ignore origin actor
+    TArray<TObjectPtr<AActor>> ignoreActors{};
+    ignoreActors.Add(OriginActor);
+
+    const FVector originLoc = InOriginLocation + InData.CenterPositionOffset;
+
+    TArray<TEnumAsByte<EObjectTypeQuery>> objTypes{};
+    objTypes.Add(UEngineTypes::ConvertToObjectType(ECC_WorldStatic));
+    objTypes.Add(UEngineTypes::ConvertToObjectType(ECC_WorldDynamic));
+    objTypes.Add(UEngineTypes::ConvertToObjectType(ECC_Pawn));
+    objTypes.Add(UEngineTypes::ConvertToObjectType(ECC_PhysicsBody));
+
+    const bool bHit = UKismetSystemLibrary::CapsuleOverlapActors(
+                        OriginActor,
+                        InOriginLocation,
+                        InData.CapsuleRadius,
+                        InData.CapsuleHalfHeight,
+                        objTypes,
+                        nullptr,
+                        ignoreActors,
+                        hitActors
+                      );
+    
+    if (bHit)
+    {
+      for (AActor* hitActor : hitActors)
+      {
+        OutResult.AddUnique(hitActor);
+      }
+    }
+
+    return OutResult.Num();
+  }
+
+  int32 DetectTargetsImpl(UWorld* World, AActor* OriginActor, const FVector& InOriginLocation, const FRotator& InOriginRotation, const FVector& InOriginScale3D, const USphereDetectorData& InData, TArray<TObjectPtr<AActor>>& OutResult)
+  {
+    check(World != nullptr);
+    if (World == nullptr)
+    {
+      return 0;
+    }
+
+    OutResult.Reset();
+    TArray<AActor*> hitActors{};
+    // Ignore origin actor
+    TArray<TObjectPtr<AActor>> ignoreActors{};
+    ignoreActors.Add(OriginActor);
+
+    const FVector originLoc = InOriginLocation + InData.CenterPositionOffset;
+
+    TArray<TEnumAsByte<EObjectTypeQuery>> objTypes{};
+    objTypes.Add(UEngineTypes::ConvertToObjectType(ECC_WorldStatic));
+    objTypes.Add(UEngineTypes::ConvertToObjectType(ECC_WorldDynamic));
+    objTypes.Add(UEngineTypes::ConvertToObjectType(ECC_Pawn));
+    objTypes.Add(UEngineTypes::ConvertToObjectType(ECC_PhysicsBody));
+
+    const bool bHit = UKismetSystemLibrary::SphereOverlapActors(
+                        OriginActor,
+                        InOriginLocation,
+                        InData.SphereRadius,
+                        objTypes,
+                        nullptr,
+                        ignoreActors,
+                        hitActors
+                      );
+    if (bHit)
+    {
+      for (AActor* hitActor : hitActors)
+      {
+        OutResult.AddUnique(hitActor);
+      }
+    }
+
+    return OutResult.Num();
+  }
+} // namespace ARRanger::Detector
+
+} // namespace ARRanger
 
 DEFINE_PRIMITIVE_DETECTOR(UConeCollisionDataAsset)
-
-/**
- * Implementations of Debug function
- */
-#if WITH_EDITOR
-
-  void UPrimitiveDetectorData::DebugDrawRange(const FVector& InOriginPosition, const FColor& InColor) const
-  {
-
-    if (GEngine != nullptr)
-    {
-      if (const UWorld* world = GEngine->GetCurrentPlayWorld())
-      {
-        DebugDrawRange(world, InOriginPosition, InColor);
-      }
-      else
-      {
-        UE_LOG(LogTemp, Warning, TEXT("Can not draw range if world is invalid or non-play world"));
-      }
-    }
-  }
-
-  void UConeCollisionDataAsset::DebugDrawRange(const UWorld* InWorld, const FVector& InOriginPosition, const FColor& InColor) const
-  {
-    /**Ensure the world is valid */
-    check(InWorld != nullptr);
-    ::DrawDebugCone(InWorld, 
-                    InOriginPosition, 
-                    LocalDirectionRotator.Vector(), 
-                    Height,
-                    FMath::DegreesToRadians(ConeAngle / 2.0f),
-                    FMath::DegreesToRadians(ConeAngle / 2.0f),
-                    NumSides,
-                    InColor);
-  }
-
-  void UConeCollisionDataAsset::DebugDrawRange(FPrimitiveDrawInterface* PDI, const FVector& Location) const
-  {
-    if ((GEngine != nullptr) && (GEngine->WireframeMaterial != nullptr))
-    {
-      // TODO Temporary
-
-      FMatrix coneMatrix = FRotationMatrix::Make(LocalDirectionRotator);
-      coneMatrix.SetOrigin(Location + CenterPositionOffset);
-      coneMatrix = coneMatrix.ApplyScale(Height);
-      const FMaterialRenderProxy* materialProxy = GEngine->WireframeMaterial->GetRenderProxy();
-      const float angleToRad = FMath::DegreesToRadians(ConeAngle / 2.0f);
-
-      ::DrawCone(
-                  PDI, 
-                  coneMatrix, 
-                  angleToRad, 
-                  angleToRad, 
-                  NumSides,
-                  true,       // bDrawSideLines
-                  FLinearColor::Red,
-                  materialProxy,
-                  SDPG_World
-                );
-    }
-  }
-
-#endif // WITH_EDITOR
+DEFINE_PRIMITIVE_DETECTOR(UCapsuleDetectorData)
+DEFINE_PRIMITIVE_DETECTOR(USphereDetectorData)

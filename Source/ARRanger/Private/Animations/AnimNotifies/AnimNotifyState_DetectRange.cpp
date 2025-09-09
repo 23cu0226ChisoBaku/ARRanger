@@ -11,6 +11,10 @@
 #include "ActionAbilities/ARAbilitySystemComponent.h"
 #include "ActionAbilities/Abilities/IARGameplayAbilityNotifyInterface.h"
 
+#if WITH_EDITOR
+#include "Components/LineBatchComponent.h"
+#endif
+
 class FDetectTickObject_FrameBase : public UAnimNotifyState_DetectRange::FDetectTickObject
 {
 public:
@@ -141,6 +145,32 @@ void UAnimNotifyState_DetectRange::NotifyTick(USkeletalMeshComponent * MeshComp,
       } 
     }
   }
+
+#if WITH_EDITOR
+
+  if (MeshComp->GetWorld() != nullptr)
+  {
+    if (bDrawDebugDuringActivation)
+    {
+      ULineBatchComponent* lineBatch = MeshComp->GetWorld()->GetLineBatcher(UWorld::ELineBatcherType::WorldPersistent);
+
+      if (lineBatch != nullptr)
+      {
+        lineBatch->Flush();
+        TArray<USceneComponent*> children{};
+        MeshComp->GetChildrenComponents(false, children);
+        for (USceneComponent* child : children)
+        {
+          if (URangeDetectorComponent* RDC = ::Cast<URangeDetectorComponent>(child))
+          {
+            RDC->ED_DrawWithLineBatchComp(lineBatch, FrameDeltaTime);
+          }
+        }
+      }
+    }    
+  }
+
+#endif
 }
 
 void UAnimNotifyState_DetectRange::NotifyEnd(USkeletalMeshComponent * MeshComp, UAnimSequenceBase * Animation, const FAnimNotifyEventReference& EventReference)
@@ -164,6 +194,10 @@ void UAnimNotifyState_DetectRange::NotifyEnd(USkeletalMeshComponent * MeshComp, 
         {
           RDC->DestroyComponent();
         }
+        else
+        {
+          RDC->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
+        }
         
         break;
       }
@@ -171,6 +205,24 @@ void UAnimNotifyState_DetectRange::NotifyEnd(USkeletalMeshComponent * MeshComp, 
   }
 
   Super::NotifyEnd(MeshComp, Animation, EventReference);
+
+#if WITH_EDITOR
+
+  if (MeshComp->GetWorld() != nullptr)
+  {
+    if (bDrawDebugDuringActivation)
+    {
+      ULineBatchComponent* lineBatch = MeshComp->GetWorld()->GetLineBatcher(UWorld::ELineBatcherType::WorldPersistent);
+
+      // Flush all debug lines drawn in NotifyTick
+      if (lineBatch != nullptr)
+      {
+        lineBatch->Flush();
+      }
+    }    
+  }
+
+#endif
 }
 
 FString UAnimNotifyState_DetectRange::GetNotifyName_Implementation() const

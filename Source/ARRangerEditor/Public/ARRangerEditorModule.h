@@ -23,8 +23,11 @@ class FARRangerEditorModule : public IModuleInterface
 
     void UnregisterComponentVisualizers();
 
+    void ExtendAnimEditor();
+
   private:
     TSet< FName > m_registeredPropertyTypes;
 
     TSet< FName > m_registeredComponentVisualizerTypes; 
+
 };

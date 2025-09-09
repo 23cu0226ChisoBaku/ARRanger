@@ -7,7 +7,8 @@
 #include "RangeDetector/Core/PrimitiveDetectorData.h"
 
 #if WITH_EDITOR
-#include "SceneManagement.h" // Use of FPrimitiveDrawInterface
+#include "SceneManagement.h"                // Use of FPrimitiveDrawInterface
+#include "Components/LineBatchComponent.h"
 #endif
 
 
@@ -44,7 +45,8 @@ void URangeDetectorComponent::TickComponent(float DeltaTime, ELevelTick TickType
   FRangeDetectorEvaluationParameter evaluationParam
   {
     .World = GetWorld(),
-    .OriginActor = GetOwner()  
+    .OriginActor = GetOwner(),
+    .OriginSceneComp = this  
   };
 
 	for (int32 idx = 0; idx < m_rangeDetectorInsts.Num(); ++idx)
@@ -55,18 +57,25 @@ void URangeDetectorComponent::TickComponent(float DeltaTime, ELevelTick TickType
       detector->EvaluateDetector(evaluationParam);
 
       const FRangeDetectorEvaluationResult& result = detector->GetEvaluatedResult();
-
-      // TODO For debug purpose
-#if WITH_EDITORONLY_DATA
-
-      if (bDrawDebugRange)
+      if (result.DetectedActors.Num() > 0)
       {
-        detector->DebugDrawRange(GetOwner()->GetActorLocation(), FColor::Red);
+        UE_LOG(LogTemp, Error, TEXT("Hit something!!!! Hit count: [%d]"), result.DetectedActors.Num());
       }
 
-#endif // WITH_EDITORONLY_DATA
+      #if WITH_EDITORONLY_DATA
+      
+        if (bDrawDebugRange)
+        {
+          if (detector->GetData_Const() != nullptr)
+          {
+            detector->GetData_Const()->DebugDrawRange(this, GetComponentLocation(), GetComponentRotation(), GetComponentScale());
+          }
+        }
+      
+      #endif 
     }
   }
+
 }
 
 void URangeDetectorComponent::OnUnregister()
@@ -203,7 +212,7 @@ void URangeDetectorComponent::ED_DrawComponentVisualizer(FPrimitiveDrawInterface
       {
         if (const UPrimitiveDetectorData* data = detectorInst->GetData_Const())
         {
-          data->DebugDrawRange(PDI, GetComponentLocation());
+          data->DebugDrawRange(PDI, GetComponentLocation(), GetComponentRotation(), GetComponentScale());
         }
       }
     }
@@ -214,7 +223,34 @@ void URangeDetectorComponent::ED_DrawComponentVisualizer(FPrimitiveDrawInterface
     {
       if (entry.DetectorData != nullptr)
       {
-        entry.DetectorData->DebugDrawRange(PDI, GetComponentLocation());
+        entry.DetectorData->DebugDrawRange(PDI, GetComponentLocation(), GetComponentRotation(), GetComponentScale());
+      }
+    }
+  }
+}
+
+void URangeDetectorComponent::ED_DrawWithLineBatchComp(ULineBatchComponent* LineBatch, float DeltaTime) const
+{
+  if (LineBatch != nullptr)
+  {
+    if (UWorld* world = LineBatch->GetWorld())
+    {
+      const EWorldType::Type worldType = world->WorldType;
+      // Draw only in Editor(without in PIE)
+      if (worldType == EWorldType::Type::EditorPreview ||
+          worldType == EWorldType::Type::Editor
+        )
+      {
+        for (const auto& detectorInst : m_rangeDetectorInsts)
+        {
+          if (detectorInst.IsValid())
+          {
+            if (const UPrimitiveDetectorData* data = detectorInst->GetData_Const())
+            {
+              data->DebugDrawRange(LineBatch, GetComponentLocation(), GetComponentRotation(), GetComponentScale());
+            }
+          }
+        }
       }
     }
   }

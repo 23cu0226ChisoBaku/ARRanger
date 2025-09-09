@@ -20,6 +20,8 @@ public class ARRangerEditor : ModuleRules
         "UMG",
         "ScriptableEditorWidgets",
         "PropertyEditor",
+        "Persona",
+        "AnimationEditor",
 			}
 		);
 	}

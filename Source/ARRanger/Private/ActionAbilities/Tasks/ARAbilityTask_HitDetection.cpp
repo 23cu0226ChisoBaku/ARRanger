@@ -160,7 +160,7 @@ bool FARAbilityTask_HitDetection_ActorStrategy::operator()(AActor* AvatarActor, 
   check(InActorClass != nullptr);
   OutResult.Reset();
 
-  (void)InDetectorData->DetectTargets(AvatarActor->GetWorld(), AvatarActor, OutResult);
+  // (void)InDetectorData->DetectTargets(AvatarActor->GetWorld(), AvatarActor, OutResult);
   if (OutResult.Num() > 0)
   {
     int32 idx = 0;
@@ -187,7 +187,7 @@ bool FARAbilityTask_HitDetection_InterfaceStrategy::operator()(AActor* AvatarAct
   check(InInterfaceClass != nullptr);
   OutResult.Reset();
 
-  (void)InDetectorData->DetectTargets(AvatarActor->GetWorld(), AvatarActor, OutResult);
+  // (void)InDetectorData->DetectTargets(AvatarActor->GetWorld(), AvatarActor, OutResult);
   if (OutResult.Num() > 0)
   {
     int32 idx = 0;

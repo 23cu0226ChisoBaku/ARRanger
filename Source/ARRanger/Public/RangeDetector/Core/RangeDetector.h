@@ -12,6 +12,9 @@ struct FRangeDetectorEvaluationParameter
 
   /**Origin Actor */
   TObjectPtr<AActor> OriginActor = nullptr;
+
+  /**Origin Scene Component. Maybe nullptr */
+  TObjectPtr<USceneComponent> OriginSceneComp = nullptr;
 };
 
 struct FRangeDetectorEvaluationResult
@@ -61,7 +64,7 @@ namespace Detector
       bool IsActivate() const { return static_cast<bool>(bIsActivated); }
       const FRangeDetectorEvaluationResult& GetEvaluatedResult() const { return m_evaluatedResult; }
 
-      void DebugDrawRange(const FVector& InOriginPosition, const FColor& InLineColor);
+      void DebugDrawRange(USceneComponent* InOriginSceneComp);
 
     private:
       void FilterResult();

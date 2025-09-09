@@ -83,10 +83,10 @@ private:
   TSet<TSubclassOf<UGameplayAbility>> NotifyAbilityClasses;
 
   UPROPERTY(EditAnywhere, Category = "Auto Destroy")
-  bool bDestroyAtEnd;
+  bool bDestroyAtEnd = true;
 
   UPROPERTY(EditAnywhere, Category = "Debug", meta = (EditCondition = "RangeData != nullptr", DisplayName = "Draw Debug Line if activating"))
-  bool bDrawDebugDuringActivation;
+  bool bDrawDebugDuringActivation = true;
 
 private:
   bool ValidateParameters(USkeletalMeshComponent* MeshComp) const;

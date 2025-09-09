@@ -10,6 +10,11 @@
 #include "UnrealEdGlobals.h"        // Access GUnrealEd
 #include "Editor/UnrealEdEngine.h"
 
+#include "IAnimationEditorModule.h"                   
+#include "EditorViewportClient.h"
+#include "AnimationEditorViewportClient.h"
+#include "IPersonaPreviewScene.h"
+
 IMPLEMENT_GAME_MODULE(FARRangerEditorModule, ARRangerEditor);
 
 #define LOCTEXT_NAMESPACE "FARRangerEditorModule"
@@ -22,6 +27,41 @@ namespace
   static const FName PROPERTY_EDITOR_NAME{"PropertyEditor"};
 }
 
+class FViewportClientExtension_RangeDetector : public FEditorViewportClient
+{
+  using Super = FEditorViewportClient;
+  public:
+    FViewportClientExtension_RangeDetector(FPreviewScene* InPreviewScene, const TSharedPtr<IPersonaPreviewScene>& InPersonaPreviewScene, const TSharedRef<SEditorViewport>& InEditorViewportWidget)
+      : Super(nullptr, InPreviewScene, InEditorViewportWidget)
+      , m_personaPreviewScene{InPersonaPreviewScene}
+    {}
+
+    virtual void Draw(const FSceneView* InView, FPrimitiveDrawInterface* PDI) override
+    {
+      Super::Draw(InView, PDI);
+
+      if (m_personaPreviewScene.IsValid())
+      {
+        if (UDebugSkelMeshComponent* MeshComp = m_personaPreviewScene->GetPreviewMeshComponent())
+        {
+          TArray<USceneComponent*> children{};
+          MeshComp->GetChildrenComponents(false, children);
+          
+          for (USceneComponent* child : children)
+          {
+            if (URangeDetectorComponent* RDC = ::Cast<URangeDetectorComponent>(child))
+            {
+              RDC->ED_DrawComponentVisualizer(PDI);
+            }
+          }
+        }
+      }
+    }
+
+  private:
+    TSharedPtr<IPersonaPreviewScene> m_personaPreviewScene;
+};
+
 void FARRangerEditorModule::StartupModule()
 {
   RegisterComponentVisualizers();
@@ -30,6 +70,8 @@ void FARRangerEditorModule::StartupModule()
 
   FPropertyEditorModule& propertyModule = FModuleManager::GetModuleChecked<FPropertyEditorModule>(PROPERTY_EDITOR_NAME);
   propertyModule.NotifyCustomizationModuleChanged();
+
+  ExtendAnimEditor();
 
 }
 
@@ -90,6 +132,11 @@ void FARRangerEditorModule::UnregisterComponentVisualizers()
       GUnrealEd->UnregisterComponentVisualizer(registeredName);
     }
   }
+}
+
+void FARRangerEditorModule::ExtendAnimEditor()
+{
+
 }
 
 #undef LOCTEXT_NAMESPACE

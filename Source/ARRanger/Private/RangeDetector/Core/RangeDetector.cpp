@@ -83,8 +83,19 @@ namespace Detector
     }
 
     m_evaluatedResult.Reset();
+    
+    if (EvaluationParam.OriginSceneComp != nullptr)
+    {
+      (void)m_constData->DetectTargets(
+                                        EvaluationParam.World, 
+                                        EvaluationParam.OriginActor,  
+                                        EvaluationParam.OriginSceneComp->GetComponentLocation(),
+                                        EvaluationParam.OriginSceneComp->GetComponentRotation(),
+                                        EvaluationParam.OriginSceneComp->GetComponentScale(),
+                                        m_evaluatedResult.DetectedActors
+                                      );
+    }
 
-    (void)m_constData->DetectTargets(EvaluationParam.World, EvaluationParam.OriginActor, m_evaluatedResult.DetectedActors);
 
     FilterResult();
 
@@ -93,13 +104,23 @@ namespace Detector
 
 
   
-  void FRangeDetector::DebugDrawRange(const FVector& InOriginPosition, const FColor& InLineColor)
+  void FRangeDetector::DebugDrawRange(USceneComponent* InOriginSceneComp)
   {
     #if WITH_EDITOR
+
+    if (InOriginSceneComp == nullptr)
+    {
+      return;
+    }
     
     if (m_constData.IsValid())
     {
-      m_constData->DebugDrawRange(InOriginPosition, InLineColor);
+      m_constData->DebugDrawRange (
+                                  InOriginSceneComp, 
+                                  InOriginSceneComp->GetComponentLocation(),
+                                  InOriginSceneComp->GetComponentRotation(),
+                                  InOriginSceneComp->GetComponentScale()
+                                  );
     }
     
     #endif // WITH_EDITOR
