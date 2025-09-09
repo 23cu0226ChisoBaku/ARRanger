@@ -20,22 +20,26 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "LockOnComponent.h"
+#include "NiagaraFunctionLibrary.h"
+#include "NiagaraSystem.h"
 #include "PunchCameraShake.h"
 
 #include "MLibrary.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
+namespace
+{
+  static const float MAX_INPUT_VALUE = 1.0f;
+}
+
 AARRangerCharacter::AARRangerCharacter()
 	: DefaultArmLength(250)
 	, DashArmLength(500)
 	, ArmLengthInterpSpeed(2.5f)
-	, IsDashed(false)
 	, dashStartThreshold(0.92f)
 	, dashEndThreshold(0.7f)
-	, LockOnComponent(nullptr)
 	, currentClimbSurface(nullptr)
-	, wallNormal(0.0f, 0.0f, 0.0f)
 	, isClimbed(false)
 	, Montage_AttractionClimb(nullptr)
 {
@@ -144,7 +148,8 @@ void AARRangerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 
 		// 攻撃(パンチ、キック)
 		EnhancedInputComponent->BindAction(PunchAction, ETriggerEvent::Started, this, &AARRangerCharacter::Input_Punch);
-		EnhancedInputComponent->BindAction(KickAction, ETriggerEvent::Started, this, &AARRangerCharacter::Input_Kick);
+		EnhancedInputComponent->BindAction(KickInputAction, ETriggerEvent::Started, this, &AARRangerCharacter::Input_Kick);
+		EnhancedInputComponent->BindAction(KickReleaseAction, ETriggerEvent::Completed, this, &AARRangerCharacter::Release_Kick);
 
 		// 変身
 		EnhancedInputComponent->BindAction(TransformAction, ETriggerEvent::Started, this, &AARRangerCharacter::Transform);
@@ -315,19 +320,37 @@ void AARRangerCharacter::DoMove(float Right, float Forward)
 	}
 
 	// 入力値の絶対値をチェックしてデッドゾーン以下は0に
-	float radiusSquared = (Forward * Forward) + (Right * Right);
-	if (FMath::Abs(radiusSquared) < (MoveDeadZone * MoveDeadZone)) Forward = 0.f;
-	if (FMath::Abs(radiusSquared) < (MoveDeadZone * MoveDeadZone)) Right = 0.f;
+  // Modified By MAI
+	const float radiusSquared = FMath::Square(Forward) + FMath::Square(Right);
+  const float moveDeadZoneSquared = FMath::Square(FMath::Max(0.0f, MoveDeadZone));
 
-	// 0じゃないなら最低入力値に補正（符号は保持）
-	if (Forward != 0.f)
-	{
-		Forward = FMath::Sign(Forward) * FMath::Max(FMath::Abs(Forward), MinInput);
-	}
-	if (Right != 0.f)
-	{
-		Right = FMath::Sign(Right) * FMath::Max(FMath::Abs(Right), MinInput);
-	}
+  // デッドゾーン以下
+	if (radiusSquared <= moveDeadZoneSquared)
+  {
+    return;
+  }
+  
+  const float realMinInput = FMath::Min(MinInput, MAX_INPUT_VALUE);
+  // インプット閾値レベル
+  const TArray<float> inputThresholdLevel{ 
+                        realMinInput,       // LV1  : 最小入力値
+                        MAX_INPUT_VALUE,    // LVMax: 最大入力値
+                      };
+
+  for (int32 idx = 0; idx < inputThresholdLevel.Num(); ++idx)
+  {
+    // インプット閾値まで補正する
+    const float inputLevelValue = inputThresholdLevel[idx];
+    const float inputLevelValueSquared = FMath::Square(inputLevelValue);
+    if (radiusSquared < inputLevelValueSquared)
+    {
+      const float inputModifier = inputLevelValue / FMath::Sqrt(radiusSquared);
+      Forward *= inputModifier;
+      Right   *= inputModifier;
+
+      break;
+    }   
+  }
 
 	if (!isClimbed)
 	{
@@ -357,8 +380,8 @@ void AARRangerCharacter::DoMove(float Right, float Forward)
 		}
 
 		// 壁に対して上下左右に動かす
-		AddMovementInput(GetActorForwardVector(), Forward);
-		AddMovementInput(GetActorRightVector(), Right);
+		//AddMovementInput(GetActorForwardVector(), Forward);
+		//AddMovementInput(GetActorRightVector(), Right);
 	}
 }
 
@@ -512,6 +535,14 @@ void AARRangerCharacter::Input_Kick()
 	}
 }
 
+void AARRangerCharacter::Release_Kick()
+{
+	if (GA_KickInstance)
+	{
+		GA_KickInstance->InputReleased();
+	}
+}
+
 void AARRangerCharacter::OnAttractionCompleted()
 {
 	// 引き寄せ完了フラグを立てる
@@ -558,11 +589,33 @@ void AARRangerCharacter::Transform()
 	{
 		GetMesh()->SetSkeletalMesh(NewMesh);
 	}
+
+	// 変身エフェクトを再生
+	if (TransformEffect)
+	{
+		UNiagaraFunctionLibrary::SpawnSystemAtLocation(
+			GetWorld(),
+			TransformEffect,
+			GetActorLocation(),
+			GetActorRotation(),
+			FVector(1.0f),
+			true,
+			true,
+			ENCPoolMethod::AutoRelease
+		);
+	}
 }
 
 EARMagnetismType AARRangerCharacter::GetCurrentARType()
 {
 	return GetMagnetismType();
+}
+
+void AARRangerCharacter::ResetIsAttacked()
+{
+	SetIsAttacked(false);
+	SetIsStrongAttacked(false);
+	UE_LOG(LogTemp, Warning, TEXT("ResetAttack → IsAttacked = false"));
 }
 
 void AARRangerCharacter::OnMagneticForceFieldBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)

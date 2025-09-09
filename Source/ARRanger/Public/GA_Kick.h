@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 
 #include "Abilities/GameplayAbility.h"
 #include "AttackData.h"
@@ -32,27 +32,35 @@ protected:
     ) override;
 
 private:
-    // AttackBaseComponent‚ğ•Û‘¶
+    // AttackBaseComponentã‚’ä¿å­˜
     UAttackBaseComponent* attackBaseComp = nullptr;
 
-protected:
-    // ƒqƒbƒg‚ÌƒGƒtƒFƒNƒg‚ğ•Û‘¶
-    UPROPERTY(EditAnywhere, Category = "Effects")
-    TSubclassOf<AActor> HitEffectActor;
+    // ãƒãƒ£ãƒ¼ã‚¸é–‹å§‹æ™‚é–“
+    float chargeStartTime = 0.0f;
 
-    // ƒLƒbƒN‚Ìƒf[ƒ^
+    // ãƒãƒ£ãƒ¼ã‚¸ç¶™ç¶šæ™‚é–“
+    float chargeDuration = 0.0f;
+
+    // ãƒãƒ£ãƒ¼ã‚¸ã®æ®µéš
+    int32 chargeLevel = 0;
+
+protected:
+    // ã‚­ãƒƒã‚¯ã®ãƒ‡ãƒ¼ã‚¿
     UPROPERTY(EditAnywhere, Category = "Attack")
     FAttackData KickData;
 
-    // MontageI—¹ƒCƒxƒ“ƒg
+    // Montageçµ‚äº†ã‚¤ãƒ™ãƒ³ãƒˆ
     UFUNCTION()
     void OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted);
 
 public:
-    // ƒLƒbƒN‚ÌÛ‚ÉŒÄ‚Ño‚³‚ê‚é
+    // ã‚­ãƒƒã‚¯ã®éš›ã«å‘¼ã³å‡ºã•ã‚Œã‚‹
     void StartKick();
 
-    // ƒLƒbƒN‚ÌAnimNotify‚Ì’Ê’m‚ğó‚¯æ‚é
+    // ã‚­ãƒƒã‚¯ã®AnimNotifyã®é€šçŸ¥ã‚’å—ã‘å–ã‚‹
     UFUNCTION(BlueprintCallable)
     void KickHitNotify();
+
+    // ãƒœã‚¿ãƒ³ã‚’é›¢ã—ãŸéš›ã«å‘¼ã³å‡ºã•ã‚Œã‚‹
+    void InputReleased();
 };

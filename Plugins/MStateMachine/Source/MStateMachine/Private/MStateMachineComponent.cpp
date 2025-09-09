@@ -71,7 +71,6 @@ FMStateHandle FMStateMachineStateList::AddEntry(TSubclassOf<UMStateDefinition> s
 		instanceType = UMStateInstance::StaticClass();
 	}
 
-  
 	UMStateInstance* stateInstance = NewObject<UMStateInstance>(OwnerComponent->GetOwner(), instanceType);
   
   // 生成したステートを初期化する
@@ -192,13 +191,8 @@ UMStateMachineComponent::UMStateMachineComponent(const FObjectInitializer& Objec
 void UMStateMachineComponent::BeginPlay()
 {
 	Super::BeginPlay();
-}
 
-void UMStateMachineComponent::InitializeComponent()
-{
-	Super::InitializeComponent();
-
-  // 自動的にコンテキストを作成
+    // 自動的にコンテキストを作成
   if (bAutoInitializeContext)
   {
     APawn* ownerPawn = ::Cast<APawn>(GetOwner());
@@ -215,6 +209,11 @@ void UMStateMachineComponent::InitializeComponent()
       UE_LOG(LogMStateMachine, Error, TEXT("Failed to initialize context automatically because owner:{%s} of [%s] is not a pawn.\n Please call Initialize MANUALLY!!!"), *GetNameSafe(GetOwner()), *GetNameSafe(this));
     }
   }
+}
+
+void UMStateMachineComponent::InitializeComponent()
+{
+	Super::InitializeComponent();
 }
 
 

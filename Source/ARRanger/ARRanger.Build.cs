@@ -24,7 +24,8 @@ public class ARRanger : ModuleRules
       "UMG",
       "MLibrary",
       "GameplayCameras",
-      "NavigationSystem"
+      "NavigationSystem",
+      "Niagara"
     });
 
     PrivateDependencyModuleNames.AddRange(new string[] {

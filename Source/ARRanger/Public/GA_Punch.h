@@ -42,10 +42,6 @@ private:
     FName GetPunchSectionName(int32 Index) const;
 
 protected:
-    // ヒット時のエフェクトを保存
-    UPROPERTY(EditAnywhere, Category = "Effects")
-    TSubclassOf<AActor> HitEffectActor;
-
     // パンチのデータ
     UPROPERTY(EditAnywhere, Category = "Attack")
     FAttackData PunchData;

@@ -1,4 +1,4 @@
-#include "GA_Kick.h"
+ï»¿#include "GA_Kick.h"
 
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "ARRangerCharacter.h"
@@ -24,7 +24,10 @@ void UGA_Kick::ActivateAbility(
     attackBaseComp->SetIsStrongAttacked(false);
     attackBaseComp->SetIsAttractingEnemy(false);
 
+    UE_LOG(LogTemp, Warning, TEXT("ikuyo--"));
     StartKick();
+
+    Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 }
 
 void UGA_Kick::EndAbility(
@@ -34,7 +37,7 @@ void UGA_Kick::EndAbility(
     bool bReplicateEndAbility,
     bool bWasCancelled)
 {
-    UE_LOG(LogTemp, Warning, TEXT("Netsu... Atatakana Hikari..."));
+    UE_LOG(LogTemp, Warning, TEXT("Korega Konoyono Hate..."));
     attackBaseComp->SetIsAttacked(false);
     attackBaseComp->SetIsStrongAttacked(false);
     attackBaseComp->SetIsBlowedAwayEnemy(false);
@@ -48,37 +51,36 @@ void UGA_Kick::EndAbility(
 
 void UGA_Kick::StartKick()
 {
-    // UŒ‚’†‚Íˆ—‚µ‚È‚¢
+    // æ”»æ’ƒä¸­ã¯å‡¦ç†ã—ãªã„
     if (attackBaseComp->GetIsAttacked())
     {
         return;
     }
-        
-    // ƒvƒŒƒCƒ„[‚ª‚¢‚È‚¯‚ê‚Îˆ—‚µ‚È‚¢
+
+    // ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ãŒã„ãªã‘ã‚Œã°å‡¦ç†ã—ãªã„
     AARRangerCharacter* Char = Cast<AARRangerCharacter>(GetAvatarActorFromActorInfo());
     if (!Char)
     {
         return;
     }
-        
+
     attackBaseComp->RotateOwnerToTarget();
 
-    // ƒ‚ƒ“ƒ^[ƒWƒ…I—¹’Ê’m“o˜^
-    UAnimInstance* Anim = Char->GetMesh()->GetAnimInstance();
-    Anim->OnMontageEnded.AddDynamic(this, &UGA_Kick::OnAttackMontageEnded);
+    attackBaseComp->SetIsStrongAttacked(true);
+    Char->SetIsStrongAttacked(true);
 
-    if (Char->GetMagnetismType() == EARMagnetismType::Repulsion &&
-        Char->LockOnComponent->GetIsLockedOn())
+    chargeStartTime = GetWorld()->GetTimeSeconds();
+
+    // ãƒãƒ£ãƒ¼ã‚¸ãƒ¢ãƒ¼ã‚·ãƒ§ãƒ³å†ç”Ÿ
+    if (KickData.Montage_AR)
     {
-        attackBaseComp->SetIsBlowedAwayEnemy(true);
-        attackBaseComp->SetIsStrongAttacked(true);
-        Char->SetIsStrongAttacked(true);
+        UE_LOG(LogTemp, Warning, TEXT("Charrrrrge"));
+        UAnimInstance* Anim = Char->GetMesh()->GetAnimInstance();
+        Anim->Montage_Play(KickData.Montage_AR);
 
-        attackBaseComp->PlayAttackMontage(KickData);
-        return;
+        Anim->OnMontageEnded.RemoveDynamic(this, &UGA_Kick::OnAttackMontageEnded);
+        Anim->OnMontageEnded.AddDynamic(this, &UGA_Kick::OnAttackMontageEnded);
     }
-
-    attackBaseComp->PlayAttackMontage(KickData);
 }
 
 void UGA_Kick::KickHitNotify()
@@ -88,10 +90,8 @@ void UGA_Kick::KickHitNotify()
 
 void UGA_Kick::OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted)
 {
-    // ÅŒã‚Ì’i‚ÌI—¹‚Å Ability ‚ğI—¹
-    EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, bInterrupted);
-
-    // ó‘ÔƒŠƒZƒbƒg
+    UE_LOG(LogTemp, Warning, TEXT("Montage End"));
+    // çŠ¶æ…‹ãƒªã‚»ãƒƒãƒˆ
     if (AARRangerCharacter* Char = Cast<AARRangerCharacter>(GetAvatarActorFromActorInfo()))
     {
         Char->SetIsAttacked(false);
@@ -104,5 +104,61 @@ void UGA_Kick::OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted)
         attackBaseComp->SetIsAttacked(false);
         attackBaseComp->SetIsStrongAttacked(false);
         attackBaseComp->SetIsBlowedAwayEnemy(false);
+    }
+}
+
+void UGA_Kick::InputReleased()
+{
+    UE_LOG(LogTemp, Warning, TEXT("Yobareteru?"));
+    AARRangerCharacter* Char = Cast<AARRangerCharacter>(GetAvatarActorFromActorInfo());
+    if (!Char)
+    {
+        return;
+    }
+
+    // ãƒãƒ£ãƒ¼ã‚¸æ™‚é–“è¨ˆç®—
+    chargeDuration = GetWorld()->GetTimeSeconds() - chargeStartTime;
+
+    // æ®µéšåˆ¤å®š
+    if (chargeDuration < 1.0f)
+    {
+        chargeLevel = 1;
+    }  
+    else if (chargeDuration < 2.0f)
+    {
+        chargeLevel = 2;
+    } 
+    else
+    {
+        chargeLevel = 3;
+    }
+        
+    // ãƒãƒ£ãƒ¼ã‚¸ãƒ¢ãƒ¼ã‚·ãƒ§ãƒ³åœæ­¢
+    if (KickData.Montage_AR)
+    {
+        Char->GetMesh()->GetAnimInstance()->Montage_Stop(0.1f, KickData.Montage_AR);
+    }
+
+    // ãƒ€ãƒ¡ãƒ¼ã‚¸ãƒ»ãƒãƒƒã‚¯ãƒãƒƒã‚¯è¨­å®š
+    switch (chargeLevel)
+    {
+    case 1: 
+        KickData.Damage = 45; 
+        //KickData.Knockback = 200.f; 
+        break;
+    case 2: 
+        KickData.Damage = 65;
+        //KickData.Knockback = 400.f; 
+        break;
+    case 3: 
+        KickData.Damage = 100;
+        //KickData.Knockback = 800.f; 
+        break;
+    }
+
+    // ã‚­ãƒƒã‚¯ã‚¢ãƒ‹ãƒ¡å†ç”Ÿ
+    if (KickData.Montage_Strong)
+    {
+        Char->GetMesh()->GetAnimInstance()->Montage_Play(KickData.Montage_Strong, 1.0f);
     }
 }
