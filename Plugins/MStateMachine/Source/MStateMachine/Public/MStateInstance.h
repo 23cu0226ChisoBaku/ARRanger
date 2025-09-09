@@ -11,6 +11,8 @@
 /**前方宣言 */
 class UMStateMachineComponent;
 
+#define UE_API MSTATEMACHINE_API
+
 /**
  * @brief ステート遷移種類
  */
@@ -106,42 +108,42 @@ class UMStateInstance : public UObject
 	GENERATED_BODY()
 
 public:
-	UMStateInstance(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
+	UE_API UMStateInstance(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
   /**
    * @brief ステートを初期化する
    * 
    * @param InitParams 初期化パラメーター
    */
-  void InitializeState(const FStateInitializationParameters& InitParams);
+  UE_API void InitializeState(const FStateInitializationParameters& InitParams);
 
   /**
    * @brief ステートを解放する
    * 
    * @param UninitParams 解放パラメーター
    */
-  void UninitializeState(const FStateUninitializationParameters& UninitParams);
+  UE_API void UninitializeState(const FStateUninitializationParameters& UninitParams);
 
   /**
    * @brief ステートに入る
    * 
    * @param TransParams ステート遷移パラメーター
    */
-	void EnterState(const FStateTransitionParameters& TransParams);
+	UE_API void EnterState(const FStateTransitionParameters& TransParams);
 
   /**
    * @brief ステートを更新
    * 
    * @param TickParams ステート更新パラメーター
    */
-	void TickState(const FStateTickParameters& TickParams);
+	UE_API void TickState(const FStateTickParameters& TickParams);
 
   /**
    * @brief ステートを抜ける
    * 
    * @param TransParams ステート遷移パラメーター
    */
-	void ExitState(const FStateTransitionParameters& TransParams);
+	UE_API void ExitState(const FStateTransitionParameters& TransParams);
   
 protected:
 
@@ -150,10 +152,12 @@ protected:
    * 子クラスで必要なメソッドをオーバーライド
    */
 
-  MSTATEMACHINE_API virtual void OnInitializeState(const FStateInitializationParameters& InitParams) { };
-  MSTATEMACHINE_API virtual void OnUninitializeState(const FStateUninitializationParameters& UninitParams) { };
-  MSTATEMACHINE_API virtual void OnEnterState(const FStateTransitionParameters& TransParams) { };
-  MSTATEMACHINE_API virtual void OnTickState(const FStateTickParameters& TickParams) { };
-  MSTATEMACHINE_API virtual void OnExitState(const FStateTransitionParameters& TransParams) { };
+  UE_API virtual void OnInitializeState(const FStateInitializationParameters& InitParams) { };
+  UE_API virtual void OnUninitializeState(const FStateUninitializationParameters& UninitParams) { };
+  UE_API virtual void OnEnterState(const FStateTransitionParameters& TransParams) { };
+  UE_API virtual void OnTickState(const FStateTickParameters& TickParams) { };
+  UE_API virtual void OnExitState(const FStateTransitionParameters& TransParams) { };
 	
 };
+
+#undef UE_API

@@ -8,6 +8,7 @@ class AController;
 class UMStateMachineComponent;
 struct FGameplayTag;
 
+#define UE_API MSTATEMACHINE_API
 
 /**
  * ステートコンテキスト初期化パラメータ
@@ -41,8 +42,8 @@ class FMStateContext
   friend class UMStateMachineComponent;
 
   public:
-    MSTATEMACHINE_API FMStateContext();
-    MSTATEMACHINE_API virtual ~FMStateContext();
+    UE_API FMStateContext();
+    UE_API virtual ~FMStateContext();
 
   public:
 
@@ -51,7 +52,7 @@ class FMStateContext
     const UMStateMachineComponent* GetStateMachineComponent() const { return m_weakStateMachineComponent.Get(); } 
     bool IsValid() const { return m_bIsValid; }
     
-    MSTATEMACHINE_API UWorld* GetWorld() const;
+    UE_API UWorld* GetWorld() const;
     
     /**
      * @brief 今のステートを抜けれるTransition tagを取得
@@ -60,7 +61,7 @@ class FMStateContext
      * 
      * @return 取得できたタグの数
      */
-    MSTATEMACHINE_API int32 GetAvailableTransitionTags(TArray<FGameplayTag>& OutTags) const;
+    UE_API int32 GetAvailableTransitionTags(TArray<FGameplayTag>& OutTags) const;
   
   private:
 
@@ -78,7 +79,7 @@ class FMStateContext
      * 
      * @param InitParams 初期化パラメータ 
      */
-    MSTATEMACHINE_API virtual void OnInitializeContext(const FMStateContextInitializeParameters& InitParams) {}
+    UE_API virtual void OnInitializeContext(const FMStateContextInitializeParameters& InitParams) {}
 
   private:
     /**Owner弱参照 */
@@ -92,3 +93,5 @@ class FMStateContext
 
     bool m_bIsValid : 1;
 };
+
+#undef UE_API
