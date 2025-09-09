@@ -7,6 +7,8 @@
 #include "GameFramework/PlayerController.h"
 #include "SpecialAttackAttractActor.h"
 
+#include "GameFramework/Character.h"
+
 UAttractSpecialAttackComponent::UAttractSpecialAttackComponent()
 {
 	PrimaryComponentTick.bCanEverTick = true;
@@ -23,6 +25,14 @@ void UAttractSpecialAttackComponent::TickComponent(float DeltaTime, ELevelTick T
 	{
 		SpecialFinishKick(DeltaTime);
 	}
+	else if(m_IsLand)
+	{
+		m_ElapsedTime += DeltaTime;
+		if(m_LandTime <= m_ElapsedTime)
+		{
+			ResetParameter();
+		}
+	}
 }
 
 /**
@@ -30,7 +40,7 @@ void UAttractSpecialAttackComponent::TickComponent(float DeltaTime, ELevelTick T
  */
 void UAttractSpecialAttackComponent::OnStartSpecialAttract()
 {
-	m_IsAttractSpecialAttack = true;
+	m_IsGenerateAttract = true;
 
 	/*引き寄せるアクターを生成*/
 	GenerateAttractActor();
@@ -49,6 +59,7 @@ void UAttractSpecialAttackComponent::OnStartSpecialAttract()
 		m_AttractTime,
 		false
 	);
+
 }
 
 /**
@@ -114,6 +125,18 @@ FVector UAttractSpecialAttackComponent::GetPlayerCameraRotation()
 }
 
 /**
+ * @brief 引力必殺技に関するパラメータをリセットする関数
+ */
+void UAttractSpecialAttackComponent::ResetParameter()
+{
+	m_ElapsedTime = 0.0f;
+	m_IsGenerateAttract = false;
+	m_IsBackFlip = false;
+	m_IsAttractKick = false;
+	m_IsLand = false;
+}
+
+/**
  * @brief 対象のアクターを引き寄せている場所にキック!!
  * 
  * @param １フレームにかかる時間
@@ -126,8 +149,9 @@ void UAttractSpecialAttackComponent::SpecialFinishKick(float deltaTime)
 		m_CurrentKickSpeed -= m_KickBrakingForce;
 		if(m_CurrentKickSpeed <= 0.0f)
 		{
-			m_ElapsedTime = 0.0f;
 			m_IsAttractKick = false;
+			m_IsLand = true;
+			m_ElapsedTime = 0.0f;
 		}
 		return;
 	}

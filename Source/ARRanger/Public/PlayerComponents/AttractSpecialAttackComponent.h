@@ -21,13 +21,6 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 	/**
-	 * @brief 引力必殺技を発動中かどうかを取得
-	 * 
-	 * @return 引力必殺技が発動中かどうか
-	 */
-	bool GetIsAttractSpecialAttack()const{return m_IsAttractSpecialAttack;}
-
-	/**
 	 * @brief コンポーネント所有者についているカメラコンポ―ネントを取得する関数
 	 * 
 	 * @param コンポーネント所有者についているカメラコンポ―ネント
@@ -40,6 +33,15 @@ public:
 			m_PlayerCameraComponent = const_cast<UGameplayCameraComponent*>(playerCameraComp);
 		}
 	}
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool m_IsGenerateAttract;      		/*引力アクターを生成しているか*/
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool m_IsBackFlip;			      	/*バックフリップをしているか*/
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool m_IsAttractKick;      			/*キックをしているか*/
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool m_IsLand;      				/*着地しているか*/
 
 private:
 
@@ -66,6 +68,11 @@ private:
 	 */
 	FVector GetPlayerCameraRotation();
 
+	/**
+	 * @brief 引力必殺技に関するパラメータをリセットする関数
+	 */
+	void ResetParameter();
+
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AttractSpecialAttack|Player", meta = (AllowPrivateAccess = "true"))
     UCurveFloat* m_CustomCurveSpeed;        /*フィニッシュキックのスピード*/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AttractSpecialAttack|AttractionActor", meta = (AllowPrivateAccess = "true"))
@@ -73,7 +80,9 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AttractSpecialAttack|Player", meta = (AllowPrivateAccess = "true"))
 	float m_AttractTime;                    /*技発動からキックし始めるまでの時間*/
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AttractSpecialAttack|Player", meta = (AllowPrivateAccess = "true"))
-	float m_KickTime;                       /*キックし始めから終わりまでの時間*/
+	float m_KickTime;                       /*キックし始めから着地までの時間*/
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AttractSpecialAttack|Player", meta = (AllowPrivateAccess = "true"))
+	float m_LandTime;                       /*着地から動き始めるまでの時間*/
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AttractSpecialAttack|Player", meta = (AllowPrivateAccess = "true"))
 	float m_KickBrakingForce;               /*キックの勢いを止める力*/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AttractSpecialAttack|AttractionActor", meta = (AllowPrivateAccess = "true"))
@@ -93,8 +102,4 @@ private:
     float m_CurrentKickSpeed;           /*現在のキックスピード*/
 	UPROPERTY()
     float m_ElapsedTime;                /*経過時間計測用*/
-	UPROPERTY()
-	bool m_IsAttractSpecialAttack;      /*必殺技をしているか*/
-	UPROPERTY()
-	bool m_IsAttractKick;      			/*キックをしているか*/
 };

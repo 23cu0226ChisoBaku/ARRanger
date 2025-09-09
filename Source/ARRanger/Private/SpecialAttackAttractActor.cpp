@@ -97,7 +97,7 @@ void ASpecialAttackAttractActor::Tick(float DeltaTime)
 
 		actor->SetActorLocation(newLocation, true);
 
-#if WITH_EDITOR
+#if false
 		if(GEngine)
 		{
 			/*デバッグ用*/				
