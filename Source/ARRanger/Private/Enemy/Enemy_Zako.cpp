@@ -2,6 +2,7 @@
 #include "Enemy/Enemy_Zako.h"
 #include "Enemy/EnemyAnimInstance.h"
 #include "InsekiGameMode.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Enemy/ZakoAIController.h"
 #include "Components/CapsuleComponent.h"
@@ -53,7 +54,7 @@ void AEnemy_Zako::ReceiveDamage(int DamageAmount, FVector LaunchDirection, bool 
     {
         // 生存時は前方ベクトルの逆方向にノックバック
         FVector KnockbackDir = -GetActorForwardVector();
-        LaunchCharacter(KnockbackDir * 2000.f, true, true);
+        LaunchCharacter(KnockbackDir * 1000.f, true, true);
     }
 
     if (bEnableHitStop)
@@ -149,4 +150,31 @@ void AEnemy_Zako::OnPostAttacked(const FARAttackParameters& InAttackParams)
 {
     //ヒットエフェクトやSEをここで再生
 
+}
+
+//ISpecialAttractInterface functions Start
+//brief 引力必殺技が始まった時の通知
+void AEnemy_Zako::OnStartSpecialAttractNotify()
+{
+    /*重力をゼロにする*/
+    if (ACharacter* character = Cast<ACharacter>(this))
+    {
+        character->GetCharacterMovement()->GravityScale = 0.0f;
+    }
+}
+
+//引力必殺技の中間通知
+void AEnemy_Zako::OnUpdateSpecialAttractNotify(float elapsed)
+{
+    ;
+}
+
+//brief 引力必殺技の終了通知
+void AEnemy_Zako::OnEndSpecialAttractNotify()
+{
+    /*重力を元に戻す*/
+    if (ACharacter* character = Cast<ACharacter>(this))
+    {
+        character->GetCharacterMovement()->GravityScale = 1.0f;
+    }
 }

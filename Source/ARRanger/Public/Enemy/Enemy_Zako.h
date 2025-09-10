@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "BattleSystem/IARAttackable.h" 
+#include "ISpecialAttractInterface.h"
 #include "Enemy_Zako.generated.h"
 
 UCLASS()
@@ -45,4 +46,17 @@ protected:
 
     virtual void OnPostAttacked(
         const FARAttackParameters& InAttackParams) override;
+
+    //ISpecialAttractInterface functions Start
+    
+    //引力必殺技が始まった時の通知
+    virtual void OnStartSpecialAttractNotify();
+
+    //brief 引力必殺技の中間通知
+    //param 経過時間
+    virtual void OnUpdateSpecialAttractNotify(float elapsed);
+
+    //brief 引力必殺技の終了通知
+    virtual void OnEndSpecialAttractNotify();
+
 };

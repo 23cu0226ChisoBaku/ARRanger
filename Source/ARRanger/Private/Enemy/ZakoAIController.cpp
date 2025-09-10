@@ -69,11 +69,18 @@ void AZakoAIController::OnPossess(APawn* InPawn)
 {
 	Super::OnPossess(InPawn);
 
-	if (AEnemy_Zako* Zako = Cast<AEnemy_Zako>(InPawn))
+	if (BehaviorTreeAsset && BlackboardAsset)
 	{
-		if (UBlackboardComponent* BB = GetBlackboardComponent())
+		UBlackboardComponent* BB = nullptr;
+		if (UseBlackboard(BlackboardAsset, BB))
 		{
-			BB->SetValueAsFloat("PreferredDistance", Zako->PreferredDistance);
+			RunBehaviorTree(BehaviorTreeAsset);
+
+			if (AEnemy_Zako* Zako = Cast<AEnemy_Zako>(InPawn))
+			{
+				BB->SetValueAsFloat(TEXT("PreferredDistance"), Zako->PreferredDistance);
+				UE_LOG(LogTemp, Warning, TEXT("PreferredDistance set to %f"), Zako->PreferredDistance);
+			}
 		}
 	}
 }
