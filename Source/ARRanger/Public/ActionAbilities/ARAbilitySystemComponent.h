@@ -49,11 +49,12 @@ public:
 
   UE_API static UARAbilitySystemComponent* FindARAbilitySystemComponent(AActor* InActor);
 
+  UE_API void ClearAbilityInputStates();
+
 private:
 
   static UAbilitySystemComponent* FindAbilitySystemComponentImpl(AActor* InActor);
 
-  void ClearAbilityInputStates();
 
 private:
 

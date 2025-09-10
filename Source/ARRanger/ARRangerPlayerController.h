@@ -3,9 +3,11 @@
 #pragma once
 
 #include "GameFramework/PlayerController.h"
+
 #include "ARRangerPlayerController.generated.h"
 
 class UInputMappingContext;
+class UARInputMappingContext;
 class UARAbilitySystemComponent;
 class UARPlayerInputBuffer;
 class UARInputConfig;
@@ -37,11 +39,17 @@ protected:
   /** Input mapping context setup */
   UE_API virtual void SetupInputComponent() override;
 
-	/** Input Mapping Contexts */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category ="Input", meta = (AllowPrivateAccess = "true"))
-	TArray<UInputMappingContext*> DefaultMappingContexts;
+private:
+
+  UFUNCTION(BlueprintCallable, Category = "ARRanger|PlayerController")
+  UE_API void OnGameplayAbilityActivate(const FGameplayTag& InNextIMCTag);
+
+  UFUNCTION(BlueprintCallable, Category = "ARRanger|PlayerController")
+  UE_API void OnGameplayAbilityEnd(bool bWasCanceled);
 
 private:
+
+  void SwitchNextIMC(const FGameplayTag& InNextIMCTag);
 
   void InitializePlayerInput();
 
@@ -51,19 +59,25 @@ private:
   void AbilityInputTagReleased(FGameplayTag InInputTag);
   void EvaluateInputBuffer(const float DeltaTime, const bool bGamePaused);
 
+
 private:
 
   UPROPERTY(EditDefaultsOnly, Category = "ARInput|InputConfig")
   TSubclassOf<UARPlayerInputBuffer> InputBufferClass;
 
-  UPROPERTY(EditDefaultsOnly, Category = "ARInput|InputConfig", meta = (AllowPrivateAccess = "true"))
+  UPROPERTY(EditDefaultsOnly, Category = "ARInput|InputConfig")
   TObjectPtr<const UARInputConfig> InputConfig;
+
+  UPROPERTY(EditDefaultsOnly, Category = "ARInpur|InputConfig")
+  TObjectPtr<const UARInputMappingContext> InputMappingContext;
 
   UPROPERTY(Transient)
   TObjectPtr<UARPlayerInputBuffer> InputBuffer;
 
   TArray<uint32> m_bindHandles;
 
+  UPROPERTY()
+  TObjectPtr<UInputMappingContext> CurrentIMC = nullptr;
 };
 
 #undef UE_API

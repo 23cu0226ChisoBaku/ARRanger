@@ -4,26 +4,35 @@
 #include "ActionAbilities/ARGameplayAbilityBase.h"
 
 UARGameplayAbilityBase::UARGameplayAbilityBase()
+  : bCancelableAfterActivate{true}
 { 
   bIsCancelable = true;
 }
 
 void UARGameplayAbilityBase::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
+  Super::PostEditChangeProperty(PropertyChangedEvent);
+
   if (PropertyChangedEvent.GetPropertyName() == GET_MEMBER_NAME_CHECKED(UARGameplayAbilityBase, bCancelableAfterActivate))
   {
-    SetCanBeCanceled(bCancelableAfterActivate);
+    bIsCancelable = bCancelableAfterActivate;
   }
 }
 
 void UARGameplayAbilityBase::SetAbilityCancelable()
 {
-  SetCanBeCanceled(true);
+  if (CurrentActorInfo != nullptr)
+  {
+    SetCanBeCanceled(true);
+  }
 }
 
 void UARGameplayAbilityBase::SetAbilityBlock()
 {
-  SetCanBeCanceled(false);
+  if (CurrentActorInfo != nullptr)
+  {
+    SetCanBeCanceled(false);
+  }
 }
 
 bool UARGameplayAbilityBase::IsAbilityCancelable() const

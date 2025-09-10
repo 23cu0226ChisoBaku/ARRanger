@@ -9,7 +9,6 @@
 #include "ARGameplayAbility_Attack.generated.h"
 
 /**Forward declaration */
-class UPrimitiveDetectorData; // 探知範囲データ
 class UAnimInstance;
 
 #define UE_API ARRANGER_API
@@ -26,12 +25,13 @@ class UARGameplayAbility_Attack : public UARGameplayAbilityBase,
 public:
   UE_API UARGameplayAbility_Attack();
 
-  UE_API void AddAttackRange(UPrimitiveDetectorData* RangeData);
-
-  UE_API void RemoveAttackRange(UPrimitiveDetectorData* RangeData);
+  /**Start UObject Interface */
+  UE_API virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override; 
+  /**End UObject Interface */
 
   /**Start IARGameplayAbilityNotifyInterface Interface*/
   UE_API virtual void GANotify_ActorArray(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const TArray<TObjectPtr<AActor>>& InActorArray) override;
+  UE_API virtual void GANotify_ImpactResult(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const TArray<FGANotify_ImpactResult>& InImpactResults) override;
   /**End IARGameplayAbilityNotifyInterface Interface */
 
 protected:
@@ -68,6 +68,15 @@ private:
   // TODO Instead put damage in ability, Maybe it can be put in another structure(GameplayEffect or something else)
   UPROPERTY(EditDefaultsOnly, Category = "Ability|Attack", meta = (AllowPrivateAccess = "true"))
   float AttackDamage;
+
+  UPROPERTY(EditDefaultsOnly, Category = "Ability|Attack")
+  bool bClampKnockbackAngle;
+
+  UPROPERTY(EditDefaultsOnly, Category = "Ability|Attack", meta = (ClampMin = -180, ClampMax = 180, EditCondition = "bClampKnockbackAngle == true", EditConditionHides))
+  float KnockbackAngleRangeMax;
+
+  UPROPERTY(EditDefaultsOnly, Category = "Ability|Attack", meta = (ClampMin = -180, ClampMax = 180, EditCondition = "bClampKnockbackAngle == true", EditConditionHides))
+  float KnockbackAngleRangeMin;
 
 };
 

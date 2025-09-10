@@ -41,7 +41,8 @@ class AARRangerCharacter :  public ACharacter,
                             public IARMagnetizableInterface,
                             public IARPhysicsSystemHost,
                             public IARAttackable,               // 攻撃を受けられるインターフェイス
-                            public IARAttackerInterface         // 攻撃できるインターフェイス
+                            public IARAttackerInterface,        // 攻撃できるインターフェイス
+                            public IAbilitySystemInterface
 {
 	GENERATED_BODY()
 	
@@ -107,22 +108,6 @@ class AARRangerCharacter :  public ACharacter,
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	bool isClimbed;
 
-	// AbilitySystemComponentを保存
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Abilities")
-	UAbilitySystemComponent* AbilitySystemComp;
-
-	// GA_Attack参照
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Abilities")
-	TSubclassOf<UGA_Attack> GA_AttackClass;
-
-	// GA_Punch参照
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Abilities")
-	TSubclassOf<UGA_Punch> GA_PunchClass;
-
-	// GA_Kick参照
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Abilities")
-	TSubclassOf<UGA_Kick> GA_KickClass;
-
 	// 変身用エフェクトを設定
 	UPROPERTY(EditAnywhere, Category = "Effects")
 	UNiagaraSystem* TransformEffect;
@@ -148,23 +133,9 @@ protected:
 	void Look(const FInputActionValue& Value);
 
 private:
-	// もともとのカメラとプレイヤーの距離
-	float DefaultArmLength;
-
-	// ダッシュ中に近づける距離
-	float DashArmLength;
-
-	// 補間速度
-	float ArmLengthInterpSpeed;
 
 	// 変身の際に呼び出される
 	void Transform();
-
-	// ダッシュ時カメラが切り替わる入力の閾値（押し込み時）
-	float dashStartThreshold;
-
-	// 少し入力を緩めたらダッシュを解除する用の数値
-	float dashEndThreshold;
 
 	// 現在歩いているオブジェクトの表面
 	UPROPERTY()
@@ -207,20 +178,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Input")
 	virtual void DoJumpEnd();
 
-	// パンチの際に呼び出される
-	void Input_Punch();
-
-	// キックの際に呼び出される
-	void Input_Kick();
-
 	// キックボタンを離した際に呼び出される
 	void Release_Kick();
-
-	UFUNCTION(BlueprintPure, Category = "AR|Player")
-	float GetDefaultArmLength() const { return DefaultArmLength; }
-
-	UFUNCTION(BlueprintPure, Category = "AR|Player")
-	float GetDashArmLength() const { return DashArmLength; }
 
 	// 引力用プレイヤーメッシュ
 	UPROPERTY(EditAnywhere, Category = "PlayerMesh")
@@ -245,26 +204,8 @@ public:
 public:
 	virtual void Tick(float DeltaTime) override;
 
-	// パンチハンドラ
-	FGameplayAbilitySpecHandle PunchHandle;
-
-	// キックハンドラ
-	FGameplayAbilitySpecHandle KickHandle;
-
 	// AttackBaseComponentを保存
 	UAttackBaseComponent* AttackBaseComp = nullptr;
-
-	// GA_Attackを保存
-	UPROPERTY(BlueprintReadWrite, VisibleAnywhere, Category = "Abilities")
-	UGA_Attack* GA_AttackInstance = nullptr;
-
-	// GA_Punchを保存
-	UPROPERTY(BlueprintReadWrite, VisibleAnywhere, Category = "Abilities")
-	UGA_Punch* GA_PunchInstance = nullptr;
-
-	// GA_Kickを保存
-	UPROPERTY(BlueprintReadWrite, VisibleAnywhere, Category = "Abilities")
-	UGA_Kick* GA_KickInstance = nullptr;
 
 	// 移動時のデッドゾーン(下回ると移動しない)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Abilities")

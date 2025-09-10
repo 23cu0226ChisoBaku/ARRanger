@@ -8,6 +8,17 @@
 
 #define UE_API ARRANGER_API
 
+/**
+ * 
+ */
+struct FGANotify_ImpactResult
+{
+  TObjectPtr<AActor> SourceActor;
+  TObjectPtr<AActor> HitActor;
+  TObjectPtr<USceneComponent> OccurrenceComp;
+  FVector ImpactLocation;
+};
+
 // This class does not need to be modified.
 UINTERFACE(MinimalAPI)
 class UARGameplayAbilityNotifyInterface : public UInterface
@@ -26,6 +37,7 @@ class IARGameplayAbilityNotifyInterface
 public:
 
   UE_API virtual void GANotify_ActorArray(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const TArray<TObjectPtr<AActor>>& InActorArray) { }
+  UE_API virtual void GANotify_ImpactResult(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const TArray<FGANotify_ImpactResult>& InImpactResults) { }
 };
 
 #undef UE_API

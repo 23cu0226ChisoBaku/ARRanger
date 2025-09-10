@@ -14,14 +14,18 @@ UARGameplayAbility_Attack::UARGameplayAbility_Attack()
   InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
 }
 
-void UARGameplayAbility_Attack::AddAttackRange(UPrimitiveDetectorData* RangeData)
+void UARGameplayAbility_Attack::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
-  // TODO Create Ability Task
-}
+  Super::PostEditChangeProperty(PropertyChangedEvent);
 
-void UARGameplayAbility_Attack::RemoveAttackRange(UPrimitiveDetectorData* RangeData)
-{
-  // TODO It is not necessary to remove manually now.So I decided to leave it empty
+  if (PropertyChangedEvent.GetPropertyName() == GET_MEMBER_NAME_CHECKED(UARGameplayAbility_Attack, KnockbackAngleRangeMax))
+  {
+    KnockbackAngleRangeMax = FMath::Max(KnockbackAngleRangeMin, KnockbackAngleRangeMax);
+  }
+  else if (PropertyChangedEvent.GetPropertyName() == GET_MEMBER_NAME_CHECKED(UARGameplayAbility_Attack, KnockbackAngleRangeMin))
+  {
+    KnockbackAngleRangeMin = FMath::Min(KnockbackAngleRangeMin, KnockbackAngleRangeMax);
+  }
 }
 
 void UARGameplayAbility_Attack::GANotify_ActorArray(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const TArray<TObjectPtr<AActor>>& InActorArray)
@@ -55,6 +59,107 @@ void UARGameplayAbility_Attack::GANotify_ActorArray(USkeletalMeshComponent* Mesh
       // Apply
       attackable->AttackTarget(attackerInterface, attackParam);
     }
+  }
+}
+
+void UARGameplayAbility_Attack::GANotify_ImpactResult(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const TArray<FGANotify_ImpactResult>& InImpactResults)
+{
+  AActor* avatarActor = GetAvatarActorFromActorInfo();
+  check(avatarActor != nullptr);
+  if (avatarActor == nullptr)
+  {
+    return;
+  }
+
+  for (const FGANotify_ImpactResult& result : InImpactResults)
+  {
+    // TODO Temporary
+    IARAttackable* attackable = ::Cast<IARAttackable>(result.HitActor);
+    if (attackable == nullptr)
+    {
+      continue;
+    }
+
+    FARAttackParameters attackParam{};
+    // TODO Use Avatar location to knockback Target Temporary
+    FVector knockbackDir = result.HitActor->GetActorLocation() - result.ImpactLocation;
+    // Make it Z to zero so we can only use Direction on XY-Plane to determine knockback Direction
+    knockbackDir.Z = 0.0;
+
+    attackParam.Instigator = result.SourceActor;
+    // TODO Stock damage in GA maybe not a great idea
+    attackParam.Damage = AttackDamage;
+    attackParam.bUseAttackerActor = true;
+    // attackParam.LaunchDirection = knockbackDir.GetSafeNormal();
+
+    // Try using SourceActor as attacker 
+    IARAttackerInterface* attacker = ::Cast<IARAttackerInterface>(result.SourceActor);
+
+    // If SourceActor is not attacker, use avatar
+    if (attacker == nullptr)
+    {
+      attacker = ::Cast<IARAttackerInterface>(avatarActor);
+    }
+
+    // If attacker is still null, try use OccurrenceComp
+    if (attacker == nullptr)
+    {
+      attacker = :: Cast<IARAttackerInterface>(result.OccurrenceComp);
+    }
+
+    FVector knockbackDirNorm = knockbackDir.GetSafeNormal();
+    // Use KnockbackRange to calculate final launch direction
+    if (bClampKnockbackAngle)
+    {
+      // Calculate LaunchDir's projection vector on Plane that attacker's up vector is normal vector
+      FVector norm{ForceInitToZero};
+      FVector attackerFwdDir{ForceInitToZero};
+      if ((attacker != nullptr) && (attacker->GetActor() != nullptr))
+      {
+        norm = attacker->GetActor()->GetActorUpVector();
+        attackerFwdDir = attacker->GetActor()->GetActorForwardVector();
+      }
+      // Fallback to SourceActor
+      else if (result.SourceActor != nullptr)
+      {
+        norm = result.SourceActor->GetActorUpVector();
+        attackerFwdDir = result.SourceActor->GetActorForwardVector();
+      }
+      // Fallback to OccurrenceComp
+      else if (result.OccurrenceComp != nullptr)
+      {
+        norm = result.OccurrenceComp->GetUpVector();
+        attackerFwdDir = result.OccurrenceComp->GetForwardVector();
+      }
+      // Finally, Fallback to avatar
+      else
+      {
+        norm = avatarActor->GetActorUpVector();
+        attackerFwdDir = avatarActor->GetActorForwardVector();
+      }
+  
+      norm.Normalize();
+      attackerFwdDir.Normalize();
+  
+      const float projectionAngleCos = FVector::DotProduct(norm, knockbackDirNorm); 
+      const FVector projectionVec = knockbackDir - (projectionAngleCos * knockbackDir.Length()) * norm;
+      const float curtKnockbackRangeCos = FVector::DotProduct(attackerFwdDir, projectionVec.GetSafeNormal());
+      float curtKnockbackRangeDeg = FMath::DegreesToRadians(FMath::Acos(curtKnockbackRangeCos));
+  
+      // Clamp current degree
+      curtKnockbackRangeDeg = FMath::Clamp(curtKnockbackRangeDeg, KnockbackAngleRangeMin, KnockbackAngleRangeMax);
+      // Change knockbackDirNorm
+      if (!FMath::IsNearlyEqual(FMath::Cos(curtKnockbackRangeDeg), curtKnockbackRangeCos))
+      {
+        knockbackDirNorm = (attackerFwdDir.RotateAngleAxis(curtKnockbackRangeDeg, norm) + norm).GetSafeNormal();
+      }
+    }
+    
+    // Finally we put knockbackDirNorm to attackParam
+    attackParam.LaunchDirection = knockbackDirNorm;
+    
+    // Apply Attack
+    attackable->AttackTarget(attacker, attackParam); 
   }
 }
 
