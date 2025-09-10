@@ -72,6 +72,7 @@ void UARPlayerInputBuffer::EvaluateBuffer(const AARRangerPlayerController* InPla
         if (bufferLeftTime > 0.0f)
         {
           ARASC->AbilityInputTagPressed(inputBufferTag);
+          bufferLeftTime = 0.0f;
         }
         else
         {
@@ -95,6 +96,10 @@ void UARPlayerInputBuffer::InputBuffer_AbilityInputTagPressed(FGameplayTag InInp
     if (m_inputTagBuffers.Contains(InInputTag))
     {
       m_inputTagBuffers[InInputTag] = InputKeepTime;
+    }
+    else
+    {
+      m_inputTagBuffers.Emplace(InInputTag, InputKeepTime);
     }
   }
 }

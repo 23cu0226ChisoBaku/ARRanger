@@ -3,12 +3,14 @@
 
 #include "Player/ARPlayerState.h"
 #include "ActionAbilities/ARAbilitySystemComponent.h"
+#include "Pawn/ARPawnInitComponent.h"
 
 AARPlayerState::AARPlayerState(const FObjectInitializer& ObjectInitializer)
   : Super(ObjectInitializer)
 {
   AbilitySystemComponent = CreateDefaultSubobject<UARAbilitySystemComponent>(TEXT("AbilitySystemComponent"));
   check(AbilitySystemComponent != nullptr);
+  AbilitySystemComponent->SetIsReplicated(true);
 }
 
 UAbilitySystemComponent* AARPlayerState::GetAbilitySystemComponent() const

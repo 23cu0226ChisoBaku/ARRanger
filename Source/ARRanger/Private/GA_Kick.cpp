@@ -17,7 +17,6 @@ void UGA_Kick::ActivateAbility(
 {
     if (AARRangerCharacter* Char = Cast<AARRangerCharacter>(GetOwningActorFromActorInfo()))
     {
-        Char->GA_KickInstance = this;
         attackBaseComp = Char->AttackBaseComp;
     }
     attackBaseComp->SetIsAttacked(false);

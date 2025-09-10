@@ -24,6 +24,8 @@
 #include "PunchCameraShake.h"
 #include "Player/ARPlayerState.h"
 
+#include "Pawn/ARPawnInitComponent.h"
+
 #include "MLibrary.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
@@ -63,6 +65,12 @@ AARRangerCharacter::AARRangerCharacter()
 	AttackBaseComp = CreateDefaultSubobject<UAttackBaseComponent>(TEXT("AttackBaseComponent"));
 }
 
+void AARRangerCharacter::PostInitializeComponents()
+{
+  Super::PostInitializeComponents();
+
+}
+
 void AARRangerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
@@ -90,6 +98,14 @@ void AARRangerCharacter::BeginPlay()
   GetCapsuleComponent()->OnComponentEndOverlap.AddDynamic(this, &AARRangerCharacter::OnMagneticForceFieldEndOverlap);
   GetCapsuleComponent()->OnComponentHit.AddDynamic(this, &AARRangerCharacter::OnMagnetizedObjectHit);
 
+  // TODO Temporary
+  if (AARPlayerState* ARPS = GetPlayerState<AARPlayerState>())
+  {
+    if (UARPawnInitComponent* PIC = ::Cast<UARPawnInitComponent>(GetComponentByClass(UARPawnInitComponent::StaticClass())))
+    {
+      PIC->InitializeAbilitySystem(ARPS->GetARAbilitySystemComponent(), ARPS); 
+    }
+  }
 }
 
 // 麦
@@ -580,3 +596,40 @@ void AARRangerCharacter::OnNotifyAttackResult_Success(const ARRanger::Battle::FA
 
 #pragma endregion IARAttackerInterface implementation
 /**End IARAttackerInterface implementation */
+
+// TODO Temporary blueprint callable function 
+void AARRangerCharacter::OnPunchStarted()
+{
+  if (AttackBaseComp != nullptr)
+  {
+    AttackBaseComp->SetIsAttacked(false);
+    AttackBaseComp->SetIsStrongAttacked(false);
+    AttackBaseComp->SetIsAttractingEnemy(false);
+
+    AttackBaseComp->RotateOwnerToTarget();
+
+    if (GetIsApproachedEnemy())
+    {
+      UE_LOG(LogTemp, Warning, TEXT("AttractionPunch"))
+      AttackBaseComp->SetIsAttacked(true);
+      SetIsAttracted(false);
+      SetIsApproachedEnemy(false);
+
+      return;
+    }
+
+    if (GetMagnetismType() == EARMagnetismType::Attraction && GetIsLockedOn() && !GetIsAttracted())
+    {
+      // TODO
+    }
+
+    if (bIsInComboWindow)
+    {
+      const int32 MaxCombo = 3;
+      if (GetComboCount() < MaxCombo - 1)
+      {
+
+      }
+    }
+  }
+}

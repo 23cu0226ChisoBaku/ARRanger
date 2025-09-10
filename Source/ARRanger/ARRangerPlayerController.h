@@ -32,6 +32,9 @@ public:
 
   /**Start APlayerController Interface */
 	UE_API virtual void PostProcessInput(const float DeltaTime, const bool bGamePaused) override;
+protected:
+  // TODO Temporary
+  UE_API virtual void OnPossess(APawn* InPawn) override;
   /**End APlayerController Interface */
 	
 protected:
@@ -59,7 +62,6 @@ private:
   void AbilityInputTagReleased(FGameplayTag InInputTag);
   void EvaluateInputBuffer(const float DeltaTime, const bool bGamePaused);
 
-
 private:
 
   UPROPERTY(EditDefaultsOnly, Category = "ARInput|InputConfig")
@@ -68,16 +70,16 @@ private:
   UPROPERTY(EditDefaultsOnly, Category = "ARInput|InputConfig")
   TObjectPtr<const UARInputConfig> InputConfig;
 
-  UPROPERTY(EditDefaultsOnly, Category = "ARInpur|InputConfig")
+  UPROPERTY(EditDefaultsOnly, Category = "ARInput|InputConfig")
   TObjectPtr<const UARInputMappingContext> InputMappingContext;
 
   UPROPERTY(Transient)
   TObjectPtr<UARPlayerInputBuffer> InputBuffer;
 
-  TArray<uint32> m_bindHandles;
-
   UPROPERTY()
   TObjectPtr<UInputMappingContext> CurrentIMC = nullptr;
+  
+  TArray<uint32> m_bindHandles;
 };
 
 #undef UE_API

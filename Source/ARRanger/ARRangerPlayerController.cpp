@@ -9,20 +9,21 @@
 #include "ActionAbilities/ARAbilitySystemComponent.h"
 #include "Input/ARInputComponent.h"
 #include "Input/ARPlayerInputBuffer.h"
+#include "Player/ARPlayerState.h"
+#include "Pawn/ARPawnInitComponent.h"
 
 #include "Internal/ARLoggingHeader.h"
 #include "ARGameplayTags.h"
 
 namespace
 {
-  const FString DEFAULT_IMC_TAG_NAME = TEXT("InputState_Default");  
+  const FString DEFAULT_IMC_TAG_NAME = TEXT("InputState.Default");  
 }
 
 UARAbilitySystemComponent* AARRangerPlayerController::GetARASC() const
 {
-  return UARAbilitySystemComponent::FindARAbilitySystemComponent(GetOwner());
+  return UARAbilitySystemComponent::FindARAbilitySystemComponent(GetPawn());
 }
-
 
 void AARRangerPlayerController::PostProcessInput(const float DeltaTime, const bool bGamePaused)
 {
@@ -39,6 +40,11 @@ void AARRangerPlayerController::PostProcessInput(const float DeltaTime, const bo
     ASC->ProcessAbilityInputs(inputProcessParam);
   }
 
+}
+
+void AARRangerPlayerController::OnPossess(APawn* InPawn)
+{
+  Super::OnPossess(InPawn);
 }
 
 void AARRangerPlayerController::SetupInputComponent()
@@ -131,6 +137,8 @@ void AARRangerPlayerController::InitializePlayerInputBuffer(UARInputComponent* I
   {
     InputBuffer = ::NewObject<UARPlayerInputBuffer>(/**Outer */this, InputBufferClass);
     check(InputBuffer != nullptr);
+
+    InputBuffer->InitializeInputBuffer(InInputComponent, *InputConfig);
   }
 }
 

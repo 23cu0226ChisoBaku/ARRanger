@@ -17,7 +17,7 @@ class UARInputConfig;
 /**
  * 
  */
-UCLASS()
+UCLASS(Blueprintable, BlueprintType)
 class UARPlayerInputBuffer : public UObject
 {
 	GENERATED_BODY()

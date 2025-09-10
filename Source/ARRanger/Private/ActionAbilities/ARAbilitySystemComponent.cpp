@@ -128,10 +128,13 @@ void UARAbilitySystemComponent::AbilityInputTagPressed(const FGameplayTag& InTag
   const TArray<FGameplayAbilitySpec>& abilitySpecs = GetActivatableAbilities();
   for (const FGameplayAbilitySpec& abilitySpec : abilitySpecs)
   {
-    if ((abilitySpec.Ability != nullptr) && abilitySpec.GetDynamicSpecSourceTags().HasTagExact(InTag))
+    if ((abilitySpec.Ability != nullptr))
     {
-      m_inputPressedSpecHandles.AddUnique(abilitySpec.Handle);
-      m_inputHeldSpecHandles.AddUnique(abilitySpec.Handle);
+      if (abilitySpec.Ability->AbilityTags.HasTagExact(InTag))
+      {
+        m_inputPressedSpecHandles.AddUnique(abilitySpec.Handle);
+        m_inputHeldSpecHandles.AddUnique(abilitySpec.Handle);
+      }
     }
   }
 }
@@ -146,10 +149,14 @@ void UARAbilitySystemComponent::AbilityInputTagReleased(const FGameplayTag& InTa
   const TArray<FGameplayAbilitySpec>& abilitySpecs = GetActivatableAbilities();
   for (const FGameplayAbilitySpec& abilitySpec : abilitySpecs)
   {
-    if ((abilitySpec.Ability != nullptr) && abilitySpec.GetDynamicSpecSourceTags().HasTagExact(InTag))
+    
+    if ((abilitySpec.Ability != nullptr))
     {
-      m_inputPressedSpecHandles.AddUnique(abilitySpec.Handle);
-      m_inputHeldSpecHandles.Remove(abilitySpec.Handle);
+      if (abilitySpec.Ability->AbilityTags.HasTagExact(InTag))
+      {
+        m_inputPressedSpecHandles.AddUnique(abilitySpec.Handle);
+        m_inputHeldSpecHandles.Remove(abilitySpec.Handle);
+      }
     }
   }
 }

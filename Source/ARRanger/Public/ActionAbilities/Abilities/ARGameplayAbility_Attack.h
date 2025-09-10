@@ -56,6 +56,7 @@ private:
   void OnAttackAbilityActivated();
   void OnAttackAbilityEnded(bool bWasCancelled);
 
+  UFUNCTION()
   void OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted);
 
   UAnimInstance* FindAnimInstanceOnAvatar() const;

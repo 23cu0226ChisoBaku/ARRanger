@@ -1,13 +1,8 @@
 #pragma once
 
 #include "AbilitySystemInterface.h"
-#include "AbilitySystemComponent.h"
 #include "GameplayEffectTypes.h" 
-#include "CoreMinimal.h"
 #include "GameFramework/Character.h"
-#include "GA_Attack.h"
-#include "GA_Kick.h"
-#include "GA_Punch.h"
 #include "IARMagnetizableInterface.h"
 #include "InsekiClimbingObject.h"
 #include "LockOnComponent.h"
@@ -21,6 +16,7 @@
 
 #include "ARRangerCharacter.generated.h"
 
+class UAttackBaseComponent;
 class UAbilitySystemComponent;
 class UAnimMontage;
 class UInputAction;
@@ -47,6 +43,8 @@ class AARRangerCharacter :  public ACharacter,
 	GENERATED_BODY()
 	
 	protected:
+
+  virtual void PostInitializeComponents() override;
 	virtual void BeginPlay() override;
 
 	// 麦
@@ -205,7 +203,8 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	// AttackBaseComponentを保存
-	UAttackBaseComponent* AttackBaseComp = nullptr;
+  UPROPERTY()
+	TObjectPtr<UAttackBaseComponent> AttackBaseComp = nullptr;
 
 	// 移動時のデッドゾーン(下回ると移動しない)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Abilities")
@@ -282,6 +281,10 @@ public:
 	{
 		bIsJumping = false;
 	}
+
+  // 麦
+  UFUNCTION(BlueprintCallable, Category = "GameAbility|Callbacks")
+  void OnPunchStarted();
 
 private:
 	// 攻撃中フラグ
