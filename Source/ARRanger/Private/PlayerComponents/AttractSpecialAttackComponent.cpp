@@ -32,6 +32,8 @@ void UAttractSpecialAttackComponent::TickComponent(float DeltaTime, ELevelTick T
 		{
 			ResetParameter();
 		}
+
+		m_GenerateArractActor->Destroy();
 	}
 }
 
@@ -45,12 +47,25 @@ void UAttractSpecialAttackComponent::OnStartSpecialAttract()
 	/*引き寄せるアクターを生成*/
 	GenerateAttractActor();
 
+	/*キックする方向を取得*/
+	m_kickDirection = FVector(GetPlayerCameraRotation().X, GetPlayerCameraRotation().Y, 0.0f).GetSafeNormal();
+
 	/*指定した時間後キック！*/
 	FTimerDelegate TimerDelegate;
 	TimerDelegate.BindLambda([this]()
 	{
-		m_kickDirection = ( m_GenerateArractActor->GetActorLocation() - GetOwner()->GetActorLocation() ).GetSafeNormal();
-		m_IsAttractKick = true;
+		if(m_GenerateArractActor!= nullptr)
+		{
+			if(ASpecialAttackAttractActor* attractActor = Cast<ASpecialAttackAttractActor>(m_GenerateArractActor))
+			{
+				m_InhaledActors = attractActor->GetDetectedActors();
+			}
+			m_IsAttractKick = true;
+		}
+		else
+		{
+			if(GEngine) GEngine->AddOnScreenDebugMessage(-1, 20.f, FColor::Red,FString::Printf(TEXT("aaaaa")));
+		}
 	});
 
 	GetWorld()->GetTimerManager().SetTimer(
@@ -60,6 +75,9 @@ void UAttractSpecialAttackComponent::OnStartSpecialAttract()
 		false
 	);
 
+	/*プレイヤーの向きを修正*/
+	const FRotator newFaceDir = GetPlayerCameraRotation().Rotation();
+	GetOwner()->SetActorRotation(newFaceDir);
 }
 
 /**
@@ -159,8 +177,41 @@ void UAttractSpecialAttackComponent::SpecialFinishKick(float deltaTime)
 	/*時間計測*/
 	m_ElapsedTime += deltaTime;
 
+	/*ライントレースを行い建物などを検知したら進まない*/
+	FVector startLocation = GetOwner()->GetActorLocation();
+	FVector endLocation = startLocation + m_kickDirection * m_KickHitDetectionLength;
+
+	FHitResult hitResult;
+	FCollisionQueryParams params;
+	params.AddIgnoredActor(GetOwner());
+	for(AActor* IgnoreActor : m_InhaledActors)
+	{
+		params.AddIgnoredActor(IgnoreActor);
+	}
+	params.bReturnPhysicalMaterial = false;
+
+	const bool bHit = GetWorld()->LineTraceSingleByChannel(
+		hitResult,
+		startLocation,
+		endLocation,
+		ECC_Visibility,
+		params
+	);
+
 	/*キック！*/
-    m_CurrentKickSpeed = m_CustomCurveSpeed->GetFloatValue(m_ElapsedTime);
-	FVector newLocation = GetOwner()->GetActorLocation() + m_kickDirection * m_CurrentKickSpeed;
+	FVector newLocation;
+	if(!bHit)
+	{
+		m_CurrentKickSpeed = m_CustomCurveSpeed->GetFloatValue(m_ElapsedTime);
+		newLocation = GetOwner()->GetActorLocation() + m_kickDirection * m_CurrentKickSpeed;
+	}
+	/*障害物への埋め込み防止*/
+	else
+	{
+		FVector addLocation = hitResult.Location - GetOwner()->GetActorLocation();
+		if(GEngine) GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green,FString::Printf(TEXT("addLocation: %s"), *addLocation.ToString()));
+
+		newLocation = GetOwner()->GetActorLocation() + addLocation -m_OffsetKickPosition * m_kickDirection;
+	}
 	GetOwner()->SetActorLocation(newLocation);
 }

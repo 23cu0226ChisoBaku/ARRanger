@@ -59,12 +59,12 @@ void ASpecialAttackAttractActor::Tick(float DeltaTime)
     for (AActor* actor : detectedActors)
     {
 		/*吸引しているアクターを保持(重複なし)*/
-		if(!m_previousDetectedActors.Contains(actor))
+		if(!m_PreviousDetectedActors.Contains(actor))
 		{
 			ISpecialAttractInterface* InterfacePtr = Cast<ISpecialAttractInterface>(actor);
 			if(InterfacePtr != nullptr)
 			{
-				m_previousDetectedActors.Add(actor);
+				m_PreviousDetectedActors.Add(actor);
 				InterfacePtr->OnStartSpecialAttractNotify();
 			}
 		}
@@ -127,20 +127,15 @@ void ASpecialAttackAttractActor::Tick(float DeltaTime)
 #endif
 }
 
-void ASpecialAttackAttractActor::BeginDestroy()
+void ASpecialAttackAttractActor::Destroyed()
 {
-	Super::BeginDestroy();
-}
-
-void ASpecialAttackAttractActor::OnOverlapBegin(AActor* OverlappedActor, AActor* OtherActor)
-{
-	for(AActor* actor : m_previousDetectedActors)
+	for(AActor* actor : m_PreviousDetectedActors)
 	{
 		/*吸引されているアクターを解除・またそのアクターに通知*/
 		ISpecialAttractInterface* InterfacePtr = Cast<ISpecialAttractInterface>(actor);
 		if(InterfacePtr != nullptr)
 		{
-			m_previousDetectedActors.Remove(actor);
+			m_PreviousDetectedActors.Remove(actor);
 			InterfacePtr->OnEndSpecialAttractNotify();
 		}
 
@@ -152,15 +147,9 @@ void ASpecialAttackAttractActor::OnOverlapBegin(AActor* OverlappedActor, AActor*
 			meshComp->AddImpulse(explosionDirection * m_ExplosionPower);
 		}
 	}
+}
 
+void ASpecialAttackAttractActor::OnOverlapBegin(AActor* OverlappedActor, AActor* OtherActor)
+{
 	
-	/*オーバーラップしたキャラクターがプレイヤーなら自分自身を破棄*/
-    if (OtherActor!= nullptr && OtherActor != this)
-    {
-		// TODO Temporary
-        if (OtherActor->IsA(AARRangerCharacter::StaticClass()))
-        {
-            Destroy();  // 自分を削除
-        }
-    }
 }

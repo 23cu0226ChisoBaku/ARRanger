@@ -89,17 +89,23 @@ private:
 	float m_GenerateDistance;               /*吸引オブジェクト生成する際のプレイヤーとの距離*/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AttractSpecialAttack|AttractionActor", meta = (AllowPrivateAccess = "true"))
 	float m_OffsetGenerateDistance;         /*生成位置が衝突していた際の調整距離*/
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AttractSpecialAttack|Player", meta = (AllowPrivateAccess = "true"))
+	float m_KickHitDetectionLength;         /*キック時の衝突判定用ライントレースの長さ*/
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AttractSpecialAttack|Player", meta = (AllowPrivateAccess = "true"))
+    float m_OffsetKickPosition;        		/*キック時に障害物に当たった時のプレイヤー座標調整用*/
 
+	UPROPERTY()
+	TArray<AActor*> m_InhaledActors;		/*吸引しているアクター*/
 	UPROPERTY()
 	TObjectPtr<UGameplayCameraComponent> m_PlayerCameraComponent;	/*プレイヤーについているカメラ*/
 	UPROPERTY()
-	FTimerHandle m_DelayTimerHandle;    /*タイマーハンドル*/
+	FTimerHandle m_DelayTimerHandle;    	/*タイマーハンドル*/
 	UPROPERTY()
-	AActor* m_GenerateArractActor;      /*生成した吸引オブジェクト*/
+	AActor* m_GenerateArractActor;      	/*生成した吸引オブジェクト*/
 	UPROPERTY()
-	FVector m_kickDirection;			/*キックをする方向*/
+	FVector m_kickDirection;				/*キックをする方向*/
 	UPROPERTY()
-    float m_CurrentKickSpeed;           /*現在のキックスピード*/
+    float m_CurrentKickSpeed;           	/*現在のキックスピード*/
 	UPROPERTY()
-    float m_ElapsedTime;                /*経過時間計測用*/
+    float m_ElapsedTime;                	/*経過時間計測用*/
 };
