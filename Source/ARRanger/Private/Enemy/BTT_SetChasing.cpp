@@ -34,7 +34,6 @@ EBTNodeResult::Type UBTT_SetChasing::ExecuteTask(UBehaviorTreeComponent& OwnerCo
         APawn* Pawn = AICon->GetPawn();
         if (!Pawn)
         {
-            UE_LOG(LogTemp, Warning, TEXT("SetChasing: Pawn is null"));
             return EBTNodeResult::Failed;
         }
 
@@ -44,7 +43,6 @@ EBTNodeResult::Type UBTT_SetChasing::ExecuteTask(UBehaviorTreeComponent& OwnerCo
             USkeletalMeshComponent* Mesh = Char->GetMesh();
             if (!Mesh)
             {
-                UE_LOG(LogTemp, Warning, TEXT("SetChasing: Mesh is null (Character has no mesh)"));
                 return EBTNodeResult::Failed;
             }
 
@@ -52,17 +50,14 @@ EBTNodeResult::Type UBTT_SetChasing::ExecuteTask(UBehaviorTreeComponent& OwnerCo
             {
                 EnemyAnim->bIsChasing = bChasing;
                 EnemyAnim->bIsSearch = bIsSearch;
-                UE_LOG(LogTemp, Warning, TEXT("SetChasing: Succeeded (AnimInstance set)"));
                 return EBTNodeResult::Succeeded;
             }
             else
             {
-                UE_LOG(LogTemp, Warning, TEXT("SetChasing: AnimInstance is not UEnemyAnimInstance"));
                 return EBTNodeResult::Failed;
             }
         }
     }
 
-    UE_LOG(LogTemp, Warning, TEXT("SetChasing: Failed"));
     return EBTNodeResult::Failed;
 }

@@ -2,6 +2,8 @@
 
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "ARRangerCharacter.h"
+#include "Enemy/Enemy_Zako.h"
+
 #include "AttackBaseComponent.h"
 
 UGA_Punch::UGA_Punch()
@@ -82,7 +84,7 @@ void UGA_Punch::StartPunch()
 
     if (EARMagnetismType::Attraction == Char->GetMagnetismType() && Char->GetIsLockedOn() && !Char->GetIsAttracted())
     {
-        if (AEnemy* Enemy = Cast<AEnemy>(Char->LockOnComponent->GetLockedOnTarget()))
+        if (AEnemy_Zako* Enemy = Cast<AEnemy_Zako>(Char->LockOnComponent->GetLockedOnTarget()))
         {
             // 敵に引き寄せを命令
             Enemy->StartAttraction(Char);
