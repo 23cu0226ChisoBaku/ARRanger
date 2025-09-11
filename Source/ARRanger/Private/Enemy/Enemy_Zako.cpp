@@ -178,3 +178,15 @@ void AEnemy_Zako::OnEndSpecialAttractNotify()
         character->GetCharacterMovement()->GravityScale = 1.0f;
     }
 }
+
+void AEnemy_Zako::StartAttraction(AActor* Target)
+{
+    attractionTarget = Target;
+    bIsAttracted = true;
+}
+
+void AEnemy_Zako::StopAttraction()
+{
+    bIsAttracted = false;
+    attractionTarget = nullptr;
+}
