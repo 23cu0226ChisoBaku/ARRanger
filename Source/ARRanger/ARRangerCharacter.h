@@ -148,6 +148,9 @@ protected:
 	void Look(const FInputActionValue& Value);
 
 private:
+	// 
+	void EnsureLockOnComponent();
+
 	// もともとのカメラとプレイヤーの距離
 	float DefaultArmLength;
 

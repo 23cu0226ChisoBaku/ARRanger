@@ -70,6 +70,16 @@ AARRangerCharacter::AARRangerCharacter()
 	AttackBaseComp = CreateDefaultSubobject<UAttackBaseComponent>(TEXT("AttackBaseComponent"));
 }
 
+void AARRangerCharacter::EnsureLockOnComponent()
+{
+	if (!LockOnComponent)
+	{
+		// BP 派生時など null の場合は動的生成
+		LockOnComponent = NewObject<ULockOnComponent>(this, TEXT("LockOnComponent"));
+		LockOnComponent->RegisterComponent(); // コンポーネントとして登録
+	}
+}
+
 void AARRangerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
@@ -169,6 +179,8 @@ void AARRangerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	EnsureLockOnComponent();
+
 	// 入力値を取得
 	float InputMagnitude = 0.f;
 	if (APlayerController* PC = Cast<APlayerController>(GetController()))
@@ -196,23 +208,11 @@ void AARRangerCharacter::Tick(float DeltaTime)
 		IsDashed = false;
 	}
 
-	if (!LockOnComponent)
-	{
-		UE_LOG(LogTemp, Error, TEXT("LockOnComponent is NULL"));
-	}
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("LockOnComponent ptr=%p name=%s"),
-			LockOnComponent, *GetNameSafe(LockOnComponent));
-	}
-
 	bool isLockedOn = false;
 	if (LockOnComponent && IsValid(LockOnComponent))
 	{
 		isLockedOn = LockOnComponent->GetIsLockedOn();
 	}
-	//bool isLockedOn = LockOnComponent->GetIsLockedOn();
-	//AActor* Target = LockOnComponent->GetLockedOnTarget();
 
 	AActor* Target = nullptr;
 	if (LockOnComponent && IsValid(LockOnComponent))
@@ -223,6 +223,10 @@ void AARRangerCharacter::Tick(float DeltaTime)
 	// ロックオン中に処理
 	if (isLockedOn && Target)
 	{
+		// デバッグログ
+		UE_LOG(LogTemp, Warning, TEXT("LockOn Tick: Target=%s at %s"),
+			*Target->GetName(), *Target->GetActorLocation().ToString());
+
 		FVector ToTarget = Target->GetActorLocation() - GetActorLocation();
 		FRotator TargetRotation = FRotationMatrix::MakeFromX(ToTarget).Rotator();
 		TargetRotation.Pitch = 0.f;

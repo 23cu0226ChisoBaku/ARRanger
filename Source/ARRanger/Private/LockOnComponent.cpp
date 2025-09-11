@@ -58,6 +58,8 @@ void ULockOnComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 
 void ULockOnComponent::ToggleLockOn()
 {
+    UE_LOG(LogTemp, Warning, TEXT("Lock On Check"));
+
     // プレイヤーがいなければ処理しない
     if (!ownerPawn || !ownerController)
     {
@@ -66,22 +68,35 @@ void ULockOnComponent::ToggleLockOn()
 
     if (isLockedOn)
     {
-        // ロックオン解除
+        // ロックオンを解除
         lockedOnTarget = nullptr;
         isLockedOn = false;
+        UE_LOG(LogTemp, Warning, TEXT("LockOn: Unlocked"));
     }
     else
     {
-        // 最も近い敵を探してロックオン
         AEnemy_Zako* Candidate = FindNearestEnemy();
-        if (Candidate && IsTargetVisible(Candidate))
+        if (Candidate)
         {
-            lockedOnTarget = Candidate;
-            isLockedOn = true;
+            bool bVisible = IsTargetVisible(Candidate);
+            UE_LOG(LogTemp, Warning, TEXT("ToggleLockOn: Found enemy %s, Visible=%d"),
+                *Candidate->GetName(), bVisible);
+
+            if (bVisible)
+            {
+                // プレイヤーから見えていればロックオン開始
+                lockedOnTarget = Candidate;
+                isLockedOn = true;
+                UE_LOG(LogTemp, Warning, TEXT("LockOn: Locked on %s"), *Candidate->GetName());
+            }
+            else
+            {
+                UE_LOG(LogTemp, Warning, TEXT("LockOn: Candidate not visible"));
+            }
         }
         else
         {
-            UE_LOG(LogTemp, Warning, TEXT("LockOn: No visible enemy found to lock on."));
+            UE_LOG(LogTemp, Warning, TEXT("LockOn: No enemy found by FindNearestEnemy()"));
         }
     }
 }
