@@ -77,6 +77,7 @@ void ASpecialAttackAttractActor::Tick(float DeltaTime)
 			if(actorMeshComponent->IsSimulatingPhysics())
 			{
 				actorMeshComponent->SetSimulatePhysics(false);
+				m_ResetSimulatePhysicsActors.Add(actor);
 			}
 			actorMeshComponent->SetPhysicsLinearVelocity(FVector::ZeroVector);
 		}
@@ -136,6 +137,16 @@ void ASpecialAttackAttractActor::Destroyed()
 		/*吸引されているアクターを保持*/
 		removeActors.Add(actor);
 
+		/*一時的に物理をオン*/
+		UPrimitiveComponent* actorMeshComponent = actor->FindComponentByClass<UPrimitiveComponent>();
+		if(actorMeshComponent != nullptr)
+		{
+			if(actorMeshComponent->IsSimulatingPhysics())
+			{
+				actorMeshComponent->SetSimulatePhysics(true);
+			}
+		}
+
 		/*爆散させる*/
 		FVector explosionDirection = (actor->GetActorLocation() - GetActorLocation()).GetSafeNormal();
 		UPrimitiveComponent* meshComp = actor->FindComponentByClass<UPrimitiveComponent>();
@@ -155,6 +166,19 @@ void ASpecialAttackAttractActor::Destroyed()
 		if(InterfacePtr != nullptr)
 		{
 			InterfacePtr->OnEndSpecialAttractNotify();
+		}
+	}
+
+	/*物理シミュレートを変えたアクターの設定を戻す*/
+	for(AActor* actor : m_ResetSimulatePhysicsActors)
+	{
+		UPrimitiveComponent* actorMeshComponent = actor->FindComponentByClass<UPrimitiveComponent>();
+		if(actorMeshComponent != nullptr)
+		{
+			if(actorMeshComponent->IsSimulatingPhysics())
+			{
+				actorMeshComponent->SetSimulatePhysics(true);
+			}
 		}
 	}
 }

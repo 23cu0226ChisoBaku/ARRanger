@@ -52,4 +52,6 @@ private:
 
     UPROPERTY()
 	TArray<AActor*> m_PreviousDetectedActors;				/*吸い込み物を補完する*/
+	UPROPERTY()
+	TArray<AActor*> m_ResetSimulatePhysicsActors;			/*物理を解除したアクター保管用*/
 };
