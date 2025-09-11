@@ -193,7 +193,7 @@ public:
 
 	// ロックオンコンポーネント
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	ULockOnComponent* LockOnComponent;
+	TObjectPtr<ULockOnComponent> LockOnComponent;
 
 	// 引力クライム時のアニメーションモンタージュ
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gravity")

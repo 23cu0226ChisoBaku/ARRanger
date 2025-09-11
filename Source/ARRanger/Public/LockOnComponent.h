@@ -63,8 +63,10 @@ private:
     AEnemy_Zako* FindNearestEnemy(TWeakObjectPtr<AEnemy_Zako> IgnoreActor = nullptr);
 
     // プレイヤーのオーナー
+    UPROPERTY()
     APawn* ownerPawn;
 
     // プレイヤーのコントローラー
+    UPROPERTY()
     APlayerController* ownerController;
 };

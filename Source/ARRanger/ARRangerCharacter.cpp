@@ -138,11 +138,11 @@ void AARRangerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AARRangerCharacter::Look);
 
 		// ロックオン
-		EnhancedInputComponent->BindAction(LockOnAction, ETriggerEvent::Triggered, LockOnComponent, &ULockOnComponent::ToggleLockOn);
+		EnhancedInputComponent->BindAction(LockOnAction, ETriggerEvent::Triggered, LockOnComponent.Get(), &ULockOnComponent::ToggleLockOn);
 
 		// ターゲット切り替え(右、左)
-		EnhancedInputComponent->BindAction(SwitchTargetRightAction, ETriggerEvent::Triggered, LockOnComponent, &ULockOnComponent::SwitchTargetRight);
-		EnhancedInputComponent->BindAction(SwitchTargetLeftAction, ETriggerEvent::Triggered, LockOnComponent, &ULockOnComponent::SwitchTargetLeft);
+		EnhancedInputComponent->BindAction(SwitchTargetRightAction, ETriggerEvent::Triggered, LockOnComponent.Get(), &ULockOnComponent::SwitchTargetRight);
+		EnhancedInputComponent->BindAction(SwitchTargetLeftAction, ETriggerEvent::Triggered, LockOnComponent.Get(), &ULockOnComponent::SwitchTargetLeft);
 
 		// 攻撃(パンチ、キック)
 		// EnhancedInputComponent->BindAction(PunchAction, ETriggerEvent::Started, this, &AARRangerCharacter::Input_Punch);
