@@ -12,7 +12,6 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/Controller.h"
-#include "GA_Attack.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "InputActionValue.h"
@@ -23,6 +22,9 @@
 #include "NiagaraFunctionLibrary.h"
 #include "NiagaraSystem.h"
 #include "PunchCameraShake.h"
+#include "Player/ARPlayerState.h"
+
+#include "Pawn/ARPawnInitComponent.h"
 
 #include "MLibrary.h"
 
@@ -34,12 +36,7 @@ namespace
 }
 
 AARRangerCharacter::AARRangerCharacter()
-	: DefaultArmLength(250)
-	, DashArmLength(500)
-	, ArmLengthInterpSpeed(2.5f)
-	, dashStartThreshold(0.92f)
-	, dashEndThreshold(0.7f)
-	, currentClimbSurface(nullptr)
+	: currentClimbSurface(nullptr)
 	, isClimbed(false)
 	, Montage_AttractionClimb(nullptr)
 {
@@ -65,19 +62,13 @@ AARRangerCharacter::AARRangerCharacter()
 
 	// 各種コンポーネントを取得
 	LockOnComponent = CreateDefaultSubobject<ULockOnComponent>(TEXT("LockOnComponent"));
-	AbilitySystemComp = CreateDefaultSubobject<UAbilitySystemComponent>(TEXT("AbilitySystem"));
-	AbilitySystemComp->SetIsReplicated(true);
 	AttackBaseComp = CreateDefaultSubobject<UAttackBaseComponent>(TEXT("AttackBaseComponent"));
 }
 
-void AARRangerCharacter::EnsureLockOnComponent()
+void AARRangerCharacter::PostInitializeComponents()
 {
-	if (!LockOnComponent)
-	{
-		// BP 派生時など null の場合は動的生成
-		LockOnComponent = NewObject<ULockOnComponent>(this, TEXT("LockOnComponent"));
-		LockOnComponent->RegisterComponent(); // コンポーネントとして登録
-	}
+  Super::PostInitializeComponents();
+
 }
 
 void AARRangerCharacter::BeginPlay()
@@ -107,16 +98,13 @@ void AARRangerCharacter::BeginPlay()
   GetCapsuleComponent()->OnComponentEndOverlap.AddDynamic(this, &AARRangerCharacter::OnMagneticForceFieldEndOverlap);
   GetCapsuleComponent()->OnComponentHit.AddDynamic(this, &AARRangerCharacter::OnMagnetizedObjectHit);
 
-  if (GA_AttackClass && AbilitySystemComp)
+  // TODO Temporary
+  if (AARPlayerState* ARPS = GetPlayerState<AARPlayerState>())
   {
-	  // AbilitySystemComp に渡すためのSpecを作る
-	  FGameplayAbilitySpec PunchSpec(GA_PunchClass, 1, 0);
-	  PunchHandle = AbilitySystemComp->GiveAbility(PunchSpec);
-
-	  FGameplayAbilitySpec KickSpec(GA_KickClass, 1, 1);
-	  KickHandle = AbilitySystemComp->GiveAbility(KickSpec);
-
-	  AbilitySystemComp->InitAbilityActorInfo(this, this);
+    if (UARPawnInitComponent* PIC = ::Cast<UARPawnInitComponent>(GetComponentByClass(UARPawnInitComponent::StaticClass())))
+    {
+      PIC->InitializeAbilitySystem(ARPS->GetARAbilitySystemComponent(), ARPS); 
+    }
   }
 }
 
@@ -150,15 +138,15 @@ void AARRangerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AARRangerCharacter::Look);
 
 		// ロックオン
-		EnhancedInputComponent->BindAction(LockOnAction, ETriggerEvent::Triggered, LockOnComponent, &ULockOnComponent::ToggleLockOn);
+		EnhancedInputComponent->BindAction(LockOnAction, ETriggerEvent::Triggered, LockOnComponent.Get(), &ULockOnComponent::ToggleLockOn);
 
 		// ターゲット切り替え(右、左)
-		EnhancedInputComponent->BindAction(SwitchTargetRightAction, ETriggerEvent::Triggered, LockOnComponent, &ULockOnComponent::SwitchTargetRight);
-		EnhancedInputComponent->BindAction(SwitchTargetLeftAction, ETriggerEvent::Triggered, LockOnComponent, &ULockOnComponent::SwitchTargetLeft);
+		EnhancedInputComponent->BindAction(SwitchTargetRightAction, ETriggerEvent::Triggered, LockOnComponent.Get(), &ULockOnComponent::SwitchTargetRight);
+		EnhancedInputComponent->BindAction(SwitchTargetLeftAction, ETriggerEvent::Triggered, LockOnComponent.Get(), &ULockOnComponent::SwitchTargetLeft);
 
 		// 攻撃(パンチ、キック)
-		EnhancedInputComponent->BindAction(PunchAction, ETriggerEvent::Started, this, &AARRangerCharacter::Input_Punch);
-		EnhancedInputComponent->BindAction(KickInputAction, ETriggerEvent::Started, this, &AARRangerCharacter::Input_Kick);
+		// EnhancedInputComponent->BindAction(PunchAction, ETriggerEvent::Started, this, &AARRangerCharacter::Input_Punch);
+		// EnhancedInputComponent->BindAction(KickInputAction, ETriggerEvent::Started, this, &AARRangerCharacter::Input_Kick);
 		EnhancedInputComponent->BindAction(KickReleaseAction, ETriggerEvent::Completed, this, &AARRangerCharacter::Release_Kick);
 
 		// 変身
@@ -172,14 +160,17 @@ void AARRangerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 
 UAbilitySystemComponent* AARRangerCharacter::GetAbilitySystemComponent() const
 {
-	return AbilitySystemComp;
+  if (AARPlayerState* playerState = GetPlayerState<AARPlayerState>())
+  {
+    return playerState->GetAbilitySystemComponent();
+  }
+
+	return nullptr;
 }
 
 void AARRangerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
-	EnsureLockOnComponent();
 
 	// 入力値を取得
 	float InputMagnitude = 0.f;
@@ -198,35 +189,12 @@ void AARRangerCharacter::Tick(float DeltaTime)
 		}
 	}
 
-	// ヒステリシスを用いてダッシュ判定
-	if (!IsDashed && InputMagnitude > dashStartThreshold)
-	{
-		IsDashed = true;
-	}
-	else if (IsDashed && InputMagnitude < dashEndThreshold)
-	{
-		IsDashed = false;
-	}
-
-	bool isLockedOn = false;
-	if (LockOnComponent && IsValid(LockOnComponent))
-	{
-		isLockedOn = LockOnComponent->GetIsLockedOn();
-	}
-
-	AActor* Target = nullptr;
-	if (LockOnComponent && IsValid(LockOnComponent))
-	{
-		Target = LockOnComponent->GetLockedOnTarget();
-	}
+	bool isLockedOn = LockOnComponent->GetIsLockedOn();
+	AActor* Target = LockOnComponent->GetLockedOnTarget();
 
 	// ロックオン中に処理
 	if (isLockedOn && Target)
 	{
-		// デバッグログ
-		UE_LOG(LogTemp, Warning, TEXT("LockOn Tick: Target=%s at %s"),
-			*Target->GetName(), *Target->GetActorLocation().ToString());
-
 		FVector ToTarget = Target->GetActorLocation() - GetActorLocation();
 		FRotator TargetRotation = FRotationMatrix::MakeFromX(ToTarget).Rotator();
 		TargetRotation.Pitch = 0.f;
@@ -249,16 +217,8 @@ void AARRangerCharacter::Tick(float DeltaTime)
 	// 引力クライム中に処理
 	if (isClimbed)
 	{
-		// DoMoveが呼ばれない際はここで入力値を反映
-		/*const FVector Input = GetLastMovementInputVector();
-		if (UARRangerAnimInstance* MyAnim = Cast<UARRangerAnimInstance>(GetMesh()->GetAnimInstance()))
-		{
-			MyAnim->ClimbUpSpeed = Input.Y;
-			MyAnim->ClimbRightSpeed = Input.X;
-		}*/
 		const float ClimbSpeed = 700.0f; // 上昇速度
 		AddActorWorldOffset(FVector(0, 0, ClimbSpeed * DeltaTime), true);
-
 
 		// 壁回転処理
 		// 足元の位置（Capsuleの底の位置）
@@ -276,9 +236,6 @@ void AARRangerCharacter::Tick(float DeltaTime)
 		Params.AddIgnoredActor(this);
 
 		bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_Visibility, Params);
-
-		// デバッグラインで確認
-		//DrawDebugLine(GetWorld(), Start, End, bHit ? FColor::Green : FColor::Red, false, 0.1f, 0, 2.0f);
 
 		// ライントレースで壁を判定
 		// 壁がないか、または引力クライム中に斥力状態に変身したらクライムを解除
@@ -403,10 +360,6 @@ void AARRangerCharacter::DoMove(float Right, float Forward)
 			MyAnim->ClimbUpSpeed = Forward;
 			MyAnim->ClimbRightSpeed = Right;
 		}
-
-		// 壁に対して上下左右に動かす
-		//AddMovementInput(GetActorForwardVector(), Forward);
-		//AddMovementInput(GetActorRightVector(), Right);
 	}
 }
 
@@ -518,54 +471,12 @@ void AARRangerCharacter::DoJumpEnd()
 	StopJumping();
 }
 
-void AARRangerCharacter::Input_Punch()
-{
-	// GA_Punchがなければ処理しない
-	if (!GA_PunchClass)
-	{
-		UE_LOG(LogTemp, Error, TEXT("NO Punch Class!"));
-		return;
-	}
-	// 強攻撃・引き寄せ中は処理しない
-	if (isStrongAttacked || isAttracted)
-	{
-		return;
-	}
-
-	if (AbilitySystemComp && PunchHandle.IsValid())
-	{
-		AbilitySystemComp->TryActivateAbility(PunchHandle);
-	}
-}
-
-void AARRangerCharacter::Input_Kick()
-{
-	UE_LOG(LogTemp, Warning, TEXT("Kick Input!"));
-
-	// GA_Attackがなければ処理しない
-	if (!GA_AttackClass)
-	{
-		return;
-	}
-
-	// 強攻撃・引き寄せ中は処理しない
-	if (isStrongAttacked || isAttracted)
-	{
-		return;
-	}
-
-	if (AbilitySystemComp && KickHandle.IsValid())
-	{
-		AbilitySystemComp->TryActivateAbility(KickHandle);
-	}
-}
-
 void AARRangerCharacter::Release_Kick()
 {
-	if (GA_KickInstance)
-	{
-		GA_KickInstance->InputReleased();
-	}
+	// if (GA_KickInstance)
+	// {
+	// 	GA_KickInstance->InputReleased();
+	// }
 }
 
 void AARRangerCharacter::OnAttractionCompleted()
@@ -573,10 +484,10 @@ void AARRangerCharacter::OnAttractionCompleted()
 	// 引き寄せ完了フラグを立てる
 	SetIsApproachedEnemy(true);
 	UE_LOG(LogTemp, Warning, TEXT("Attraction Punch Start!"));
-	if (GA_PunchInstance)
-	{
-		GA_PunchInstance->StartPunch();
-	}
+	// if (GA_PunchInstance)
+	// {
+	// 	GA_PunchInstance->StartPunch();
+	// }
 }
 
 void AARRangerCharacter::OnDeadEnemy()
@@ -685,3 +596,40 @@ void AARRangerCharacter::OnNotifyAttackResult_Success(const ARRanger::Battle::FA
 
 #pragma endregion IARAttackerInterface implementation
 /**End IARAttackerInterface implementation */
+
+// TODO Temporary blueprint callable function 
+void AARRangerCharacter::OnPunchStarted()
+{
+  if (AttackBaseComp != nullptr)
+  {
+    AttackBaseComp->SetIsAttacked(false);
+    AttackBaseComp->SetIsStrongAttacked(false);
+    AttackBaseComp->SetIsAttractingEnemy(false);
+
+    AttackBaseComp->RotateOwnerToTarget();
+
+    if (GetIsApproachedEnemy())
+    {
+      UE_LOG(LogTemp, Warning, TEXT("AttractionPunch"))
+      AttackBaseComp->SetIsAttacked(true);
+      SetIsAttracted(false);
+      SetIsApproachedEnemy(false);
+
+      return;
+    }
+
+    if (GetMagnetismType() == EARMagnetismType::Attraction && GetIsLockedOn() && !GetIsAttracted())
+    {
+      // TODO
+    }
+
+    if (bIsInComboWindow)
+    {
+      const int32 MaxCombo = 3;
+      if (GetComboCount() < MaxCombo - 1)
+      {
+
+      }
+    }
+  }
+}

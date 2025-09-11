@@ -19,7 +19,6 @@ void UGA_Punch::ActivateAbility(
 {
     if (AARRangerCharacter* Char = Cast<AARRangerCharacter>(GetOwningActorFromActorInfo()))
     {
-        Char->GA_PunchInstance = this;
         attackBaseComp = Char->AttackBaseComp;
     }  
     attackBaseComp->SetIsAttacked(false);

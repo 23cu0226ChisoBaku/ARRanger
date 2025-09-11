@@ -19,15 +19,32 @@ class UARGameplayAbilityBase : public UGameplayAbility
 public:
   UARGameplayAbilityBase();
 
-  void SetAbilityCancelable();
+  UE_API void SetAbilityCancelable();
   
-  void SetAbilityBlock();
+  UE_API void SetAbilityBlock();
 
-  bool GetAbilityCancelable() const { return bCanCancel; }
+  UE_API bool IsAbilityCancelable() const;
 
-private:
-  UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-  bool bCanCancel;
+  UE_API bool IsAssociatedWithTag(const FGameplayTag& InTag) const;
+
+  UE_API virtual void ForceCancelAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateCancelAbility, bool bForceCancel = false);
+  /**Start UObject Interface */
+  UE_API virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+  /**End UObject Interface */
+
+  /**Start UGameplayAbility Interface */
+  UE_API virtual bool CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags = nullptr, const FGameplayTagContainer* TargetTags = nullptr, OUT FGameplayTagContainer* OptionalRelevantTags = nullptr) const override;
+  /**End UGameplayAbility Interface */
+
+public:
+  UPROPERTY(EditDefaultsOnly, meta = (DisplayName = "Cancelable from beginning"))
+  bool bCancelableAfterActivate = true;
+
+  UPROPERTY(EditDefaultsOnly)
+  bool bNeedActivateCondition;
+
+  UPROPERTY(EditDefaultsOnly, meta = (EditCondition = "bNeedActivateCondition == true", EditConditionHides, DisplayName = "Condition Tag"))
+  FGameplayTag ActivateConditionTag;
 	
 };
 

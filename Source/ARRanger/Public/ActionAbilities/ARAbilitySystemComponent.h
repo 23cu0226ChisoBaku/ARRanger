@@ -10,6 +10,11 @@
 
 #define UE_API ARRANGER_API
 
+struct FARAbilityInputProcessParameter
+{
+  float DeltaTime = 0.0f;
+  bool bGamePaused = false;
+};
 
 /**
  * 
@@ -21,6 +26,7 @@ class UARAbilitySystemComponent : public UAbilitySystemComponent
 
 public:
 
+  UE_API UARAbilitySystemComponent(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
   /**
    * @brief 現在のアビリティがキャンセルできることを通知する
    */
@@ -31,12 +37,32 @@ public:
    */
   UE_API void NotifyAbilityBlock();
 
+  /**
+   * @brief アビリティ入力を処理
+   * @param InputProcessParam インプット処理パラメータ
+   * @see   FARAbilityInputProcessParameter
+   */
+  UE_API void ProcessAbilityInputs(const FARAbilityInputProcessParameter& InInputProcessParam);
+
+  UE_API void AbilityInputTagPressed(const FGameplayTag& InTag);
+  UE_API void AbilityInputTagReleased(const FGameplayTag& InTag);
 
   UE_API static UARAbilitySystemComponent* FindARAbilitySystemComponent(AActor* InActor);
 
-private:
-  UE_API static UAbilitySystemComponent* FindAbilitySystemComponentImpl(AActor* InActor);
+  UE_API void ClearAbilityInputStates();
 
+private:
+
+  static UAbilitySystemComponent* FindAbilitySystemComponentImpl(AActor* InActor);
+
+
+private:
+
+  TArray<FGameplayAbilitySpecHandle> m_inputPressedSpecHandles;
+
+  TArray<FGameplayAbilitySpecHandle> m_inputReleasedSpecHandles;
+
+  TArray<FGameplayAbilitySpecHandle> m_inputHeldSpecHandles;
 };
 
 
