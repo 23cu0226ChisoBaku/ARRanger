@@ -6,7 +6,7 @@
 #include "GameFramework/GameplayCameraComponent.h"
 #include "GameFramework/PlayerController.h"
 #include "SpecialAttackAttractActor.h"
-
+#include "HitStopHelper.h"
 #include "GameFramework/Character.h"
 
 UAttractSpecialAttackComponent::UAttractSpecialAttackComponent()
@@ -33,7 +33,10 @@ void UAttractSpecialAttackComponent::TickComponent(float DeltaTime, ELevelTick T
 			ResetParameter();
 		}
 
-		m_GenerateArractActor->Destroy();
+		if(m_GenerateArractActor != nullptr)
+		{
+			m_GenerateArractActor->Destroy();
+		}
 	}
 }
 
@@ -44,11 +47,11 @@ void UAttractSpecialAttackComponent::OnStartSpecialAttract()
 {
 	m_IsGenerateAttract = true;
 
-	/*引き寄せるアクターを生成*/
-	GenerateAttractActor();
-
 	/*キックする方向を取得*/
 	m_kickDirection = FVector(GetPlayerCameraRotation().X, GetPlayerCameraRotation().Y, 0.0f).GetSafeNormal();
+
+	/*引き寄せるアクターを生成*/
+	GenerateAttractActor();
 
 	/*指定した時間後キック！*/
 	FTimerDelegate TimerDelegate;
@@ -87,8 +90,7 @@ void UAttractSpecialAttackComponent::GenerateAttractActor()
 {
 	/*ライントレースの始点と終点*/
 	FVector startLocation = GetOwner()->GetActorLocation();
-	FVector generateDirection = FVector(GetPlayerCameraRotation().X, GetPlayerCameraRotation().Y, 0.0f).GetSafeNormal();
-	FVector endLocation = startLocation + generateDirection * m_GenerateDistance;
+	FVector endLocation = startLocation + m_kickDirection * m_GenerateDistance;
 
 	FHitResult hitResult;
 	FCollisionQueryParams params;
@@ -107,7 +109,7 @@ void UAttractSpecialAttackComponent::GenerateAttractActor()
 	FVector generatLocation;
 	if(bHit)
 	{
-		generatLocation = hitResult.Location - m_OffsetGenerateDistance;
+		generatLocation = hitResult.Location - m_OffsetGenerateDistance * m_kickDirection;
 	}
 	else
 	{
@@ -209,8 +211,6 @@ void UAttractSpecialAttackComponent::SpecialFinishKick(float deltaTime)
 	else
 	{
 		FVector addLocation = hitResult.Location - GetOwner()->GetActorLocation();
-		if(GEngine) GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green,FString::Printf(TEXT("addLocation: %s"), *addLocation.ToString()));
-
 		newLocation = GetOwner()->GetActorLocation() + addLocation -m_OffsetKickPosition * m_kickDirection;
 	}
 	GetOwner()->SetActorLocation(newLocation);

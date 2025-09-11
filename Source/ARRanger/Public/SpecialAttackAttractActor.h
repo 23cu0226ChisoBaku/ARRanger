@@ -18,9 +18,6 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	virtual void Destroyed() override;
 
-	UFUNCTION()
-    void OnOverlapBegin(AActor* overlappedActor, AActor* otherActor);
-
 	/**
 	 * @brief 吸引しているアクターを取得する関数
 	 * 

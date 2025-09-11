@@ -17,7 +17,6 @@ void ASpecialAttackAttractActor::BeginPlay()
 {
 	Super::BeginPlay();
 	OnStartSpecialAttractNotify();
-	OnActorBeginOverlap.AddDynamic(this, &ASpecialAttackAttractActor::OnOverlapBegin);
 }
 
 void ASpecialAttackAttractActor::Tick(float DeltaTime)
@@ -61,10 +60,12 @@ void ASpecialAttackAttractActor::Tick(float DeltaTime)
 		/*吸引しているアクターを保持(重複なし)*/
 		if(!m_PreviousDetectedActors.Contains(actor))
 		{
+			m_PreviousDetectedActors.Add(actor);
+
 			ISpecialAttractInterface* InterfacePtr = Cast<ISpecialAttractInterface>(actor);
 			if(InterfacePtr != nullptr)
 			{
-				m_PreviousDetectedActors.Add(actor);
+				/*吸引したアクターに対して通知*/
 				InterfacePtr->OnStartSpecialAttractNotify();
 			}
 		}
@@ -113,7 +114,7 @@ void ASpecialAttackAttractActor::Tick(float DeltaTime)
 #endif
 	}
     
-#if WITH_EDITOR
+#if false
 	::DrawDebugSphere
 	(
 		GetWorld(),
@@ -129,27 +130,32 @@ void ASpecialAttackAttractActor::Tick(float DeltaTime)
 
 void ASpecialAttackAttractActor::Destroyed()
 {
+	TArray<AActor*> removeActors;
 	for(AActor* actor : m_PreviousDetectedActors)
 	{
-		/*吸引されているアクターを解除・またそのアクターに通知*/
-		ISpecialAttractInterface* InterfacePtr = Cast<ISpecialAttractInterface>(actor);
-		if(InterfacePtr != nullptr)
-		{
-			m_PreviousDetectedActors.Remove(actor);
-			InterfacePtr->OnEndSpecialAttractNotify();
-		}
+		/*吸引されているアクターを保持*/
+		removeActors.Add(actor);
 
 		/*爆散させる*/
 		FVector explosionDirection = (actor->GetActorLocation() - GetActorLocation()).GetSafeNormal();
 		UPrimitiveComponent* meshComp = actor->FindComponentByClass<UPrimitiveComponent>();
 		if(meshComp != nullptr)
 		{
+			//if(GEngine) GEngine->AddOnScreenDebugMessage(-1, 20.f, FColor::Red,FString::Printf(TEXT("Explosion Power : %s"), *(explosionDirection * m_ExplosionPower).ToString()));
 			meshComp->AddImpulse(explosionDirection * m_ExplosionPower);
+		}
+	}
+
+	/*吸引されているアクターを解除・またそのアクターに通知*/
+	for(AActor* actor : removeActors)
+	{
+		m_PreviousDetectedActors.Remove(actor);
+
+		ISpecialAttractInterface* InterfacePtr = Cast<ISpecialAttractInterface>(actor);
+		if(InterfacePtr != nullptr)
+		{
+			InterfacePtr->OnEndSpecialAttractNotify();
 		}
 	}
 }
 
-void ASpecialAttackAttractActor::OnOverlapBegin(AActor* OverlappedActor, AActor* OtherActor)
-{
-	
-}
