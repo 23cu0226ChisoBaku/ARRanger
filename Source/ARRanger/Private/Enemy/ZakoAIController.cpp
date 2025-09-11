@@ -65,6 +65,26 @@ void AZakoAIController::BeginPlay()
 	}
 }
 
+void AZakoAIController::OnPossess(APawn* InPawn)
+{
+	Super::OnPossess(InPawn);
+
+	if (BehaviorTreeAsset && BlackboardAsset)
+	{
+		UBlackboardComponent* BB = nullptr;
+		if (UseBlackboard(BlackboardAsset, BB))
+		{
+			RunBehaviorTree(BehaviorTreeAsset);
+
+			if (AEnemy_Zako* Zako = Cast<AEnemy_Zako>(InPawn))
+			{
+				BB->SetValueAsFloat(TEXT("PreferredDistance"), Zako->PreferredDistance);
+				UE_LOG(LogTemp, Warning, TEXT("PreferredDistance set to %f"), Zako->PreferredDistance);
+			}
+		}
+	}
+}
+
 void AZakoAIController::StopChasing()
 {
 	// 3秒経過後、ブラックボードの情報をクリアして追跡を停止
