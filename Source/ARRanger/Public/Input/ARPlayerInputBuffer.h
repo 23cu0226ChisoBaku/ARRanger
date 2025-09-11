@@ -34,11 +34,15 @@ public:
 
   UE_API bool IsInputBufferValid(const FGameplayTag& InInputTag) const;
 
+  UE_API void ClearAllInputs();
+
 private:
 
   void InputBuffer_AbilityInputTagPressed(FGameplayTag InInputTag);
 
   void InputBuffer_AbilityInputTagReleased(FGameplayTag InInputTag);
+
+  void ConsumeBuffer(const FGameplayTag& InInputTag);
 
 private:
 
@@ -52,6 +56,8 @@ private:
   TObjectPtr<UARInputComponent> InputComponent;
 
   TMap<FGameplayTag, float> m_inputTagBuffers;
+
+  TArray<FGameplayTag> m_removeTags;
 
   TArray<uint32> m_bindHandles;
 	

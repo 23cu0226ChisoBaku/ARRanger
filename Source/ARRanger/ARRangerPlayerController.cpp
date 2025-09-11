@@ -40,6 +40,14 @@ void AARRangerPlayerController::PostProcessInput(const float DeltaTime, const bo
     ASC->ProcessAbilityInputs(inputProcessParam);
   }
 
+  if (CurrentIMC != nullptr)
+  {
+    if (GEngine)
+    {
+      GEngine->AddOnScreenDebugMessage(-1, .5f, FColor::Green, CurrentIMC->GetName());
+    }
+  }
+
 }
 
 void AARRangerPlayerController::OnPossess(APawn* InPawn)
@@ -92,16 +100,22 @@ void AARRangerPlayerController::OnGameplayAbilityEnd(bool bWasCanceled)
 
 void AARRangerPlayerController::SwitchNextIMC(const FGameplayTag& InNextIMCTag)
 {
-  UInputMappingContext* defaultIMC = InputMappingContext->FindIMCWithTag(InNextIMCTag);
-  if (defaultIMC != nullptr && CurrentIMC != defaultIMC)
+  UInputMappingContext* nextIMC = InputMappingContext->FindIMCWithTag(InNextIMCTag);
+  if (nextIMC != nullptr && CurrentIMC != nextIMC)
   {
     UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer());
     if (Subsystem != nullptr)
     {
       Subsystem->RemoveMappingContext(CurrentIMC);
-      Subsystem->AddMappingContext(defaultIMC, 0);
+      Subsystem->AddMappingContext(nextIMC, 0);
   
-      CurrentIMC = defaultIMC;
+      CurrentIMC = nextIMC;
+
+      // Clear input buffer
+      if (InputBuffer != nullptr)
+      {
+        InputBuffer->ClearAllInputs();
+      }
     }
   }
 }
@@ -152,6 +166,7 @@ void AARRangerPlayerController::AbilityInputTagPressed(FGameplayTag InInputTag)
       ARASC->AbilityInputTagPressed(InInputTag);
     }
   }
+
 }
 
 void AARRangerPlayerController::AbilityInputTagReleased(FGameplayTag InInputTag)

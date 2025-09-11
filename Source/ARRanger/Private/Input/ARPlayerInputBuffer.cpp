@@ -58,26 +58,41 @@ void UARPlayerInputBuffer::EvaluateBuffer(const AARRangerPlayerController* InPla
     UARAbilitySystemComponent* ARASC = InPlayerController->GetARASC();
     if (ARASC != nullptr)
     {
-      for (auto& [ inputBufferTag , bufferLeftTime] : m_inputTagBuffers)
+      for (auto& [ inputBufferTag , bufferLeftTime ] : m_inputTagBuffers)
       {
-        // Ignore invalid buffer
-        if (bufferLeftTime <= 0.0f)
-        {
-          continue;
-        }
-
         bufferLeftTime -= DeltaTime;
         
         // Buffer is valid, count it as active input in current frame
         if (bufferLeftTime > 0.0f)
         {
           ARASC->AbilityInputTagPressed(inputBufferTag);
-          bufferLeftTime = 0.0f;
+          ConsumeBuffer(inputBufferTag);
         }
         else
         {
-          ARASC->AbilityInputTagReleased(inputBufferTag);
+          m_removeTags.AddUnique(inputBufferTag);
         }
+        
+        if (GEngine)
+        {
+          GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, inputBufferTag.ToString());
+        }
+      }
+
+
+      // Remove expired buffer
+      if (m_removeTags.Num() > 0)
+      {
+        for (const auto& removeTag : m_removeTags)
+        {
+          if (m_inputTagBuffers.Contains(removeTag))
+          {
+            ARASC->AbilityInputTagReleased(removeTag);
+            m_inputTagBuffers.Remove(removeTag);
+          }
+        }
+  
+        m_removeTags.Reset();
       }
     }
   }
@@ -86,6 +101,15 @@ void UARPlayerInputBuffer::EvaluateBuffer(const AARRangerPlayerController* InPla
 bool UARPlayerInputBuffer::IsInputBufferValid(const FGameplayTag& InInputTag) const
 {
   return m_inputTagBuffers.Contains(InInputTag) ? (m_inputTagBuffers[InInputTag] > 0.0f) : false;
+}
+
+void UARPlayerInputBuffer::ClearAllInputs()
+{
+  for (const auto& [ bufferInputTag, _ ] : m_inputTagBuffers)
+  {
+    ConsumeBuffer(bufferInputTag);
+  }
+
 }
 
 void UARPlayerInputBuffer::InputBuffer_AbilityInputTagPressed(FGameplayTag InInputTag)
@@ -107,4 +131,14 @@ void UARPlayerInputBuffer::InputBuffer_AbilityInputTagPressed(FGameplayTag InInp
 void UARPlayerInputBuffer::InputBuffer_AbilityInputTagReleased(FGameplayTag InInputTag)
 {
   // TODO Maybe we should implement something
+  ConsumeBuffer(InInputTag);
+}
+
+void UARPlayerInputBuffer::ConsumeBuffer(const FGameplayTag& InInputTag)
+{
+  // TODO Do not remove element here
+  if (m_inputTagBuffers.Contains(InInputTag))
+  {
+    m_inputTagBuffers[InInputTag] = 0.0f;
+  }
 }

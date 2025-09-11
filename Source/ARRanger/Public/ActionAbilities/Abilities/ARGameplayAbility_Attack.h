@@ -78,7 +78,6 @@ private:
 
   UPROPERTY(EditDefaultsOnly, Category = "Ability|Attack", meta = (ClampMin = -180, ClampMax = 180, EditCondition = "bClampKnockbackAngle == true", EditConditionHides))
   float KnockbackAngleRangeMin;
-
 };
 
 #undef UE_API

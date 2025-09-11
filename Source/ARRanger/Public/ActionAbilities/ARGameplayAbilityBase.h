@@ -25,6 +25,8 @@ public:
 
   UE_API bool IsAbilityCancelable() const;
 
+  UE_API bool IsAssociatedWithTag(const FGameplayTag& InTag) const;
+
   UE_API virtual void ForceCancelAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateCancelAbility, bool bForceCancel = false);
   /**Start UObject Interface */
   UE_API virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
@@ -37,6 +39,12 @@ public:
 public:
   UPROPERTY(EditDefaultsOnly, meta = (DisplayName = "Cancelable from beginning"))
   bool bCancelableAfterActivate = true;
+
+  UPROPERTY(EditDefaultsOnly)
+  bool bNeedActivateCondition;
+
+  UPROPERTY(EditDefaultsOnly, meta = (EditCondition = "bNeedActivateCondition == true", EditConditionHides, DisplayName = "Condition Tag"))
+  FGameplayTag ActivateConditionTag;
 	
 };
 

@@ -172,6 +172,8 @@ void UARGameplayAbility_Attack::ActivateAbility(
 {
   Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
+  UE_LOG(LogTemp, Error, TEXT("Activate [%s]."), *GetAssetTags().ToString());
+
   OnAttackAbilityActivated();
 }
 
@@ -195,6 +197,7 @@ void UARGameplayAbility_Attack::OnAttackAbilityActivated()
     animInst->Montage_Play(AttackMontage);
     animInst->OnMontageEnded.AddUniqueDynamic(this, &UARGameplayAbility_Attack::OnAttackMontageEnded);
   }
+
 }
 
 void UARGameplayAbility_Attack::OnAttackAbilityEnded(bool bWasCancelled)
@@ -202,15 +205,25 @@ void UARGameplayAbility_Attack::OnAttackAbilityEnded(bool bWasCancelled)
   UAnimInstance* animInst = FindAnimInstanceOnAvatar();
   if (animInst != nullptr)
   {
+    if (!bWasCancelled)
+    {
+      // TODO 意味不明
+      animInst->Montage_Stop(0.15f, AttackMontage);
+    }
     animInst->OnMontageEnded.RemoveDynamic(this, &UARGameplayAbility_Attack::OnAttackMontageEnded);
+  }
+  else
+  {
+    UE_LOG(LogTemp, Error, TEXT("Anim instance is null"));
   }
 }
 
 void UARGameplayAbility_Attack::OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted)
 {
-  // Force to cancel ability if montage ended
-  const bool bForceCancel = true;
-  ForceCancelAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, bForceCancel);
+  if (AttackMontage == Montage)
+  {
+    EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, bInterrupted);
+  }
 }
 
 UAnimInstance* UARGameplayAbility_Attack::FindAnimInstanceOnAvatar() const

@@ -98,7 +98,50 @@ void UARAbilitySystemComponent::ProcessAbilityInputs(const FARAbilityInputProces
   // Activate abilities from held and pressed
   for (const FGameplayAbilitySpecHandle& abilitySpecHandleToActivate : s_abilitiesToActivate)
   {
+    FGameplayAbilitySpec* abilitySpec = FindAbilitySpecFromHandle(abilitySpecHandleToActivate);
+    // Check Activation Condition
+    if (UARGameplayAbilityBase* ARGA = ::Cast<UARGameplayAbilityBase>(abilitySpec->Ability))
+    {
+      if (ARGA->bNeedActivateCondition)
+      {
+        bool bCanActivate = false;
+        const TArray<FGameplayAbilitySpec>& activatableAbilities = GetActivatableAbilities();
+        for (const FGameplayAbilitySpec& conditionAbilitySpec : activatableAbilities)
+        {
+          if ((conditionAbilitySpec.Ability == nullptr) || (conditionAbilitySpec.Ability->GetClass() == ARGA->GetClass()) || !conditionAbilitySpec.IsActive())
+          {
+            continue;
+          }
+
+          // FIXME Only use one Tag to check association
+          if (ARGA->IsAssociatedWithTag(conditionAbilitySpec.Ability->GetAssetTags().First()))
+          {            
+            // TODO if this dont work, Use InstancedPerActor
+            // FIXME Force to cancel all GA that even not implemented UARGameplayAbilityBase
+            UGameplayAbility* conditionGAPrimaryInst = conditionAbilitySpec.GetPrimaryInstance();
+            if ((conditionGAPrimaryInst != nullptr) && conditionGAPrimaryInst->CanBeCanceled())
+            {
+              // TODO Cancel any ability
+              CancelAbility(conditionAbilitySpec.Ability);
+              bCanActivate = true;
+              if (GEngine)
+              {
+                GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, conditionAbilitySpec.Ability->GetName());
+              }
+              break;
+            }
+          }       
+        }
+
+        if (!bCanActivate)
+        {
+          continue;
+        }
+      }
+    }
+
     TryActivateAbility(abilitySpecHandleToActivate);
+    
   }
 
   // Process abilities that input released this frame
@@ -130,7 +173,7 @@ void UARAbilitySystemComponent::AbilityInputTagPressed(const FGameplayTag& InTag
   {
     if ((abilitySpec.Ability != nullptr))
     {
-      if (abilitySpec.Ability->AbilityTags.HasTagExact(InTag))
+      if (abilitySpec.Ability->GetAssetTags().HasTagExact(InTag))
       {
         m_inputPressedSpecHandles.AddUnique(abilitySpec.Handle);
         m_inputHeldSpecHandles.AddUnique(abilitySpec.Handle);
@@ -152,7 +195,7 @@ void UARAbilitySystemComponent::AbilityInputTagReleased(const FGameplayTag& InTa
     
     if ((abilitySpec.Ability != nullptr))
     {
-      if (abilitySpec.Ability->AbilityTags.HasTagExact(InTag))
+      if (abilitySpec.Ability->GetAssetTags().HasTagExact(InTag))
       {
         m_inputPressedSpecHandles.AddUnique(abilitySpec.Handle);
         m_inputHeldSpecHandles.Remove(abilitySpec.Handle);

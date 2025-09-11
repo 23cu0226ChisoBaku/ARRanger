@@ -40,6 +40,11 @@ bool UARGameplayAbilityBase::IsAbilityCancelable() const
   return CanBeCanceled();
 }
 
+bool UARGameplayAbilityBase::IsAssociatedWithTag(const FGameplayTag& InTag) const
+{
+  return ActivateConditionTag.MatchesTagExact(InTag); 
+}
+
 void UARGameplayAbilityBase::ForceCancelAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateCancelAbility, bool bForceCancel)
 {
   if (bForceCancel)
@@ -52,8 +57,7 @@ void UARGameplayAbilityBase::ForceCancelAbility(const FGameplayAbilitySpecHandle
 
 bool UARGameplayAbilityBase::CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags, const FGameplayTagContainer* TargetTags, OUT FGameplayTagContainer* OptionalRelevantTags) const
 {
-  const bool bCanActivate =  Super::CanActivateAbility(Handle, ActorInfo, SourceTags, TargetTags, OptionalRelevantTags)
-                          && IsAbilityCancelable();
+  const bool bCanActivate =  Super::CanActivateAbility(Handle, ActorInfo, SourceTags, TargetTags, OptionalRelevantTags);
 
   return bCanActivate;
 }

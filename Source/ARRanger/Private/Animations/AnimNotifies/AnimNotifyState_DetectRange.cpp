@@ -287,7 +287,21 @@ void UAnimNotifyState_DetectRange::NotifyAbility(USkeletalMeshComponent* MeshCom
         {
           if (IARGameplayAbilityNotifyInterface* notifyInterface = ::Cast<IARGameplayAbilityNotifyInterface>(activatableAbility.GetPrimaryInstance()))
           {
-            notifyInterface->GANotify_ActorArray(MeshComp, Animation, result.DetectedActors);
+            TArray<FGANotify_ImpactResult> impactResults{};
+
+            for (const auto& detectedActor : result.DetectedActors)
+            {
+              FGANotify_ImpactResult impactResult{
+                .SourceActor = MeshComp->GetOwner(),
+                .HitActor = detectedActor,
+                .OccurrenceComp = RDC,
+                .ImpactLocation = RDC->GetComponentLocation()
+              };
+
+              impactResults.Emplace(impactResult);
+            }
+            
+            notifyInterface->GANotify_ImpactResult(MeshComp, Animation, impactResults);
           }
         }
       }
