@@ -196,8 +196,29 @@ void AARRangerCharacter::Tick(float DeltaTime)
 		IsDashed = false;
 	}
 
-	bool isLockedOn = LockOnComponent->GetIsLockedOn();
-	AActor* Target = LockOnComponent->GetLockedOnTarget();
+	if (!LockOnComponent)
+	{
+		UE_LOG(LogTemp, Error, TEXT("LockOnComponent is NULL"));
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("LockOnComponent ptr=%p name=%s"),
+			LockOnComponent, *GetNameSafe(LockOnComponent));
+	}
+
+	bool isLockedOn = false;
+	if (LockOnComponent && IsValid(LockOnComponent))
+	{
+		isLockedOn = LockOnComponent->GetIsLockedOn();
+	}
+	//bool isLockedOn = LockOnComponent->GetIsLockedOn();
+	//AActor* Target = LockOnComponent->GetLockedOnTarget();
+
+	AActor* Target = nullptr;
+	if (LockOnComponent && IsValid(LockOnComponent))
+	{
+		Target = LockOnComponent->GetLockedOnTarget();
+	}
 
 	// ロックオン中に処理
 	if (isLockedOn && Target)

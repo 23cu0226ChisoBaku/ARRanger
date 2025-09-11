@@ -235,7 +235,7 @@ public:
 	bool IsDashed;
 
 	// ロックオンコンポーネント
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	ULockOnComponent* LockOnComponent;
 
 	// 引力クライム時のアニメーションモンタージュ

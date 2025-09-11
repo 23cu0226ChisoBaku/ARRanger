@@ -86,3 +86,15 @@ void AEnemy_Zako::OnPostAttacked(const FARAttackParameters& InAttackParams)
     //ヒットエフェクトやSEをここで再生
 
 }
+
+void AEnemy_Zako::StartAttraction(AActor* Target)
+{
+    attractionTarget = Target;
+    bIsAttracted = true;
+}
+
+void AEnemy_Zako::StopAttraction()
+{
+    bIsAttracted = false;
+    attractionTarget = nullptr;
+}

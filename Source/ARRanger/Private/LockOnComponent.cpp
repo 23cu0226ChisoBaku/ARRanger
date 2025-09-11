@@ -1,6 +1,6 @@
 #include "LockOnComponent.h"
 
-#include "Enemy.h"
+#include "Enemy/Enemy_Zako.h"
 #include "Kismet/GameplayStatics.h"
 
 ULockOnComponent::ULockOnComponent()
@@ -28,7 +28,7 @@ void ULockOnComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
 	// ロックオン中に処理
-	if (isLockedOn && lockedOnTarget)
+	if (isLockedOn && lockedOnTarget.IsValid())
 	{
 		if (!IsTargetVisible(lockedOnTarget))
 		{
@@ -38,9 +38,9 @@ void ULockOnComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 		}
 
         // ロックオン中の敵が死んだら処理
-        if (!IsValid(lockedOnTarget) || lockedOnTarget->isDead)
+        if (!lockedOnTarget.IsValid() || lockedOnTarget->isDead)
         {
-            AEnemy* NewTarget = FindNearestEnemy(lockedOnTarget);
+            AEnemy_Zako* NewTarget = FindNearestEnemy(lockedOnTarget);
             // 新しくターゲットを設定
             if (NewTarget)
             {
@@ -73,7 +73,7 @@ void ULockOnComponent::ToggleLockOn()
     else
     {
         // 最も近い敵を探してロックオン
-        AEnemy* Candidate = FindNearestEnemy();
+        AEnemy_Zako* Candidate = FindNearestEnemy();
         if (Candidate && IsTargetVisible(Candidate))
         {
             lockedOnTarget = Candidate;
@@ -99,7 +99,7 @@ void ULockOnComponent::SwitchTargetLeft()
 void ULockOnComponent::SwitchTarget(bool bRight)
 {
     // ロックオン中でない、またはプレイヤーがいなければ処理しない
-    if (!isLockedOn || !lockedOnTarget || !ownerPawn)
+    if (!isLockedOn || !lockedOnTarget.IsValid() || !ownerPawn)
     {
         return;
     }
@@ -147,7 +147,7 @@ void ULockOnComponent::SwitchTarget(bool bRight)
         float Distance = FVector::Dist(MyLocation, Candidate->GetActorLocation());
         if (Distance <= maxLockOnDistance && IsTargetVisible(Candidate))
         {
-            lockedOnTarget = Cast<AEnemy>(Candidate);
+            lockedOnTarget = Cast<AEnemy_Zako>(Candidate);
             return;
         }
 
@@ -155,7 +155,7 @@ void ULockOnComponent::SwitchTarget(bool bRight)
     }
 }
 
-AEnemy* ULockOnComponent::FindNearestEnemy(AActor* IgnoreActor)
+AEnemy_Zako* ULockOnComponent::FindNearestEnemy(TWeakObjectPtr<AEnemy_Zako> IgnoreActor)
 {
     // プレイヤーがいなければ処理しない
     if (!ownerPawn)
@@ -167,7 +167,7 @@ AEnemy* ULockOnComponent::FindNearestEnemy(AActor* IgnoreActor)
     TArray<AActor*> Enemies;
     UGameplayStatics::GetAllActorsWithTag(GetWorld(), enemyTag, Enemies);
 
-    AEnemy* NearestEnemy = nullptr;
+    AEnemy_Zako* NearestEnemy = nullptr;
     float MinDistSq = FLT_MAX;
     FVector MyLocation = ownerPawn->GetActorLocation();
     float MaxDistSq = maxLockOnDistance * maxLockOnDistance;
@@ -183,17 +183,17 @@ AEnemy* ULockOnComponent::FindNearestEnemy(AActor* IgnoreActor)
         if (DistSq <= MaxDistSq && DistSq < MinDistSq && IsTargetVisible(Enemy))
         {
             MinDistSq = DistSq;
-            NearestEnemy = Cast<AEnemy>(Enemy);
+            NearestEnemy = Cast<AEnemy_Zako>(Enemy);
         }
     }
 
     return NearestEnemy;
 }
 
-bool ULockOnComponent::IsTargetVisible(AActor* Target)
+bool ULockOnComponent::IsTargetVisible(TWeakObjectPtr<AActor> Target)
 {
     // ターゲットまたはプレイヤーがいなければ処理しない
-    if (!Target || !ownerController)
+    if (!Target.IsValid() || !ownerController)
     {
         return false;
     }
@@ -209,7 +209,7 @@ bool ULockOnComponent::IsTargetVisible(AActor* Target)
     FCollisionQueryParams Params;
     // プレイヤー自身とターゲットは無視
     Params.AddIgnoredActor(GetOwner());
-    Params.AddIgnoredActor(Target);
+    Params.AddIgnoredActor(Target.Get());
 
     bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, ViewLocation, TargetLocation, ECC_Visibility, Params);
 

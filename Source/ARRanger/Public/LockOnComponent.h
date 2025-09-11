@@ -2,7 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
-#include "Enemy.h"
+#include "Enemy/Enemy_Zako.h"
 
 #include "LockOnComponent.generated.h"
 
@@ -23,7 +23,7 @@ public:
     void ToggleLockOn();
 
     // 敵がプレイヤーから見えているか判定
-    bool IsTargetVisible(AActor* Target);
+    bool IsTargetVisible(TWeakObjectPtr<AActor> Target);
 
     // ターゲット切り替え(右)
     UFUNCTION(BlueprintCallable)
@@ -34,11 +34,14 @@ public:
     void SwitchTargetLeft();
 
     // ターゲットを取得
-    UFUNCTION(BlueprintPure)
-    AActor* GetLockedOnTarget() const { return lockedOnTarget; }
+    UPROPERTY()
+    TWeakObjectPtr<AEnemy_Zako> lockedOnTarget;
 
     // ロックオン中フラグを取得
     bool GetIsLockedOn() { return isLockedOn; }
+
+    // ロックオン中の敵を取得
+    AEnemy_Zako* GetLockedOnTarget() const { return lockedOnTarget.IsValid() ? lockedOnTarget.Get() : nullptr; }
 
 protected:
     // ロックオン可能距離
@@ -47,10 +50,6 @@ protected:
 
     // ロックオン中かどうか
     bool isLockedOn;
-
-    // ロックオン中のターゲット
-    UPROPERTY()
-    AEnemy* lockedOnTarget;
 
     // 敵検索用のタグ
     UPROPERTY(EditAnywhere, Category = "LockOn")
@@ -61,7 +60,7 @@ private:
     void SwitchTarget(bool IsRight);
 
     // ロックオン可能な敵を探す
-    AEnemy* FindNearestEnemy(AActor* IgnoreActor = nullptr);
+    AEnemy_Zako* FindNearestEnemy(TWeakObjectPtr<AEnemy_Zako> IgnoreActor = nullptr);
 
     // プレイヤーのオーナー
     APawn* ownerPawn;
