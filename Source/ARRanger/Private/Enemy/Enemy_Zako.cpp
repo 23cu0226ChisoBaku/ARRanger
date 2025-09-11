@@ -1,4 +1,4 @@
-
+ï»¿
 #include "Enemy/Enemy_Zako.h"
 #include "Enemy/EnemyAnimInstance.h"
 #include "InsekiGameMode.h"
@@ -44,7 +44,7 @@ void AEnemy_Zako::ReceiveDamage(int DamageAmount, FVector LaunchDirection, bool 
         GetMesh()->SetAllBodiesPhysicsBlendWeight(1.0f);
         GetMesh()->bBlendPhysics = true;
 
-        // €–S‚Í‘å‚«‚­‚Á”ò‚Î‚·
+        // æ­»äº¡æ™‚ã¯å¤§ããå¹ã£é£›ã°ã™
         FVector DeathImpulse = -GetActorForwardVector() * 5000.0f;
         GetMesh()->AddImpulse(DeathImpulse, NAME_None, true);
 
@@ -52,7 +52,7 @@ void AEnemy_Zako::ReceiveDamage(int DamageAmount, FVector LaunchDirection, bool 
     }
     else
     {
-        // ¶‘¶‚Í‘O•ûƒxƒNƒgƒ‹‚Ì‹t•ûŒü‚ÉƒmƒbƒNƒoƒbƒN
+        // ç”Ÿå­˜æ™‚ã¯å‰æ–¹ãƒ™ã‚¯ãƒˆãƒ«ã®é€†æ–¹å‘ã«ãƒãƒƒã‚¯ãƒãƒƒã‚¯
         FVector KnockbackDir = -GetActorForwardVector();
         LaunchCharacter(KnockbackDir * 1000.f, true, true);
     }
@@ -75,7 +75,7 @@ void AEnemy_Zako::Zako_PerformAttack()
 
     UE_LOG(LogTemp, Log, TEXT("Enemy_Zako: PerforAttack executed."));
 
-    //UŒ‚ƒ‚ƒ“ƒ^[ƒWƒ…Ä¶
+    //æ”»æ’ƒãƒ¢ãƒ³ã‚¿ãƒ¼ã‚¸ãƒ¥å†ç”Ÿ
     if (UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance())
     {
         if (AttackMontage)
@@ -84,7 +84,7 @@ void AEnemy_Zako::Zako_PerformAttack()
         }
     }
 
-    //UŒ‚”»’è
+    //æ”»æ’ƒåˆ¤å®š
     /*FVector AttackCenter = GetActorLocation() + GetActorForwardVector() * 100.f;
     float AttackRadius = 150.f;
 
@@ -109,12 +109,12 @@ void AEnemy_Zako::Zako_PerformAttack()
             {
                 UE_LOG(LogTemp, Log, TEXT("Enemy_Zako hit: %s"), *HitActor->GetName());
 
-                // IARAttackable ‚ğ‚Á‚Ä‚¢‚ê‚ÎUŒ‚ƒCƒxƒ“ƒg‚ğ‘—‚é
+                // IARAttackable ã‚’æŒã£ã¦ã„ã‚Œã°æ”»æ’ƒã‚¤ãƒ™ãƒ³ãƒˆã‚’é€ã‚‹
                 if (HitActor->GetClass()->ImplementsInterface(UIARAttackable::StaticClass()))
                 {
                     FARAttackParameters AttackParams;
                     AttackParams.Attacker = this;
-                    AttackParams.Damage = 10; // © “K‹X’²®
+                    AttackParams.Damage = 10; // â† é©å®œèª¿æ•´
                     AttackParams.LaunchDirection = GetActorForwardVector();
 
                     ARRanger::Battle::FARAttackResult ResultData;
@@ -127,7 +127,7 @@ void AEnemy_Zako::Zako_PerformAttack()
 }
 
 
-// ==== IARAttackable À‘• ====
+// ==== IARAttackable å®Ÿè£… ====
 void AEnemy_Zako::OnPreAttacked(const FARAttackParameters& InAttackParams,ARRanger::Battle::FARAttackResult& OutAttackResult)
 {
     if (isDead)
@@ -140,7 +140,7 @@ void AEnemy_Zako::OnPreAttacked(const FARAttackParameters& InAttackParams,ARRang
 
 void AEnemy_Zako::OnDamaged(const ARRanger::Battle::FARDamageResult& InDamageResult)
 {
-    //Šù‘¶‚Ì ReceiveDamage ‚ğ—˜—p
+    //æ—¢å­˜ã® ReceiveDamage ã‚’åˆ©ç”¨
     ReceiveDamage(static_cast<int32>(InDamageResult.FinalDamage),
         InDamageResult.FinalLaunchDirection,
             (currentHP - InDamageResult.FinalDamage <= 0));
@@ -148,31 +148,31 @@ void AEnemy_Zako::OnDamaged(const ARRanger::Battle::FARDamageResult& InDamageRes
 
 void AEnemy_Zako::OnPostAttacked(const FARAttackParameters& InAttackParams)
 {
-    //ƒqƒbƒgƒGƒtƒFƒNƒg‚âSE‚ğ‚±‚±‚ÅÄ¶
+    //ãƒ’ãƒƒãƒˆã‚¨ãƒ•ã‚§ã‚¯ãƒˆã‚„SEã‚’ã“ã“ã§å†ç”Ÿ
 
 }
 
 //ISpecialAttractInterface functions Start
-//brief ˆø—Í•KE‹Z‚ªn‚Ü‚Á‚½‚Ì’Ê’m
+//brief å¼•åŠ›å¿…æ®ºæŠ€ãŒå§‹ã¾ã£ãŸæ™‚ã®é€šçŸ¥
 void AEnemy_Zako::OnStartSpecialAttractNotify()
 {
-    /*d—Í‚ğƒ[ƒ‚É‚·‚é*/
+    /*é‡åŠ›ã‚’ã‚¼ãƒ­ã«ã™ã‚‹*/
     if (ACharacter* character = Cast<ACharacter>(this))
     {
         character->GetCharacterMovement()->GravityScale = 0.0f;
     }
 }
 
-//ˆø—Í•KE‹Z‚Ì’†ŠÔ’Ê’m
+//å¼•åŠ›å¿…æ®ºæŠ€ã®ä¸­é–“é€šçŸ¥
 void AEnemy_Zako::OnUpdateSpecialAttractNotify(float elapsed)
 {
     ;
 }
 
-//brief ˆø—Í•KE‹Z‚ÌI—¹’Ê’m
+//brief å¼•åŠ›å¿…æ®ºæŠ€ã®çµ‚äº†é€šçŸ¥
 void AEnemy_Zako::OnEndSpecialAttractNotify()
 {
-    /*d—Í‚ğŒ³‚É–ß‚·*/
+    /*é‡åŠ›ã‚’å…ƒã«æˆ»ã™*/
     if (ACharacter* character = Cast<ACharacter>(this))
     {
         character->GetCharacterMovement()->GravityScale = 1.0f;

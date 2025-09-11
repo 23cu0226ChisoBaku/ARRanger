@@ -1,4 +1,4 @@
-#include "Enemy.h"
+ï»¿#include "Enemy.h"
 
 #include "AbilitySystemComponent.h"
 #include "ARRangerCharacter.h"
@@ -15,11 +15,11 @@ AEnemy::AEnemy()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
-	// StaticMeshComponent‚ğ’Ç‰Á‚µARootComponent‚Éİ’è‚·‚é
+	// StaticMeshComponentã‚’è¿½åŠ ã—ã€RootComponentã«è¨­å®šã™ã‚‹
 	InsekiActorMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMeshComponent"));
 	RootComponent = InsekiActorMesh;
 
-	// BoxComponent‚ğ’Ç‰Á‚µABoxComponent‚ğRootComponent‚ÉAttach‚·‚é
+	// BoxComponentã‚’è¿½åŠ ã—ã€BoxComponentã‚’RootComponentã«Attachã™ã‚‹
 	Box = CreateDefaultSubobject<UBoxComponent>(TEXT("BoxComponent"));
 	Box->SetupAttachment(RootComponent);
 }
@@ -42,7 +42,7 @@ void AEnemy::Tick(float DeltaTime)
 
 		if (Distance <= MinDistance)
 		{
-			// ƒvƒŒƒCƒ„[‚Éˆø‚«Šñ‚¹Š®—¹’Ê’m
+			// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã«å¼•ãå¯„ã›å®Œäº†é€šçŸ¥
 			UE_LOG(LogTemp, Warning, TEXT("Attraction Done"));
 
 			if (attractionTarget == nullptr)
@@ -50,10 +50,10 @@ void AEnemy::Tick(float DeltaTime)
 				UE_LOG(LogTemp, Warning, TEXT("attractionTarget is NULL!"));
 			}
 
-			// ƒvƒŒƒCƒ„[‚É’Ê’miƒpƒ“ƒ`ŠJn—pj
+			// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã«é€šçŸ¥ï¼ˆãƒ‘ãƒ³ãƒé–‹å§‹ç”¨ï¼‰
 			if (AARRangerCharacter* Player = Cast<AARRangerCharacter>(attractionTarget))
 			{
-				// ƒvƒŒƒCƒ„[‚Éˆø‚«Šñ‚¹Š®—¹’Ê’m
+				// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã«å¼•ãå¯„ã›å®Œäº†é€šçŸ¥
 				UE_LOG(LogTemp, Warning, TEXT("Call Player"));
 				Player->OnAttractionCompleted();
 				StopAttraction();
@@ -79,10 +79,10 @@ void AEnemy::ReceiveDamage(bool bIsStrongAttack, int DamageAmount, FVector Launc
 
 	if (currentHP <= 0)
 	{
-		// €–Sƒtƒ‰ƒO‚ğã‚°‚é
+		// æ­»äº¡ãƒ•ãƒ©ã‚°ã‚’ä¸Šã’ã‚‹
 		isDead = true;
 
-		// ÅŒã‚ÌˆêŒ‚I‹­‚­‚Á”ò‚Î‚·
+		// æœ€å¾Œã®ä¸€æ’ƒï¼å¼·ãå¹ã£é£›ã°ã™
 		if (UPrimitiveComponent* Comp = Cast<UPrimitiveComponent>(GetRootComponent()))
 		{
 			if (Comp->IsSimulatingPhysics())
@@ -91,17 +91,17 @@ void AEnemy::ReceiveDamage(bool bIsStrongAttack, int DamageAmount, FVector Launc
 			}
 		}
 
-		// GameMode‚É’Ê’m
+		// GameModeã«é€šçŸ¥
 		if (AInsekiGameMode* GM = Cast<AInsekiGameMode>(UGameplayStatics::GetGameMode(this)))
 		{
 			GM->OnEnemyKilled();
 		}
-		// ‚¿‚å‚Á‚Æ‘Ò‚Á‚Ä‚©‚çÁ‚·
+		// ã¡ã‚‡ã£ã¨å¾…ã£ã¦ã‹ã‚‰æ¶ˆã™
 		SetLifeSpan(1.0f);
 	}
 	else if(!bIsStrongAttack)
 	{
-		// “r’†‚ÌUŒ‚BŒy‚­‚Á”ò‚Î‚·‚¾‚¯
+		// é€”ä¸­ã®æ”»æ’ƒã€‚è»½ãå¹ã£é£›ã°ã™ã ã‘
 		if (UPrimitiveComponent* Comp = Cast<UPrimitiveComponent>(GetRootComponent()))
 		{
 			if (Comp->IsSimulatingPhysics())
@@ -112,10 +112,10 @@ void AEnemy::ReceiveDamage(bool bIsStrongAttack, int DamageAmount, FVector Launc
 	}
 	else
 	{
-		// ‚Á”ò‚Ñ•û‚ÍƒvƒŒƒCƒ„[‘¤‚ÌŠe‹­UŒ‚‚Ì•û‚É”C‚¹‚é
+		// å¹ã£é£›ã³æ–¹ã¯ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼å´ã®å„å¼·æ”»æ’ƒã®æ–¹ã«ä»»ã›ã‚‹
 	}
 
-	// ƒqƒbƒgƒXƒgƒbƒvF‚Æ‚Ç‚ß‚ÌˆêŒ‚‚¾‚¯—LŒø‰»
+	// ãƒ’ãƒƒãƒˆã‚¹ãƒˆãƒƒãƒ—ï¼šã¨ã©ã‚ã®ä¸€æ’ƒã ã‘æœ‰åŠ¹åŒ–
 	if (bEnableHitStop)
 	{
 		UGameplayStatics::SetGlobalTimeDilation(GetWorld(), 0.1f);
