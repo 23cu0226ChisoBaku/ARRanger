@@ -1,6 +1,6 @@
-#include "LockOnComponent.h"
+ï»¿#include "LockOnComponent.h"
 
-#include "Enemy.h"
+#include "Enemy/Enemy_Zako.h"
 #include "Kismet/GameplayStatics.h"
 
 ULockOnComponent::ULockOnComponent()
@@ -18,7 +18,7 @@ void ULockOnComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// ƒvƒŒƒCƒ„[‚Æ‚»‚ÌƒRƒ“ƒgƒ[ƒ‰[‚ğæ“¾
+	// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã¨ãã®ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ©ãƒ¼ã‚’å–å¾—
 	ownerPawn = Cast<APawn>(GetOwner());
 	ownerController = ownerPawn ? Cast<APlayerController>(ownerPawn->GetController()) : nullptr;
 }
@@ -27,26 +27,26 @@ void ULockOnComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	// ƒƒbƒNƒIƒ“’†‚Éˆ—
-	if (isLockedOn && lockedOnTarget)
+	// ãƒ­ãƒƒã‚¯ã‚ªãƒ³ä¸­ã«å‡¦ç†
+	if (isLockedOn && lockedOnTarget.IsValid())
 	{
 		if (!IsTargetVisible(lockedOnTarget))
 		{
-			// ƒ^[ƒQƒbƒg‚ªŒ©‚¦‚È‚­‚È‚Á‚½‚çƒƒbƒNƒIƒ“‰ğœ
+			// ã‚¿ãƒ¼ã‚²ãƒƒãƒˆãŒè¦‹ãˆãªããªã£ãŸã‚‰ãƒ­ãƒƒã‚¯ã‚ªãƒ³è§£é™¤
 			lockedOnTarget = nullptr;
 			isLockedOn = false;
 		}
 
-        // ƒƒbƒNƒIƒ“’†‚Ì“G‚ª€‚ñ‚¾‚çˆ—
-        if (!IsValid(lockedOnTarget) || lockedOnTarget->isDead)
+        // ãƒ­ãƒƒã‚¯ã‚ªãƒ³ä¸­ã®æ•µãŒæ­»ã‚“ã ã‚‰å‡¦ç†
+        if (!lockedOnTarget.IsValid() || lockedOnTarget->isDead)
         {
-            AEnemy* NewTarget = FindNearestEnemy(lockedOnTarget);
-            // V‚µ‚­ƒ^[ƒQƒbƒg‚ğİ’è
+            AEnemy_Zako* NewTarget = FindNearestEnemy(lockedOnTarget);
+            // æ–°ã—ãã‚¿ãƒ¼ã‚²ãƒƒãƒˆã‚’è¨­å®š
             if (NewTarget)
             {
                 lockedOnTarget = NewTarget;
             }
-            // ‚¢‚È‚¯‚ê‚ÎƒƒbƒNƒIƒ“‰ğœ
+            // ã„ãªã‘ã‚Œã°ãƒ­ãƒƒã‚¯ã‚ªãƒ³è§£é™¤
             else
             {
                 lockedOnTarget = nullptr;
@@ -58,7 +58,9 @@ void ULockOnComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 
 void ULockOnComponent::ToggleLockOn()
 {
-    // ƒvƒŒƒCƒ„[‚ª‚¢‚È‚¯‚ê‚Îˆ—‚µ‚È‚¢
+    UE_LOG(LogTemp, Warning, TEXT("Lock On Check"));
+
+    // ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ãŒã„ãªã‘ã‚Œã°å‡¦ç†ã—ãªã„
     if (!ownerPawn || !ownerController)
     {
         return;
@@ -66,22 +68,35 @@ void ULockOnComponent::ToggleLockOn()
 
     if (isLockedOn)
     {
-        // ƒƒbƒNƒIƒ“‰ğœ
+        // ãƒ­ãƒƒã‚¯ã‚ªãƒ³ã‚’è§£é™¤
         lockedOnTarget = nullptr;
         isLockedOn = false;
+        UE_LOG(LogTemp, Warning, TEXT("LockOn: Unlocked"));
     }
     else
     {
-        // Å‚à‹ß‚¢“G‚ğ’T‚µ‚ÄƒƒbƒNƒIƒ“
-        AEnemy* Candidate = FindNearestEnemy();
-        if (Candidate && IsTargetVisible(Candidate))
+        AEnemy_Zako* Candidate = FindNearestEnemy();
+        if (Candidate)
         {
-            lockedOnTarget = Candidate;
-            isLockedOn = true;
+            bool bVisible = IsTargetVisible(Candidate);
+            UE_LOG(LogTemp, Warning, TEXT("ToggleLockOn: Found enemy %s, Visible=%d"),
+                *Candidate->GetName(), bVisible);
+
+            if (bVisible)
+            {
+                // ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã‹ã‚‰è¦‹ãˆã¦ã„ã‚Œã°ãƒ­ãƒƒã‚¯ã‚ªãƒ³é–‹å§‹
+                lockedOnTarget = Candidate;
+                isLockedOn = true;
+                UE_LOG(LogTemp, Warning, TEXT("LockOn: Locked on %s"), *Candidate->GetName());
+            }
+            else
+            {
+                UE_LOG(LogTemp, Warning, TEXT("LockOn: Candidate not visible"));
+            }
         }
         else
         {
-            UE_LOG(LogTemp, Warning, TEXT("LockOn: No visible enemy found to lock on."));
+            UE_LOG(LogTemp, Warning, TEXT("LockOn: No enemy found by FindNearestEnemy()"));
         }
     }
 }
@@ -98,23 +113,23 @@ void ULockOnComponent::SwitchTargetLeft()
 
 void ULockOnComponent::SwitchTarget(bool bRight)
 {
-    // ƒƒbƒNƒIƒ“’†‚Å‚È‚¢A‚Ü‚½‚ÍƒvƒŒƒCƒ„[‚ª‚¢‚È‚¯‚ê‚Îˆ—‚µ‚È‚¢
-    if (!isLockedOn || !lockedOnTarget || !ownerPawn)
+    // ãƒ­ãƒƒã‚¯ã‚ªãƒ³ä¸­ã§ãªã„ã€ã¾ãŸã¯ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ãŒã„ãªã‘ã‚Œã°å‡¦ç†ã—ãªã„
+    if (!isLockedOn || !lockedOnTarget.IsValid() || !ownerPawn)
     {
         return;
     }
 
-    // ƒ[ƒ‹ƒh‚Ì“G‚ğæ“¾(To DoFˆê’è”ÍˆÍ“à‚Ì“G‚ğæ“¾‚·‚é‚æ‚¤‚ÉC³)
+    // ãƒ¯ãƒ¼ãƒ«ãƒ‰ã®æ•µã‚’å–å¾—(To Doï¼šä¸€å®šç¯„å›²å†…ã®æ•µã‚’å–å¾—ã™ã‚‹ã‚ˆã†ã«ä¿®æ­£)
     TArray<AActor*> Enemies;
     UGameplayStatics::GetAllActorsWithTag(GetWorld(), enemyTag, Enemies);
 
-    // “G‚ª•¡”‘Ì‚¢‚È‚¯‚ê‚Îˆ—‚µ‚È‚¢
+    // æ•µãŒè¤‡æ•°ä½“ã„ãªã‘ã‚Œã°å‡¦ç†ã—ãªã„
     if (Enemies.Num() <= 1)
     {
         return;
     }
 
-    // “G‚ª‚¢‚È‚¯‚ê‚Îˆ—‚µ‚È‚¢
+    // æ•µãŒã„ãªã‘ã‚Œã°å‡¦ç†ã—ãªã„
     int32 CurrentIndex = Enemies.IndexOfByKey(lockedOnTarget);
     if (CurrentIndex == INDEX_NONE)
     {
@@ -128,10 +143,10 @@ void ULockOnComponent::SwitchTarget(bool bRight)
 
     while (Checked < EnemyCount)
     {
-        // ‚»‚Ì‘¼‚Ì“G‚ğ”»’è
+        // ãã®ä»–ã®æ•µã‚’åˆ¤å®š
         Index = bRight ? (Index + 1) % EnemyCount : (Index - 1 + EnemyCount) % EnemyCount;
 
-        // Œ»İ‚Ì“G‚É‚È‚Á‚½‚çˆ—‚ğ‚â‚ß‚é
+        // ç¾åœ¨ã®æ•µã«ãªã£ãŸã‚‰å‡¦ç†ã‚’ã‚„ã‚ã‚‹
         if (Index == CurrentIndex)
         {
             break;
@@ -147,7 +162,7 @@ void ULockOnComponent::SwitchTarget(bool bRight)
         float Distance = FVector::Dist(MyLocation, Candidate->GetActorLocation());
         if (Distance <= maxLockOnDistance && IsTargetVisible(Candidate))
         {
-            lockedOnTarget = Cast<AEnemy>(Candidate);
+            lockedOnTarget = Cast<AEnemy_Zako>(Candidate);
             return;
         }
 
@@ -155,19 +170,19 @@ void ULockOnComponent::SwitchTarget(bool bRight)
     }
 }
 
-AEnemy* ULockOnComponent::FindNearestEnemy(AActor* IgnoreActor)
+AEnemy_Zako* ULockOnComponent::FindNearestEnemy(TWeakObjectPtr<AEnemy_Zako> IgnoreActor)
 {
-    // ƒvƒŒƒCƒ„[‚ª‚¢‚È‚¯‚ê‚Îˆ—‚µ‚È‚¢
+    // ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ãŒã„ãªã‘ã‚Œã°å‡¦ç†ã—ãªã„
     if (!ownerPawn)
     {
         return nullptr;
     }
 
-    // ƒ[ƒ‹ƒh‚Ì“G‚ğæ“¾(To DoFˆê’è”ÍˆÍ“à‚Ì“G‚ğæ“¾‚·‚é‚æ‚¤‚ÉC³)
+    // ãƒ¯ãƒ¼ãƒ«ãƒ‰ã®æ•µã‚’å–å¾—(To Doï¼šä¸€å®šç¯„å›²å†…ã®æ•µã‚’å–å¾—ã™ã‚‹ã‚ˆã†ã«ä¿®æ­£)
     TArray<AActor*> Enemies;
     UGameplayStatics::GetAllActorsWithTag(GetWorld(), enemyTag, Enemies);
 
-    AEnemy* NearestEnemy = nullptr;
+    AEnemy_Zako* NearestEnemy = nullptr;
     float MinDistSq = FLT_MAX;
     FVector MyLocation = ownerPawn->GetActorLocation();
     float MaxDistSq = maxLockOnDistance * maxLockOnDistance;
@@ -183,17 +198,17 @@ AEnemy* ULockOnComponent::FindNearestEnemy(AActor* IgnoreActor)
         if (DistSq <= MaxDistSq && DistSq < MinDistSq && IsTargetVisible(Enemy))
         {
             MinDistSq = DistSq;
-            NearestEnemy = Cast<AEnemy>(Enemy);
+            NearestEnemy = Cast<AEnemy_Zako>(Enemy);
         }
     }
 
     return NearestEnemy;
 }
 
-bool ULockOnComponent::IsTargetVisible(AActor* Target)
+bool ULockOnComponent::IsTargetVisible(TWeakObjectPtr<AActor> Target)
 {
-    // ƒ^[ƒQƒbƒg‚Ü‚½‚ÍƒvƒŒƒCƒ„[‚ª‚¢‚È‚¯‚ê‚Îˆ—‚µ‚È‚¢
-    if (!Target || !ownerController)
+    // ã‚¿ãƒ¼ã‚²ãƒƒãƒˆã¾ãŸã¯ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ãŒã„ãªã‘ã‚Œã°å‡¦ç†ã—ãªã„
+    if (!Target.IsValid() || !ownerController)
     {
         return false;
     }
@@ -202,19 +217,19 @@ bool ULockOnComponent::IsTargetVisible(AActor* Target)
     FRotator ViewRotation;
     ownerController->GetPlayerViewPoint(ViewLocation, ViewRotation);
 
-    // ­‚µ“ªã‚ğ‘_‚¤
+    // å°‘ã—é ­ä¸Šã‚’ç‹™ã†
     FVector TargetLocation = Target->GetActorLocation() + FVector(0, 0, 50.f);
 
     FHitResult HitResult;
     FCollisionQueryParams Params;
-    // ƒvƒŒƒCƒ„[©g‚Æƒ^[ƒQƒbƒg‚Í–³‹
+    // ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼è‡ªèº«ã¨ã‚¿ãƒ¼ã‚²ãƒƒãƒˆã¯ç„¡è¦–
     Params.AddIgnoredActor(GetOwner());
-    Params.AddIgnoredActor(Target);
+    Params.AddIgnoredActor(Target.Get());
 
     bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, ViewLocation, TargetLocation, ECC_Visibility, Params);
 
-    // ƒqƒbƒg‚µ‚Ä‚¢‚Ä‚©‚Â‚»‚ÌActor‚ªTarget‚Å‚È‚¯‚ê‚ÎA
-    // ‹ŠE‚ğÕ‚ç‚ê‚½‚Æ‚İ‚È‚·
+    // ãƒ’ãƒƒãƒˆã—ã¦ã„ã¦ã‹ã¤ãã®ActorãŒTargetã§ãªã‘ã‚Œã°ã€
+    // è¦–ç•Œã‚’é®ã‚‰ã‚ŒãŸã¨ã¿ãªã™
     if (bHit && HitResult.GetActor() != Target)
     {
         return false;

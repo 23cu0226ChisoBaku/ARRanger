@@ -148,6 +148,9 @@ protected:
 	void Look(const FInputActionValue& Value);
 
 private:
+	// 
+	void EnsureLockOnComponent();
+
 	// もともとのカメラとプレイヤーの距離
 	float DefaultArmLength;
 
@@ -235,7 +238,7 @@ public:
 	bool IsDashed;
 
 	// ロックオンコンポーネント
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	ULockOnComponent* LockOnComponent;
 
 	// 引力クライム時のアニメーションモンタージュ
