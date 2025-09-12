@@ -13,8 +13,31 @@ class UARPlayerInputBuffer;
 class UARInputConfig;
 class UARInputComponent;
 struct FGameplayTag;
+struct FGameplayTagContainer;
 
 #define UE_API ARRANGER_API
+
+struct FGA_HoldHandle
+{
+
+  friend class AARRangerPlayerController;
+
+  UE_API static const FGA_HoldHandle InvalidHandle;
+
+  UE_API bool IsValid() const;
+
+private:
+  UE_API FGA_HoldHandle();
+
+};
+
+USTRUCT(BlueprintType, Blueprintable)
+struct FGABlueprintableHoldHandle
+{
+  GENERATED_BODY()
+
+  FGA_HoldHandle Handle = FGA_HoldHandle::InvalidHandle;
+};
 
 /**
  *  Basic PlayerController class for a third person game
@@ -24,6 +47,19 @@ UCLASS(abstract)
 class AARRangerPlayerController : public APlayerController
 {
 	GENERATED_BODY()
+
+protected:
+  struct FHoldSpec
+  {
+    FGA_HoldHandle Handle = FGA_HoldHandle::InvalidHandle;
+
+    FGameplayTagContainer BlockInputTags;
+
+    bool IsValid() const;
+
+    bool HasHandle(const FGA_HoldHandle& InHandle) const;
+    
+  };
 
 public:
 
@@ -49,6 +85,12 @@ private:
 
   UFUNCTION(BlueprintCallable, Category = "ARRanger|PlayerController")
   UE_API void OnGameplayAbilityEnd(bool bWasCanceled);
+
+  UFUNCTION(BlueprintCallable, Category = "ARRanger|PlayerController")
+  UE_API FGABlueprintableHoldHandle OnGameplayAbilityActivated_Hold(bool bBlockInput, const FGameplayTagContainer& InInputBlockIgnoreTags);
+
+  UFUNCTION(BlueprintCallable, Category = "ARRanger|PlayerController")
+  UE_API void OnGameplayAbilityEnded_Hold(bool bWasCanceled, const FGABlueprintableHoldHandle& InHandle, float TimeHeld);
 
 private:
 
@@ -80,6 +122,7 @@ private:
   TObjectPtr<UInputMappingContext> CurrentIMC = nullptr;
   
   TArray<uint32> m_bindHandles;
+
 };
 
 #undef UE_API

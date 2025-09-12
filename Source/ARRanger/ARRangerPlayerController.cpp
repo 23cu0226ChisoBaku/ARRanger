@@ -98,6 +98,16 @@ void AARRangerPlayerController::OnGameplayAbilityEnd(bool bWasCanceled)
   }
 }
 
+void AARRangerPlayerController::OnGameplayAbilityActivated_Hold(bool bBlockInput, const FGameplayTagContainer& InInputBlockIgnoreTags)
+{
+  
+}
+
+void AARRangerPlayerController::OnGameplayAbilityEnded_Hold(float TimeHeld)
+{
+
+}
+
 void AARRangerPlayerController::SwitchNextIMC(const FGameplayTag& InNextIMCTag)
 {
   UInputMappingContext* nextIMC = InputMappingContext->FindIMCWithTag(InNextIMCTag);
