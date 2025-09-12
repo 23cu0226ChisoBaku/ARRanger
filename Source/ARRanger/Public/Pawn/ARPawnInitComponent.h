@@ -4,19 +4,20 @@
 
 #include "Components/ActorComponent.h"
 #include "GameFramework/Pawn.h"
+#include "AbilitySystemInterface.h"
 
 #include <type_traits>
 
 #include "ARPawnInitComponent.generated.h"
 
 class APlayerState;
-class UInputComponent;
-class UARPlayerInputBuffer;
+class UARAbilitySystemComponent;
+class UARPawnInitData;
 
 #define UE_API ARRANGER_API
 
 UCLASS( ClassGroup=(ARRanger), meta=(BlueprintSpawnableComponent) )
-class UARPawnInitComponent : public UActorComponent
+class UARPawnInitComponent : public UActorComponent, public IAbilitySystemInterface
 {
 	GENERATED_BODY()
 
@@ -37,25 +38,35 @@ public:
   UE_API ControllerType* GetController();
 
   UFUNCTION(BlueprintPure, Category = "ARRanger|Initialization")
-  static UARPawnInitComponent* FindPawnInitComponent(const APawn* InPawn);
+  static UE_API UARPawnInitComponent* FindPawnInitComponent(const AActor* InActor);
+
+  UFUNCTION(BlueprintPure, Category = "GameplayAbility")
+  UARAbilitySystemComponent* GetARAbilitySystemComponent() const { return AbilitySystemComponent; };
+
+  UE_API virtual UAbilitySystemComponent* GetAbilitySystemComponent() const;
+
+  const UARPawnInitData* GetPawnData() const { return PawnInitData; }
+
+  UE_API void InitializeAbilitySystem(UARAbilitySystemComponent* InASC, AActor* InOwnerActor);
+
+  UE_API void UninitializeAbilitySystem();
 
 protected:
 
   /**Start UActorComponent Interface */
   UE_API virtual void OnRegister() override;
   UE_API virtual void BeginPlay() override;
+  UE_API virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 	/**End UActorComponent Interface */
 
 private:
-  void InitializeASC();
 
-  void InitializePlayerInput();
+  UPROPERTY(VisibleAnywhere, Category = "GameplayAbility")
+  TObjectPtr<UARAbilitySystemComponent> AbilitySystemComponent;
 
-  void InitializePlayerInput(UInputComponent* InPlayerInputComponent, UARPlayerInputBuffer* PlayerInputBuffer = nullptr);
+  UPROPERTY(EditDefaultsOnly, Category = "GameplayAbility", meta = (AllowPrivateAccess = "true"))
+  TObjectPtr<const UARPawnInitData> PawnInitData;
 
-private:
-
-  TArray<uint32> BindInputHandles; 
 };
 
 

@@ -28,7 +28,7 @@ void UGA_Attack::ActivateAbility(
 {
     if (AARRangerCharacter* Char = Cast<AARRangerCharacter>(GetOwningActorFromActorInfo()))
     {
-        Char->GA_AttackInstance = this;
+        
     }
 
     AARRangerCharacter* Char = Cast<AARRangerCharacter>(GetAvatarActorFromActorInfo());
@@ -42,15 +42,6 @@ void UGA_Attack::ActivateAbility(
         UE_LOG(LogTemp, Error, TEXT("NO AnimInstance at ActivateAbility!"));
     }
 
-    // �ǂ� AbilitySpec ����������������
-    if (Handle == Cast<AARRangerCharacter>(GetAvatarActorFromActorInfo())->PunchHandle)
-    {
-        StartPunch();
-    }
-    else if (Handle == Cast<AARRangerCharacter>(GetAvatarActorFromActorInfo())->KickHandle)
-    {
-        StartKick();
-    }
 }
 
 void UGA_Attack::EndAbility(

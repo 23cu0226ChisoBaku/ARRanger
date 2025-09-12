@@ -17,7 +17,6 @@ void ASpecialAttackAttractActor::BeginPlay()
 {
 	Super::BeginPlay();
 	OnStartSpecialAttractNotify();
-	OnActorBeginOverlap.AddDynamic(this, &ASpecialAttackAttractActor::OnOverlapBegin);
 }
 
 void ASpecialAttackAttractActor::Tick(float DeltaTime)
@@ -59,12 +58,14 @@ void ASpecialAttackAttractActor::Tick(float DeltaTime)
     for (AActor* actor : detectedActors)
     {
 		/*吸引しているアクターを保持(重複なし)*/
-		if(!m_previousDetectedActors.Contains(actor))
+		if(!m_PreviousDetectedActors.Contains(actor))
 		{
+			m_PreviousDetectedActors.Add(actor);
+
 			ISpecialAttractInterface* InterfacePtr = Cast<ISpecialAttractInterface>(actor);
 			if(InterfacePtr != nullptr)
 			{
-				m_previousDetectedActors.Add(actor);
+				/*吸引したアクターに対して通知*/
 				InterfacePtr->OnStartSpecialAttractNotify();
 			}
 		}
@@ -76,6 +77,7 @@ void ASpecialAttackAttractActor::Tick(float DeltaTime)
 			if(actorMeshComponent->IsSimulatingPhysics())
 			{
 				actorMeshComponent->SetSimulatePhysics(false);
+				m_ResetSimulatePhysicsActors.Add(actor);
 			}
 			actorMeshComponent->SetPhysicsLinearVelocity(FVector::ZeroVector);
 		}
@@ -97,7 +99,7 @@ void ASpecialAttackAttractActor::Tick(float DeltaTime)
 
 		actor->SetActorLocation(newLocation, true);
 
-#if WITH_EDITOR
+#if false
 		if(GEngine)
 		{
 			/*デバッグ用*/				
@@ -113,7 +115,7 @@ void ASpecialAttackAttractActor::Tick(float DeltaTime)
 #endif
 	}
     
-#if WITH_EDITOR
+#if false
 	::DrawDebugSphere
 	(
 		GetWorld(),
@@ -127,21 +129,22 @@ void ASpecialAttackAttractActor::Tick(float DeltaTime)
 #endif
 }
 
-void ASpecialAttackAttractActor::BeginDestroy()
+void ASpecialAttackAttractActor::Destroyed()
 {
-	Super::BeginDestroy();
-}
-
-void ASpecialAttackAttractActor::OnOverlapBegin(AActor* OverlappedActor, AActor* OtherActor)
-{
-	for(AActor* actor : m_previousDetectedActors)
+	TArray<AActor*> removeActors;
+	for(AActor* actor : m_PreviousDetectedActors)
 	{
-		/*吸引されているアクターを解除・またそのアクターに通知*/
-		ISpecialAttractInterface* InterfacePtr = Cast<ISpecialAttractInterface>(actor);
-		if(InterfacePtr != nullptr)
+		/*吸引されているアクターを保持*/
+		removeActors.Add(actor);
+
+		/*一時的に物理をオン*/
+		UPrimitiveComponent* actorMeshComponent = actor->FindComponentByClass<UPrimitiveComponent>();
+		if(actorMeshComponent != nullptr)
 		{
-			m_previousDetectedActors.Remove(actor);
-			InterfacePtr->OnEndSpecialAttractNotify();
+			if(actorMeshComponent->IsSimulatingPhysics())
+			{
+				actorMeshComponent->SetSimulatePhysics(true);
+			}
 		}
 
 		/*爆散させる*/
@@ -149,18 +152,34 @@ void ASpecialAttackAttractActor::OnOverlapBegin(AActor* OverlappedActor, AActor*
 		UPrimitiveComponent* meshComp = actor->FindComponentByClass<UPrimitiveComponent>();
 		if(meshComp != nullptr)
 		{
+			//if(GEngine) GEngine->AddOnScreenDebugMessage(-1, 20.f, FColor::Red,FString::Printf(TEXT("Explosion Power : %s"), *(explosionDirection * m_ExplosionPower).ToString()));
 			meshComp->AddImpulse(explosionDirection * m_ExplosionPower);
 		}
 	}
 
-	
-	/*オーバーラップしたキャラクターがプレイヤーなら自分自身を破棄*/
-    if (OtherActor!= nullptr && OtherActor != this)
-    {
-		// TODO Temporary
-        if (OtherActor->IsA(AARRangerCharacter::StaticClass()))
-        {
-            Destroy();  // 自分を削除
-        }
-    }
+	/*吸引されているアクターを解除・またそのアクターに通知*/
+	for(AActor* actor : removeActors)
+	{
+		m_PreviousDetectedActors.Remove(actor);
+
+		ISpecialAttractInterface* InterfacePtr = Cast<ISpecialAttractInterface>(actor);
+		if(InterfacePtr != nullptr)
+		{
+			InterfacePtr->OnEndSpecialAttractNotify();
+		}
+	}
+
+	/*物理シミュレートを変えたアクターの設定を戻す*/
+	for(AActor* actor : m_ResetSimulatePhysicsActors)
+	{
+		UPrimitiveComponent* actorMeshComponent = actor->FindComponentByClass<UPrimitiveComponent>();
+		if(actorMeshComponent != nullptr)
+		{
+			if(actorMeshComponent->IsSimulatingPhysics())
+			{
+				actorMeshComponent->SetSimulatePhysics(true);
+			}
+		}
+	}
 }
+
