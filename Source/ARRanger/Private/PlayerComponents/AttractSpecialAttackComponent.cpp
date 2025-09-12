@@ -207,9 +207,8 @@ void UAttractSpecialAttackComponent::SpecialFinishKick(float deltaTime)
 		// m_CurrentKickSpeed = m_KickCurveSpeed->GetFloatValue(m_ElapsedTime);
 		// newLocation = GetOwner()->GetActorLocation() + m_kickDirection * m_CurrentKickSpeed;
 		float kickTimeIntervalNormalized = m_ElapsedTime / m_KickTimeInterval;
-		float curveValue = m_KickCurveSpeed->GetFloatValue(kickTimeIntervalNormalized);
-		float curveValueNormalized = curveValue / m_KickMaxSpeed;
-		m_CurrentKickSpeed = m_KickMaxSpeed * curveValueNormalized;
+		float normalizedCurveValue = m_KickCurveSpeed->GetFloatValue(kickTimeIntervalNormalized);
+		m_CurrentKickSpeed = m_KickMaxSpeed * normalizedCurveValue;
 		newLocation = GetOwner()->GetActorLocation() + m_kickDirection * m_CurrentKickSpeed;
 	}
 	/*障害物への埋め込み防止*/
