@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
@@ -25,25 +25,25 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Inseki, meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UBoxComponent> Box;
 
-	// ˆø‚«Šñ‚¹‚ç‚ê’†ƒtƒ‰ƒO
+	// å¼•ãå¯„ã›ã‚‰ã‚Œä¸­ãƒ•ãƒ©ã‚°
 	bool bIsAttracted = false;
 
-	// ˆø‚«Šñ‚¹‚ç‚ê‚é‘ÎÛ(ƒvƒŒƒCƒ„[)
+	// å¼•ãå¯„ã›ã‚‰ã‚Œã‚‹å¯¾è±¡(ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼)
 	AActor* attractionTarget = nullptr;
 
-	// ˆø‚«Šñ‚¹’â~ŠÖ”
+	// å¼•ãå¯„ã›åœæ­¢é–¢æ•°
 	void StopAttraction();
 
 protected:
-	// Å‘åHP
+	// æœ€å¤§HP
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Enemy")
 	int maxHP;
 
-	// ˆø‚«Šñ‚¹‚ÌƒXƒs[ƒh
+	// å¼•ãå¯„ã›æ™‚ã®ã‚¹ãƒ”ãƒ¼ãƒ‰
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Enemy")
 	float attractionSpeed = 800.f;
 
-	// ˆø‚«Šñ‚¹‚ÌÅ’á‹——£(‚±‚êˆÈ‰º‚É‚È‚Á‚½‚çƒpƒ“ƒ`ŠJn)
+	// å¼•ãå¯„ã›ã®æœ€ä½è·é›¢(ã“ã‚Œä»¥ä¸‹ã«ãªã£ãŸã‚‰ãƒ‘ãƒ³ãƒé–‹å§‹)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Enemy")
 	float MinDistance = 150.f;
 
@@ -52,18 +52,18 @@ public:
 
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-	// Œ»İ‚ÌHP
+	// ç¾åœ¨ã®HP
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Enemy")
 	int currentHP;
 
-	// €–Sƒtƒ‰ƒO
+	// æ­»äº¡ãƒ•ãƒ©ã‚°
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "State")
 	bool isDead;
 
-	// ƒ_ƒ[ƒW‚ğó‚¯‚éŠÖ”
+	// ãƒ€ãƒ¡ãƒ¼ã‚¸ã‚’å—ã‘ã‚‹é–¢æ•°
 	UFUNCTION()
 	void ReceiveDamage(bool bIsStrongAttack, int DamageAmount, FVector LaunchDirection, bool bEnableHitStop);
 
-	// ˆø‚«Šñ‚¹ŠJnŠÖ”
+	// å¼•ãå¯„ã›é–‹å§‹é–¢æ•°
 	void StartAttraction(AActor* Target);
 };
