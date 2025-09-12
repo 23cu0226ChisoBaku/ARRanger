@@ -69,4 +69,8 @@ private:
     // プレイヤーのコントローラー
     UPROPERTY()
     APlayerController* ownerController;
+
+public:
+    // ロックオンフラグをセット
+    void SetIsLockedOn(bool IsLockedOn) { isLockedOn = IsLockedOn; }
 };
