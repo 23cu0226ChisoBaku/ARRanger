@@ -133,9 +133,9 @@ FVector UHookshotComponent::CalculationDirection(FVector StartPos, FVector EndPo
 void UHookshotComponent::IncreaseHookshotSpeed(float deltaTime)
 {
     /*TMap で登録済みのラムダ関数を呼ぶ*/
-    if (SpeedCurveFunctions.Contains(SpeedCurve))
+    if (SpeedCurveFunctions.Contains(m_SpeedCurve))
     {
-        SpeedCurveFunctions[SpeedCurve](deltaTime);
+        SpeedCurveFunctions[m_SpeedCurve](deltaTime);
     }
 
     /*上限チェック（安全対策)*/

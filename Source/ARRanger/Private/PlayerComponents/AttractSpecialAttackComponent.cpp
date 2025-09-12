@@ -28,7 +28,7 @@ void UAttractSpecialAttackComponent::TickComponent(float DeltaTime, ELevelTick T
 	else if(m_IsLand)
 	{
 		m_ElapsedTime += DeltaTime;
-		if(m_LandTime <= m_ElapsedTime)
+		if(m_LandTimeInterval <= m_ElapsedTime)
 		{
 			ResetParameter();
 		}
@@ -74,7 +74,7 @@ void UAttractSpecialAttackComponent::OnStartSpecialAttract()
 	GetWorld()->GetTimerManager().SetTimer(
 		m_DelayTimerHandle,
 		TimerDelegate,
-		m_AttractTime,
+		m_AttractTimeInterval,
 		false
 	);
 
@@ -109,7 +109,7 @@ void UAttractSpecialAttackComponent::GenerateAttractActor()
 	FVector generatLocation;
 	if(bHit)
 	{
-		generatLocation = hitResult.Location - m_OffsetGenerateDistance * m_kickDirection;
+		generatLocation = hitResult.Location - m_GenerateDistanceOffset * m_kickDirection;
 	}
 	else
 	{
@@ -164,7 +164,7 @@ void UAttractSpecialAttackComponent::ResetParameter()
 void UAttractSpecialAttackComponent::SpecialFinishKick(float deltaTime)
 {
 	/*指定時間が過ぎたらキックを終了する*/
-	if(m_KickTime <= m_ElapsedTime)
+	if(m_KickTimeInterval <= m_ElapsedTime)
 	{
 		m_CurrentKickSpeed -= m_KickBrakingForce;
 		if(m_CurrentKickSpeed <= 0.0f)
@@ -204,14 +204,19 @@ void UAttractSpecialAttackComponent::SpecialFinishKick(float deltaTime)
 	FVector newLocation;
 	if(!bHit)
 	{
-		m_CurrentKickSpeed = m_CustomCurveSpeed->GetFloatValue(m_ElapsedTime);
+		// m_CurrentKickSpeed = m_KickCurveSpeed->GetFloatValue(m_ElapsedTime);
+		// newLocation = GetOwner()->GetActorLocation() + m_kickDirection * m_CurrentKickSpeed;
+		float kickTimeIntervalNormalized = m_ElapsedTime / m_KickTimeInterval;
+		float curveValue = m_KickCurveSpeed->GetFloatValue(kickTimeIntervalNormalized);
+		float curveValueNormalized = curveValue / m_KickMaxSpeed;
+		m_CurrentKickSpeed = m_KickMaxSpeed * curveValueNormalized;
 		newLocation = GetOwner()->GetActorLocation() + m_kickDirection * m_CurrentKickSpeed;
 	}
 	/*障害物への埋め込み防止*/
 	else
 	{
 		FVector addLocation = hitResult.Location - GetOwner()->GetActorLocation();
-		newLocation = GetOwner()->GetActorLocation() + addLocation -m_OffsetKickPosition * m_kickDirection;
+		newLocation = GetOwner()->GetActorLocation() + addLocation -m_KickPositionOffset * m_kickDirection;
 	}
 	GetOwner()->SetActorLocation(newLocation);
 }
