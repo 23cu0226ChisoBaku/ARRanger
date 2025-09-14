@@ -108,7 +108,10 @@ void UARAbilitySystemComponent::ProcessAbilityInputs(const FARAbilityInputProces
         const TArray<FGameplayAbilitySpec>& activatableAbilities = GetActivatableAbilities();
         for (const FGameplayAbilitySpec& conditionAbilitySpec : activatableAbilities)
         {
-          if ((conditionAbilitySpec.Ability == nullptr) || (conditionAbilitySpec.Ability->GetClass() == ARGA->GetClass()) || !conditionAbilitySpec.IsActive())
+          if ((conditionAbilitySpec.Ability == nullptr) || 
+              (conditionAbilitySpec.Ability->GetClass() == ARGA->GetClass()) || 
+              !conditionAbilitySpec.IsActive()
+             )
           {
             continue;
           }
@@ -140,6 +143,7 @@ void UARAbilitySystemComponent::ProcessAbilityInputs(const FARAbilityInputProces
       }
     }
 
+    // Finally we activate requested abilities
     TryActivateAbility(abilitySpecHandleToActivate);
     
   }

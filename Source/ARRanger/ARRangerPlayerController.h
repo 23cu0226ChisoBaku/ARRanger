@@ -4,6 +4,8 @@
 
 #include "GameFramework/PlayerController.h"
 
+#include "GameplayTagContainer.h"
+
 #include "ARRangerPlayerController.generated.h"
 
 class UInputMappingContext;
@@ -17,6 +19,8 @@ struct FGameplayTagContainer;
 
 #define UE_API ARRANGER_API
 
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnGameplayAbilityHeld, float);
+
 struct FGA_HoldHandle
 {
 
@@ -26,8 +30,17 @@ struct FGA_HoldHandle
 
   UE_API bool IsValid() const;
 
-private:
-  UE_API FGA_HoldHandle();
+  friend UE_API bool operator==(const FGA_HoldHandle& Lhs, const FGA_HoldHandle& Rhs);
+  friend UE_API bool operator!=(const FGA_HoldHandle& Lhs, const FGA_HoldHandle& Rhs);
+  
+  private:
+  FGA_HoldHandle();
+  
+  void GenerateNewHandle();
+  
+  void Reset();
+
+  int32 m_handleID;
 
 };
 
@@ -48,17 +61,22 @@ class AARRangerPlayerController : public APlayerController
 {
 	GENERATED_BODY()
 
+public:
+
+  FOnGameplayAbilityHeld OnGameAbilityHeld;
+
 protected:
   struct FHoldSpec
   {
     FGA_HoldHandle Handle = FGA_HoldHandle::InvalidHandle;
 
-    FGameplayTagContainer BlockInputTags;
+    FGameplayTagContainer InputBlockIgnoreTags;
 
-    bool IsValid() const;
+    UE_API bool IsValid() const;
 
-    bool HasHandle(const FGA_HoldHandle& InHandle) const;
-    
+    UE_API bool operator==(const FHoldSpec& Other) const;
+    UE_API bool operator!=(const FHoldSpec& Other) const;
+
   };
 
 public:
@@ -66,31 +84,30 @@ public:
   UFUNCTION(BlueprintPure, Category = "ARRanger|PlayerController", meta = (DisplayName = "Get ARAbilitySystemComponent"))
   UE_API UARAbilitySystemComponent* GetARASC() const;
 
+  UFUNCTION(BlueprintCallable, Category = "ARRanger|PlayerController")
+  UE_API void OnGameplayAbilityActivate(const FGameplayTag& InNextIMCTag);
+  
+  UFUNCTION(BlueprintCallable, Category = "ARRanger|PlayerController")
+  UE_API void OnGameplayAbilityEnd(bool bWasCanceled);
+  
+  UFUNCTION(BlueprintCallable, Category = "ARRanger|PlayerController")
+  [[nodiscard]] UE_API FGABlueprintableHoldHandle OnGameplayAbilityActivated_Hold(bool bBlockInputTag, FGameplayTagContainer InInputBlockIgnoreTags);
+  
+  UFUNCTION(BlueprintCallable, Category = "ARRanger|PlayerController")
+  UE_API void OnGameplayAbilityEnded_Hold(FGABlueprintableHoldHandle InHandle, float TimeHeld);
+protected:
   /**Start APlayerController Interface */
 	UE_API virtual void PostProcessInput(const float DeltaTime, const bool bGamePaused) override;
-protected:
   // TODO Temporary
   UE_API virtual void OnPossess(APawn* InPawn) override;
   /**End APlayerController Interface */
-	
-protected:
 
   /** Input mapping context setup */
   UE_API virtual void SetupInputComponent() override;
 
-private:
+  UE_API FHoldSpec* FindHoldSpecFromHandle(const FGA_HoldHandle& InHoldHandle) const;
 
-  UFUNCTION(BlueprintCallable, Category = "ARRanger|PlayerController")
-  UE_API void OnGameplayAbilityActivate(const FGameplayTag& InNextIMCTag);
-
-  UFUNCTION(BlueprintCallable, Category = "ARRanger|PlayerController")
-  UE_API void OnGameplayAbilityEnd(bool bWasCanceled);
-
-  UFUNCTION(BlueprintCallable, Category = "ARRanger|PlayerController")
-  UE_API FGABlueprintableHoldHandle OnGameplayAbilityActivated_Hold(bool bBlockInput, const FGameplayTagContainer& InInputBlockIgnoreTags);
-
-  UFUNCTION(BlueprintCallable, Category = "ARRanger|PlayerController")
-  UE_API void OnGameplayAbilityEnded_Hold(bool bWasCanceled, const FGABlueprintableHoldHandle& InHandle, float TimeHeld);
+  UE_API void ClearHoldSpec(const FGA_HoldHandle& InHoldHandle);
 
 private:
 
@@ -104,6 +121,7 @@ private:
   void AbilityInputTagReleased(FGameplayTag InInputTag);
   void EvaluateInputBuffer(const float DeltaTime, const bool bGamePaused);
 
+  bool IsInputBlocked(const FGameplayTag& InInputTag) const;
 private:
 
   UPROPERTY(EditDefaultsOnly, Category = "ARInput|InputConfig")
@@ -120,9 +138,10 @@ private:
 
   UPROPERTY()
   TObjectPtr<UInputMappingContext> CurrentIMC = nullptr;
+
+  TArray<FHoldSpec> m_holdSpecs;
   
   TArray<uint32> m_bindHandles;
-
 };
 
 #undef UE_API

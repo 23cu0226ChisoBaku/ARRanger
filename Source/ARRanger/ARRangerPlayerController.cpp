@@ -15,9 +15,68 @@
 #include "Internal/ARLoggingHeader.h"
 #include "ARGameplayTags.h"
 
+#include <atomic>
+
 namespace
 {
   const FString DEFAULT_IMC_TAG_NAME = TEXT("InputState.Default");  
+  static std::atomic<int32> gHoldHandle = INDEX_NONE + 1;
+}
+
+const FGA_HoldHandle FGA_HoldHandle::InvalidHandle{};
+
+bool FGA_HoldHandle::IsValid() const
+{
+  return *this != InvalidHandle;
+}
+
+
+FGA_HoldHandle::FGA_HoldHandle()
+: m_handleID{INDEX_NONE}
+{ }
+
+void FGA_HoldHandle::GenerateNewHandle()
+{
+  // Try to generate
+  m_handleID = gHoldHandle++;
+  
+  // Make sure it will not generate InvalidHandle
+  if (!IsValid())
+  {
+    GenerateNewHandle();
+  }
+  
+  check(IsValid());
+}
+
+void FGA_HoldHandle::Reset()
+{
+  m_handleID = INDEX_NONE;
+}
+
+bool operator==(const FGA_HoldHandle& Lhs, const FGA_HoldHandle& Rhs)
+{
+  return Lhs.m_handleID == Rhs.m_handleID;
+}
+
+bool operator!=(const FGA_HoldHandle& Lhs, const FGA_HoldHandle& Rhs)
+{
+  return !(Lhs == Rhs);
+}
+
+bool AARRangerPlayerController::FHoldSpec::IsValid() const
+{
+  return Handle.IsValid();
+}
+
+bool AARRangerPlayerController::FHoldSpec::operator==(const AARRangerPlayerController::FHoldSpec& Other) const
+{
+  return Handle == Other.Handle;
+}
+
+bool AARRangerPlayerController::FHoldSpec::operator!=(const AARRangerPlayerController::FHoldSpec& Other) const
+{
+  return !(*this == Other);
 }
 
 UARAbilitySystemComponent* AARRangerPlayerController::GetARASC() const
@@ -98,18 +157,60 @@ void AARRangerPlayerController::OnGameplayAbilityEnd(bool bWasCanceled)
   }
 }
 
-void AARRangerPlayerController::OnGameplayAbilityActivated_Hold(bool bBlockInput, const FGameplayTagContainer& InInputBlockIgnoreTags)
+FGABlueprintableHoldHandle AARRangerPlayerController::OnGameplayAbilityActivated_Hold(bool bBlockInputTag, FGameplayTagContainer InInputBlockIgnoreTags)
 {
-  
+  if (bBlockInputTag)
+  {
+    FHoldSpec newHoldSpec{};
+    newHoldSpec.Handle.GenerateNewHandle();
+    newHoldSpec.InputBlockIgnoreTags = InInputBlockIgnoreTags;
+
+    m_holdSpecs.Emplace(newHoldSpec);
+
+    check(newHoldSpec.Handle.IsValid());
+    return FGABlueprintableHoldHandle{newHoldSpec.Handle};
+  }
+
+  return FGABlueprintableHoldHandle{};
+
 }
 
-void AARRangerPlayerController::OnGameplayAbilityEnded_Hold(float TimeHeld)
+void AARRangerPlayerController::OnGameplayAbilityEnded_Hold(FGABlueprintableHoldHandle InHandle, float TimeHeld)
 {
+  ClearHoldSpec(InHandle.Handle);
 
+  if (OnGameAbilityHeld.IsBound())
+  {
+    OnGameAbilityHeld.Broadcast(TimeHeld);
+  }
+}
+
+AARRangerPlayerController::FHoldSpec* AARRangerPlayerController::FindHoldSpecFromHandle(const FGA_HoldHandle& InHoldHandle) const
+{
+  auto searchPred = [&InHoldHandle](const FHoldSpec& Element)
+  {
+    return Element.Handle == InHoldHandle;
+  };
+
+  return const_cast<FHoldSpec*>(m_holdSpecs.FindByPredicate(searchPred));
+}
+
+void AARRangerPlayerController::ClearHoldSpec(const FGA_HoldHandle& InHoldHandle)
+{
+  FHoldSpec* foundSpec = FindHoldSpecFromHandle(InHoldHandle);
+  if (foundSpec == nullptr)
+  {
+    return;
+  }
+
+  m_holdSpecs.RemoveSingle(*foundSpec);
+  foundSpec = nullptr;
 }
 
 void AARRangerPlayerController::SwitchNextIMC(const FGameplayTag& InNextIMCTag)
 {
+  check(InputMappingContext != nullptr);
+
   UInputMappingContext* nextIMC = InputMappingContext->FindIMCWithTag(InNextIMCTag);
   if (nextIMC != nullptr && CurrentIMC != nextIMC)
   {
@@ -168,6 +269,11 @@ void AARRangerPlayerController::InitializePlayerInputBuffer(UARInputComponent* I
 
 void AARRangerPlayerController::AbilityInputTagPressed(FGameplayTag InInputTag)
 {
+  if (IsInputBlocked(InInputTag))
+  {
+    return;
+  }
+
   // If buffer is invalid then handle input,otherwise use input buffer to handle input 
   if (InputBuffer == nullptr)
   {
@@ -176,11 +282,20 @@ void AARRangerPlayerController::AbilityInputTagPressed(FGameplayTag InInputTag)
       ARASC->AbilityInputTagPressed(InInputTag);
     }
   }
+  else
+  {
+    InputBuffer->HandleInputTagPressed(InInputTag);
+  }
 
 }
 
 void AARRangerPlayerController::AbilityInputTagReleased(FGameplayTag InInputTag)
 {
+  if (IsInputBlocked(InInputTag))
+  {
+    return;
+  }
+
   // If buffer is invalid then handle input,otherwise use input buffer to handle input 
   if (InputBuffer == nullptr)
   {
@@ -188,6 +303,10 @@ void AARRangerPlayerController::AbilityInputTagReleased(FGameplayTag InInputTag)
     {
       ARASC->AbilityInputTagReleased(InInputTag);
     }
+  }
+  else
+  {
+    InputBuffer->HandleInputTagReleased(InInputTag); 
   }
 }
 
@@ -197,4 +316,27 @@ void AARRangerPlayerController::EvaluateInputBuffer(const float DeltaTime, const
   {
     InputBuffer->EvaluateBuffer(this, DeltaTime, bGamePaused);
   }
+}
+
+bool AARRangerPlayerController::IsInputBlocked(const FGameplayTag& InInputTag) const
+{
+  if (!InInputTag.IsValid())
+  {
+    return false;
+  }
+
+  // TODO Temporary
+  // NOTE Maybe not only holdspec can block input 
+  bool bInputBlocked = m_holdSpecs.Num() > 0;
+  for (const FHoldSpec& holdSpec : m_holdSpecs)
+  {
+    if (holdSpec.Handle.IsValid() && holdSpec.InputBlockIgnoreTags.HasTagExact(InInputTag))
+    {
+      bInputBlocked = true;
+      break;
+    }
+  }
+  
+  return bInputBlocked;
+
 }
