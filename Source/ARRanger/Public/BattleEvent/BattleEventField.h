@@ -27,7 +27,14 @@ public:
      * @brief イベントフィールドを稼働させる
      */
     UFUNCTION(BlueprintCallable)
-    void Active();
+    void ActiveEventField();
+
+    /**
+     * @brief フィールドがアクティブになったかどうかを返す
+     * 
+     * @return フィールドがアクティブになったかどう
+     */
+    bool IsActivedField() const { return m_IsActivedField; }
 
     /*イベント終了通知*/
     UPROPERTY(BlueprintAssignable, Category="BattleEvent")
@@ -77,4 +84,6 @@ private:
     int32 m_CurrentPhaseIndex;                                      /*現在のフェーズ*/
     UPROPERTY()
     int32 m_RemainingEnemiesInPhase;                                /*現フェーズの残り敵数*/
+    UPROPERTY()
+    bool m_IsActivedField;                                          /*フィールドをアクティブにしたかどうか*/
 };
