@@ -14,12 +14,12 @@ class UARAbilitySystemComponent;
 class UARPlayerInputBuffer;
 class UARInputConfig;
 class UARInputComponent;
+class AARRangerCharacter;
 struct FGameplayTag;
 struct FGameplayTagContainer;
+struct FInputActionValue;
 
 #define UE_API ARRANGER_API
-
-DECLARE_MULTICAST_DELEGATE_OneParam(FOnGameplayAbilityHeld, float);
 
 struct FGA_HoldHandle
 {
@@ -33,7 +33,7 @@ struct FGA_HoldHandle
   friend UE_API bool operator==(const FGA_HoldHandle& Lhs, const FGA_HoldHandle& Rhs);
   friend UE_API bool operator!=(const FGA_HoldHandle& Lhs, const FGA_HoldHandle& Rhs);
   
-  private:
+private:
   FGA_HoldHandle();
   
   void GenerateNewHandle();
@@ -63,6 +63,7 @@ class AARRangerPlayerController : public APlayerController
 
 public:
 
+  DECLARE_DELEGATE_RetVal_TwoParams(FGameplayTag, FOnGameplayAbilityHeld, float, const FGameplayTag&);
   FOnGameplayAbilityHeld OnGameAbilityHeld;
 
 protected:
@@ -81,6 +82,10 @@ protected:
 
 public:
 
+  /**Start AActor Interface */
+  UE_API virtual void BeginPlay() override;
+  /**End AActor Interface */
+
   UFUNCTION(BlueprintPure, Category = "ARRanger|PlayerController", meta = (DisplayName = "Get ARAbilitySystemComponent"))
   UE_API UARAbilitySystemComponent* GetARASC() const;
 
@@ -91,10 +96,10 @@ public:
   UE_API void OnGameplayAbilityEnd(bool bWasCanceled);
   
   UFUNCTION(BlueprintCallable, Category = "ARRanger|PlayerController")
-  [[nodiscard]] UE_API FGABlueprintableHoldHandle OnGameplayAbilityActivated_Hold(bool bBlockInputTag, FGameplayTagContainer InInputBlockIgnoreTags);
+  [[nodiscard]] UE_API FGABlueprintableHoldHandle OnGameplayAbilityActivated_Hold(FGameplayTag InActivatedAbilityTag, bool bBlockInputTag, FGameplayTagContainer InInputBlockIgnoreTags);
   
   UFUNCTION(BlueprintCallable, Category = "ARRanger|PlayerController")
-  UE_API void OnGameplayAbilityEnded_Hold(FGABlueprintableHoldHandle InHandle, float TimeHeld);
+  UE_API void OnGameplayAbilityEnded_Hold(FGameplayTag InEndedAbilityTag, FGABlueprintableHoldHandle InHandle, float TimeHeld);
 protected:
   /**Start APlayerController Interface */
 	UE_API virtual void PostProcessInput(const float DeltaTime, const bool bGamePaused) override;
@@ -109,8 +114,9 @@ protected:
 
   UE_API void ClearHoldSpec(const FGA_HoldHandle& InHoldHandle);
 
+  UE_API bool IsInputBlocked(const FGameplayTag& InInputTag) const;
+  
 private:
-
   void SwitchNextIMC(const FGameplayTag& InNextIMCTag);
 
   void InitializePlayerInput();
@@ -121,7 +127,16 @@ private:
   void AbilityInputTagReleased(FGameplayTag InInputTag);
   void EvaluateInputBuffer(const float DeltaTime, const bool bGamePaused);
 
-  bool IsInputBlocked(const FGameplayTag& InInputTag) const;
+  void NativeInput_Move(const FInputActionValue& InputActionValue, /**PayLoad */ FGameplayTag InInputTag);
+  void NativeInput_JumpStart(const FInputActionValue& InputActionValue, /**PayLoad */ FGameplayTag InInputTag);
+  void NativeInput_JumpEnd(const FInputActionValue& InputActionValue, /**PayLoad */ FGameplayTag InInputTag);
+  void NativeInput_Look(const FInputActionValue& InputActionValue, /**PayLoad */ FGameplayTag InInputTag);
+  void NativeInput_ToggleLockOn(const FInputActionValue& InputActionValue, /**PayLoad */ FGameplayTag InInputTag);
+  void NativeInput_SwitchTarget_Right(const FInputActionValue& InputActionValue, /**PayLoad */ FGameplayTag InInputTag);
+  void NativeInput_SwitchTarget_Left(const FInputActionValue& InputActionValue, /**PayLoad */ FGameplayTag InInputTag);
+  void NativeInput_Transform(const FInputActionValue& InputActionValue, /**PayLoad */ FGameplayTag InInputTag);
+  void NativeInput_ChargeRotate(const FInputActionValue& InputActionValue, /**PayLoad */ FGameplayTag InInputTag);
+
 private:
 
   UPROPERTY(EditDefaultsOnly, Category = "ARInput|InputConfig")
@@ -138,6 +153,9 @@ private:
 
   UPROPERTY()
   TObjectPtr<UInputMappingContext> CurrentIMC = nullptr;
+
+  UPROPERTY()
+  TObjectPtr<AARRangerCharacter> OwningCharacter;
 
   TArray<FHoldSpec> m_holdSpecs;
   

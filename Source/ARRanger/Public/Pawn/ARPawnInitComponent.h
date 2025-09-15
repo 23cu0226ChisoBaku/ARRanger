@@ -13,6 +13,7 @@
 class APlayerState;
 class UARAbilitySystemComponent;
 class UARPawnInitData;
+class UARChargeAttackComponent;
 
 #define UE_API ARRANGER_API
 
@@ -49,7 +50,11 @@ public:
 
   UE_API void InitializeAbilitySystem(UARAbilitySystemComponent* InASC, AActor* InOwnerActor);
 
+  UE_API void InitializeChargeAttack(UARChargeAttackComponent* InCAC);
+
   UE_API void UninitializeAbilitySystem();
+
+  UE_API void UninitializeChargeAttack();
 
 protected:
 
@@ -61,10 +66,13 @@ protected:
 
 private:
 
-  UPROPERTY(VisibleAnywhere, Category = "GameplayAbility")
+  UPROPERTY(VisibleAnywhere, Category = "PawnInit")
   TObjectPtr<UARAbilitySystemComponent> AbilitySystemComponent;
 
-  UPROPERTY(EditDefaultsOnly, Category = "GameplayAbility", meta = (AllowPrivateAccess = "true"))
+  UPROPERTY(VisibleAnywhere, Category = "PawnInit")
+  TObjectPtr<UARChargeAttackComponent> ChargeAttackComponent;
+
+  UPROPERTY(EditDefaultsOnly, Category = "PawnInit", meta = (AllowPrivateAccess = "true"))
   TObjectPtr<const UARPawnInitData> PawnInitData;
 
 };

@@ -8,6 +8,8 @@
 #include "ActionAbilities/ARGameplayAbilityBase.h"
 #include "ActionAbilities/Attributes/ARAttributeSet.h"
 
+#include "PlayerComponents/ARChargeAttackComponent.h"
+
 // Sets default values for this component's properties
 UARPawnInitComponent::UARPawnInitComponent(const FObjectInitializer& ObjectInitializer)
   : Super(ObjectInitializer)
@@ -59,6 +61,7 @@ void UARPawnInitComponent::BeginPlay()
 void UARPawnInitComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
   UninitializeAbilitySystem();
+  UninitializeChargeAttack();
 
   Super::EndPlay(EndPlayReason);
 }
@@ -125,6 +128,35 @@ void UARPawnInitComponent::InitializeAbilitySystem(UARAbilitySystemComponent* In
   }
 }
 
+void UARPawnInitComponent::InitializeChargeAttack(UARChargeAttackComponent* InCAC)
+{
+  check(InCAC != nullptr);
+
+  // TODO Use Pawn Init Data to add charge branch
+  if (ChargeAttackComponent == InCAC)
+  {
+    return;
+  }
+
+  if (ChargeAttackComponent != nullptr)
+  {
+    UninitializeChargeAttack();
+  }
+
+  ChargeAttackComponent = InCAC;
+
+  if (PawnInitData != nullptr)
+  {
+    for (const FChargeAttackBranchEntry& entry : PawnInitData->ChargeBranchEntries)
+    {
+      for (const FChargeAttackLeaf& leaf : entry.BranchLeaves)
+      {
+        ChargeAttackComponent->AddChargeAttack(entry.BranchTag, leaf.TimeThreshold, leaf.AttackTag);
+      }
+    }
+  }
+} 
+
 void UARPawnInitComponent::UninitializeAbilitySystem()
 {
   if (AbilitySystemComponent == nullptr)
@@ -145,4 +177,13 @@ void UARPawnInitComponent::UninitializeAbilitySystem()
 
   AbilitySystemComponent = nullptr;
 
+}
+
+void UARPawnInitComponent::UninitializeChargeAttack()
+{
+  if (ChargeAttackComponent != nullptr)
+  {
+    ChargeAttackComponent->ClearAllChargeAttacks();
+    ChargeAttackComponent = nullptr;
+  }
 }

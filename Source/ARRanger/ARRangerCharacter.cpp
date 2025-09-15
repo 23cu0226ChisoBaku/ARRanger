@@ -105,6 +105,8 @@ void AARRangerCharacter::BeginPlay()
     if (UARPawnInitComponent* PIC = ::Cast<UARPawnInitComponent>(GetComponentByClass(UARPawnInitComponent::StaticClass())))
     {
       PIC->InitializeAbilitySystem(ARPS->GetARAbilitySystemComponent(), ARPS); 
+
+      PIC->InitializeChargeAttack(ARPS->GetARChargeAttackComponent());
     }
   }
 
@@ -126,39 +128,7 @@ void AARRangerCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
 
 void AARRangerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
-	// 各アクションのバインド
-	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent)) {
-		
-		// ジャンプ
-		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &AARRangerCharacter::DoJumpStart);
-		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &AARRangerCharacter::DoJumpEnd);
-
-		// 移動
-		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AARRangerCharacter::Move);
-
-		// カメラ回転
-		EnhancedInputComponent->BindAction(MouseLookAction, ETriggerEvent::Triggered, this, &AARRangerCharacter::Look);
-		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AARRangerCharacter::Look);
-
-		// ロックオン
-		EnhancedInputComponent->BindAction(LockOnAction, ETriggerEvent::Triggered, LockOnComponent.Get(), &ULockOnComponent::ToggleLockOn);
-
-		// ターゲット切り替え(右、左)
-		EnhancedInputComponent->BindAction(SwitchTargetRightAction, ETriggerEvent::Triggered, LockOnComponent.Get(), &ULockOnComponent::SwitchTargetRight);
-		EnhancedInputComponent->BindAction(SwitchTargetLeftAction, ETriggerEvent::Triggered, LockOnComponent.Get(), &ULockOnComponent::SwitchTargetLeft);
-
-		// 攻撃(パンチ、キック)
-		// EnhancedInputComponent->BindAction(PunchAction, ETriggerEvent::Started, this, &AARRangerCharacter::Input_Punch);
-		// EnhancedInputComponent->BindAction(KickInputAction, ETriggerEvent::Started, this, &AARRangerCharacter::Input_Kick);
-		EnhancedInputComponent->BindAction(KickReleaseAction, ETriggerEvent::Completed, this, &AARRangerCharacter::Release_Kick);
-
-		// 変身
-		EnhancedInputComponent->BindAction(TransformAction, ETriggerEvent::Started, this, &AARRangerCharacter::Transform);
-	}
-	else
-	{
-		UE_LOG(LogTemplateCharacter, Error, TEXT("'%s' Failed to find an Enhanced Input component! This template is built to use the Enhanced Input system. If you intend to use the legacy system, then you will need to update this C++ file."), *GetNameSafe(this));
-	}
+  Super::SetupPlayerInputComponent(PlayerInputComponent);
 }
 
 UAbilitySystemComponent* AARRangerCharacter::GetAbilitySystemComponent() const
@@ -174,23 +144,6 @@ UAbilitySystemComponent* AARRangerCharacter::GetAbilitySystemComponent() const
 void AARRangerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
-	// 入力値を取得
-	float InputMagnitude = 0.f;
-	if (APlayerController* PC = Cast<APlayerController>(GetController()))
-	{
-		if (ULocalPlayer* LP = Cast<ULocalPlayer>(PC->Player))
-		{
-			if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(LP))
-			{
-				const FInputActionValue InputValue = Subsystem->GetPlayerInput()->GetActionValue(MoveAction);
-				if (InputValue.GetValueType() == EInputActionValueType::Axis2D)
-				{
-					InputMagnitude = InputValue.Get<FVector2D>().Size();
-				}
-			}
-		}
-	}
 
 	bool isLockedOn = LockOnComponent->GetIsLockedOn();
 	AActor* Target = LockOnComponent->GetLockedOnTarget();
@@ -258,24 +211,6 @@ void AARRangerCharacter::Tick(float DeltaTime)
 			LaunchCharacter(FVector(0.0f, 0.0f, 700.0f), true, true);
 		}
 	}
-}
-
-void AARRangerCharacter::Move(const FInputActionValue& Value)
-{
-	// 入力値を取得
-	FVector2D MovementVector = Value.Get<FVector2D>();
-	
-	// 移動処理
-	DoMove(MovementVector.X, MovementVector.Y);
-}
-
-void AARRangerCharacter::Look(const FInputActionValue& Value)
-{
-	// 入力値を取得
-	FVector2D LookAxisVector = Value.Get<FVector2D>();
-
-	// カメラ回転処理
-	DoLook(LookAxisVector.X, LookAxisVector.Y);
 }
 
 void AARRangerCharacter::OnClimbSurfaceOverlap(
@@ -474,14 +409,6 @@ void AARRangerCharacter::DoJumpEnd()
 	StopJumping();
 }
 
-void AARRangerCharacter::Release_Kick()
-{
-	// if (GA_KickInstance)
-	// {
-	// 	GA_KickInstance->InputReleased();
-	// }
-}
-
 void AARRangerCharacter::OnAttractionCompleted()
 {
 	// 引き寄せ完了フラグを立てる
@@ -491,6 +418,30 @@ void AARRangerCharacter::OnAttractionCompleted()
 	// {
 	// 	GA_PunchInstance->StartPunch();
 	// }
+}
+
+void AARRangerCharacter::ToggleLockOn()
+{
+  if (LockOnComponent != nullptr)
+  {
+    LockOnComponent->ToggleLockOn();
+  }
+}
+
+void AARRangerCharacter::SwitchTargetRight()
+{
+  if (LockOnComponent != nullptr)
+  {
+    LockOnComponent->SwitchTargetRight();
+  }
+}
+
+void AARRangerCharacter::SwitchTargetLeft()
+{
+  if (LockOnComponent != nullptr)
+  {
+    LockOnComponent->SwitchTargetLeft();
+  }
 }
 
 void AARRangerCharacter::OnDeadEnemy()
@@ -680,4 +631,36 @@ void AARRangerCharacter::OnPunchStarted()
       }
     }
   }
+}
+
+void AARRangerCharacter::RotateCharacter_Charge(float Yaw)
+{
+  if (!bIsHolding || FMath::IsNearlyZero(Yaw))
+  {
+    return;
+  }
+
+  const float RotateOffsetMax = 60.0f;
+  const FRotator curtPlayerDir_Rot = GetActorRotation();
+
+  FRotator nextPlayerDir_Rot = curtPlayerDir_Rot + FRotator{0.0, (double)Yaw, 0.0};
+  if (FVector::DotProduct(FaceDir_HoldStart, nextPlayerDir_Rot.Vector()) < FMath::Cos(FMath::DegreesToRadians(RotateOffsetMax)))
+  {
+    nextPlayerDir_Rot = FaceDir_HoldStart.Rotation() + FMath::Sign(Yaw) * FRotator{0.0, (double)RotateOffsetMax, 0.0}; 
+  }
+
+  SetActorRotation(nextPlayerDir_Rot);
+
+}
+
+// Call if we start charge kick
+void AARRangerCharacter::OnHoldStarted(const FGameplayTag& InActivatedAbilityTag)
+{
+  FaceDir_HoldStart = GetActorForwardVector();
+  bIsHolding = true;
+}
+
+void AARRangerCharacter::OnHoldEnded()
+{
+  bIsHolding = false;
 }

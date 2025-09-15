@@ -9,8 +9,11 @@
 #include "ActionAbilities/ARAbilitySystemComponent.h"
 #include "Input/ARInputComponent.h"
 #include "Input/ARPlayerInputBuffer.h"
+#include "InputActionValue.h"
 #include "Player/ARPlayerState.h"
 #include "Pawn/ARPawnInitComponent.h"
+// TODO
+#include "ARRangerCharacter.h"
 
 #include "Internal/ARLoggingHeader.h"
 #include "ARGameplayTags.h"
@@ -77,6 +80,21 @@ bool AARRangerPlayerController::FHoldSpec::operator==(const AARRangerPlayerContr
 bool AARRangerPlayerController::FHoldSpec::operator!=(const AARRangerPlayerController::FHoldSpec& Other) const
 {
   return !(*this == Other);
+}
+
+void AARRangerPlayerController::BeginPlay()
+{
+  Super::BeginPlay();
+
+  if (AARPlayerState* ARPS = GetPlayerState<AARPlayerState>())
+  {
+    ARPS->OnPlayerStateInitialized(this);
+  }
+
+  if (AARRangerCharacter* character = ::Cast<AARRangerCharacter>(GetPawn()))
+  {
+    OwningCharacter = character;
+  }
 }
 
 UARAbilitySystemComponent* AARRangerPlayerController::GetARASC() const
@@ -157,8 +175,13 @@ void AARRangerPlayerController::OnGameplayAbilityEnd(bool bWasCanceled)
   }
 }
 
-FGABlueprintableHoldHandle AARRangerPlayerController::OnGameplayAbilityActivated_Hold(bool bBlockInputTag, FGameplayTagContainer InInputBlockIgnoreTags)
+FGABlueprintableHoldHandle AARRangerPlayerController::OnGameplayAbilityActivated_Hold(FGameplayTag InActivatedAbilityTag, bool bBlockInputTag, FGameplayTagContainer InInputBlockIgnoreTags)
 {
+  if (OwningCharacter != nullptr)
+  {
+    OwningCharacter->OnHoldStarted(InActivatedAbilityTag);
+  }
+  
   if (bBlockInputTag)
   {
     FHoldSpec newHoldSpec{};
@@ -171,17 +194,29 @@ FGABlueprintableHoldHandle AARRangerPlayerController::OnGameplayAbilityActivated
     return FGABlueprintableHoldHandle{newHoldSpec.Handle};
   }
 
+
   return FGABlueprintableHoldHandle{};
 
 }
 
-void AARRangerPlayerController::OnGameplayAbilityEnded_Hold(FGABlueprintableHoldHandle InHandle, float TimeHeld)
+void AARRangerPlayerController::OnGameplayAbilityEnded_Hold(FGameplayTag InEndedAbilityTag, FGABlueprintableHoldHandle InHandle, float TimeHeld)
 {
   ClearHoldSpec(InHandle.Handle);
 
   if (OnGameAbilityHeld.IsBound())
   {
-    OnGameAbilityHeld.Broadcast(TimeHeld);
+    FGameplayTag nextAbilityTag = OnGameAbilityHeld.Execute(TimeHeld, InEndedAbilityTag);
+    if (nextAbilityTag.IsValid())
+    {
+      // TODO Input buffer issue
+      // NOTE: When we switch IMC, we clear all inputs.So this one will not be activated in some situation
+      AbilityInputTagPressed(nextAbilityTag);
+    }
+  }
+
+  if (OwningCharacter != nullptr)
+  {
+    OwningCharacter->OnHoldEnded();
   }
 }
 
@@ -250,6 +285,16 @@ void AARRangerPlayerController::InitializePlayerInput()
   // Bind input action to gameplay tag;
   ARIC->BindAbilityActions(InputConfig, this, &AARRangerPlayerController::AbilityInputTagPressed, &AARRangerPlayerController::AbilityInputTagReleased, m_bindHandles);
 
+  // Bind native input actions
+  ARIC->BindNativeAction(InputConfig, ARRanger::GameplayTags::NativeInput_Move, ETriggerEvent::Triggered, this, &ThisClass::NativeInput_Move);
+  ARIC->BindNativeAction(InputConfig, ARRanger::GameplayTags::NativeInput_JumpStart, ETriggerEvent::Started, this, &ThisClass::NativeInput_JumpStart);
+  ARIC->BindNativeAction(InputConfig, ARRanger::GameplayTags::NativeInput_JumpEnd, ETriggerEvent::Completed, this, &ThisClass::NativeInput_JumpEnd);
+  ARIC->BindNativeAction(InputConfig, ARRanger::GameplayTags::NativeInput_Look, ETriggerEvent::Triggered, this, &ThisClass::NativeInput_Look);
+  ARIC->BindNativeAction(InputConfig, ARRanger::GameplayTags::NativeInput_LockOn, ETriggerEvent::Triggered, this, &ThisClass::NativeInput_ToggleLockOn);
+  ARIC->BindNativeAction(InputConfig, ARRanger::GameplayTags::NativeInput_SwitchTarget_Left, ETriggerEvent::Triggered, this, &ThisClass::NativeInput_SwitchTarget_Left);
+  ARIC->BindNativeAction(InputConfig, ARRanger::GameplayTags::NativeInput_SwitchTarget_Right, ETriggerEvent::Triggered, this, &ThisClass::NativeInput_SwitchTarget_Right);
+  ARIC->BindNativeAction(InputConfig, ARRanger::GameplayTags::NativeInput_Transform, ETriggerEvent::Triggered, this, &ThisClass::NativeInput_Transform);
+  ARIC->BindNativeAction(InputConfig, ARRanger::GameplayTags::NativeInput_Charge_Rotate, ETriggerEvent::Triggered, this, &ThisClass::NativeInput_ChargeRotate);
   // Initialize Input Buffer
   InitializePlayerInputBuffer(ARIC);
   
@@ -285,11 +330,6 @@ void AARRangerPlayerController::AbilityInputTagPressed(FGameplayTag InInputTag)
   else
   {
     InputBuffer->HandleInputTagPressed(InInputTag);
-  }
-
-  if (GEngine)
-  {
-    GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Black, InInputTag.ToString());
   }
 
 }
@@ -345,3 +385,126 @@ bool AARRangerPlayerController::IsInputBlocked(const FGameplayTag& InInputTag) c
   return bInputBlocked;
 
 }
+
+void AARRangerPlayerController::NativeInput_Move(const FInputActionValue& InputActionValue, /**PayLoad */ FGameplayTag InInputTag)
+{
+  if (IsInputBlocked(InInputTag))
+  {
+    return;
+  }
+
+  if (OwningCharacter != nullptr)
+  {
+    const FVector2D moveInput = InputActionValue.Get<FVector2D>();
+    OwningCharacter->DoMove(moveInput.X, moveInput.Y);
+  }
+  
+}
+
+void AARRangerPlayerController::NativeInput_JumpStart(const FInputActionValue& InputActionValue, /**PayLoad */ FGameplayTag InInputTag)
+{
+  if (IsInputBlocked(InInputTag))
+  {
+    return;
+  }
+
+  if (OwningCharacter != nullptr)
+  {
+    OwningCharacter->DoJumpStart();
+  }
+}
+
+void AARRangerPlayerController::NativeInput_JumpEnd(const FInputActionValue& InputActionValue, /**PayLoad */ FGameplayTag InInputTag)
+{
+  if (IsInputBlocked(InInputTag))
+  {
+    return;
+  }
+
+  if (OwningCharacter != nullptr)
+  {
+    OwningCharacter->DoJumpEnd();
+  }
+}
+
+void AARRangerPlayerController::NativeInput_Look(const FInputActionValue& InputActionValue, /**PayLoad */ FGameplayTag InInputTag)
+{
+  if (IsInputBlocked(InInputTag))
+  {
+    return;
+  }
+
+  if (OwningCharacter != nullptr)
+  {
+    const FVector2D lookAxisVector = InputActionValue.Get<FVector2D>();
+    OwningCharacter->DoLook(lookAxisVector.X, lookAxisVector.Y);
+  }
+}
+
+void AARRangerPlayerController::NativeInput_ToggleLockOn(const FInputActionValue& InputActionValue, /**PayLoad */ FGameplayTag InInputTag)
+{
+  if (IsInputBlocked(InInputTag))
+  {
+    return;
+  }
+
+  if (OwningCharacter != nullptr)
+  {
+    OwningCharacter->ToggleLockOn();
+  }
+}
+
+void AARRangerPlayerController::NativeInput_SwitchTarget_Right(const FInputActionValue& InputActionValue, /**PayLoad */ FGameplayTag InInputTag)
+{
+  if (IsInputBlocked(InInputTag))
+  {
+    return;
+  }
+
+  if (OwningCharacter != nullptr)
+  {
+    OwningCharacter->SwitchTargetRight();
+  }
+}
+
+void AARRangerPlayerController::NativeInput_SwitchTarget_Left(const FInputActionValue& InputActionValue, /**PayLoad */ FGameplayTag InInputTag)
+{
+  if (IsInputBlocked(InInputTag))
+  {
+    return;
+  }
+
+  if (OwningCharacter != nullptr)
+  {
+    OwningCharacter->SwitchTargetLeft();
+  }
+}
+
+void AARRangerPlayerController::NativeInput_Transform(const FInputActionValue& InputActionValue, /**PayLoad */ FGameplayTag InInputTag)
+{
+  if (IsInputBlocked(InInputTag))
+  {
+    return;
+  }
+
+  if (OwningCharacter != nullptr)
+  {
+    OwningCharacter->Transform();
+  }
+}
+
+void AARRangerPlayerController::NativeInput_ChargeRotate(const FInputActionValue& InputActionValue, /**PayLoad */ FGameplayTag InInputTag)
+{
+  if (IsInputBlocked(InInputTag))
+  {
+    return;
+  }
+
+  if (OwningCharacter != nullptr)
+  {
+    const float yawInput = InputActionValue.Get<float>();
+    OwningCharacter->RotateCharacter_Charge(yawInput);
+  }
+
+}
+
