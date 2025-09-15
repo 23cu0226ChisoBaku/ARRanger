@@ -23,6 +23,7 @@
 #include "NiagaraSystem.h"
 #include "PunchCameraShake.h"
 #include "Player/ARPlayerState.h"
+#include "PlayerComponents/AttractSpecialAttackComponent.h"
 
 #include "Pawn/ARPawnInitComponent.h"
 
@@ -37,7 +38,7 @@ namespace
 
 AARRangerCharacter::AARRangerCharacter()
 	: currentClimbSurface(nullptr)
-	, isClimbed(false)
+	, bIsClimbed(false)
 	, Montage_AttractionClimb(nullptr)
 {
 	// カプセルサイズを設定
@@ -106,6 +107,8 @@ void AARRangerCharacter::BeginPlay()
       PIC->InitializeAbilitySystem(ARPS->GetARAbilitySystemComponent(), ARPS); 
     }
   }
+
+  attractSpecialAttackComponent = FindComponentByClass<UAttractSpecialAttackComponent>();
 }
 
 // 麦
@@ -215,7 +218,7 @@ void AARRangerCharacter::Tick(float DeltaTime)
 	}
 
 	// 引力クライム中に処理
-	if (isClimbed)
+	if (bIsClimbed)
 	{
 		const float ClimbSpeed = 700.0f; // 上昇速度
 		AddActorWorldOffset(FVector(0, 0, ClimbSpeed * DeltaTime), true);
@@ -242,7 +245,7 @@ void AARRangerCharacter::Tick(float DeltaTime)
 		if (!bHit || (GetMagnetismType() != EARMagnetismType::Attraction))
 		{
 			// クライム解除＋ジャンプ処理
-			isClimbed = false;
+			bIsClimbed = false;
 			GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Falling);
 			GetCharacterMovement()->bOrientRotationToMovement = true;
 			// AnimInstance側のフラグも下げる
@@ -296,7 +299,7 @@ void AARRangerCharacter::OnClimbSurfaceOverlap(
 void AARRangerCharacter::DoMove(float Right, float Forward)
 {
 	// コントローラーがない、引き寄せ中または攻撃中なら処理しない
-	if (GetController() == nullptr || isAttracted || isAttacked || isStrongAttacked)
+	if (GetController() == nullptr || bIsAttracted || bIsAttacked || bIsStrongAttacked)
 	{
 		return;
 	}
@@ -334,7 +337,7 @@ void AARRangerCharacter::DoMove(float Right, float Forward)
     }   
   }
 
-	if (!isClimbed)
+	if (!bIsClimbed)
 	{
 		const FRotator Rotation = GetController()->GetControlRotation();
 		const FRotator YawRotation(0, Rotation.Yaw, 0);
@@ -366,13 +369,13 @@ void AARRangerCharacter::DoMove(float Right, float Forward)
 void AARRangerCharacter::StartClimbing(AInsekiClimbingObject* ClimbActor)
 {
 	// クライム中でない、引力クライムオブジェクトに触れていない、または引力状態でないなら処理しない
-	if (isClimbed || !ClimbActor || GetMagnetismType() != EARMagnetismType::Attraction)
+	if (bIsClimbed || !ClimbActor || GetMagnetismType() != EARMagnetismType::Attraction)
 	{
 		return;
 	}
 		
 	// 引力クライムフラグを上げる
-	isClimbed = true;
+	bIsClimbed = true;
 	currentClimbSurface = ClimbActor;
 	// AnimInstance側のフラグも上げる
 	if (UARRangerAnimInstance* MyAnim = Cast<UARRangerAnimInstance>(GetMesh()->GetAnimInstance()))
@@ -409,13 +412,13 @@ void AARRangerCharacter::StartClimbing(AInsekiClimbingObject* ClimbActor)
 void AARRangerCharacter::StopClimbing()
 {
 	// 引力クライム中でないなら処理しない
-	if (!isClimbed)
+	if (!bIsClimbed)
 	{
 		return;
 	}
 		
 	// 引力クライムフラグを下げる
-	isClimbed = false;
+	bIsClimbed = false;
 	currentClimbSurface = nullptr;
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 	// AnimInstance側のフラグも下げる
@@ -442,13 +445,13 @@ void AARRangerCharacter::DoLook(float Yaw, float Pitch)
 void AARRangerCharacter::DoJumpStart()
 {
 	// 攻撃中・引き寄せ中は処理しない
-	if (isAttacked || isStrongAttacked || isAttracted)
+	if (bIsAttacked || bIsStrongAttacked || bIsAttracted)
 	{
 		return;
 	}
 
 	// 引力クライムを解除
-	if (isClimbed)
+	if (bIsClimbed)
 	{
 		StopClimbing();
 	}
@@ -505,7 +508,7 @@ void AARRangerCharacter::OnAttackHitNotify()
 void AARRangerCharacter::Transform()
 {
 	// 攻撃中・引き寄せ中は処理しない
-	if (isAttacked || isStrongAttacked || isAttracted)
+	if (bIsAttacked || bIsStrongAttacked || bIsAttracted)
 	{
 		return;
 	}
@@ -539,6 +542,51 @@ void AARRangerCharacter::Transform()
 			true,
 			ENCPoolMethod::AutoRelease
 		);
+	}
+}
+
+bool AARRangerCharacter::CanSpecialAttractAttack()
+{
+	// 攻撃・強攻撃中、引き寄せ中、ジャンプ中、引力クライム中はfalseを返す
+	if (bIsAttacked || bIsStrongAttacked || bIsAttracted || bIsJumping || bIsClimbed)
+	{
+		return false;
+	}
+
+	// To Do：引力フックショット時、必殺技ゲージ非満タン時、被ダメージ時にもfalseを返す
+
+	// 可能ならtrueを返す
+	return true;
+}
+
+void AARRangerCharacter::OnSpecialAttractAttack()
+{
+	// 必殺技が使用可能でなければ処理しない
+	if (!CanSpecialAttractAttack())
+	{
+		return;
+	}
+
+	// 敵のロックオンを解除しておく
+	LockOnComponent->SetIsLockedOn(false);
+
+	// キャラクターの速度をあらかじめ0にしておく
+	APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0);
+	APawn* PlayerPawn = PC ? PC->GetPawn() : nullptr;
+	if (PlayerPawn)
+	{
+		if (UCharacterMovementComponent* MoveComp = Cast<UCharacterMovementComponent>(PlayerPawn->GetMovementComponent()))
+		{
+			MoveComp->StopMovementImmediately();
+		}
+	}
+
+	// To Do：必殺技の途中に攻撃を食らわないよう、プレイヤーを無敵状態にしておく
+
+
+	if (attractSpecialAttackComponent != nullptr)
+	{
+		attractSpecialAttackComponent->OnStartSpecialAttract();
 	}
 }
 

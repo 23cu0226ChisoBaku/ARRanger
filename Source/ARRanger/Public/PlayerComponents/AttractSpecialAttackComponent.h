@@ -34,6 +34,12 @@ public:
 		}
 	}
 
+	/**
+	 * @brief 引力必殺技を始めた際の処理
+	 */
+	UFUNCTION(BlueprintCallable)
+	void OnStartSpecialAttract();
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	bool m_IsGenerateAttract;      		/*引力アクターを生成しているか*/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
@@ -44,13 +50,6 @@ public:
 	bool m_IsLand;      				/*着地しているか*/
 
 private:
-
-	/**
-	 * @brief 引力必殺技を始めた際の処理
-	 */
-	UFUNCTION(BlueprintCallable)
-	void OnStartSpecialAttract();
-
 	/**
 	 * @brief 対象のオブジェクトを引き寄せる物体を生成する
 	 */
