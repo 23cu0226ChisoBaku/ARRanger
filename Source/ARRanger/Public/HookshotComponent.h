@@ -52,6 +52,13 @@ public:
     UFUNCTION()
     FVector CalculationDirection(FVector StartPos, FVector EndPos);
 
+    /**
+     * @brief フックショット状態かどうかを返す
+     * 
+     * @param フックショット状態かどうか
+     */
+    bool IsHookShot(){ return m_IsHookshotAction;}
+
 private:
 
     /**
@@ -90,15 +97,13 @@ private:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Hookshot|Collision", meta = (AllowPrivateAccess = "true"))
     FVector m_HookshotBoxTraceOffset;       /*BoxCollision のオフセット*/ 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Hookshot|Speed", meta = (AllowPrivateAccess = "true"))
-    EHookshotSpeedCurve SpeedCurve;         /*フックショットのスピードタイプ*/
+    EHookshotSpeedCurve m_SpeedCurve;         /*フックショットのスピードタイプ*/
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Hookshot|Speed", meta = (AllowPrivateAccess = "true"))
     float m_HookshotSpeedIncreaseValue;     /*フックショットの加算スピード*/
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Hookshot|Speed", meta = (AllowPrivateAccess = "true"))
     float m_HookshotMaxSpeed;               /*フックショットの最高スピード*/
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Hookshot|Speed", meta = (AllowPrivateAccess = "true"))
     float m_HookshotMinSpeed;               /*フックショットの最低スピード*/
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Hookshot|Speed", meta = (AllowPrivateAccess = "true"))
-    float m_RatioBetweenPlayerAndTarget;    /*スピードを変える、プレイヤーとターゲットとの距離の比率の境*/
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Hookshot|Speed", meta = (AllowPrivateAccess = "true"))
     UCurveFloat* m_CustomCurveSpeed;
     UPROPERTY()

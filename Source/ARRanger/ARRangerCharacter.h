@@ -21,6 +21,7 @@ class UAbilitySystemComponent;
 class UAnimMontage;
 class UInputAction;
 class USkeletalMesh;
+class UAttractSpecialAttackComponent;
 
 struct FInputActionValue;
 
@@ -104,7 +105,7 @@ class AARRangerCharacter :  public ACharacter,
 
 	// 引力クライムフラグ
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	bool isClimbed;
+	bool bIsClimbed;
 
 	// 変身用エフェクトを設定
 	UPROPERTY(EditAnywhere, Category = "Effects")
@@ -189,7 +190,7 @@ public:
 
 	// ダッシュ中フラグ
 	UPROPERTY(BlueprintReadWrite)
-	bool IsDashed;
+	bool bIsDashed;
 
 	// ロックオンコンポーネント
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
@@ -223,28 +224,28 @@ public:
 	void ResetIsAttacked();
 
 	// 攻撃中フラグを取得
-	bool GetIsAttacked() { return isAttacked; }
+	bool GetIsAttacked() { return bIsAttacked; }
 
 	// 攻撃中フラグをセット
-	void SetIsAttacked(bool IsAttacked) { isAttacked = IsAttacked; }
+	void SetIsAttacked(bool IsAttacked) { bIsAttacked = IsAttacked; }
 
 	// 強攻撃中フラグをセット
-	void SetIsStrongAttacked(bool IsStrongAttacked) { isStrongAttacked = IsStrongAttacked; }
+	void SetIsStrongAttacked(bool IsStrongAttacked) { bIsStrongAttacked = IsStrongAttacked; }
 
 	// ロックオンフラグを取得
 	bool GetIsLockedOn() { return LockOnComponent->GetIsLockedOn(); }
 
 	// 引き寄せ中フラグをセット
-	void SetIsAttracted(bool IsAttracted) { isAttracted = IsAttracted; }
+	void SetIsAttracted(bool IsAttracted) { bIsAttracted = IsAttracted; }
 
 	// 引き寄せ中フラグを取得
-	bool GetIsAttracted() { return isAttracted; }
+	bool GetIsAttracted() { return bIsAttracted; }
 
 	// 引き寄せ完了フラグをセット
-	void SetIsApproachedEnemy(bool IsApproachedEnemy) { isApproachedEnemy = IsApproachedEnemy; }
+	void SetIsApproachedEnemy(bool IsApproachedEnemy) { bIsApproachedEnemy = IsApproachedEnemy; }
 
 	// 引き寄せ完了フラグを取得
-	bool GetIsApproachedEnemy() { return isApproachedEnemy; }
+	bool GetIsApproachedEnemy() { return bIsApproachedEnemy; }
 
 	// 引き寄せ完了時に呼びだされる関数
 	void OnAttractionCompleted();
@@ -268,10 +269,14 @@ public:
 	int32 GetComboCount() { return ComboCount; }
 
 	// 引力クライム中フラグを取得
-	bool GetIsClimbed() { return isClimbed; }
+	bool GetIsClimbed() { return bIsClimbed; }
 
 	// AttackComponent内で使用するNotifyHandler用
 	void OnAttackHitNotify();
+
+	// 必殺技時に呼び出される
+	UFUNCTION(BlueprintCallable)
+	void OnSpecialAttractAttack();
 
 	// 麦
 	bool bIsJumping = false;
@@ -288,22 +293,29 @@ public:
 
 private:
 	// 攻撃中フラグ
-	bool isAttacked = false;
+	bool bIsAttacked = false;
 
 	// 強攻撃中フラグ
-	bool isStrongAttacked = false;
+	bool bIsStrongAttacked = false;
 
 	// 引き寄せ中フラグ
-	bool isAttracted = false;
+	bool bIsAttracted = false;
 
 	// 敵引き寄せ完了フラグ
-	bool isApproachedEnemy = false;
+	bool bIsApproachedEnemy = false;
 
 	// コンボ受付中かどうか
 	bool bIsInComboWindow = false;
 
 	// コンボカウント
 	int32 ComboCount = 0;
+
+	// 必殺技コンポーネントを取得
+	UPROPERTY()
+	UAttractSpecialAttackComponent* attractSpecialAttackComponent = nullptr;
+
+	// 必殺技を使用可能かを返す関数
+	bool CanSpecialAttractAttack();
 
 	UFUNCTION()
 	void OnMagneticForceFieldBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);

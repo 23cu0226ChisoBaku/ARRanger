@@ -1,0 +1,42 @@
+//*************************************************
+// 敵キャラクターのスポナークラス
+//*************************************************
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "Public/BattleEvent/SpawnPhase.h"
+#include "EnemySpawner.generated.h"
+
+/*前方宣言*/
+class FOnEnemyDestroyed;
+
+UCLASS()
+class AEnemySpawner : public AActor
+{
+    GENERATED_BODY()
+    
+public:	
+    AEnemySpawner();
+
+    /**
+     * @brief 敵キャラクターのスポーンを行う関数
+     * 
+     * @param スポーンした敵が破棄されたときに呼ぶデリゲート関数
+     */
+    void SpawnEnemy(const FScriptDelegate& onDestroyedCallback);
+
+    /**
+     * @brief スポナーの有効なフェーズを取得する 
+     * 
+     * @param 有効なフェーズ
+     */
+    TArray<ESpawnPhase> GetSpawnPhases() const { return m_SpawnPhases; }
+
+private:
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spawner", meta = (AllowPrivateAccess = "true"))
+    TSubclassOf<AActor> m_SpawnEnemy;   /*スポーンさせる敵*/
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Spawner", meta=(AllowPrivateAccess="true"))
+    TArray<ESpawnPhase> m_SpawnPhases;  /*スポーンフェーズ*/
+};

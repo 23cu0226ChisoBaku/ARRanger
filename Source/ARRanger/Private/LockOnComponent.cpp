@@ -34,7 +34,7 @@ void ULockOnComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 		{
 			// ターゲットが見えなくなったらロックオン解除
 			lockedOnTarget = nullptr;
-			isLockedOn = false;
+            SetIsLockedOn(false);
 		}
 
         // ロックオン中の敵が死んだら処理
@@ -50,7 +50,7 @@ void ULockOnComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActo
             else
             {
                 lockedOnTarget = nullptr;
-                isLockedOn = false;
+                SetIsLockedOn(false);
             }
         }
 	}
@@ -70,7 +70,7 @@ void ULockOnComponent::ToggleLockOn()
     {
         // ロックオンを解除
         lockedOnTarget = nullptr;
-        isLockedOn = false;
+        SetIsLockedOn(false);
         UE_LOG(LogTemp, Warning, TEXT("LockOn: Unlocked"));
     }
     else
@@ -86,7 +86,7 @@ void ULockOnComponent::ToggleLockOn()
             {
                 // プレイヤーから見えていればロックオン開始
                 lockedOnTarget = Candidate;
-                isLockedOn = true;
+                SetIsLockedOn(true);
                 UE_LOG(LogTemp, Warning, TEXT("LockOn: Locked on %s"), *Candidate->GetName());
             }
             else

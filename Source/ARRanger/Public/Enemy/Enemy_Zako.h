@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
@@ -35,27 +35,27 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Enemy|Stats")
     float PreferredDistance = 20.0f; 
 
-    // ˆø‚«Šñ‚¹ŠJnŠÖ”
+    // å¼•ãå¯„ã›é–‹å§‹é–¢æ•°
     void StartAttraction(AActor* Target);
 
-    // IARAttackable ‚ÌƒI[ƒo[ƒ‰ƒCƒh
+    // IARAttackable ã®ã‚ªãƒ¼ãƒãƒ¼ãƒ©ã‚¤ãƒ‰
 
 private:
-    // ˆø‚«Šñ‚¹‚ç‚ê’†ƒtƒ‰ƒO
+    // å¼•ãå¯„ã›ã‚‰ã‚Œä¸­ãƒ•ãƒ©ã‚°
     bool bIsAttracted = false;
 
-    // ˆø‚«Šñ‚¹‚ç‚ê‚é‘ÎÛ(ƒvƒŒƒCƒ„[)
+    // å¼•ãå¯„ã›ã‚‰ã‚Œã‚‹å¯¾è±¡(ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼)
     AActor* attractionTarget = nullptr;
 
-    // ˆø‚«Šñ‚¹’â~ŠÖ”
+    // å¼•ãå¯„ã›åœæ­¢é–¢æ•°
     void StopAttraction();
 
 protected:
-    // ˆø‚«Šñ‚¹‚ÌƒXƒs[ƒh
+    // å¼•ãå¯„ã›æ™‚ã®ã‚¹ãƒ”ãƒ¼ãƒ‰
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Enemy")
     float attractionSpeed = 800.f;
 
-    // ˆø‚«Šñ‚¹‚ÌÅ’á‹——£(‚±‚êˆÈ‰º‚É‚È‚Á‚½‚çƒpƒ“ƒ`ŠJn)
+    // å¼•ãå¯„ã›ã®æœ€ä½è·é›¢(ã“ã‚Œä»¥ä¸‹ã«ãªã£ãŸã‚‰ãƒ‘ãƒ³ãƒé–‹å§‹)
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Enemy")
     float MinDistance = 150.f;
 
@@ -71,14 +71,14 @@ protected:
 
     //ISpecialAttractInterface functions Start
     
-    //ˆø—Í•KE‹Z‚ªn‚Ü‚Á‚½‚Ì’Ê’m
+    //å¼•åŠ›å¿…æ®ºæŠ€ãŒå§‹ã¾ã£ãŸæ™‚ã®é€šçŸ¥
     virtual void OnStartSpecialAttractNotify();
 
-    //brief ˆø—Í•KE‹Z‚Ì’†ŠÔ’Ê’m
-    //param Œo‰ßŠÔ
+    //brief å¼•åŠ›å¿…æ®ºæŠ€ã®ä¸­é–“é€šçŸ¥
+    //param çµŒéæ™‚é–“
     virtual void OnUpdateSpecialAttractNotify(float elapsed);
 
-    //brief ˆø—Í•KE‹Z‚ÌI—¹’Ê’m
+    //brief å¼•åŠ›å¿…æ®ºæŠ€ã®çµ‚äº†é€šçŸ¥
     virtual void OnEndSpecialAttractNotify();
 
 };
