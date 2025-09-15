@@ -75,3 +75,8 @@ void UARGameplayAbilityBase::InputReleased(const FGameplayAbilitySpecHandle Hand
  
   K2_InputReleased();
 }
+
+FGameplayTagContainer UARGameplayAbilityBase::K2_GetAssetTags() const
+{
+  return AbilityTags;
+}

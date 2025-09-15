@@ -20,6 +20,9 @@ namespace GameplayTags
   UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Attack_Punch_Combo3);
   UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Attack_Kick);
   UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Special_HookShot);
+  UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Cancel);
+
+  UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Charge_AttractionKick);
 
   /**InputState Tag */
   UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputState_BlockAll);

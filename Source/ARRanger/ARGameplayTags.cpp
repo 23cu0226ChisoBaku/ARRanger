@@ -11,6 +11,9 @@ namespace GameplayTags
   UE_DEFINE_GAMEPLAY_TAG_COMMENT(Ability_Attack_Punch_Combo3, "Ability.Attack.Punch_Combo3", "Punch (Combo 3) attack ability");
   UE_DEFINE_GAMEPLAY_TAG_COMMENT(Ability_Attack_Kick, "Ability.Attack.Kick", "Kick attack ability");
   UE_DEFINE_GAMEPLAY_TAG_COMMENT(Ability_Special_HookShot, "Ability.Special.HookShot", "Attraction hook shot special attack ability");
+  UE_DEFINE_GAMEPLAY_TAG_COMMENT(Ability_Cancel, "Ability.Cancel", "Tag to cancel abilities");
+
+  UE_DEFINE_GAMEPLAY_TAG_COMMENT(Ability_Charge_AttractionKick, "Ability.Charge.AttractionKick", "Attraction kick charge ability");
 
   UE_DEFINE_GAMEPLAY_TAG_COMMENT(InputState_BlockAll, "InputState.BlockAll", "Block all player input");
   UE_DEFINE_GAMEPLAY_TAG_COMMENT(InputState_Default, "InputState.Default", "Player default input state");

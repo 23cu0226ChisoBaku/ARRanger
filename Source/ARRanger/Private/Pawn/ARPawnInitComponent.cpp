@@ -96,12 +96,15 @@ void UARPawnInitComponent::InitializeAbilitySystem(UARAbilitySystemComponent* In
 
   if (PawnInitData != nullptr)
   {
+    // TODO Make inputID and abilityLevel hard coding temporary
+    int32 inputID = 0;
+    const int32 abilityLevel = 1;
     for (TSoftClassPtr<UARGameplayAbilityBase> GA : PawnInitData->Abilities)
     {
       // Initialize Abilities
       if (GA != nullptr)
       { 
-        FGameplayAbilitySpec newAbilitySpec{GA.LoadSynchronous()};
+        FGameplayAbilitySpec newAbilitySpec{GA.LoadSynchronous(), abilityLevel, inputID++};
         FGameplayAbilitySpecHandle newAbilitySpecHandle = AbilitySystemComponent->GiveAbility(newAbilitySpec);
       }  
     }

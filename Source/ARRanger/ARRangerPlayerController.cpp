@@ -103,7 +103,7 @@ void AARRangerPlayerController::PostProcessInput(const float DeltaTime, const bo
   {
     if (GEngine)
     {
-      GEngine->AddOnScreenDebugMessage(-1, .5f, FColor::Green, CurrentIMC->GetName());
+      GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Green, CurrentIMC->GetName());
     }
   }
 
@@ -287,6 +287,11 @@ void AARRangerPlayerController::AbilityInputTagPressed(FGameplayTag InInputTag)
     InputBuffer->HandleInputTagPressed(InInputTag);
   }
 
+  if (GEngine)
+  {
+    GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Black, InInputTag.ToString());
+  }
+
 }
 
 void AARRangerPlayerController::AbilityInputTagReleased(FGameplayTag InInputTag)
@@ -332,7 +337,7 @@ bool AARRangerPlayerController::IsInputBlocked(const FGameplayTag& InInputTag) c
   {
     if (holdSpec.Handle.IsValid() && holdSpec.InputBlockIgnoreTags.HasTagExact(InInputTag))
     {
-      bInputBlocked = true;
+      bInputBlocked = false;
       break;
     }
   }
