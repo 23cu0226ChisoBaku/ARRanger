@@ -36,11 +36,11 @@ public:
 
   UE_API void ClearAllInputs();
 
+  UE_API void HandleInputTagPressed(const FGameplayTag& InInputTag);
+  
+  UE_API void HandleInputTagReleased(const FGameplayTag& InInputTag);
+
 private:
-
-  void InputBuffer_AbilityInputTagPressed(FGameplayTag InInputTag);
-
-  void InputBuffer_AbilityInputTagReleased(FGameplayTag InInputTag);
 
   void ConsumeBuffer(const FGameplayTag& InInputTag);
 

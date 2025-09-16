@@ -20,6 +20,9 @@ namespace GameplayTags
   UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Attack_Punch_Combo3);
   UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Attack_Kick);
   UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Special_HookShot);
+  UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Cancel);
+
+  UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Charge_AttractionKick);
 
   /**InputState Tag */
   UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputState_BlockAll);
@@ -29,6 +32,20 @@ namespace GameplayTags
   UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputState_Punch_Combo3);
   UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputState_Kick);
   UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputState_Jump);
+  UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputState_Charge_AttractionKick);
+
+  /**Native Input Tag */
+  UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(NativeInput_Move);
+  UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(NativeInput_JumpStart);
+  UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(NativeInput_JumpEnd);
+  UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(NativeInput_Look);
+  UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(NativeInput_LockOn);
+  UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(NativeInput_SwitchTarget_Left);
+  UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(NativeInput_SwitchTarget_Right);
+  UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(NativeInput_Transform);
+  UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(NativeInput_Charge_Rotate);
+  UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(NativeInput_Target_Snap);
+
 } // namespace ARRanger::GameplayTags;
 
 } // namespace ARRanger

@@ -33,6 +33,12 @@ public:
   UFUNCTION(BlueprintCallable, Category = "InputConfig")
   const UInputAction* FindAbilityInputAction(const FGameplayTag& InInputTag) const;
 
+  UFUNCTION(BlueprintCallable, CAtegory = "InputConfig")
+  const UInputAction* FindNativeInputAction(const FGameplayTag& InInputTag) const;
+
   UPROPERTY(EditDefaultsOnly, Category = "InputConfig", meta = (TitleProperty = "Ability Input: {InputAction} with {InputTag}."))
   TArray<FARInputAction> AbilityInputActions;
+
+  UPROPERTY(EditDefaultsOnly, Category = "InputConfig", meta = (TitleProperty = "Native Input: {InputAction} with {InputTag}."))
+  TArray<FARInputAction> NativeInputActions;
 };

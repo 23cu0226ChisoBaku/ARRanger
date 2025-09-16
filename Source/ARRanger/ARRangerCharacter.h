@@ -24,8 +24,10 @@ class USkeletalMesh;
 class UAttractSpecialAttackComponent;
 
 struct FInputActionValue;
+struct FGameplayTag;
 
 DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);
+
 
 /**
  *  シンプルでプレイヤーが操作可能な三人称視点キャラクター
@@ -51,58 +53,6 @@ class AARRangerCharacter :  public ACharacter,
 	// 麦
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
-	// ジャンプアクション
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
-	UInputAction* JumpAction;
-
-	// 移動アクション
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
-	UInputAction* MoveAction;
-
-	// 山内　引力付与アクション 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
-	UInputAction* AttachAttractionAction;
-
-	// 山内　斥力付与アクション
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
-	UInputAction* AttachRepulsionAction;
-
-	// 視点回転アクション(ゲームパッド)
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
-	UInputAction* LookAction;
-
-	// 視点回転アクション(マウス)
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
-	UInputAction* MouseLookAction;
-
-	// ロックオンアクション
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
-	class UInputAction* LockOnAction;
-
-	// ロックオン時ターゲット切り替えアクション(次のターゲット)
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
-	class UInputAction* SwitchTargetRightAction;
-
-	// ロックオン時ターゲット切り替えアクション(前のターゲット)
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
-	class UInputAction* SwitchTargetLeftAction;
-
-	// パンチアクション
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
-	class UInputAction* PunchAction;
-
-	// キック入力アクション
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
-	class UInputAction* KickInputAction;
-
-	// キックボタン離しアクション
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
-	class UInputAction* KickReleaseAction;
-
-	// 変身アクション
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
-	class UInputAction* TransformAction;
-
 	// 引力クライムフラグ
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	bool bIsClimbed;
@@ -112,6 +62,11 @@ class AARRangerCharacter :  public ACharacter,
 	UNiagaraSystem* TransformEffect;
 
 public:
+
+  DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnPlayerHitDelegate, FVector, HitLocation);
+  
+  UPROPERTY(BlueprintAssignable)
+  FOnPlayerHitDelegate OnPlayerHit;
 
 	// コンストラクタ
 	AARRangerCharacter();
@@ -124,21 +79,11 @@ protected:
 	// 入力アクションのバインディングを初期化する
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-protected:
-	// 移動入力のために呼び出される
-	void Move(const FInputActionValue& Value);
-
-	// 入力を求める
-	void Look(const FInputActionValue& Value);
-
 private:
-
-	// 変身の際に呼び出される
-	void Transform();
 
 	// 現在歩いているオブジェクトの表面
 	UPROPERTY()
-	AInsekiClimbingObject* currentClimbSurface;
+	TObjectPtr<AInsekiClimbingObject> currentClimbSurface;
 
 	// 壁の法線を保存
 	FVector wallNormal;
@@ -177,8 +122,25 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Input")
 	virtual void DoJumpEnd();
 
-	// キックボタンを離した際に呼び出される
-	void Release_Kick();
+  UFUNCTION(BlueprintCallable, Category = "InputCallback")
+  void ToggleLockOn();
+
+  UFUNCTION(BlueprintCallable, Category = "InputCallback")
+  void SwitchTargetRight();
+  
+  UFUNCTION(BlueprintCallable, Category = "InputCallback")
+  void SwitchTargetLeft();
+
+  // 変身の際に呼び出される
+	void Transform();
+
+  void RotateCharacter_Charge(float Yaw);
+
+  void UpdateTargetSnap(const FVector2D& InputDir);
+
+  // Call if we start charge kick
+  void OnHoldStarted(const FGameplayTag& InActivatedAbilityTag);
+  void OnHoldEnded();
 
 	// 引力用プレイヤーメッシュ
 	UPROPERTY(EditAnywhere, Category = "PlayerMesh")
@@ -313,6 +275,36 @@ private:
 	// 必殺技コンポーネントを取得
 	UPROPERTY()
 	UAttractSpecialAttackComponent* attractSpecialAttackComponent = nullptr;
+
+  // TODO Use to rotate when player is in charge state
+  FVector FaceDir_HoldStart;
+
+  bool bIsHolding;
+
+  float OffsetDegreeFromHoldStartDir;
+  // TODO End
+
+  // TODO Use to snap target when player is in punch state
+  FVector2D TargetSnapInput;
+
+  bool bReadyToTargetSnap;
+
+  bool bCanTargetSnap;
+
+  UPROPERTY()
+  TObjectPtr<AActor> TargetToSnap;
+
+  UPROPERTY(EditAnywhere, Category = "ARRanger|TargetSnap")
+  float SnapRangeAngleDeg;
+
+  UPROPERTY(EditAnywhere, Category = "ARRanger|TargetSnap")
+  float TargetSnapDetectLength;
+
+  UPROPERTY(EditAnywhere, Category = "ARRanger|TargetSnap")
+  TSubclassOf<AActor> TargetClass;
+
+  void SearchTargetToSnap();
+  // TODO End
 
 	// 必殺技を使用可能かを返す関数
 	bool CanSpecialAttractAttack();
