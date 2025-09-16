@@ -61,3 +61,22 @@ bool UARGameplayAbilityBase::CanActivateAbility(const FGameplayAbilitySpecHandle
 
   return bCanActivate;
 }
+
+void UARGameplayAbilityBase::InputPressed(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo)
+{
+  Super::InputPressed(Handle, ActorInfo, ActivationInfo);
+
+  K2_InputPressed();
+}
+
+void UARGameplayAbilityBase::InputReleased(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo)
+{
+  Super::InputReleased(Handle, ActorInfo, ActivationInfo);
+ 
+  K2_InputReleased();
+}
+
+FGameplayTagContainer UARGameplayAbilityBase::K2_GetAssetTags() const
+{
+  return AbilityTags;
+}

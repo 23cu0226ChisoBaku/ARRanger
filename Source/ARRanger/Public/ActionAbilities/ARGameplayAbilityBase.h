@@ -34,7 +34,18 @@ public:
 
   /**Start UGameplayAbility Interface */
   UE_API virtual bool CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags = nullptr, const FGameplayTagContainer* TargetTags = nullptr, OUT FGameplayTagContainer* OptionalRelevantTags = nullptr) const override;
+	UE_API virtual void InputPressed(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) override;
+	UE_API virtual void InputReleased(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) override;
   /**End UGameplayAbility Interface */
+
+  UFUNCTION(BlueprintImplementableEvent, Category = "GameplayAbilityBase", meta = (ScriptName = "InputPressed", DisplayName = "Input Pressed"))
+  UE_API void K2_InputPressed();
+
+  UFUNCTION(BlueprintImplementableEvent, Category = "GameplayAbilityBase", meta = (ScriptName = "InputReleased", DisplayName = "Input Released"))
+  UE_API void K2_InputReleased();
+
+  UFUNCTION(BlueprintPure, Category = "GameplayAbilityBase", meta = (DisplayName = "Get Default Tags"))
+  FGameplayTagContainer K2_GetAssetTags() const;
 
 public:
   UPROPERTY(EditDefaultsOnly, meta = (DisplayName = "Cancelable from beginning"))

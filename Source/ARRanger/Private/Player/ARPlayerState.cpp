@@ -4,6 +4,8 @@
 #include "Player/ARPlayerState.h"
 #include "ActionAbilities/ARAbilitySystemComponent.h"
 #include "Pawn/ARPawnInitComponent.h"
+#include "PlayerComponents/ARChargeAttackComponent.h"
+#include "ARRangerPlayerController.h"
 
 AARPlayerState::AARPlayerState(const FObjectInitializer& ObjectInitializer)
   : Super(ObjectInitializer)
@@ -11,6 +13,19 @@ AARPlayerState::AARPlayerState(const FObjectInitializer& ObjectInitializer)
   AbilitySystemComponent = CreateDefaultSubobject<UARAbilitySystemComponent>(TEXT("AbilitySystemComponent"));
   check(AbilitySystemComponent != nullptr);
   AbilitySystemComponent->SetIsReplicated(true);
+
+  ChargeAttackComponent = CreateDefaultSubobject<UARChargeAttackComponent>(TEXT("ChargeAttackComponent"));
+  check(ChargeAttackComponent != nullptr);
+}
+
+// TODO Maybe we should not do this in here
+void AARPlayerState::OnPlayerStateInitialized(AARRangerPlayerController* InPlayerController)
+{
+  check(InPlayerController != nullptr);
+  if (ChargeAttackComponent != nullptr)
+  {
+    InPlayerController->OnGameAbilityHeld.BindUObject(ChargeAttackComponent, &UARChargeAttackComponent::EvaluateCharge);
+  }
 }
 
 UAbilitySystemComponent* AARPlayerState::GetAbilitySystemComponent() const

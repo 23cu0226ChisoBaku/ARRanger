@@ -207,8 +207,8 @@ void UARGameplayAbility_Attack::OnAttackAbilityEnded(bool bWasCancelled)
   {
     if (!bWasCancelled)
     {
-      // TODO 意味不明
-      animInst->Montage_Stop(0.15f, AttackMontage);
+      // TODO 
+      animInst->Montage_Stop(0.0f, AttackMontage);
     }
     animInst->OnMontageEnded.RemoveDynamic(this, &UARGameplayAbility_Attack::OnAttackMontageEnded);
   }

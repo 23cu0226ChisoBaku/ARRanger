@@ -21,6 +21,9 @@ public:
 
   template<typename UserClass, typename PressedFuncType, typename ReleasedFuncType>
   void BindAbilityActions(const UARInputConfig* InInputConfig, UserClass* UserObject, PressedFuncType PressedFunc, ReleasedFuncType ReleasedFunc, TArray<uint32>& OutHandles);
+
+  template<typename UserClass, typename TriggeredFuncType>
+  void BindNativeAction(const UARInputConfig* InInputConfig, const FGameplayTag& InInputTag, ETriggerEvent InTriggerEvent, UserClass* UserObject, TriggeredFuncType TriggeredFunc);
 };
 
 template<typename UserClass, typename PressedFuncType, typename ReleasedFuncType>
@@ -43,5 +46,18 @@ void UARInputComponent::BindAbilityActions(const UARInputConfig* InInputConfig, 
     }
   }
 } 
+
+template<typename UserClass, typename TriggeredFuncType>
+void UARInputComponent::BindNativeAction(const UARInputConfig* InInputConfig, const FGameplayTag& InInputTag, ETriggerEvent InTriggerEvent, UserClass* UserObject, TriggeredFuncType TriggeredFunc)
+{
+  check(InInputConfig != nullptr)
+  if (const UInputAction* foundIA = InInputConfig->FindNativeInputAction(InInputTag))
+  {
+    if (TriggeredFunc != nullptr)
+    {
+      BindAction(foundIA, InTriggerEvent, UserObject, TriggeredFunc, InInputTag);
+    }
+  }
+}
 
 #undef UE_API
