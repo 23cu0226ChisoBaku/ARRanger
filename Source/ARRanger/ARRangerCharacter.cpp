@@ -221,7 +221,7 @@ void AARRangerCharacter::Tick(float DeltaTime)
 	if (bIsClimbed)
 	{
 		const float ClimbSpeed = 700.0f; // 上昇速度
-		AddActorWorldOffset(FVector(0, 0, ClimbSpeed * DeltaTime), true);
+		AddActorWorldOffset(FVector(0, 0, ClimbSpeed * DeltaTime), false);
 
 		// 壁回転処理
 		// 足元の位置（Capsuleの底の位置）
@@ -229,7 +229,7 @@ void AARRangerCharacter::Tick(float DeltaTime)
 		FVector ActorLocation = GetActorLocation();
 		float HalfHeight = Capsule->GetScaledCapsuleHalfHeight();
 		// 壁に対して垂直な向きに少しめり込むようにして設定
-		FVector FootPosition = ActorLocation - wallNormal * (HalfHeight - 5.0f);
+		FVector FootPosition = ActorLocation -wallNormal * (HalfHeight - 5.0f);
 
 		FVector Start = FootPosition;
 		FVector End = Start - wallNormal * 7.0f;
@@ -398,14 +398,24 @@ void AARRangerCharacter::StartClimbing(AInsekiClimbingObject* ClimbActor)
 	
 	if (bHit)
 	{
-		// 壁に対して垂直になるようキャラを回転させる
-		const FVector X = GetActorUpVector().GetSafeNormal();
-		const FVector Z = HitResult.Normal.GetSafeNormal();
-		const FRotator NewRot = FRotationMatrix::MakeFromXZ(X, Z).Rotator();
-		SetActorRotation(NewRot);
+		//// 壁に対して垂直になるようキャラを回転させる
+		//const FVector X = GetActorUpVector().GetSafeNormal();
+		//const FVector Z = HitResult.Normal.GetSafeNormal();
+		//const FRotator NewRot = FRotationMatrix::MakeFromXZ(X, Z).Rotator();
+		//SetActorRotation(NewRot);
 
 		// 壁の法線を保存
 		wallNormal = HitResult.ImpactNormal;
+
+		// UpをwallNormalにする
+		FVector Up = wallNormal;
+
+		// 前方向を作成（Up とワールド右ベクトルから計算）
+		FVector Forward = FVector::CrossProduct(Up, FVector::RightVector).GetSafeNormal();
+
+		// 回転を作成
+		const FRotator NewRot = FRotationMatrix::MakeFromXZ(Forward, Up).Rotator();
+		SetActorRotation(NewRot);
 	}
 }
 
