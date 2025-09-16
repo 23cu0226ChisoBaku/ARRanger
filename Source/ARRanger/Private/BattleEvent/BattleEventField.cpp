@@ -12,10 +12,10 @@
 #include "Public/BattleEvent/BattleEventCage.h"
 
 ABattleEventField::ABattleEventField()
-    : m_Player(nullptr)                
-    , m_RemainingEnemiesInField(0)     
+    : m_Player(nullptr)               
+    , m_RemainingEnemiesInField(0) 
+    , m_RemainingEnemiesInPhase(0)    
     , m_CurrentPhaseIndex(0)
-    , m_RemainingEnemiesInPhase(0)
     , m_IsActiveField(false)
     , m_EventTriggered(false)
 
@@ -31,7 +31,7 @@ void ABattleEventField::BeginPlay()
     GetPrimitiveComponents();
 
     /*範囲内のスポナーを取得*/
-    //CollectSpawners();
+    CollectSpawners();
 
     /*各範囲コリンジョンコンポーネントににオーバーラップ関数をバインド*/
     for (UPrimitiveComponent* primComp : m_PrimitiveComponents)
@@ -147,7 +147,7 @@ void ABattleEventField::ActiveEventField()
 {
     /*スポナーに敵の生成を促す*/
     RequestSpawn();
-    m_IsActivedField = true;
+    m_IsActiveField = true;
 }
 
 /**

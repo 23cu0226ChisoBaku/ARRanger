@@ -37,6 +37,6 @@ private:
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spawner", meta = (AllowPrivateAccess = "true"))
     TSubclassOf<AActor> m_SpawnEnemy;   /*スポーンさせる敵*/
 
-    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Spawner", meta=(AllowPrivateAccess="true"))
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Spawner", meta = (AllowPrivateAccess="true"))
     TArray<ESpawnPhase> m_SpawnPhases;  /*スポーンフェーズ*/
 };

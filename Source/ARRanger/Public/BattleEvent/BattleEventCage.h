@@ -20,5 +20,5 @@ public:
      * @param 有効 or 無効 
      */
     UFUNCTION(BlueprintCallable)
-    void SetCollisionEnabled(bool enable);
+    void EnableCageCollision(bool enable);
 };

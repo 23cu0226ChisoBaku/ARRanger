@@ -2,16 +2,15 @@
 // バトルイベントの見えない壁(鳥かご)
 //*************************************************
 
-#include "Public/BattleEvent/BarttleEventCage.h"
+#include "Public/BattleEvent/BattleEventCage.h"
 #include "Components/PrimitiveComponent.h"
-
 
 /** 
  * @brief 見えない壁(鳥かご)の当たり判定を 有効 / 無効にする *
  * 
  * @param 有効 or 無効 
  */
-void ABarttleEventCage::SetCollisionEnabled(bool enable)
+void ABattleEventCage::EnableCageCollision(bool enable)
 {
     TArray<UPrimitiveComponent*> components;
     GetComponents<UPrimitiveComponent>(components);
@@ -23,7 +22,7 @@ void ABarttleEventCage::SetCollisionEnabled(bool enable)
             continue;  
         } 
             
-        if (bEnable)
+        if (enable)
         {
             /*物理判定を有効・すべてのチャンネルをブロック*/
             comp->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);

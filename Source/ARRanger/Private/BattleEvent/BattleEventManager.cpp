@@ -2,8 +2,8 @@
 // バトルイベントの管理クラス CPP
 //*************************************************
 
-#include "BattleEventManager.h"
-#include "BattleEventField.h"
+#include "Public/BattleEvent/BattleEventManager.h"
+#include "Public/BattleEvent/BattleEventField.h"
 #include "Engine/World.h"
 #include "Engine/Engine.h"
 
@@ -85,7 +85,7 @@ void ABattleEventManager::ActivateNextFields()
     }
 
     /*オフセット分だけ次のフィールドを順に稼働させる*/
-    for (int32 offset = 1; offset <= nextFieldOffset; ++offset)
+    for (int32 offset = 1; offset <= m_nextFieldOffset; ++offset)
     {
         int32 nextIndex = currentIndex + offset;
         if (m_BattleFields.IsValidIndex(nextIndex))
