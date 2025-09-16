@@ -16,34 +16,12 @@ UARPlayerInputBuffer::UARPlayerInputBuffer(const FObjectInitializer& ObjectIniti
 
 void UARPlayerInputBuffer::InitializeInputBuffer(UARInputComponent* InInputComponent, const UARInputConfig& InInputConfig)
 {
-  check(InInputComponent != nullptr);
-  if (InputComponent != InInputComponent)
-  {
-    // Clear buffers created before
-    UninitializeInputBuffer();
-  }
 
-  InputComponent = InInputComponent;
-  
-  for (const FARInputAction& inputAction : InInputConfig.AbilityInputActions)
-  {
-    if ((inputAction.InputAction != nullptr) && inputAction.InputTag.IsValid())
-    {
-      // Bind ability actions to buffer
-      InputComponent->BindAbilityActions(&InInputConfig, this, &UARPlayerInputBuffer::InputBuffer_AbilityInputTagPressed, &UARPlayerInputBuffer::InputBuffer_AbilityInputTagReleased, m_bindHandles);
-    }
-  }
 }
 
 void UARPlayerInputBuffer::UninitializeInputBuffer()
 {
-  if ((InputComponent != nullptr) && m_bindHandles.Num() > 0)
-  {
-    InputComponent->RemoveBindings(m_bindHandles);
-  }
-
   m_inputTagBuffers.Reset();
-  InputComponent = nullptr;
 }
 
 void UARPlayerInputBuffer::EvaluateBuffer(const AARRangerPlayerController* InPlayerController, const float DeltaTime, const bool bGamePaused)
@@ -112,7 +90,7 @@ void UARPlayerInputBuffer::ClearAllInputs()
 
 }
 
-void UARPlayerInputBuffer::InputBuffer_AbilityInputTagPressed(FGameplayTag InInputTag)
+void UARPlayerInputBuffer::HandleInputTagPressed(const FGameplayTag& InInputTag)
 {
   // Refresh buffer during input pressed
   if (InputKeepTime > 0.0f)
@@ -128,7 +106,7 @@ void UARPlayerInputBuffer::InputBuffer_AbilityInputTagPressed(FGameplayTag InInp
   }
 }
 
-void UARPlayerInputBuffer::InputBuffer_AbilityInputTagReleased(FGameplayTag InInputTag)
+void UARPlayerInputBuffer::HandleInputTagReleased(const FGameplayTag& InInputTag)
 {
   // TODO Maybe we should implement something
   ConsumeBuffer(InInputTag);

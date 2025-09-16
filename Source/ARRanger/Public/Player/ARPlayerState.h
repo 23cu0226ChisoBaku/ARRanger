@@ -10,6 +10,8 @@
 #define UE_API ARRANGER_API
 
 class UARAbilitySystemComponent;
+class UARChargeAttackComponent;
+class AARRangerPlayerController;
 
 /**
  * 
@@ -22,6 +24,9 @@ class AARPlayerState : public APlayerState , public IAbilitySystemInterface
 public:
   UE_API AARPlayerState(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
+  // TODO
+  UE_API void OnPlayerStateInitialized(AARRangerPlayerController* InPlayerController);
+
   /**Start IAbilitySystemInterface Interface */
   UE_API virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override; 
   /**End IAbilitySystemInterface Interface */
@@ -32,11 +37,17 @@ public:
 
   UFUNCTION(BlueprintPure, Category = "ARRanger|PlayerState")
   UARAbilitySystemComponent* GetARAbilitySystemComponent() const { return AbilitySystemComponent; }
+
+  UFUNCTION(BlueprintPure, Category = "ARRanger|PlayerState")
+  UARChargeAttackComponent* GetARChargeAttackComponent() const { return ChargeAttackComponent; }
 	
 private:
 
   UPROPERTY(VisibleAnywhere, Category = "GameplayAbility")
   TObjectPtr<UARAbilitySystemComponent> AbilitySystemComponent;
+
+  UPROPERTY(VisibleAnywhere, Category = "GameplayAbility")
+  TObjectPtr<UARChargeAttackComponent> ChargeAttackComponent;
 
 };
 

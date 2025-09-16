@@ -57,6 +57,14 @@ void UGA_Punch::StartPunch()
         return;
     }
 
+    UE_LOG(LogTemp, Warning, TEXT("--- StartPunch Debug ---"));
+    UE_LOG(LogTemp, Warning, TEXT("Magnetism=%d, LockedOn=%d, IsAttracted=%d, IsApproached=%d, InComboWindow=%d"),
+        (int32)Char->GetMagnetismType(),
+        Char->GetIsLockedOn(),
+        Char->GetIsAttracted(),
+        Char->GetIsApproachedEnemy(),
+        Char->GetIsInComboWindow());
+
     attackBaseComp->RotateOwnerToTarget();
 
     bool bInComboWindow = Char->GetIsInComboWindow();

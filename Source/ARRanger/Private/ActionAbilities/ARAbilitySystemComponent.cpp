@@ -85,8 +85,6 @@ void UARAbilitySystemComponent::ProcessAbilityInputs(const FARAbilityInputProces
     {
       if (abilitySpec->Ability != nullptr)
       {
-        abilitySpec->InputPressed = true;
-
         if (!abilitySpec->IsActive())
         {
           s_abilitiesToActivate.AddUnique(pressedHandle);
@@ -108,7 +106,10 @@ void UARAbilitySystemComponent::ProcessAbilityInputs(const FARAbilityInputProces
         const TArray<FGameplayAbilitySpec>& activatableAbilities = GetActivatableAbilities();
         for (const FGameplayAbilitySpec& conditionAbilitySpec : activatableAbilities)
         {
-          if ((conditionAbilitySpec.Ability == nullptr) || (conditionAbilitySpec.Ability->GetClass() == ARGA->GetClass()) || !conditionAbilitySpec.IsActive())
+          if ((conditionAbilitySpec.Ability == nullptr) || 
+              (conditionAbilitySpec.Ability->GetClass() == ARGA->GetClass()) || 
+              !conditionAbilitySpec.IsActive()
+             )
           {
             continue;
           }
@@ -140,7 +141,15 @@ void UARAbilitySystemComponent::ProcessAbilityInputs(const FARAbilityInputProces
       }
     }
 
+    // Finally we activate requested abilities
     TryActivateAbility(abilitySpecHandleToActivate);
+    
+    // Try to trigger InputPressed
+    // Only trigger once
+    if ((abilitySpec != nullptr) && (abilitySpec->IsActive()) && (!abilitySpec->InputPressed))
+    {
+      AbilityLocalInputPressed(abilitySpec->InputID);
+    }
     
   }
 
@@ -152,7 +161,10 @@ void UARAbilitySystemComponent::ProcessAbilityInputs(const FARAbilityInputProces
     {
       if (abilitySpec->Ability != nullptr)
       {
-        abilitySpec->InputPressed = false;
+        if (abilitySpec->IsActive())
+        {
+          AbilityLocalInputReleased(abilitySpec->InputID);
+        }
       }
     }
   }
@@ -197,7 +209,7 @@ void UARAbilitySystemComponent::AbilityInputTagReleased(const FGameplayTag& InTa
     {
       if (abilitySpec.Ability->GetAssetTags().HasTagExact(InTag))
       {
-        m_inputPressedSpecHandles.AddUnique(abilitySpec.Handle);
+        m_inputReleasedSpecHandles.AddUnique(abilitySpec.Handle);
         m_inputHeldSpecHandles.Remove(abilitySpec.Handle);
       }
     }
