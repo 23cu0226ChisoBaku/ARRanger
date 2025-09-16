@@ -6,6 +6,8 @@
 #include "GameFramework/GameplayCameraComponent.h"
 #include "GameFramework/PlayerController.h"
 #include "SpecialAttackAttractActor.h"
+#include "HitStopHelper.h"
+#include "GameFramework/Character.h"
 
 UAttractSpecialAttackComponent::UAttractSpecialAttackComponent()
 {
@@ -23,6 +25,19 @@ void UAttractSpecialAttackComponent::TickComponent(float DeltaTime, ELevelTick T
 	{
 		SpecialFinishKick(DeltaTime);
 	}
+	else if(m_IsLand)
+	{
+		m_ElapsedTime += DeltaTime;
+		if(m_LandTimeInterval <= m_ElapsedTime)
+		{
+			ResetParameter();
+		}
+
+		if(m_GenerateArractActor != nullptr)
+		{
+			m_GenerateArractActor->Destroy();
+		}
+	}
 }
 
 /**
@@ -30,7 +45,10 @@ void UAttractSpecialAttackComponent::TickComponent(float DeltaTime, ELevelTick T
  */
 void UAttractSpecialAttackComponent::OnStartSpecialAttract()
 {
-	m_IsAttractSpecialAttack = true;
+	m_IsGenerateAttract = true;
+
+	/*キックする方向を取得*/
+	m_kickDirection = FVector(GetPlayerCameraRotation().X, GetPlayerCameraRotation().Y, 0.0f).GetSafeNormal();
 
 	/*引き寄せるアクターを生成*/
 	GenerateAttractActor();
@@ -39,16 +57,30 @@ void UAttractSpecialAttackComponent::OnStartSpecialAttract()
 	FTimerDelegate TimerDelegate;
 	TimerDelegate.BindLambda([this]()
 	{
-		m_kickDirection = ( m_GenerateArractActor->GetActorLocation() - GetOwner()->GetActorLocation() ).GetSafeNormal();
-		m_IsAttractKick = true;
+		if(m_GenerateArractActor!= nullptr)
+		{
+			if(ASpecialAttackAttractActor* attractActor = Cast<ASpecialAttackAttractActor>(m_GenerateArractActor))
+			{
+				m_InhaledActors = attractActor->GetDetectedActors();
+			}
+			m_IsAttractKick = true;
+		}
+		else
+		{
+			if(GEngine) GEngine->AddOnScreenDebugMessage(-1, 20.f, FColor::Red,FString::Printf(TEXT("aaaaa")));
+		}
 	});
 
 	GetWorld()->GetTimerManager().SetTimer(
 		m_DelayTimerHandle,
 		TimerDelegate,
-		m_AttractTime,
+		m_AttractTimeInterval,
 		false
 	);
+
+	/*プレイヤーの向きを修正*/
+	const FRotator newFaceDir = GetPlayerCameraRotation().Rotation();
+	GetOwner()->SetActorRotation(newFaceDir);
 }
 
 /**
@@ -58,8 +90,7 @@ void UAttractSpecialAttackComponent::GenerateAttractActor()
 {
 	/*ライントレースの始点と終点*/
 	FVector startLocation = GetOwner()->GetActorLocation();
-	FVector generateDirection = FVector(GetPlayerCameraRotation().X, GetPlayerCameraRotation().Y, 0.0f).GetSafeNormal();
-	FVector endLocation = startLocation + generateDirection * m_GenerateDistance;
+	FVector endLocation = startLocation + m_kickDirection * m_GenerateDistance;
 
 	FHitResult hitResult;
 	FCollisionQueryParams params;
@@ -78,7 +109,7 @@ void UAttractSpecialAttackComponent::GenerateAttractActor()
 	FVector generatLocation;
 	if(bHit)
 	{
-		generatLocation = hitResult.Location - m_OffsetGenerateDistance;
+		generatLocation = hitResult.Location - m_GenerateDistanceOffset * m_kickDirection;
 	}
 	else
 	{
@@ -114,6 +145,18 @@ FVector UAttractSpecialAttackComponent::GetPlayerCameraRotation()
 }
 
 /**
+ * @brief 引力必殺技に関するパラメータをリセットする関数
+ */
+void UAttractSpecialAttackComponent::ResetParameter()
+{
+	m_ElapsedTime = 0.0f;
+	m_IsGenerateAttract = false;
+	m_IsBackFlip = false;
+	m_IsAttractKick = false;
+	m_IsLand = false;
+}
+
+/**
  * @brief 対象のアクターを引き寄せている場所にキック!!
  * 
  * @param １フレームにかかる時間
@@ -121,13 +164,14 @@ FVector UAttractSpecialAttackComponent::GetPlayerCameraRotation()
 void UAttractSpecialAttackComponent::SpecialFinishKick(float deltaTime)
 {
 	/*指定時間が過ぎたらキックを終了する*/
-	if(m_KickTime <= m_ElapsedTime)
+	if(m_KickTimeInterval <= m_ElapsedTime)
 	{
 		m_CurrentKickSpeed -= m_KickBrakingForce;
 		if(m_CurrentKickSpeed <= 0.0f)
 		{
-			m_ElapsedTime = 0.0f;
 			m_IsAttractKick = false;
+			m_IsLand = true;
+			m_ElapsedTime = 0.0f;
 		}
 		return;
 	}
@@ -135,8 +179,43 @@ void UAttractSpecialAttackComponent::SpecialFinishKick(float deltaTime)
 	/*時間計測*/
 	m_ElapsedTime += deltaTime;
 
+	/*ライントレースを行い建物などを検知したら進まない*/
+	FVector startLocation = GetOwner()->GetActorLocation();
+	FVector endLocation = startLocation + m_kickDirection * m_KickHitDetectionLength;
+
+	FHitResult hitResult;
+	FCollisionQueryParams params;
+	params.AddIgnoredActor(GetOwner());
+	for(AActor* IgnoreActor : m_InhaledActors)
+	{
+		params.AddIgnoredActor(IgnoreActor);
+	}
+	params.bReturnPhysicalMaterial = false;
+
+	const bool bHit = GetWorld()->LineTraceSingleByChannel(
+		hitResult,
+		startLocation,
+		endLocation,
+		ECC_Visibility,
+		params
+	);
+
 	/*キック！*/
-    m_CurrentKickSpeed = m_CustomCurveSpeed->GetFloatValue(m_ElapsedTime);
-	FVector newLocation = GetOwner()->GetActorLocation() + m_kickDirection * m_CurrentKickSpeed;
+	FVector newLocation;
+	if(!bHit)
+	{
+		// m_CurrentKickSpeed = m_KickCurveSpeed->GetFloatValue(m_ElapsedTime);
+		// newLocation = GetOwner()->GetActorLocation() + m_kickDirection * m_CurrentKickSpeed;
+		float kickTimeIntervalNormalized = m_ElapsedTime / m_KickTimeInterval;
+		float normalizedCurveValue = m_KickCurveSpeed->GetFloatValue(kickTimeIntervalNormalized);
+		m_CurrentKickSpeed = m_KickMaxSpeed * normalizedCurveValue;
+		newLocation = GetOwner()->GetActorLocation() + m_kickDirection * m_CurrentKickSpeed;
+	}
+	/*障害物への埋め込み防止*/
+	else
+	{
+		FVector addLocation = hitResult.Location - GetOwner()->GetActorLocation();
+		newLocation = GetOwner()->GetActorLocation() + addLocation -m_KickPositionOffset * m_kickDirection;
+	}
 	GetOwner()->SetActorLocation(newLocation);
 }

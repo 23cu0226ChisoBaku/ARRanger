@@ -33,9 +33,6 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Effects")
 	UParticleSystem* HitParticle;
 
-	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Effects")
-	//USoundCue* HitSound;
-
 	UPROPERTY(EditAnywhere, Category = "Attack")
 	UAnimMontage* AttackMontage;
 };

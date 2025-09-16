@@ -10,6 +10,8 @@
 
 #include "ConeCollisionDataAsset.generated.h"
 
+#define UE_API ARRANGER_API
+
 UCLASS(Const)
 class UConeCollisionDataAsset : public UPrimitiveDetectorData
 {
@@ -39,8 +41,14 @@ public:
 #if WITH_EDITOR
 
 private:
-  ARRANGER_API virtual void DebugDrawRange(const UWorld* InWorld, const FVector& InOriginPosition, const FColor& InColor) const override;
+  UE_API virtual void DebugDrawRange(const UWorld* InWorld, const FVector& InOriginLocation, const FRotator& InOriginRotation, const FVector& InOriginScale3D) const override;
+
+  UE_API virtual void DebugDrawRange(FPrimitiveDrawInterface* PDI, const FVector& InOriginLocation, const FRotator& InOriginRotation, const FVector& InOriginScale3D) const override;
+
+  UE_API virtual void DebugDrawRange(ULineBatchComponent* LineBatch, const FVector& InOriginLocation, const FRotator& InOriginRotation, const FVector& InOriginScale3D) const override;
 
 #endif // WITH_EDITOR
 
 };
+
+#undef UE_API

@@ -20,23 +20,26 @@ public:
   UE_API void RemoveBindings(TArray<uint32>& OutBoundHandles);
 
   template<typename UserClass, typename PressedFuncType, typename ReleasedFuncType>
-  void BindAbilityActions(const UARInputConfig* InInputConfig, UserClass* UserObject, PressedFuncType PressedFunc, ReleasedFuncType ReleasedFunc);
+  void BindAbilityActions(const UARInputConfig* InInputConfig, UserClass* UserObject, PressedFuncType PressedFunc, ReleasedFuncType ReleasedFunc, TArray<uint32>& OutHandles);
 };
 
 template<typename UserClass, typename PressedFuncType, typename ReleasedFuncType>
-void UARInputComponent::BindAbilityActions(const UARInputConfig* InInputConfig, UserClass* UserObject, PressedFuncType PressedFunc, ReleasedFuncType ReleasedFunc)
+void UARInputComponent::BindAbilityActions(const UARInputConfig* InInputConfig, UserClass* UserObject, PressedFuncType PressedFunc, ReleasedFuncType ReleasedFunc, TArray<uint32>& OutHandles)
 {
   check(InInputConfig != nullptr);
   for (const FARInputAction& inputAction: InInputConfig->AbilityInputActions)
   {
-    if (PressedFunc != nullptr)
+    if ((inputAction.InputAction != nullptr) && inputAction.InputTag.IsValid())
     {
-      BindAction(inputAction.InputAction, ETriggerEvent::Triggered, UserObject, PressedFunc, inputAction.InputTag);
-    }
-
-    if (ReleasedFunc != nullptr)
-    {
-      BindAction(inputAction.InputAction, ETriggerEvent::Completed, UserObject, ReleasedFunc, inputAction.InputTag);
+      if (PressedFunc != nullptr)
+      {
+        OutHandles.AddUnique(BindAction(inputAction.InputAction, ETriggerEvent::Triggered, UserObject, PressedFunc, inputAction.InputTag).GetHandle());
+      }
+  
+      if (ReleasedFunc != nullptr)
+      {
+        OutHandles.AddUnique(BindAction(inputAction.InputAction, ETriggerEvent::Completed, UserObject, ReleasedFunc, inputAction.InputTag).GetHandle());
+      }
     }
   }
 } 

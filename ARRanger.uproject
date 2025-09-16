@@ -21,7 +21,7 @@
 		{
 			"Name": "ARRangerEditor",
 			"Type": "Editor",
-			"LoadingPhase": "Default",
+			"LoadingPhase": "PostEngineInit",
 			"AdditionalDependencies": [
 				"Engine",
 				"Blutility",

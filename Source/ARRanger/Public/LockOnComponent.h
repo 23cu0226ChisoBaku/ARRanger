@@ -1,8 +1,8 @@
-#pragma once
+ï»¿#pragma once
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
-#include "Enemy.h"
+#include "Enemy/Enemy_Zako.h"
 
 #include "LockOnComponent.generated.h"
 
@@ -18,54 +18,59 @@ public:
 
     virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
-    // ƒƒbƒNƒIƒ“ŠÖ”
+    // ãƒ­ãƒƒã‚¯ã‚ªãƒ³é–¢æ•°
     UFUNCTION(BlueprintCallable)
     void ToggleLockOn();
 
-    // “G‚ªƒvƒŒƒCƒ„[‚©‚çŒ©‚¦‚Ä‚¢‚é‚©”»’è
-    bool IsTargetVisible(AActor* Target);
+    // æ•µãŒãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã‹ã‚‰è¦‹ãˆã¦ã„ã‚‹ã‹åˆ¤å®š
+    bool IsTargetVisible(TWeakObjectPtr<AActor> Target);
 
-    // ƒ^[ƒQƒbƒgØ‚è‘Ö‚¦(‰E)
+    // ã‚¿ãƒ¼ã‚²ãƒƒãƒˆåˆ‡ã‚Šæ›¿ãˆ(å³)
     UFUNCTION(BlueprintCallable)
     void SwitchTargetRight();
 
-    // ƒ^[ƒQƒbƒgØ‚è‘Ö‚¦(¶)
+    // ã‚¿ãƒ¼ã‚²ãƒƒãƒˆåˆ‡ã‚Šæ›¿ãˆ(å·¦)
     UFUNCTION(BlueprintCallable)
     void SwitchTargetLeft();
 
-    // ƒ^[ƒQƒbƒg‚ğæ“¾
-    UFUNCTION(BlueprintPure)
-    AActor* GetLockedOnTarget() const { return lockedOnTarget; }
+    // ã‚¿ãƒ¼ã‚²ãƒƒãƒˆã‚’å–å¾—
+    UPROPERTY()
+    TWeakObjectPtr<AEnemy_Zako> lockedOnTarget;
 
-    // ƒƒbƒNƒIƒ“’†ƒtƒ‰ƒO‚ğæ“¾
+    // ãƒ­ãƒƒã‚¯ã‚ªãƒ³ä¸­ãƒ•ãƒ©ã‚°ã‚’å–å¾—
     bool GetIsLockedOn() { return isLockedOn; }
 
+    // ãƒ­ãƒƒã‚¯ã‚ªãƒ³ä¸­ã®æ•µã‚’å–å¾—
+    AEnemy_Zako* GetLockedOnTarget() const { return lockedOnTarget.IsValid() ? lockedOnTarget.Get() : nullptr; }
+
 protected:
-    // ƒƒbƒNƒIƒ“‰Â”\‹——£
+    // ãƒ­ãƒƒã‚¯ã‚ªãƒ³å¯èƒ½è·é›¢
     UPROPERTY(EditAnywhere, Category = "LockOn")
     float maxLockOnDistance;
 
-    // ƒƒbƒNƒIƒ“’†‚©‚Ç‚¤‚©
+    // ãƒ­ãƒƒã‚¯ã‚ªãƒ³ä¸­ã‹ã©ã†ã‹
     bool isLockedOn;
 
-    // ƒƒbƒNƒIƒ“’†‚Ìƒ^[ƒQƒbƒg
-    UPROPERTY()
-    AEnemy* lockedOnTarget;
-
-    // “GŒŸõ—p‚Ìƒ^ƒO
+    // æ•µæ¤œç´¢ç”¨ã®ã‚¿ã‚°
     UPROPERTY(EditAnywhere, Category = "LockOn")
     FName enemyTag;
 
 private:
-    // ƒ^[ƒQƒbƒgØ‚è‘Ö‚¦ˆ—‚ÌŠÖ”
+    // ã‚¿ãƒ¼ã‚²ãƒƒãƒˆåˆ‡ã‚Šæ›¿ãˆå‡¦ç†ã®é–¢æ•°
     void SwitchTarget(bool IsRight);
 
-    // ƒƒbƒNƒIƒ“‰Â”\‚È“G‚ğ’T‚·
-    AEnemy* FindNearestEnemy(AActor* IgnoreActor = nullptr);
+    // ãƒ­ãƒƒã‚¯ã‚ªãƒ³å¯èƒ½ãªæ•µã‚’æ¢ã™
+    AEnemy_Zako* FindNearestEnemy(TWeakObjectPtr<AEnemy_Zako> IgnoreActor = nullptr);
 
-    // ƒvƒŒƒCƒ„[‚ÌƒI[ƒi[
+    // ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®ã‚ªãƒ¼ãƒŠãƒ¼
+    UPROPERTY()
     APawn* ownerPawn;
 
-    // ƒvƒŒƒCƒ„[‚ÌƒRƒ“ƒgƒ[ƒ‰[
+    // ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ©ãƒ¼
+    UPROPERTY()
     APlayerController* ownerController;
+
+public:
+    // ãƒ­ãƒƒã‚¯ã‚ªãƒ³ãƒ•ãƒ©ã‚°ã‚’ã‚»ãƒƒãƒˆ
+    void SetIsLockedOn(bool IsLockedOn) { isLockedOn = IsLockedOn; }
 };

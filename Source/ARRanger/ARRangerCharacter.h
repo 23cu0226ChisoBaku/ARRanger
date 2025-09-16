@@ -1,17 +1,13 @@
 #pragma once
 
 #include "AbilitySystemInterface.h"
-#include "AbilitySystemComponent.h"
 #include "GameplayEffectTypes.h" 
-#include "CoreMinimal.h"
 #include "GameFramework/Character.h"
-#include "GA_Attack.h"
-#include "GA_Kick.h"
-#include "GA_Punch.h"
 #include "IARMagnetizableInterface.h"
 #include "InsekiClimbingObject.h"
 #include "LockOnComponent.h"
 #include "Logging/LogMacros.h"
+#include "NiagaraSystem.h"
 #include "Physics/IARPhysicsSystemHost.h"
 #include "PlayerObservation/IObservableSubjectInterface.h"
 
@@ -20,11 +16,12 @@
 
 #include "ARRangerCharacter.generated.h"
 
+class UAttackBaseComponent;
 class UAbilitySystemComponent;
 class UAnimMontage;
 class UInputAction;
 class USkeletalMesh;
-
+class UAttractSpecialAttackComponent;
 
 struct FInputActionValue;
 
@@ -41,11 +38,14 @@ class AARRangerCharacter :  public ACharacter,
                             public IARMagnetizableInterface,
                             public IARPhysicsSystemHost,
                             public IARAttackable,               // 攻撃を受けられるインターフェイス
-                            public IARAttackerInterface         // 攻撃できるインターフェイス
+                            public IARAttackerInterface,        // 攻撃できるインターフェイス
+                            public IAbilitySystemInterface
 {
 	GENERATED_BODY()
 	
 	protected:
+
+  virtual void PostInitializeComponents() override;
 	virtual void BeginPlay() override;
 
 	// 麦
@@ -105,23 +105,11 @@ class AARRangerCharacter :  public ACharacter,
 
 	// 引力クライムフラグ
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	bool isClimbed;
+	bool bIsClimbed;
 
-	// AbilitySystemComponentを保存
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Abilities")
-	UAbilitySystemComponent* AbilitySystemComp;
-
-	// GA_Attack参照
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Abilities")
-	TSubclassOf<UGA_Attack> GA_AttackClass;
-
-	// GA_Punch参照
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Abilities")
-	TSubclassOf<UGA_Punch> GA_PunchClass;
-
-	// GA_Kick参照
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Abilities")
-	TSubclassOf<UGA_Kick> GA_KickClass;
+	// 変身用エフェクトを設定
+	UPROPERTY(EditAnywhere, Category = "Effects")
+	UNiagaraSystem* TransformEffect;
 
 public:
 
@@ -144,23 +132,9 @@ protected:
 	void Look(const FInputActionValue& Value);
 
 private:
-	// もともとのカメラとプレイヤーの距離
-	float DefaultArmLength;
-
-	// ダッシュ中に近づける距離
-	float DashArmLength;
-
-	// 補間速度
-	float ArmLengthInterpSpeed;
 
 	// 変身の際に呼び出される
 	void Transform();
-
-	// ダッシュ時カメラが切り替わる入力の閾値（押し込み時）
-	float dashStartThreshold;
-
-	// 少し入力を緩めたらダッシュを解除する用の数値
-	float dashEndThreshold;
 
 	// 現在歩いているオブジェクトの表面
 	UPROPERTY()
@@ -203,20 +177,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Input")
 	virtual void DoJumpEnd();
 
-	// パンチの際に呼び出される
-	void Input_Punch();
-
-	// キックの際に呼び出される
-	void Input_Kick();
-
 	// キックボタンを離した際に呼び出される
 	void Release_Kick();
-
-	UFUNCTION(BlueprintPure, Category = "AR|Player")
-	float GetDefaultArmLength() const { return DefaultArmLength; }
-
-	UFUNCTION(BlueprintPure, Category = "AR|Player")
-	float GetDashArmLength() const { return DashArmLength; }
 
 	// 引力用プレイヤーメッシュ
 	UPROPERTY(EditAnywhere, Category = "PlayerMesh")
@@ -228,11 +190,11 @@ public:
 
 	// ダッシュ中フラグ
 	UPROPERTY(BlueprintReadWrite)
-	bool IsDashed;
+	bool bIsDashed;
 
 	// ロックオンコンポーネント
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	ULockOnComponent* LockOnComponent;
+	TObjectPtr<ULockOnComponent> LockOnComponent;
 
 	// 引力クライム時のアニメーションモンタージュ
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gravity")
@@ -241,26 +203,9 @@ public:
 public:
 	virtual void Tick(float DeltaTime) override;
 
-	// パンチハンドラ
-	FGameplayAbilitySpecHandle PunchHandle;
-
-	// キックハンドラ
-	FGameplayAbilitySpecHandle KickHandle;
-
 	// AttackBaseComponentを保存
-	UAttackBaseComponent* AttackBaseComp = nullptr;
-
-	// GA_Attackを保存
-	UPROPERTY(BlueprintReadWrite, VisibleAnywhere, Category = "Abilities")
-	UGA_Attack* GA_AttackInstance = nullptr;
-
-	// GA_Punchを保存
-	UPROPERTY(BlueprintReadWrite, VisibleAnywhere, Category = "Abilities")
-	UGA_Punch* GA_PunchInstance = nullptr;
-
-	// GA_Kickを保存
-	UPROPERTY(BlueprintReadWrite, VisibleAnywhere, Category = "Abilities")
-	UGA_Kick* GA_KickInstance = nullptr;
+  UPROPERTY()
+	TObjectPtr<UAttackBaseComponent> AttackBaseComp = nullptr;
 
 	// 移動時のデッドゾーン(下回ると移動しない)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Abilities")
@@ -279,28 +224,28 @@ public:
 	void ResetIsAttacked();
 
 	// 攻撃中フラグを取得
-	bool GetIsAttacked() { return isAttacked; }
+	bool GetIsAttacked() { return bIsAttacked; }
 
 	// 攻撃中フラグをセット
-	void SetIsAttacked(bool IsAttacked) { isAttacked = IsAttacked; }
+	void SetIsAttacked(bool IsAttacked) { bIsAttacked = IsAttacked; }
 
 	// 強攻撃中フラグをセット
-	void SetIsStrongAttacked(bool IsStrongAttacked) { isStrongAttacked = IsStrongAttacked; }
+	void SetIsStrongAttacked(bool IsStrongAttacked) { bIsStrongAttacked = IsStrongAttacked; }
 
 	// ロックオンフラグを取得
 	bool GetIsLockedOn() { return LockOnComponent->GetIsLockedOn(); }
 
 	// 引き寄せ中フラグをセット
-	void SetIsAttracted(bool IsAttracted) { isAttracted = IsAttracted; }
+	void SetIsAttracted(bool IsAttracted) { bIsAttracted = IsAttracted; }
 
 	// 引き寄せ中フラグを取得
-	bool GetIsAttracted() { return isAttracted; }
+	bool GetIsAttracted() { return bIsAttracted; }
 
 	// 引き寄せ完了フラグをセット
-	void SetIsApproachedEnemy(bool IsApproachedEnemy) { isApproachedEnemy = IsApproachedEnemy; }
+	void SetIsApproachedEnemy(bool IsApproachedEnemy) { bIsApproachedEnemy = IsApproachedEnemy; }
 
 	// 引き寄せ完了フラグを取得
-	bool GetIsApproachedEnemy() { return isApproachedEnemy; }
+	bool GetIsApproachedEnemy() { return bIsApproachedEnemy; }
 
 	// 引き寄せ完了時に呼びだされる関数
 	void OnAttractionCompleted();
@@ -324,10 +269,14 @@ public:
 	int32 GetComboCount() { return ComboCount; }
 
 	// 引力クライム中フラグを取得
-	bool GetIsClimbed() { return isClimbed; }
+	bool GetIsClimbed() { return bIsClimbed; }
 
 	// AttackComponent内で使用するNotifyHandler用
 	void OnAttackHitNotify();
+
+	// 必殺技時に呼び出される
+	UFUNCTION(BlueprintCallable)
+	void OnSpecialAttractAttack();
 
 	// 麦
 	bool bIsJumping = false;
@@ -338,24 +287,35 @@ public:
 		bIsJumping = false;
 	}
 
+  // 麦
+  UFUNCTION(BlueprintCallable, Category = "GameAbility|Callbacks")
+  void OnPunchStarted();
+
 private:
 	// 攻撃中フラグ
-	bool isAttacked = false;
+	bool bIsAttacked = false;
 
 	// 強攻撃中フラグ
-	bool isStrongAttacked = false;
+	bool bIsStrongAttacked = false;
 
 	// 引き寄せ中フラグ
-	bool isAttracted = false;
+	bool bIsAttracted = false;
 
 	// 敵引き寄せ完了フラグ
-	bool isApproachedEnemy = false;
+	bool bIsApproachedEnemy = false;
 
 	// コンボ受付中かどうか
 	bool bIsInComboWindow = false;
 
 	// コンボカウント
 	int32 ComboCount = 0;
+
+	// 必殺技コンポーネントを取得
+	UPROPERTY()
+	UAttractSpecialAttackComponent* attractSpecialAttackComponent = nullptr;
+
+	// 必殺技を使用可能かを返す関数
+	bool CanSpecialAttractAttack();
 
 	UFUNCTION()
 	void OnMagneticForceFieldBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);

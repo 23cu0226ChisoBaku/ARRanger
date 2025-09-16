@@ -1,4 +1,4 @@
-#include "GA_Kick.h"
+ï»¿#include "GA_Kick.h"
 
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "ARRangerCharacter.h"
@@ -17,7 +17,6 @@ void UGA_Kick::ActivateAbility(
 {
     if (AARRangerCharacter* Char = Cast<AARRangerCharacter>(GetOwningActorFromActorInfo()))
     {
-        Char->GA_KickInstance = this;
         attackBaseComp = Char->AttackBaseComp;
     }
     attackBaseComp->SetIsAttacked(false);
@@ -51,13 +50,13 @@ void UGA_Kick::EndAbility(
 
 void UGA_Kick::StartKick()
 {
-    // UŒ‚’†‚Íˆ—‚µ‚È‚¢
+    // æ”»æ’ƒä¸­ã¯å‡¦ç†ã—ãªã„
     if (attackBaseComp->GetIsAttacked())
     {
         return;
     }
 
-    // ƒvƒŒƒCƒ„[‚ª‚¢‚È‚¯‚ê‚Îˆ—‚µ‚È‚¢
+    // ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ãŒã„ãªã‘ã‚Œã°å‡¦ç†ã—ãªã„
     AARRangerCharacter* Char = Cast<AARRangerCharacter>(GetAvatarActorFromActorInfo());
     if (!Char)
     {
@@ -71,7 +70,7 @@ void UGA_Kick::StartKick()
 
     chargeStartTime = GetWorld()->GetTimeSeconds();
 
-    // ƒ`ƒƒ[ƒWƒ‚[ƒVƒ‡ƒ“Ä¶
+    // ãƒãƒ£ãƒ¼ã‚¸ãƒ¢ãƒ¼ã‚·ãƒ§ãƒ³å†ç”Ÿ
     if (KickData.Montage_AR)
     {
         UE_LOG(LogTemp, Warning, TEXT("Charrrrrge"));
@@ -91,7 +90,7 @@ void UGA_Kick::KickHitNotify()
 void UGA_Kick::OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted)
 {
     UE_LOG(LogTemp, Warning, TEXT("Montage End"));
-    // ó‘ÔƒŠƒZƒbƒg
+    // çŠ¶æ…‹ãƒªã‚»ãƒƒãƒˆ
     if (AARRangerCharacter* Char = Cast<AARRangerCharacter>(GetAvatarActorFromActorInfo()))
     {
         Char->SetIsAttacked(false);
@@ -116,10 +115,10 @@ void UGA_Kick::InputReleased()
         return;
     }
 
-    // ƒ`ƒƒ[ƒWŠÔŒvZ
+    // ãƒãƒ£ãƒ¼ã‚¸æ™‚é–“è¨ˆç®—
     chargeDuration = GetWorld()->GetTimeSeconds() - chargeStartTime;
 
-    // ’iŠK”»’è
+    // æ®µéšåˆ¤å®š
     if (chargeDuration < 1.0f)
     {
         chargeLevel = 1;
@@ -133,13 +132,13 @@ void UGA_Kick::InputReleased()
         chargeLevel = 3;
     }
         
-    // ƒ`ƒƒ[ƒWƒ‚[ƒVƒ‡ƒ“’â~
+    // ãƒãƒ£ãƒ¼ã‚¸ãƒ¢ãƒ¼ã‚·ãƒ§ãƒ³åœæ­¢
     if (KickData.Montage_AR)
     {
         Char->GetMesh()->GetAnimInstance()->Montage_Stop(0.1f, KickData.Montage_AR);
     }
 
-    // ƒ_ƒ[ƒWEƒmƒbƒNƒoƒbƒNİ’è
+    // ãƒ€ãƒ¡ãƒ¼ã‚¸ãƒ»ãƒãƒƒã‚¯ãƒãƒƒã‚¯è¨­å®š
     switch (chargeLevel)
     {
     case 1: 
@@ -156,7 +155,7 @@ void UGA_Kick::InputReleased()
         break;
     }
 
-    // ƒLƒbƒNƒAƒjƒÄ¶
+    // ã‚­ãƒƒã‚¯ã‚¢ãƒ‹ãƒ¡å†ç”Ÿ
     if (KickData.Montage_Strong)
     {
         Char->GetMesh()->GetAnimInstance()->Montage_Play(KickData.Montage_Strong, 1.0f);
