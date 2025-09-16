@@ -295,6 +295,8 @@ void AARRangerPlayerController::InitializePlayerInput()
   ARIC->BindNativeAction(InputConfig, ARRanger::GameplayTags::NativeInput_SwitchTarget_Right, ETriggerEvent::Triggered, this, &ThisClass::NativeInput_SwitchTarget_Right);
   ARIC->BindNativeAction(InputConfig, ARRanger::GameplayTags::NativeInput_Transform, ETriggerEvent::Triggered, this, &ThisClass::NativeInput_Transform);
   ARIC->BindNativeAction(InputConfig, ARRanger::GameplayTags::NativeInput_Charge_Rotate, ETriggerEvent::Triggered, this, &ThisClass::NativeInput_ChargeRotate);
+  ARIC->BindNativeAction(InputConfig, ARRanger::GameplayTags::NativeInput_Target_Snap, ETriggerEvent::Triggered, this, &ThisClass::NativeInput_TargetSnap);
+
   // Initialize Input Buffer
   InitializePlayerInputBuffer(ARIC);
   
@@ -508,3 +510,16 @@ void AARRangerPlayerController::NativeInput_ChargeRotate(const FInputActionValue
 
 }
 
+void AARRangerPlayerController::NativeInput_TargetSnap(const FInputActionValue& InputActionValue, /**PayLoad */ FGameplayTag InInputTag)
+{
+  if (IsInputBlocked(InInputTag))
+  {
+    return;
+  }
+
+  if (OwningCharacter != nullptr)
+  {
+    const FVector2D inputDir = InputActionValue.Get<FVector2D>();
+    OwningCharacter->UpdateTargetSnap(inputDir);
+  }
+}
