@@ -145,6 +145,17 @@ void AARRangerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+  if (bCanTargetSnap)
+  {
+    if (TargetToSnap != nullptr)
+    {
+      // TODO
+      SetActorLocation(TargetToSnap->GetActorLocation());
+    }
+
+    bCanTargetSnap = false;
+  }
+
 	bool isLockedOn = LockOnComponent->GetIsLockedOn();
 	AActor* Target = LockOnComponent->GetLockedOnTarget();
 
@@ -601,7 +612,14 @@ void AARRangerCharacter::OnNotifyAttackResult_Success(const ARRanger::Battle::FA
 {
   // ヒット音を再生
   OnAttackHitNotify();
+
+  if (OnPlayerHit.IsBound())
+  {
+    OnPlayerHit.Broadcast(GetActorLocation());
+  }
 }
+
+
 
 #pragma endregion IARAttackerInterface implementation
 /**End IARAttackerInterface implementation */
@@ -609,6 +627,15 @@ void AARRangerCharacter::OnNotifyAttackResult_Success(const ARRanger::Battle::FA
 // TODO Temporary blueprint callable function 
 void AARRangerCharacter::OnPunchStarted()
 {
+  // TODO
+  if (bReadyToTargetSnap && !TargetSnapInput.IsNearlyZero())
+  {
+    bCanTargetSnap = true;
+    SearchTargetToSnap();
+  }
+
+  bReadyToTargetSnap = false;
+  
   if (AttackBaseComp != nullptr)
   {
     AttackBaseComp->SetIsAttacked(false);
@@ -673,4 +700,99 @@ void AARRangerCharacter::OnHoldStarted(const FGameplayTag& InActivatedAbilityTag
 void AARRangerCharacter::OnHoldEnded()
 {
   bIsHolding = false;
+}
+
+void AARRangerCharacter::UpdateTargetSnap(const FVector2D& InputDir)
+{
+  if (InputDir.IsNearlyZero())
+  {
+    return;
+  }
+
+  bReadyToTargetSnap = true;
+  bCanTargetSnap = false;
+  TargetSnapInput = InputDir;
+}
+
+void AARRangerCharacter::SearchTargetToSnap()
+{
+  TargetToSnap = nullptr;
+
+  // FIXME Same as RotateCharacter_Charge. Make it DRY
+  TargetSnapInput.Normalize();
+  const FRotator curtPlayerDir_Rot = GetActorRotation();
+  const FVector curtPlayerDir = GetActorForwardVector();
+  const float TEMP_RANGE = 45.f; 
+
+  // Use ForwardVector as Axis-Y to calculate input direction         
+  FVector targetPlayerDir = curtPlayerDir * TargetSnapInput.Y + /*Rotate 90°*/ FVector{curtPlayerDir.Y, -curtPlayerDir.X, 0.0} * TargetSnapInput.X;
+  targetPlayerDir.Normalize();
+  
+  double rotateAngle = FVector::DotProduct(curtPlayerDir, targetPlayerDir);
+  if (rotateAngle < FMath::Cos(FMath::DegreesToRadians(TEMP_RANGE)))
+  {
+    rotateAngle = FMath::Sign(TargetSnapInput.X) * TEMP_RANGE;
+  }
+
+  // Rotate Target direction with adjusted angle
+  const float TEMP_DETECT_LENGTH = 1000.0f;
+  targetPlayerDir = curtPlayerDir.RotateAngleAxis(rotateAngle, curtPlayerDir);
+  const FVector startLoc = GetActorLocation();
+  const FVector endLoc = startLoc + targetPlayerDir * TEMP_DETECT_LENGTH;
+
+  float radius = 200.f;
+  if (UCapsuleComponent* capsule = GetCapsuleComponent())
+  {
+    radius = capsule->GetScaledCapsuleHalfHeight() * 2.f;
+  }
+
+  // TODO
+  TArray< TEnumAsByte<EObjectTypeQuery> > objTypes{}; 
+  objTypes.Add(UEngineTypes::ConvertToObjectType(ECC_WorldStatic));
+  objTypes.Add(UEngineTypes::ConvertToObjectType(ECC_WorldDynamic));
+  objTypes.Add(UEngineTypes::ConvertToObjectType(ECC_Pawn));
+  objTypes.Add(UEngineTypes::ConvertToObjectType(ECC_PhysicsBody));
+  TArray<AActor*> ignoreActors{};
+  ignoreActors.Add(this);
+
+  TArray<FHitResult> outResults{};
+
+  const bool bHit = UKismetSystemLibrary::SphereTraceMultiForObjects(
+                                            this,
+                                            startLoc,
+                                            endLoc,
+                                            radius,
+                                            objTypes,
+                                            false,        // bTraceComplex
+                                            ignoreActors,
+                                            EDrawDebugTrace::None,
+                                            outResults,
+                                            true          // bIgnoreSelf
+                                          ); 
+  
+  if (bHit)
+  {
+    UClass* targetClass = (TargetClass != nullptr) ? TargetClass->GetClass() : AEnemy_Zako::StaticClass();
+    const FVector playerLoc = startLoc;
+    for (const FHitResult& hitResult : outResults)
+    {
+      if (hitResult.GetActor()->IsA(targetClass))
+      {
+        const float curtHitResultDistanceSquared = (playerLoc - hitResult.GetActor()->GetActorLocation()).SquaredLength();
+        if (TargetToSnap != nullptr)
+        {
+          // Find min distance to player
+          const float curtMinDistanceSquared = (playerLoc - TargetToSnap->GetActorLocation()).SquaredLength();
+          if (curtMinDistanceSquared > curtHitResultDistanceSquared)
+          {
+            TargetToSnap = hitResult.GetActor();
+          }   
+        }
+        else
+        {
+          TargetToSnap = hitResult.GetActor();
+        }
+      }
+    }
+  }
 }
