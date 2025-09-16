@@ -147,13 +147,7 @@ void AARRangerCharacter::Tick(float DeltaTime)
 
   if (bCanTargetSnap)
   {
-    if (TargetToSnap != nullptr)
-    {
-      // TODO
-      SetActorLocation(TargetToSnap->GetActorLocation());
-    }
-
-    bCanTargetSnap = false;
+    SnapToTarget(DeltaTime);
   }
 
 	bool isLockedOn = LockOnComponent->GetIsLockedOn();
@@ -340,16 +334,10 @@ void AARRangerCharacter::StartClimbing(AInsekiClimbingObject* ClimbActor)
 	FCollisionQueryParams Params;
 	Params.AddIgnoredActor(this);
 
-	bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_Visibility, Params);
+	const bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_Visibility, Params);
 	
 	if (bHit)
 	{
-		//// 壁に対して垂直になるようキャラを回転させる
-		//const FVector X = GetActorUpVector().GetSafeNormal();
-		//const FVector Z = HitResult.Normal.GetSafeNormal();
-		//const FRotator NewRot = FRotationMatrix::MakeFromXZ(X, Z).Rotator();
-		//SetActorRotation(NewRot);
-
 		// 壁の法線を保存
 		wallNormal = HitResult.ImpactNormal;
 
@@ -435,10 +423,6 @@ void AARRangerCharacter::OnAttractionCompleted()
 	// 引き寄せ完了フラグを立てる
 	SetIsApproachedEnemy(true);
 	UE_LOG(LogTemp, Warning, TEXT("Attraction Punch Start!"));
-	// if (GA_PunchInstance)
-	// {
-	// 	GA_PunchInstance->StartPunch();
-	// }
 }
 
 void AARRangerCharacter::ToggleLockOn()
@@ -630,8 +614,12 @@ void AARRangerCharacter::OnPunchStarted()
   // TODO
   if (bReadyToTargetSnap && !TargetSnapInput.IsNearlyZero())
   {
-    bCanTargetSnap = true;
     SearchTargetToSnap();
+  }
+  else
+  {
+    TargetSnapInput = FVector2D::ZeroVector;
+    TargetToSnap = nullptr;
   }
 
   bReadyToTargetSnap = false;
@@ -706,6 +694,8 @@ void AARRangerCharacter::UpdateTargetSnap(const FVector2D& InputDir)
 {
   if (InputDir.IsNearlyZero())
   {
+    TargetSnapInput = FVector2D::ZeroVector;
+    bReadyToTargetSnap = false;
     return;
   }
 
@@ -717,9 +707,8 @@ void AARRangerCharacter::UpdateTargetSnap(const FVector2D& InputDir)
 void AARRangerCharacter::SearchTargetToSnap()
 {
   TargetToSnap = nullptr;
-
-  // FIXME Same as RotateCharacter_Charge. Make it DRY
   TargetSnapInput.Normalize();
+
   const FRotator curtPlayerDir_Rot = GetActorRotation();
   const FVector curtPlayerDir = GetActorForwardVector();
   const float TEMP_RANGE = 45.f; 
@@ -743,7 +732,7 @@ void AARRangerCharacter::SearchTargetToSnap()
   float radius = 200.f;
   if (UCapsuleComponent* capsule = GetCapsuleComponent())
   {
-    radius = capsule->GetScaledCapsuleHalfHeight() * 2.f;
+    radius = capsule->GetScaledCapsuleHalfHeight();
   }
 
   // TODO
@@ -792,7 +781,30 @@ void AARRangerCharacter::SearchTargetToSnap()
         {
           TargetToSnap = hitResult.GetActor();
         }
+
+        bCanTargetSnap = true;
       }
     }
   }
+}
+
+void AARRangerCharacter::SnapToTarget(float DeltaTime)
+{
+  if (TargetToSnap != nullptr)
+  {
+    // TODO
+    const FVector dirToTarget = (TargetToSnap->GetActorLocation() - GetActorLocation()).GetSafeNormal();
+    SetActorRotation(dirToTarget.Rotation());
+    SetActorLocation(TargetToSnap->GetActorLocation());
+
+    // if ((m_snapTimeCnt >= 0) || ())
+    // {
+    //   bCanTargetSnap = false;
+    // }
+  }
+  else
+  {
+    bCanTargetSnap = false;
+  }
+
 }

@@ -301,9 +301,19 @@ private:
   float TargetSnapDetectLength;
 
   UPROPERTY(EditAnywhere, Category = "ARRanger|TargetSnap")
+  float SnapTimeInterval = 0.2f;
+
+  UPROPERTY(EditAnywhere, Category = "ARRanger|TargetSnap")
   TSubclassOf<AActor> TargetClass;
 
+  float m_snapTimeCnt = 0.0f;
+
+  FVector m_startSnapPlayerLocation;
+  FRotator m_startSnapPlayerRotation;
+
   void SearchTargetToSnap();
+
+  void SnapToTarget(float DeltaTime);
   // TODO End
 
 	// 必殺技を使用可能かを返す関数
