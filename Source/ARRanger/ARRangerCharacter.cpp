@@ -616,11 +616,6 @@ void AARRangerCharacter::OnPunchStarted()
   {
     SearchTargetToSnap();
   }
-  else
-  {
-    TargetSnapInput = FVector2D::ZeroVector;
-    TargetToSnap = nullptr;
-  }
 
   bReadyToTargetSnap = false;
   
@@ -656,6 +651,14 @@ void AARRangerCharacter::OnPunchStarted()
       }
     }
   }
+}
+
+void AARRangerCharacter::OnPunchEnded()
+{
+  m_snapTimeCnt = 0.0f;
+  bReadyToTargetSnap = false;
+  TargetSnapInput = FVector2D::ZeroVector;
+  TargetToSnap = nullptr;
 }
 
 void AARRangerCharacter::RotateCharacter_Charge(float Yaw)
@@ -699,6 +702,11 @@ void AARRangerCharacter::UpdateTargetSnap(const FVector2D& InputDir)
     return;
   }
 
+  if (bCanTargetSnap)
+  {
+    return;
+  }
+
   bReadyToTargetSnap = true;
   bCanTargetSnap = false;
   TargetSnapInput = InputDir;
@@ -709,25 +717,15 @@ void AARRangerCharacter::SearchTargetToSnap()
   TargetToSnap = nullptr;
   TargetSnapInput.Normalize();
 
-  const FRotator curtPlayerDir_Rot = GetActorRotation();
   const FVector curtPlayerDir = GetActorForwardVector();
-  const float TEMP_RANGE = 45.f; 
 
-  // Use ForwardVector as Axis-Y to calculate input direction         
-  FVector targetPlayerDir = curtPlayerDir * TargetSnapInput.Y + /*Rotate 90°*/ FVector{curtPlayerDir.Y, -curtPlayerDir.X, 0.0} * TargetSnapInput.X;
-  targetPlayerDir.Normalize();
-  
-  double rotateAngle = FVector::DotProduct(curtPlayerDir, targetPlayerDir);
-  if (rotateAngle < FMath::Cos(FMath::DegreesToRadians(TEMP_RANGE)))
-  {
-    rotateAngle = FMath::Sign(TargetSnapInput.X) * TEMP_RANGE;
-  }
-
-  // Rotate Target direction with adjusted angle
-  const float TEMP_DETECT_LENGTH = 1000.0f;
-  targetPlayerDir = curtPlayerDir.RotateAngleAxis(rotateAngle, curtPlayerDir);
+  const FRotator curtCtrlRotation = GetController()->GetControlRotation();
+  const FRotator yawRotation{0.0, curtCtrlRotation.Yaw, 0.0};
+  const FVector forwardDirection = FRotationMatrix(yawRotation).GetUnitAxis(EAxis::X);
+  const FVector rightDirection = FRotationMatrix(yawRotation).GetUnitAxis(EAxis::Y);
+  const FVector targetPlayerDir = ((forwardDirection * TargetSnapInput.Y) + (rightDirection * TargetSnapInput.X)).GetSafeNormal();
   const FVector startLoc = GetActorLocation();
-  const FVector endLoc = startLoc + targetPlayerDir * TEMP_DETECT_LENGTH;
+  const FVector endLoc = startLoc + targetPlayerDir * TargetSnapDetectLength;
 
   float radius = 200.f;
   if (UCapsuleComponent* capsule = GetCapsuleComponent())
@@ -754,7 +752,7 @@ void AARRangerCharacter::SearchTargetToSnap()
                                             objTypes,
                                             false,        // bTraceComplex
                                             ignoreActors,
-                                            EDrawDebugTrace::None,
+                                            EDrawDebugTrace::Persistent,
                                             outResults,
                                             true          // bIgnoreSelf
                                           ); 
@@ -775,36 +773,61 @@ void AARRangerCharacter::SearchTargetToSnap()
           if (curtMinDistanceSquared > curtHitResultDistanceSquared)
           {
             TargetToSnap = hitResult.GetActor();
+            TargetPrimitiveComp = hitResult.GetComponent();
+            const FVector relativeImpactPoint = hitResult.ImpactPoint - TargetPrimitiveComp->GetComponentLocation();
+            // We do not use Z-component of impact point
+            TargetImpactPoint_Local = FVector{relativeImpactPoint.X, relativeImpactPoint.Y, 0.0};
           }   
         }
         else
         {
           TargetToSnap = hitResult.GetActor();
+          TargetPrimitiveComp = hitResult.GetComponent();
+          const FVector relativeImpactPoint = hitResult.ImpactPoint - TargetPrimitiveComp->GetComponentLocation();
+          // We do not use Z-component of impact point
+          TargetImpactPoint_Local = FVector{relativeImpactPoint.X, relativeImpactPoint.Y, 0.0};
         }
 
         bCanTargetSnap = true;
       }
+    }
+
+    if (bCanTargetSnap)
+    {
+      m_startSnapPlayerLocation = GetActorLocation();
+      m_startSnapPlayerRotation = GetActorRotation();
     }
   }
 }
 
 void AARRangerCharacter::SnapToTarget(float DeltaTime)
 {
-  if (TargetToSnap != nullptr)
+  FVector newLocation = GetActorLocation();
+  FRotator newRotation = GetActorRotation();
+
+  if ((TargetToSnap != nullptr) && !FMath::IsNearlyZero(SnapTimeInterval) && (m_snapTimeCnt < SnapTimeInterval))
   {
     // TODO
-    const FVector dirToTarget = (TargetToSnap->GetActorLocation() - GetActorLocation()).GetSafeNormal();
-    SetActorRotation(dirToTarget.Rotation());
-    SetActorLocation(TargetToSnap->GetActorLocation());
-
-    // if ((m_snapTimeCnt >= 0) || ())
-    // {
-    //   bCanTargetSnap = false;
-    // }
+    m_snapTimeCnt += DeltaTime;
+    const float RotateInterpInterval = SnapTimeInterval / 2.0f;
+    const FRotator faceToTargetRot = (TargetToSnap->GetActorLocation() - GetActorLocation()).Rotation();
+    newRotation = FMath::InterpCircularOut(m_startSnapPlayerRotation, faceToTargetRot, m_snapTimeCnt / RotateInterpInterval);
+    
+    // Calculate new location 
+    const FVector playerToTargetOffset = TargetImpactPoint_Local.GetSafeNormal2D() * GetCapsuleComponent()->GetScaledCapsuleRadius();
+    const FVector newTargetLocation = TargetToSnap->GetActorLocation() + TargetImpactPoint_Local + playerToTargetOffset;
+    newLocation = FMath::InterpCircularIn(m_startSnapPlayerLocation, newTargetLocation, m_snapTimeCnt / SnapTimeInterval);
   }
   else
   {
     bCanTargetSnap = false;
+    m_snapTimeCnt = 0.0f;
+    TargetSnapInput = FVector2D::ZeroVector;
+    TargetToSnap = nullptr;
   }
+
+  // Update Player
+  SetActorLocation(newLocation);
+  SetActorRotation(newRotation);
 
 }

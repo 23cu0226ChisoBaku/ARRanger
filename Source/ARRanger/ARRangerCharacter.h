@@ -253,6 +253,9 @@ public:
   UFUNCTION(BlueprintCallable, Category = "GameAbility|Callbacks")
   void OnPunchStarted();
 
+  UFUNCTION(BlueprintCallable, Category = "GameAbility|Callbacks")
+  void OnPunchEnded();
+
 private:
 	// 攻撃中フラグ
 	bool bIsAttacked = false;
@@ -294,8 +297,10 @@ private:
   UPROPERTY()
   TObjectPtr<AActor> TargetToSnap;
 
-  UPROPERTY(EditAnywhere, Category = "ARRanger|TargetSnap")
-  float SnapRangeAngleDeg;
+  UPROPERTY()
+  TObjectPtr<UPrimitiveComponent> TargetPrimitiveComp;
+
+  FVector TargetImpactPoint_Local;
 
   UPROPERTY(EditAnywhere, Category = "ARRanger|TargetSnap")
   float TargetSnapDetectLength;
