@@ -76,6 +76,12 @@ private:
     UCurveFloat* m_KickCurveSpeed;        	/*フィニッシュキックのスピード*/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AttractSpecialAttack|AttractionActor", meta = (AllowPrivateAccess = "true"))
 	TSubclassOf<AActor> m_AttractActor;     /*対象オブジェクトを吸引オブジェクト*/
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AttractSpecialAttack|Animation", meta = (AllowPrivateAccess = "true"))
+    UAnimMontage* m_HealAndBackflipMontage; /*ブラックホール生成とバックフリップのアニメーションモンタージュ*/
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AttractSpecialAttack|Animation", meta = (AllowPrivateAccess = "true"))
+    UAnimMontage* m_FlyingKickMontage; 		/*キックのアニメーションモンタージュ*/
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AttractSpecialAttack|Animation", meta = (AllowPrivateAccess = "true"))
+    UAnimMontage* m_LandMontage; 			/*着地のアニメーションモンタージュ*/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AttractSpecialAttack|Player", meta = (AllowPrivateAccess = "true"))
 	float m_AttractTimeInterval;            /*技発動からキックし始めるまでの時間*/
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AttractSpecialAttack|Player", meta = (AllowPrivateAccess = "true"))
@@ -98,9 +104,11 @@ private:
 	UPROPERTY()
 	TArray<AActor*> m_InhaledActors;			/*吸引しているアクター*/
 	UPROPERTY()
-	TObjectPtr<UGameplayCameraComponent> m_PlayerCameraComponent;	/*プレイヤーについているカメラ*/
-	UPROPERTY()
 	FTimerHandle m_DelayTimerHandle;    		/*タイマーハンドル*/
+	UPROPERTY()
+	TObjectPtr<UGameplayCameraComponent> m_PlayerCameraComponent;	/*プレイヤーについているカメラ*/
+    UPROPERTY()
+    TObjectPtr<UAnimInstance> m_AnimInstance;	/*アニメーションインタンス*/
 	UPROPERTY()
 	TObjectPtr<AActor> m_GenerateArractActor;   /*生成した吸引オブジェクト*/
 	UPROPERTY()
