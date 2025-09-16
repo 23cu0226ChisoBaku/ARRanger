@@ -94,7 +94,7 @@ void AEnemy::ReceiveDamage(bool bIsStrongAttack, int DamageAmount, FVector Launc
 		// GameModeに通知
 		if (AInsekiGameMode* GM = Cast<AInsekiGameMode>(UGameplayStatics::GetGameMode(this)))
 		{
-			GM->OnEnemyKilled();
+			//GM->OnEnemyKilled();
 		}
 		// ちょっと待ってから消す
 		SetLifeSpan(1.0f);

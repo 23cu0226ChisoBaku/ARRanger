@@ -45,9 +45,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	bool m_IsBackFlip;			      	/*バックフリップをしているか*/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	bool m_IsAttractKick;      			/*キックをしているか*/
+	bool m_IsAttractKick;      			/*キックをしているか (for 麦)*/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	bool m_IsLand;      				/*着地しているか*/
+	bool m_IsLand;      				/*着地しているか　(for 麦)*/
 
 private:
 	/**

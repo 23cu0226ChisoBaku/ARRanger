@@ -31,12 +31,12 @@ public:
      * 
      * @param 有効なフェーズ
      */
-    TArray<ESpawnPhase> GetSpawnPhases() const { return m_SpawnPhases; }
+    TSet<ESpawnPhase> GetSpawnPhases() const { return m_SpawnPhases; }
 
 private:
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spawner", meta = (AllowPrivateAccess = "true"))
     TSubclassOf<AActor> m_SpawnEnemy;   /*スポーンさせる敵*/
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Spawner", meta = (AllowPrivateAccess="true"))
-    TArray<ESpawnPhase> m_SpawnPhases;  /*スポーンフェーズ*/
+    TSet<ESpawnPhase> m_SpawnPhases;    /*スポーンフェーズ*/
 };

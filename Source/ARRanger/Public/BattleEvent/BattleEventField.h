@@ -63,6 +63,18 @@ public:
 private:  
 
     /**
+     * @brief 敵が破棄された際に呼ばれる
+     */
+    UFUNCTION()
+    void OnEnemyDestroyed();
+
+    /** 
+     * @brief オーバーラップ関数
+     */
+    UFUNCTION()
+    void OnFieldBeginOverlap(UPrimitiveComponent* overlappedComp, AActor* otherActor,UPrimitiveComponent* otherComp, int32 otherBodyIndex, bool bFromSweep, const FHitResult& sweepResult);
+
+    /**
      * @brief 自身のバトルフィールドの範囲(コリジョン)を取得する関数
      */
     void GetPrimitiveComponents();
@@ -81,20 +93,13 @@ private:
 
     /**
      * @brief 次のフェーズがスタートするときに処理
-     * 
-     * @param 始めるフェーズ
      */
-    void StartNextPhase(ESpawnPhase phase);
+    void StartNextPhase();
 
     /**
      * @brief 範囲内のスポナーに対して敵の生成を促す
      */
     void RequestSpawn();
-
-    /**
-     * @brief 敵が破棄された際に呼ばれる
-     */
-    void OnEnemyDestroyed();
 
     /**
      * @brief バトルイベントが開始されるときの処理
@@ -105,12 +110,6 @@ private:
      * @brief バトルイベントが終了するときの処理
      */
     void OnEndBattleEvent();
-
-    /** 
-     * @brief オーバーラップ関数
-     */
-    UFUNCTION()
-    void OnFieldBeginOverlap(UPrimitiveComponent* overlappedComp, AActor* otherActor,UPrimitiveComponent* otherComp, int32 otherBodyIndex, bool bFromSweep, const FHitResult& sweepResult);
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cage", meta = (AllowPrivateAccess = "true"))
     TArray<TObjectPtr<ABattleEventCage>> m_CageActors;              /*見えない壁(鳥かご)*/

@@ -45,6 +45,7 @@ void UAttractSpecialAttackComponent::TickComponent(float DeltaTime, ELevelTick T
  */
 void UAttractSpecialAttackComponent::OnStartSpecialAttract()
 {
+	/*アニメーションを再生し始める*/
 	m_IsGenerateAttract = true;
 
 	/*キックする方向を取得*/
