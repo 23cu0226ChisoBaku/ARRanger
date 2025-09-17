@@ -39,7 +39,6 @@ namespace
 AARRangerCharacter::AARRangerCharacter()
 	: currentClimbSurface(nullptr)
 	, bIsClimbed(false)
-	//, Montage_AttractionClimb(nullptr)
 {
 	// カプセルサイズを設定
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
@@ -499,17 +498,6 @@ void AARRangerCharacter::Transform()
 			ENCPoolMethod::AutoRelease
 		);
 	}
-
-	// 変身音を再生
-	if (SE_Transform)
-	{
-		UGameplayStatics::PlaySound2D(
-			GetWorld(),
-			SE_Transform,
-			1.0f,
-			1.0f
-		);
-	}
 }
 
 bool AARRangerCharacter::CanSpecialAttractAttack()
@@ -773,7 +761,7 @@ void AARRangerCharacter::SearchTargetToSnap()
     const FVector playerLoc = startLoc;
     for (const FHitResult& hitResult : outResults)
     {
-      const AActor* hitActor = hitResult.GetActor();
+      AActor* hitActor = hitResult.GetActor();
       if (hitActor == nullptr)
       {
         continue;
@@ -790,7 +778,9 @@ void AARRangerCharacter::SearchTargetToSnap()
       {
         IARAttackable* attackable = ::Cast<IARAttackable>(hitActor);
         if (attackable == nullptr)
-
+        {
+          continue;
+        }
 
         const float curtHitResultDistanceSquared = (playerLoc - hitResult.GetActor()->GetActorLocation()).SquaredLength();
         if (TargetToSnap != nullptr)

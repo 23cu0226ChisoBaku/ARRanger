@@ -79,9 +79,6 @@ protected:
   UPROPERTY(EditAnywhere, Category = "RangeDetection", meta = (EditCondition = "DetectionType == EANS_DetectRange_NotifyDetectionType::NotifyDuringHit && FrequencyType == EANS_DetectRange_NotifyDetectionFrequencyType::Notify_TimeBase", EditConditionHides))
   float TimeInterval;
 
-  UPROPERTY(EditAnywhere, Category = "RangeDetection", meta = (MustImplement = "ARGameplayAbilityNotifyInterface"))
-  TSet<TSubclassOf<UGameplayAbility>> NotifyAbilityClasses;
-
   UPROPERTY(EditAnywhere, Category = "Auto Destroy")
   bool bDestroyAtEnd = true;
 
@@ -91,6 +88,8 @@ protected:
   bool bDrawDebugDuringActivation = true;
 
 #endif
+
+  uint8 bNotifyOnceIsTriggered : 1;
 
 private:
   bool ValidateParameters(USkeletalMeshComponent* MeshComp) const;

@@ -59,15 +59,6 @@ void UAnimNotifyState_DetectRange::NotifyBegin(USkeletalMeshComponent * MeshComp
       
       URangeDetectorComponent* RDC = URangeDetectorHelper::AttachRangeDetector(DAE, MeshComp, SocketName, LocationOffset, RotationOffset, FVector::OneVector, EAttachLocation::KeepRelativeOffset, true);
 
-#if WITH_EDITORONLY_DATA
-
-      if (RDC != nullptr)
-      {
-        RDC->bDrawDebugRange = bDrawDebugDuringActivation;
-      }
-
-#endif // WITH_EDITORONLY_DATA
-
       if (!m_detectTickObject.IsValid() && DetectionType == EANS_DetectRange_NotifyDetectionType::NotifyDuringHit)
       {
         using enum EANS_DetectRange_NotifyDetectionFrequencyType;
@@ -93,6 +84,17 @@ void UAnimNotifyState_DetectRange::NotifyBegin(USkeletalMeshComponent * MeshComp
           m_detectTickObject->DetectionNotify.BindUObject(this, &UAnimNotifyState_DetectRange::NotifyAbility);
         }
       }
+
+      bNotifyOnceIsTriggered = false;
+
+#if WITH_EDITORONLY_DATA
+
+      if (RDC != nullptr)
+      {
+        RDC->bDrawDebugRange = bDrawDebugDuringActivation;
+      }
+
+#endif // WITH_EDITORONLY_DATA  
     }
   }
 }
@@ -109,41 +111,45 @@ void UAnimNotifyState_DetectRange::NotifyTick(USkeletalMeshComponent * MeshComp,
   // Get result and notify once
   else
   {
-    TArray<USceneComponent*> children{};
-    MeshComp->GetChildrenComponents(false, children);
-
-    for (USceneComponent* child : children)
+    if (!bNotifyOnceIsTriggered)
     {
-      URangeDetectorComponent* RDC = ::Cast<URangeDetectorComponent>(child);
-      if ((RDC == nullptr) || !RDC->HasRangeData(RangeData))
+      TArray<USceneComponent*> children{};
+      MeshComp->GetChildrenComponents(false, children);
+  
+      for (USceneComponent* child : children)
       {
-        continue;
-      } 
-
-      FRangeDetectorEvaluationResult result{};
-      const int32 resultCnt = RDC->GetResultByRangeData(RangeData, result);
-      if (resultCnt <= 0)
-      {
-        continue;
-      }
-
-      // Notify Ability
-      UARAbilitySystemComponent* ARASC = UARAbilitySystemComponent::FindARAbilitySystemComponent(MeshComp->GetOwner());
-      if (ARASC != nullptr)
-      {
-        const TArray<FGameplayAbilitySpec>& allActivatableAbilites = ARASC->GetActivatableAbilities();
-        for (const FGameplayAbilitySpec& activatableAbility : allActivatableAbilites)
+        URangeDetectorComponent* RDC = ::Cast<URangeDetectorComponent>(child);
+        if ((RDC == nullptr) || !RDC->HasRangeData(RangeData))
         {
-          if (activatableAbility.IsActive())
+          continue;
+        } 
+  
+        FRangeDetectorEvaluationResult result{};
+        const int32 resultCnt = RDC->GetResultByRangeData(RangeData, result);
+        if (resultCnt <= 0)
+        {
+          continue;
+        }
+  
+        // Notify Ability
+        UARAbilitySystemComponent* ARASC = UARAbilitySystemComponent::FindARAbilitySystemComponent(MeshComp->GetOwner());
+        if (ARASC != nullptr)
+        {
+          const TArray<FGameplayAbilitySpec>& allActivatableAbilites = ARASC->GetActivatableAbilities();
+          for (const FGameplayAbilitySpec& activatableAbility : allActivatableAbilites)
           {
-            if (IARGameplayAbilityNotifyInterface* notifyInterface = ::Cast<IARGameplayAbilityNotifyInterface>(activatableAbility.GetPrimaryInstance()))
+            if (activatableAbility.IsActive())
             {
-              // Change to GANotify_ImpactResult
-              notifyInterface->GANotify_ActorArray(MeshComp, Animation, result.DetectedActors);
+              if (IARGameplayAbilityNotifyInterface* notifyInterface = ::Cast<IARGameplayAbilityNotifyInterface>(activatableAbility.GetPrimaryInstance()))
+              {
+                // Change to GANotify_ImpactResult
+                notifyInterface->GANotify_ActorArray(MeshComp, Animation, result.DetectedActors);
+                bNotifyOnceIsTriggered = true;
+              }
             }
           }
-        }
-      } 
+        } 
+      }
     }
   }
 
@@ -295,6 +301,8 @@ void UAnimNotifyState_DetectRange::NotifyAbility(USkeletalMeshComponent* MeshCom
   }
 }
 
+#if WITH_EDITOR
+
 void UAnimNotifyState_DetectRange::DrawDebugRange(USceneComponent* RootComponent)
 {
   if (RootComponent != nullptr)
@@ -323,6 +331,8 @@ void UAnimNotifyState_DetectRange::DrawDebugRange(USceneComponent* RootComponent
     }
   }
 }
+
+#endif
 
 FDetectTickObject_FrameBase::FDetectTickObject_FrameBase(int32 InStartFrame, int32 InFrameInterval)
   : FrameInterval{InFrameInterval}
