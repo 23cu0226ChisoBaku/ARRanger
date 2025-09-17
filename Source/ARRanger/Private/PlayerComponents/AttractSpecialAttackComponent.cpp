@@ -16,6 +16,15 @@ UAttractSpecialAttackComponent::UAttractSpecialAttackComponent()
 void UAttractSpecialAttackComponent::BeginPlay()
 {
 	Super::BeginPlay();	
+
+	/*アニメーションインスタンスを取得*/
+	if (ACharacter* Character = Cast<ACharacter>(GetOwner()))
+    {
+        if (Character->GetMesh() != nullptr)
+        {
+            m_AnimInstance = Character->GetMesh()->GetAnimInstance();
+        }
+    }
 }
 void UAttractSpecialAttackComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
@@ -45,7 +54,12 @@ void UAttractSpecialAttackComponent::TickComponent(float DeltaTime, ELevelTick T
  */
 void UAttractSpecialAttackComponent::OnStartSpecialAttract()
 {
-	m_IsGenerateAttract = true;
+	/*アニメーションを再生し始める*/
+	if(m_AnimInstance)
+	{
+		m_AnimInstance->Montage_Play(m_HealAndBackflipMontage, 1.0f);
+		m_IsGenerateAttract = true;
+	}
 
 	/*キックする方向を取得*/
 	m_kickDirection = FVector(GetPlayerCameraRotation().X, GetPlayerCameraRotation().Y, 0.0f).GetSafeNormal();
@@ -62,6 +76,13 @@ void UAttractSpecialAttackComponent::OnStartSpecialAttract()
 			if(ASpecialAttackAttractActor* attractActor = Cast<ASpecialAttackAttractActor>(m_GenerateArractActor))
 			{
 				m_InhaledActors = attractActor->GetDetectedActors();
+			}
+
+			/*キックアニメーション*/
+			if(m_AnimInstance)
+			{
+				m_AnimInstance->Montage_Play(m_FlyingKickMontage, 1.0f);
+				m_IsGenerateAttract = true;
 			}
 			m_IsAttractKick = true;
 		}
@@ -166,9 +187,20 @@ void UAttractSpecialAttackComponent::SpecialFinishKick(float deltaTime)
 	/*指定時間が過ぎたらキックを終了する*/
 	if(m_KickTimeInterval <= m_ElapsedTime)
 	{
+		/*キックスピードを減速*/
 		m_CurrentKickSpeed -= m_KickBrakingForce;
+		FVector deltaLocation = m_kickDirection * FMath::Max(m_CurrentKickSpeed, 0.0f) * deltaTime;
+    	GetOwner()->AddActorWorldOffset(deltaLocation, true);
+		UE_LOG(LogTemp, Warning, TEXT("CurrentKickSpeed: %f"), m_CurrentKickSpeed);
+
 		if(m_CurrentKickSpeed <= 0.0f)
 		{
+			UE_LOG(LogTemp, Warning, TEXT("UAttractSpecialAttackComponent::SpecialFinishKick() : Play m_LandMontage"));
+			/*着地アニメーション*/
+			if(m_AnimInstance != nullptr)
+			{
+				m_AnimInstance->Montage_Play(m_LandMontage, 1.0f);
+			}
 			m_IsAttractKick = false;
 			m_IsLand = true;
 			m_ElapsedTime = 0.0f;
@@ -204,12 +236,12 @@ void UAttractSpecialAttackComponent::SpecialFinishKick(float deltaTime)
 	FVector newLocation;
 	if(!bHit)
 	{
-		// m_CurrentKickSpeed = m_KickCurveSpeed->GetFloatValue(m_ElapsedTime);
-		// newLocation = GetOwner()->GetActorLocation() + m_kickDirection * m_CurrentKickSpeed;
+		/*CurveFloatにそったスピードを計算*/
 		float kickTimeIntervalNormalized = m_ElapsedTime / m_KickTimeInterval;
 		float normalizedCurveValue = m_KickCurveSpeed->GetFloatValue(kickTimeIntervalNormalized);
 		m_CurrentKickSpeed = m_KickMaxSpeed * normalizedCurveValue;
-		newLocation = GetOwner()->GetActorLocation() + m_kickDirection * m_CurrentKickSpeed;
+		FVector deltaLocation = m_kickDirection * m_CurrentKickSpeed;
+		newLocation = GetOwner()->GetActorLocation() + deltaLocation;
 	}
 	/*障害物への埋め込み防止*/
 	else

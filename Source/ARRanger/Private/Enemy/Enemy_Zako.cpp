@@ -34,7 +34,7 @@ void AEnemy_Zako::ReceiveDamage(int DamageAmount, FVector LaunchDirection, bool 
 
         if (AInsekiGameMode* GM = Cast<AInsekiGameMode>(UGameplayStatics::GetGameMode(this)))
         {
-            GM->OnEnemyKilled();
+            //GM->OnEnemyKilled();
         }
 
         GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
