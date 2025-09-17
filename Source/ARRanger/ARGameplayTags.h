@@ -44,6 +44,7 @@ namespace GameplayTags
   UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(NativeInput_SwitchTarget_Right);
   UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(NativeInput_Transform);
   UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(NativeInput_Charge_Rotate);
+  UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(NativeInput_Target_Snap);
 
 } // namespace ARRanger::GameplayTags;
 

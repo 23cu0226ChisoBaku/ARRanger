@@ -29,6 +29,7 @@ struct FGameplayTag;
 
 DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);
 
+
 /**
  *  シンプルでプレイヤーが操作可能な三人称視点キャラクター
  *  制御可能な軌道カメラの実装
@@ -62,6 +63,11 @@ class AARRangerCharacter :  public ACharacter,
 	UNiagaraSystem* TransformEffect;
 
 public:
+
+  DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnPlayerHitDelegate, FVector, HitLocation);
+  
+  UPROPERTY(BlueprintAssignable)
+  FOnPlayerHitDelegate OnPlayerHit;
 
 	// コンストラクタ
 	AARRangerCharacter();
@@ -130,6 +136,8 @@ public:
 	void Transform();
 
   void RotateCharacter_Charge(float Yaw);
+
+  void UpdateTargetSnap(const FVector2D& InputDir);
 
   // Call if we start charge kick
   void OnHoldStarted(const FGameplayTag& InActivatedAbilityTag);
@@ -279,6 +287,28 @@ private:
   bool bIsHolding;
 
   float OffsetDegreeFromHoldStartDir;
+  // TODO End
+
+  // TODO Use to snap target when player is in punch state
+  FVector2D TargetSnapInput;
+
+  bool bReadyToTargetSnap;
+
+  bool bCanTargetSnap;
+
+  UPROPERTY()
+  TObjectPtr<AActor> TargetToSnap;
+
+  UPROPERTY(EditAnywhere, Category = "ARRanger|TargetSnap")
+  float SnapRangeAngleDeg;
+
+  UPROPERTY(EditAnywhere, Category = "ARRanger|TargetSnap")
+  float TargetSnapDetectLength;
+
+  UPROPERTY(EditAnywhere, Category = "ARRanger|TargetSnap")
+  TSubclassOf<AActor> TargetClass;
+
+  void SearchTargetToSnap();
   // TODO End
 
 	// 必殺技を使用可能かを返す関数
