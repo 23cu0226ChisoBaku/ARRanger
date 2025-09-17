@@ -759,12 +759,28 @@ void AARRangerCharacter::SearchTargetToSnap()
   
   if (bHit)
   {
-    UClass* targetClass = (TargetClass != nullptr) ? TargetClass->GetClass() : AEnemy_Zako::StaticClass();
     const FVector playerLoc = startLoc;
     for (const FHitResult& hitResult : outResults)
     {
-      if (hitResult.GetActor()->IsA(targetClass))
+      const AActor* hitActor = hitResult.GetActor();
+      if (hitActor == nullptr)
       {
+        continue;
+      }
+
+      // Ignore actors that hit by hemisphere behind player's face direction
+      const FVector dirToTarget = (hitActor->GetActorLocation() - GetActorLocation()).GetSafeNormal();
+      if (FVector::DotProduct(dirToTarget, targetPlayerDir) < 0.0f)
+      {
+        continue;
+      }
+
+      if (hitActor->GetClass()->ImplementsInterface(UARAttackable::StaticClass()))
+      {
+        IARAttackable* attackable = ::Cast<IARAttackable>(hitActor);
+        if (attackable == nullptr)
+
+
         const float curtHitResultDistanceSquared = (playerLoc - hitResult.GetActor()->GetActorLocation()).SquaredLength();
         if (TargetToSnap != nullptr)
         {
@@ -805,19 +821,28 @@ void AARRangerCharacter::SnapToTarget(float DeltaTime)
   FVector newLocation = GetActorLocation();
   FRotator newRotation = GetActorRotation();
 
-  if ((TargetToSnap != nullptr) && !FMath::IsNearlyZero(SnapTimeInterval) && (m_snapTimeCnt < SnapTimeInterval))
+  if ((TargetToSnap != nullptr) && 
+      !FMath::IsNearlyZero(SnapTimeInterval) && 
+      (m_snapTimeCnt < SnapTimeInterval)
+     )
   {
-    // TODO
+    const float alphaMin = 0.0f;
+    const float alphaMax = 1.0f;
+
     m_snapTimeCnt += DeltaTime;
     const float RotateInterpInterval = SnapTimeInterval / 2.0f;
     const FRotator faceToTargetRot = (TargetToSnap->GetActorLocation() - GetActorLocation()).Rotation();
-    newRotation = FMath::InterpCircularOut(m_startSnapPlayerRotation, faceToTargetRot, m_snapTimeCnt / RotateInterpInterval);
+    const float rotLerpAlpha = FMath::Clamp((m_snapTimeCnt / RotateInterpInterval), alphaMin, alphaMax);
+    newRotation = FMath::InterpCircularOut(m_startSnapPlayerRotation, faceToTargetRot, rotLerpAlpha);
     
     // Calculate new location 
-    const FVector playerToTargetOffset = TargetImpactPoint_Local.GetSafeNormal2D() * GetCapsuleComponent()->GetScaledCapsuleRadius();
+    const FVector playerToTargetOffset = TargetImpactPoint_Local.GetSafeNormal() * GetCapsuleComponent()->GetScaledCapsuleRadius();
     const FVector newTargetLocation = TargetToSnap->GetActorLocation() + TargetImpactPoint_Local + playerToTargetOffset;
-    newLocation = FMath::InterpCircularIn(m_startSnapPlayerLocation, newTargetLocation, m_snapTimeCnt / SnapTimeInterval);
+    const FVector newTargetLocation_UsePlayerZ = FVector{newTargetLocation.X, newTargetLocation.Y, GetActorLocation().Z};
+    const float locLerpAlpha = FMath::Clamp((m_snapTimeCnt / SnapTimeInterval), alphaMin, alphaMax);
+    newLocation = FMath::InterpCircularIn(m_startSnapPlayerLocation, newTargetLocation_UsePlayerZ, locLerpAlpha);
   }
+  // Stop snapping
   else
   {
     bCanTargetSnap = false;

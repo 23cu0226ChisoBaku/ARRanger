@@ -8,12 +8,22 @@
 
 class UMagneticParametersList;
 
+#define UE_API ARRANGER_API
+
 UCLASS()
-class ARRANGER_API UARGameInstance : public UGameInstance
+class UARGameInstance : public UGameInstance
 {
 	GENERATED_BODY()
 
   public:
+    UE_API void ResetGame();
+
+  public:
     UPROPERTY(EditDefaultsOnly)
     TSoftObjectPtr<UMagneticParametersList> MagneticParamsAsset;
+
+    UPROPERTY(EditDefaultsOnly)
+    FName ResetGameLevelName;
 };
+
+#undef UE_API

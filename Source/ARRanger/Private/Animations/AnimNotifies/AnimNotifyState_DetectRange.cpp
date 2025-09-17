@@ -138,6 +138,7 @@ void UAnimNotifyState_DetectRange::NotifyTick(USkeletalMeshComponent * MeshComp,
           {
             if (IARGameplayAbilityNotifyInterface* notifyInterface = ::Cast<IARGameplayAbilityNotifyInterface>(activatableAbility.GetPrimaryInstance()))
             {
+              // Change to GANotify_ImpactResult
               notifyInterface->GANotify_ActorArray(MeshComp, Animation, result.DetectedActors);
             }
           }
@@ -146,28 +147,13 @@ void UAnimNotifyState_DetectRange::NotifyTick(USkeletalMeshComponent * MeshComp,
     }
   }
 
-#if WITH_EDITOR
+#if WITH_EDITORONLY_DATA
 
-  if (MeshComp->GetWorld() != nullptr)
+  if (bDrawDebugDuringActivation)
   {
-    if (bDrawDebugDuringActivation)
-    {
-      ULineBatchComponent* lineBatch = MeshComp->GetWorld()->GetLineBatcher(UWorld::ELineBatcherType::WorldPersistent);
-
-      if (lineBatch != nullptr)
-      {
-        lineBatch->Flush();
-        TArray<USceneComponent*> children{};
-        MeshComp->GetChildrenComponents(false, children);
-        for (USceneComponent* child : children)
-        {
-          if (URangeDetectorComponent* RDC = ::Cast<URangeDetectorComponent>(child))
-          {
-            RDC->ED_DrawWithLineBatchComp(lineBatch, FrameDeltaTime);
-          }
-        }
-      }
-    }    
+    #if WITH_EDITOR
+      DrawDebugRange(MeshComp);
+    #endif
   }
 
 #endif
@@ -309,6 +295,34 @@ void UAnimNotifyState_DetectRange::NotifyAbility(USkeletalMeshComponent* MeshCom
   }
 }
 
+void UAnimNotifyState_DetectRange::DrawDebugRange(USceneComponent* RootComponent)
+{
+  if (RootComponent != nullptr)
+  {
+    const UWorld* world = RootComponent->GetWorld();
+    if (world != nullptr)
+    {
+      if (bDrawDebugDuringActivation)
+      {
+        ULineBatchComponent* lineBatch = world->GetLineBatcher(UWorld::ELineBatcherType::WorldPersistent);
+
+        if (lineBatch != nullptr)
+        {
+          lineBatch->Flush();
+          TArray<USceneComponent*> children{};
+          RootComponent->GetChildrenComponents(false, children);
+          for (USceneComponent* child : children)
+          {
+            if (URangeDetectorComponent* RDC = ::Cast<URangeDetectorComponent>(child))
+            {
+              RDC->ED_DrawWithLineBatchComp(lineBatch);
+            }
+          }
+        }
+      }    
+    }
+  }
+}
 
 FDetectTickObject_FrameBase::FDetectTickObject_FrameBase(int32 InStartFrame, int32 InFrameInterval)
   : FrameInterval{InFrameInterval}

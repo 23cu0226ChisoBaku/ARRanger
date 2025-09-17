@@ -4,12 +4,17 @@
 
 #include "CoreMinimal.h"
 
-/**
- * 
- */
-class ARRangerGlobals
+#define UE_API ARRANGER_API
+
+namespace ARRanger
 {
-public:
-	ARRangerGlobals();
-	~ARRangerGlobals();
-};
+
+namespace Global
+{
+  extern UE_API void RegisterDebugKey();
+  extern UE_API void UnregisterDebugKey();
+} // namespace ARRanger::Global
+
+} // namespace ARRanger
+
+#undef UE_API

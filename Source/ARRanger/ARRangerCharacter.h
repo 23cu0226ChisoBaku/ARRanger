@@ -308,9 +308,6 @@ private:
   UPROPERTY(EditAnywhere, Category = "ARRanger|TargetSnap")
   float SnapTimeInterval = 0.2f;
 
-  UPROPERTY(EditAnywhere, Category = "ARRanger|TargetSnap")
-  TSubclassOf<AActor> TargetClass;
-
   float m_snapTimeCnt = 0.0f;
 
   FVector m_startSnapPlayerLocation;

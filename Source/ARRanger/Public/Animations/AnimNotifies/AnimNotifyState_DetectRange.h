@@ -46,7 +46,7 @@ public:
       FOnDetectionNotify DetectionNotify;
   };
 
-private:
+protected:
 
   /**Start of UAnimNotifyState Interface */
   UE_API virtual void NotifyBegin(USkeletalMeshComponent * MeshComp, UAnimSequenceBase * Animation, float TotalDuration, const FAnimNotifyEventReference& EventReference) override;
@@ -85,14 +85,25 @@ private:
   UPROPERTY(EditAnywhere, Category = "Auto Destroy")
   bool bDestroyAtEnd = true;
 
+#if WITH_EDITORONLY_DATA
+
   UPROPERTY(EditAnywhere, Category = "Debug", meta = (EditCondition = "RangeData != nullptr", DisplayName = "Draw Debug Line if activating"))
   bool bDrawDebugDuringActivation = true;
+
+#endif
 
 private:
   bool ValidateParameters(USkeletalMeshComponent* MeshComp) const;
 
   void NotifyAbility(USkeletalMeshComponent* MeshComp, UAnimSequenceBase * Animation);
 
+#if WITH_EDITOR
+
+  void DrawDebugRange(USceneComponent* RootComponent);
+
+#endif
+
+private:
   TUniquePtr<FDetectTickObject> m_detectTickObject;
    
 };
