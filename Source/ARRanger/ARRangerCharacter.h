@@ -10,6 +10,7 @@
 #include "NiagaraSystem.h"
 #include "Physics/IARPhysicsSystemHost.h"
 #include "PlayerObservation/IObservableSubjectInterface.h"
+#include "Sound/SoundBase.h"
 
 #include "BattleSystem/IARAttackerInterface.h"
 #include "BattleSystem/IARAttackable.h"
@@ -150,9 +151,13 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<ULockOnComponent> LockOnComponent;
 
+	// 変身時のサウンド
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sound")
+	USoundBase* SE_Transform;
+
 	// 引力クライム時のアニメーションモンタージュ
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gravity")
-	UAnimMontage* Montage_AttractionClimb;
+	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gravity")
+	//UAnimMontage* Montage_AttractionClimb;
 
 public:
 	virtual void Tick(float DeltaTime) override;

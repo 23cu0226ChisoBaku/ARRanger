@@ -39,7 +39,7 @@ namespace
 AARRangerCharacter::AARRangerCharacter()
 	: currentClimbSurface(nullptr)
 	, bIsClimbed(false)
-	, Montage_AttractionClimb(nullptr)
+	//, Montage_AttractionClimb(nullptr)
 {
 	// カプセルサイズを設定
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
@@ -502,6 +502,17 @@ void AARRangerCharacter::Transform()
 			true,
 			true,
 			ENCPoolMethod::AutoRelease
+		);
+	}
+
+	// 変身音を再生
+	if (SE_Transform)
+	{
+		UGameplayStatics::PlaySound2D(
+			GetWorld(),
+			SE_Transform,
+			1.0f,
+			1.0f
 		);
 	}
 }
