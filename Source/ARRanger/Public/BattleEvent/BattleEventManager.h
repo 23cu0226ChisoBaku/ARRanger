@@ -48,6 +48,20 @@ public:
 
 private:
 
+    /**
+     * @brief バトルフィールドがスポナーを収集完了
+     * 
+     * @param 範囲内のスポナーの収集が終わったフィールド
+     */
+    UFUNCTION()
+    void HandleFieldSpawnersCollected(ABattleEventField* field = nullptr);
+
+    /**
+     * @brief 一番最初とインデックス分のフィールドをアクティブ化
+     */
+    UFUNCTION()
+    void BeginInitialBattleEvent();
+
     /** 
      * @brief バトルイベント開始時の処理 
      * 
@@ -63,6 +77,13 @@ private:
      */ 
     UFUNCTION() 
     void HandleBattleEventEnd(ABattleEventField* finishedBattleField);
+
+    /**
+     * @brief レベル上の全てのバトルフィールドが初期化済みかどうかを返す
+     * 
+     * @return レベル上の全てのバトルフィールドが初期化済みかどうか
+     */
+    bool IsAllFieldsInitialized() const ;
 
     /** 
      * @brief 次のフィールドをオフセット分稼働させる 
@@ -81,8 +102,10 @@ private:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "BattleEvent", meta=(AllowPrivateAccess="true")) 
     int32 m_nextFieldOffset = 1;                            /*アクティブ化させるフィールドインデックス数*/ 
 
+    UPROPERTY()
+    TSet<ABattleEventField*> m_InitializedFields;           /*初期化が終わったフィールド*/
     UPROPERTY() 
-    TObjectPtr<ABattleEventField> m_ActiveField;            /*現在アクティブなフィールド*/ 
+    TArray<TObjectPtr<ABattleEventField>> m_ActiveFields;   /*現在アクティブなフィールド*/ 
     UPROPERTY() 
-    TObjectPtr<ABattleEventField> m_CurrentBattleField;     /*プレイヤーが現在戦っているフィールド*/ 
+    TObjectPtr<ABattleEventField> m_CurrentBattleField;     /*プレイヤーが現在戦っているフィールド*/
 };

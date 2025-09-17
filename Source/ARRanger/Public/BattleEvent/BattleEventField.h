@@ -12,6 +12,7 @@
 class AEnemySpawner;
 class ABattleEventCage;
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnSpawnersCollected, ABattleEventField*, field);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FBattleEventStarted, ABattleEventField*, startedBattleField);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FBattleEventEnded, ABattleEventField*, finishedBattleField);
 
@@ -38,14 +39,6 @@ public:
      */
     bool IsActivedField() const { return m_IsActiveField; }
 
-    /*イベント開始通知*/
-    UPROPERTY(BlueprintAssignable, Category="BattleEvent")
-    FBattleEventStarted OnBattleEventStart;
-
-    /*イベント終了通知*/
-    UPROPERTY(BlueprintAssignable, Category="BattleEvent")
-    FBattleEventEnded OnBattleEventEnd;
-
     /** 
      * @brief 現在のフィールドの残りの敵数を取得 
      * 
@@ -59,6 +52,18 @@ public:
      * @return 現在のフェーズの残りの敵数 
      */ 
     int32 GetRemainingEnemiesInPhase() const { return m_RemainingEnemiesInPhase;}
+
+    /*スポナー収集完了通知*/
+    UPROPERTY(BlueprintAssignable, Category="BattleEvent")
+    FOnSpawnersCollected OnSpawnersCollected;
+
+    /*イベント開始通知*/
+    UPROPERTY(BlueprintAssignable, Category="BattleEvent")
+    FBattleEventStarted OnBattleEventStart;
+
+    /*イベント終了通知*/
+    UPROPERTY(BlueprintAssignable, Category="BattleEvent")
+    FBattleEventEnded OnBattleEventEnd;
 
 private:  
 

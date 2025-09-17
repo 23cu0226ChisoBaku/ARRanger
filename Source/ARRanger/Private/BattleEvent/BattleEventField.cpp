@@ -33,9 +33,6 @@ void ABattleEventField::BeginPlay()
     /*バトルフィールド範囲用（コリジョン）コンポーネントを全て取得*/
     GetPrimitiveComponents();
 
-    /*範囲内のスポナーを取得*/
-    CollectSpawners();
-
     /*各範囲コリンジョンコンポーネントににオーバーラップ関数をバインド*/
     for (UPrimitiveComponent* primComp : m_PrimitiveComponents)
     {
@@ -45,6 +42,9 @@ void ABattleEventField::BeginPlay()
         }
         primComp->OnComponentBeginOverlap.AddDynamic(this, &ABattleEventField::OnFieldBeginOverlap);
     }
+    
+    /*次フレームで範囲内のスポナーを取得*/
+    GetWorld()->GetTimerManager().SetTimerForNextTick(this, &ABattleEventField::CollectSpawners);
 }
 
 void ABattleEventField::Tick(float deltaTime)
@@ -105,6 +105,8 @@ void ABattleEventField::GetPrimitiveComponents()
 void ABattleEventField::CollectSpawners()
 {
     m_Spawners.Empty();
+    m_RemainingEnemiesInField = 0;
+    m_FieldPhases.Empty();  
 
     UE_LOG(LogTemp, Warning, TEXT("ABattleEventField::CollectSpawners()"));
 
@@ -128,9 +130,9 @@ void ABattleEventField::CollectSpawners()
             if (AEnemySpawner* spawner = Cast<AEnemySpawner>(actor))
             {
                 UE_LOG(LogTemp, Warning, TEXT("ABattleEventField::CollectSpawners() : overlapping Spawner"));
-
+             
                 m_Spawners.Add(spawner);
-
+                
                 /*フィールドに湧く敵の数をカウント*/
                 ++m_RemainingEnemiesInField;
 
@@ -154,6 +156,9 @@ void ABattleEventField::CollectSpawners()
             return static_cast<uint8>(A) < static_cast<uint8>(B);
         });
     }
+
+    /*スポナーの取得完了通知*/
+    OnSpawnersCollected.Broadcast(this);
 }
 
 /**
@@ -161,9 +166,14 @@ void ABattleEventField::CollectSpawners()
  */
 void ABattleEventField::ActiveEventField()
 {
+    if (m_IsActiveField)
+    {
+        return;
+    }
+
+    m_IsActiveField = true;
     /*スポナーに敵の生成を促す*/
     RequestSpawn();
-    m_IsActiveField = true;
 }
 
 /**
@@ -219,6 +229,8 @@ void ABattleEventField::ActiveCageCollision(bool enable)
  */
 void ABattleEventField::RequestSpawn()
 {
+    UE_LOG(LogTemp, Warning, TEXT("ABattleEventField::RequestSpawn()"));
+
     for (TObjectPtr<AEnemySpawner> spawner : m_Spawners)
     {
         if (spawner == nullptr)
@@ -227,20 +239,28 @@ void ABattleEventField::RequestSpawn()
             continue;
         }
 
-        /*スポナーが対象フェーズを持っていれば敵をスポーン*/
-        if (spawner->GetSpawnPhases().Contains(m_FieldPhases[m_CurrentPhaseIndex]))
-        {
-            /*スポナーに敵の生成を促し、敵死亡時のコールバック関数を引数で渡す*/
-            FScriptDelegate delegate;
-            delegate.BindUFunction(this, FName("OnEnemyDestroyed"));
-            spawner->SpawnEnemy(delegate);
+        UE_LOG(LogTemp, Log, TEXT("ABattleEventField::RequestSpawn():spawner Actor Name: %s"), *spawner->GetName());
 
-            /*敵の数をカウント*/
-            ++m_RemainingEnemiesInPhase;
+        /*スポナーが対象フェーズを持っていれば敵をスポーン*/
+        if (m_FieldPhases.IsValidIndex(m_CurrentPhaseIndex))
+        {
+            UE_LOG(LogTemp, Warning, TEXT("ABattleEventField::RequestSpawn() : m_FieldPhases have Phase"));
+
+            ESpawnPhase CurrentPhase = m_FieldPhases[m_CurrentPhaseIndex];
+            if (spawner->GetSpawnPhases().Contains(CurrentPhase))
+            {
+                /*スポナーに敵の生成を促し、敵死亡時のコールバック関数を引数で渡す*/
+                FScriptDelegate delegate;
+                delegate.BindUFunction(this, FName("OnEnemyDestroyed"));
+                spawner->SpawnEnemy(delegate);
+
+                /*敵の数をカウント*/
+                ++m_RemainingEnemiesInPhase;
+
+                UE_LOG(LogTemp, Warning, TEXT("ABattleEventField::RequestSpawn() フェーズ・残りの敵: %d"), m_RemainingEnemiesInPhase);
+            }
         } 
     }
-
-    UE_LOG(LogTemp, Warning, TEXT("ABattleEventField::RequestSpawn() フェーズ・残りの敵: %d"), m_RemainingEnemiesInPhase);
 }
 
 /**

@@ -16,19 +16,67 @@ void ABattleEventManager::BeginPlay()
 {
     Super::BeginPlay();
 
-    /*レベル上の全てのフィールドのデリゲートにバインド*/
+    /*レベル上の全てのフィールドのデリゲートをバインド*/
     for (ABattleEventField* field : m_BattleFields)
     {
-        if (field != nullptr)
+        if (field == nullptr) 
         {
-            field->OnBattleEventStart.AddDynamic(this, &ABattleEventManager::HandleBattleEventStart);
-            field->OnBattleEventEnd.AddDynamic(this, &ABattleEventManager::HandleBattleEventEnd);
+            continue;
         }
+
+        /*各フィールド内のスポナー取得完了時の処理*/
+        field->OnSpawnersCollected.AddDynamic(this, &ABattleEventManager::HandleFieldSpawnersCollected);
+        
+        field->OnBattleEventStart.AddDynamic(this, &ABattleEventManager::HandleBattleEventStart);
+        field->OnBattleEventEnd.AddDynamic(this, &ABattleEventManager::HandleBattleEventEnd);     
+    }
+}
+
+/**
+ * @brief バトルフィールドがスポナーを収集完了
+ * 
+ * @param 範囲内のスポナーの収集が終わったフィールド
+ */
+void ABattleEventManager::HandleFieldSpawnersCollected(ABattleEventField* field)
+{
+    if (field == nullptr)
+    {
+        return;
     }
 
-    /*一番最初とインデックス分のフィールドをアクティブ化*/
+    /*初期化済みリストに保持*/
+    if (!m_InitializedFields.Contains(field))
+    {
+        m_InitializedFields.Add(field);
+    }
+
+    /*全フィールドの初期化が完了していれば、初回バトルフィールドをアクティブ化*/
+    if (IsAllFieldsInitialized() && m_ActiveFields.Num() == 0)
+    {
+        BeginInitialBattleEvent();
+    }
+}
+
+
+/**
+ * @brief レベル上の全てのバトルフィールドが初期化済みかどうかを返す
+ * 
+ * @return レベル上の全てのバトルフィールドが初期化済みかどうか
+ */
+bool ABattleEventManager::IsAllFieldsInitialized() const
+{
+    return m_InitializedFields.Num() >= m_BattleFields.Num();
+}
+
+/**
+ * @brief 一番最初とインデックス分のフィールドをアクティブ化
+ */
+void ABattleEventManager::BeginInitialBattleEvent()
+{
     if (m_BattleFields.Num() > 0)
     {
+        UE_LOG(LogTemp, Warning, TEXT("ABattleEventManager::BeginInitialBattleEvent()"));
+
         SetActiveField(m_BattleFields[0]);
         ActivateNextFields();
     }
@@ -73,12 +121,19 @@ void ABattleEventManager::HandleBattleEventEnd(ABattleEventField* finishedBattle
  */
 void ABattleEventManager::ActivateNextFields()
 {
-    if (m_ActiveField == nullptr || !m_BattleFields.Contains(m_ActiveField)) 
+    if (m_ActiveFields.Num() < 0)
     {
         return;
     }
 
-    int32 currentIndex = m_BattleFields.IndexOfByKey(m_ActiveField);
+    /*最後にアクティブ化したフィールドを基準にする*/
+    ABattleEventField* currentField = m_ActiveFields.Last();
+    if (currentField == nullptr || !m_BattleFields.Contains(currentField))
+    {
+        return;
+    }
+
+    int32 currentIndex = m_BattleFields.IndexOfByKey(currentField);
     if (currentIndex == INDEX_NONE)
     {
         return;
@@ -106,11 +161,20 @@ void ABattleEventManager::ActivateNextFields()
  */
 void ABattleEventManager::SetActiveField(ABattleEventField* newField)
 {
-    if (newField != nullptr)
+    if (newField == nullptr)
     {
-        m_ActiveField->ActiveEventField();
-        m_ActiveField = newField;
+        return;
     }
+
+    /*まだアクティブでないなら処理*/
+    if (newField->IsActivedField() || m_ActiveFields.Contains(newField))
+    {
+        return;
+    }
+    
+    /*フィールドをアクティブ化し保持する*/
+    newField->ActiveEventField();
+    m_ActiveFields.Add(newField);
 }
 
 /** 
