@@ -75,8 +75,6 @@ void ABattleEventManager::BeginInitialBattleEvent()
 {
     if (m_BattleFields.Num() > 0)
     {
-        UE_LOG(LogTemp, Warning, TEXT("ABattleEventManager::BeginInitialBattleEvent()"));
-
         SetActiveField(m_BattleFields[0]);
         ActivateNextFields();
     }
@@ -103,11 +101,11 @@ void ABattleEventManager::HandleBattleEventStart(ABattleEventField* startedBattl
  */ 
 void ABattleEventManager::HandleBattleEventEnd(ABattleEventField* finishedBattleField)
 {
-    /*終了したイベントフィールドを破棄*/
-    if (m_CurrentBattleField == finishedBattleField)
-    {
-        m_CurrentBattleField = nullptr;
-    }
+    // /*終了したイベントフィールドを破棄*/
+    // if (m_CurrentBattleField == finishedBattleField)
+    // {
+    //     m_CurrentBattleField = nullptr;
+    // }
 
     /*外部クラス用*/
     OnAnyFieldBattleEnd.Broadcast();
@@ -140,7 +138,7 @@ void ABattleEventManager::ActivateNextFields()
     }
 
     /*オフセット分だけ次のフィールドを順に稼働させる*/
-    for (int32 offset = 1; offset <= m_nextFieldOffset; ++offset)
+    for (int32 offset = 1; offset <= m_ActiveFieldOffset; ++offset)
     {
         int32 nextIndex = currentIndex + offset;
         if (m_BattleFields.IsValidIndex(nextIndex))

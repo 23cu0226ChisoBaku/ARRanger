@@ -39,6 +39,4 @@ void AEnemySpawner::SpawnEnemy(const FScriptDelegate& onDestroyedCallback)
 
     /*OnDestroyed デリゲートに登録*/
     enemyActor->OnDestroyed.Add(onDestroyedCallback);
-
-    UE_LOG(LogTemp, Warning, TEXT("AEnemySpawner::SpawnEnemy() デリゲート登録完了"));
 }

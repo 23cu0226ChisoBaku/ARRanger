@@ -51,8 +51,6 @@ void ABattleEventField::Tick(float deltaTime)
 {
     Super::Tick(deltaTime);
 
-    UE_LOG(LogTemp, Warning, TEXT("ABattleEventField::Tick()"));
-
     if (m_Player == nullptr)
     {
         return;
@@ -108,8 +106,6 @@ void ABattleEventField::CollectSpawners()
     m_RemainingEnemiesInField = 0;
     m_FieldPhases.Empty();  
 
-    UE_LOG(LogTemp, Warning, TEXT("ABattleEventField::CollectSpawners()"));
-
     /*自身のUPrimitiveComponentを全て取得*/
     for (UPrimitiveComponent* primComp : m_PrimitiveComponents)
     {
@@ -118,25 +114,17 @@ void ABattleEventField::CollectSpawners()
             continue;
         }
 
-        UE_LOG(LogTemp, Warning, TEXT("ABattleEventField::CollectSpawners() : Field have PrimitiveComponent"));
-
         /*UPrimitiveComponent と Overlap しているスポナーを全て取得*/
         TArray<AActor*> overlappingSpawners;
         primComp->GetOverlappingActors(overlappingSpawners, AEnemySpawner::StaticClass());
         for (AActor* actor : overlappingSpawners)
         {
-            UE_LOG(LogTemp, Warning, TEXT("ABattleEventField::CollectSpawners() : overlapping anything"));
-
             if (AEnemySpawner* spawner = Cast<AEnemySpawner>(actor))
             {
-                UE_LOG(LogTemp, Warning, TEXT("ABattleEventField::CollectSpawners() : overlapping Spawner"));
-             
                 m_Spawners.Add(spawner);
                 
                 /*フィールドに湧く敵の数をカウント*/
                 ++m_RemainingEnemiesInField;
-
-                UE_LOG(LogTemp, Warning, TEXT("ABattleEventField::CollectSpawners() フィールド・残りの敵: %d"), m_RemainingEnemiesInField);
 
                 /*スポナーが持つフェーズを収集*/
                 const TSet<ESpawnPhase> phases = spawner->GetSpawnPhases();
@@ -190,8 +178,6 @@ void ABattleEventField::OnStartBattleEvent()
 
     /*Tickを無効化*/
     SetActorTickEnabled(false);
-
-    UE_LOG(LogTemp, Warning, TEXT("ABattleEventField::OnStartBattleEvent()"));
 }
 
 /**
@@ -229,23 +215,16 @@ void ABattleEventField::ActiveCageCollision(bool enable)
  */
 void ABattleEventField::RequestSpawn()
 {
-    UE_LOG(LogTemp, Warning, TEXT("ABattleEventField::RequestSpawn()"));
-
     for (TObjectPtr<AEnemySpawner> spawner : m_Spawners)
     {
         if (spawner == nullptr)
         {
-            UE_LOG(LogTemp, Warning, TEXT("ABattleEventField::RequestSpawn() : m_Spawners not found EnemySpawner"));
             continue;
         }
-
-        UE_LOG(LogTemp, Log, TEXT("ABattleEventField::RequestSpawn():spawner Actor Name: %s"), *spawner->GetName());
 
         /*スポナーが対象フェーズを持っていれば敵をスポーン*/
         if (m_FieldPhases.IsValidIndex(m_CurrentPhaseIndex))
         {
-            UE_LOG(LogTemp, Warning, TEXT("ABattleEventField::RequestSpawn() : m_FieldPhases have Phase"));
-
             ESpawnPhase CurrentPhase = m_FieldPhases[m_CurrentPhaseIndex];
             if (spawner->GetSpawnPhases().Contains(CurrentPhase))
             {
@@ -256,8 +235,6 @@ void ABattleEventField::RequestSpawn()
 
                 /*敵の数をカウント*/
                 ++m_RemainingEnemiesInPhase;
-
-                UE_LOG(LogTemp, Warning, TEXT("ABattleEventField::RequestSpawn() フェーズ・残りの敵: %d"), m_RemainingEnemiesInPhase);
             }
         } 
     }
@@ -277,8 +254,6 @@ void ABattleEventField::StartNextPhase()
  */
 void ABattleEventField::OnEnemyDestroyed()
 {    
-    UE_LOG(LogTemp, Warning, TEXT("ABattleEventField::OnEnemyDestroyed()"));
-
     /*残りの敵キャラクターの数を減らす*/
     --m_RemainingEnemiesInField;
     --m_RemainingEnemiesInPhase;
@@ -319,8 +294,6 @@ void ABattleEventField::OnFieldBeginOverlap(UPrimitiveComponent* overlappedComp,
 
             /*Tickを有効化しプレイヤーが完全にフィールド内に入ったかどうかを監視*/
             SetActorTickEnabled(true);
-
-            UE_LOG(LogTemp, Warning, TEXT("ABattleEventField::OnFieldBeginOverlap() Get Player"));
         }
     }
 }

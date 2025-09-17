@@ -187,14 +187,19 @@ void UAttractSpecialAttackComponent::SpecialFinishKick(float deltaTime)
 	/*指定時間が過ぎたらキックを終了する*/
 	if(m_KickTimeInterval <= m_ElapsedTime)
 	{
+		/*キックスピードを減速*/
 		m_CurrentKickSpeed -= m_KickBrakingForce;
+		FVector deltaLocation = m_kickDirection * FMath::Max(m_CurrentKickSpeed, 0.0f) * deltaTime;
+    	GetOwner()->AddActorWorldOffset(deltaLocation, true);
+		UE_LOG(LogTemp, Warning, TEXT("CurrentKickSpeed: %f"), m_CurrentKickSpeed);
+
 		if(m_CurrentKickSpeed <= 0.0f)
 		{
+			UE_LOG(LogTemp, Warning, TEXT("UAttractSpecialAttackComponent::SpecialFinishKick() : Play m_LandMontage"));
 			/*着地アニメーション*/
-			if(m_AnimInstance)
+			if(m_AnimInstance != nullptr)
 			{
 				m_AnimInstance->Montage_Play(m_LandMontage, 1.0f);
-				m_IsGenerateAttract = true;
 			}
 			m_IsAttractKick = false;
 			m_IsLand = true;
@@ -231,12 +236,12 @@ void UAttractSpecialAttackComponent::SpecialFinishKick(float deltaTime)
 	FVector newLocation;
 	if(!bHit)
 	{
-		// m_CurrentKickSpeed = m_KickCurveSpeed->GetFloatValue(m_ElapsedTime);
-		// newLocation = GetOwner()->GetActorLocation() + m_kickDirection * m_CurrentKickSpeed;
+		/*CurveFloatにそったスピードを計算*/
 		float kickTimeIntervalNormalized = m_ElapsedTime / m_KickTimeInterval;
 		float normalizedCurveValue = m_KickCurveSpeed->GetFloatValue(kickTimeIntervalNormalized);
 		m_CurrentKickSpeed = m_KickMaxSpeed * normalizedCurveValue;
-		newLocation = GetOwner()->GetActorLocation() + m_kickDirection * m_CurrentKickSpeed;
+		FVector deltaLocation = m_kickDirection * m_CurrentKickSpeed;
+		newLocation = GetOwner()->GetActorLocation() + deltaLocation;
 	}
 	/*障害物への埋め込み防止*/
 	else

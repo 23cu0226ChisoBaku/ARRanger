@@ -26,15 +26,11 @@ void ABattleEventCage::EnableCageCollision(bool enable)
         {
             /*物理判定を有効・すべてのチャンネルをブロック*/
             comp->SetCollisionProfileName(TEXT("BattleEventCage"));
-
-            UE_LOG(LogTemp, Warning, TEXT("ABattleEventCage::EnableCageCollision() 有効"));
         }
         else
         {
             /*無効化*/
             comp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-
-            UE_LOG(LogTemp, Warning, TEXT("ABattleEventCage::EnableCageCollision() 無効化"));
         }
     }
 }

@@ -100,7 +100,7 @@ private:
     UPROPERTY(EditAnywhere, Category = "BattleEvent", meta=(AllowPrivateAccess="true")) 
     TArray<TObjectPtr<ABattleEventField>> m_BattleFields;   /*レベル内の全てのBattleEventField*/ 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "BattleEvent", meta=(AllowPrivateAccess="true")) 
-    int32 m_nextFieldOffset = 1;                            /*アクティブ化させるフィールドインデックス数*/ 
+    int32 m_ActiveFieldOffset = 1;                          /*アクティブ化させるフィールドインデックス数*/ 
 
     UPROPERTY()
     TSet<ABattleEventField*> m_InitializedFields;           /*初期化が終わったフィールド*/
