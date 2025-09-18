@@ -51,18 +51,18 @@ void AInsekiGameMode::BeginPlay()
 
 	UE_LOG(LogTemp, Warning, TEXT("Initial Enemy Count: %d"), EnemyCount);
 
-  // 音声データを初期化
-  const UWorld* world = GetWorld();
-  if (world != nullptr)
-  {
-    UARAudioSystem* audioSystem = world->GetGameInstance()->GetSubsystem<UARAudioSystem>();
-    if (audioSystem != nullptr)
+    // 音声データを初期化
+    const UWorld* world = GetWorld();
+    if (world != nullptr)
     {
-      audioSystem->InitializeSounds(/**BGM */ nullptr, /**SE */ SoundEffectData);
+      UARAudioSystem* audioSystem = world->GetGameInstance()->GetSubsystem<UARAudioSystem>();
+      if (audioSystem != nullptr)
+      {
+        audioSystem->InitializeSounds(/**BGM */ nullptr, /**SE */ SoundEffectData);
+      }
     }
-  }
 
-  // BlinkingOutlineWorldSubsystem を取得
+    // BlinkingOutlineWorldSubsystem を取得
 	UBlinkingOutlineWorldSubsystem* WorldSubsystem = GetWorld()->GetSubsystem<UBlinkingOutlineWorldSubsystem>();
 	if (WorldSubsystem != nullptr)
 	{
@@ -221,8 +221,8 @@ void AInsekiGameMode::OnStartBattleEvent()
   ACharacter* playerChar = UGameplayStatics::GetPlayerCharacter(this, MAIN_PLAYER_INDEX);
   if (AARRangerCharacter* arPlayerChar = ::Cast<AARRangerCharacter>(playerChar))
   {
-    // TODO Implement this
-    // arPlayerChar->StartBattle();
+      // AnimInstance内の戦闘中フラグを上げる
+      arPlayerChar->SetIsBattledInAnimInstance(true);
   }
 
 }
@@ -232,12 +232,12 @@ void AInsekiGameMode::OnStartBattleEvent()
  */
 void AInsekiGameMode::OnEndBattleEvent()
 {
-  ACharacter* playerChar = UGameplayStatics::GetPlayerCharacter(this, MAIN_PLAYER_INDEX);
-  if (AARRangerCharacter* arPlayerChar = ::Cast<AARRangerCharacter>(playerChar))
-  {
-    // TODO Implement this
-    // arPlayerChar->EndBattle();
-  }
+   ACharacter* playerChar = UGameplayStatics::GetPlayerCharacter(this, MAIN_PLAYER_INDEX);
+   if (AARRangerCharacter* arPlayerChar = ::Cast<AARRangerCharacter>(playerChar))
+   {
+       // AnimInstance内の戦闘中フラグを下げる
+       arPlayerChar->SetIsBattledInAnimInstance(false);
+   }
 }
 
 
