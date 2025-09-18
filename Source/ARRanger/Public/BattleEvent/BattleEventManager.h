@@ -22,6 +22,7 @@ class ABattleEventManager : public AActor
 public: 
     ABattleEventManager(); 
     virtual void BeginPlay() override; 
+    virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
     /*フィールド開始通知 (外部クラス用)*/ 
     UPROPERTY(BlueprintAssignable) 
