@@ -17,6 +17,7 @@ class UARGameInstance : public UGameInstance
 
   public:
     UE_API void ResetGame();
+    UE_API void ResetBattleTestStage();
 
   public:
     UPROPERTY(EditDefaultsOnly)
@@ -24,6 +25,12 @@ class UARGameInstance : public UGameInstance
 
     UPROPERTY(EditDefaultsOnly)
     FName ResetGameLevelName;
+
+    UPROPERTY(EditDefaultsOnly)
+    FName ResetBattleTestStageLevelName;
+
+    // For debug purpose
+    FSimpleMulticastDelegate OnReset;
 };
 
 #undef UE_API

@@ -5,6 +5,8 @@
 
 #include "InsekiGameMode.generated.h"
 
+#define UE_API ARRANGER_API
+
 class AOutlineTickActor;
 
 // 麦
@@ -12,35 +14,34 @@ namespace ARRanger
 {
   struct INotifyHandlerInterface;
 }
+
 class IObservableSubjectInterface;
 
 UCLASS()
-class ARRANGER_API AInsekiGameMode : public AGameModeBase
+class AInsekiGameMode : public AGameModeBase
 {
 	GENERATED_BODY()
 
 public:
-	AInsekiGameMode();
+	UE_API AInsekiGameMode();
 
 protected:
-	virtual void BeginPlay() override;
-  virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
-
-	// ゲームクリア時に呼び出される関数
-	void HandleGameClear();
+	UE_API virtual void BeginPlay() override;
+  UE_API virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 private:
   void InitializeObserver();
+  void InitializeEvents();
+  void ProcessGameClear();
+  void OnResetCommandSent();
 
 public:
-	// �G�����񂾂Ƃ��ɌĂяo�����
-	void OnEnemyKilled();
 
-	// �G�̐�
+	UE_API void OnEnemyKilled(AActor* KilledEnemy);
+
 	UPROPERTY(EditAnywhere, Category = "Game")
 	int32 EnemyCount;
 
-	// �Q�[���N���A�̃��[�U�[�E�B�W�F�b�g
 	UPROPERTY(EditAnywhere, Category = "UI")
 	TSubclassOf<UUserWidget> GameClearWidgetClass;
 
@@ -61,4 +62,13 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "Blinking")
 	TSubclassOf<AOutlineTickActor> OutlineTickActorClass;
 
+  UPROPERTY()
+  TObjectPtr<AActor> BossPtr;
+
+  uint8 bGameClearHandled : 1;
+
+  FTimerHandle GameClearTimerHandle;
+
 };
+
+#undef UE_API

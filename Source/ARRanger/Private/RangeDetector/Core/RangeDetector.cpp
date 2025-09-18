@@ -3,8 +3,8 @@
 
 namespace
 {
-  void FilterActorByClass(TArray<TObjectPtr<AActor>>& OutResult, TSubclassOf<AActor> ActorClass);
-  void FilterActorByInterface(TArray<TObjectPtr<AActor>>& OutResult, TSubclassOf<UInterface> InterfaceClass);
+  void FilterActorByClass(TArray<AActor*>& OutResult, TSubclassOf<AActor> ActorClass);
+  void FilterActorByInterface(TArray<AActor*>& OutResult, TSubclassOf<UInterface> InterfaceClass);
 }
 
 
@@ -162,7 +162,7 @@ namespace Detector
 
 namespace
 {
-  void FilterActorByClass(TArray<TObjectPtr<AActor>>& OutResult, TSubclassOf<AActor> ActorClass)
+  void FilterActorByClass(TArray<AActor*>& OutResult, TSubclassOf<AActor> ActorClass)
   {
     if (ActorClass == nullptr)
     {
@@ -184,7 +184,7 @@ namespace
     }
   }
 
-  void FilterActorByInterface(TArray<TObjectPtr<AActor>>& OutResult, TSubclassOf<UInterface> InterfaceClass)
+  void FilterActorByInterface(TArray<AActor*>& OutResult, TSubclassOf<UInterface> InterfaceClass)
   {
     if (InterfaceClass == nullptr)
     {

@@ -1,8 +1,8 @@
 
 #pragma once
 
-#include "CoreMinimal.h"
 #include "Enemy/Enemy_Zako.h"
+
 #include "Enemy_MiddleBoss.generated.h"
 
 UCLASS()

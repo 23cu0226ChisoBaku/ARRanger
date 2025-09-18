@@ -15,7 +15,6 @@ void AARRangerGameMode::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// ƒ^ƒO•t‚«‚Ì“G‚ð‚·‚×‚ÄŽæ“¾
 	TArray<AActor*> FoundEnemies;
 	UGameplayStatics::GetAllActorsWithTag(GetWorld(), FName("Enemy"), FoundEnemies);
 
@@ -38,7 +37,7 @@ void AARRangerGameMode::OnEnemyKilled()
 			PC->SetShowMouseCursor(true);
 			PC->SetInputMode(FInputModeUIOnly());
 
-			// ­‚µ‘Ò‚Á‚Ä‚©‚çƒQ[ƒ€ƒNƒŠƒAˆ—‚Ö
+			// ï¿½ï¿½ï¿½ï¿½ï¿½Ò‚ï¿½ï¿½Ä‚ï¿½ï¿½ï¿½Qï¿½[ï¿½ï¿½ï¿½Nï¿½ï¿½ï¿½Aï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 			FTimerHandle ClearTimerHandle;
 			GetWorldTimerManager().SetTimer(ClearTimerHandle, this, &AARRangerGameMode::HandleGameClear, 3.0f, false);
 		}
@@ -47,7 +46,7 @@ void AARRangerGameMode::OnEnemyKilled()
 
 void AARRangerGameMode::HandleGameClear()
 {
-	// ƒvƒŒƒCƒ„[‘€ì’âŽ~
+	// ï¿½vï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½[ï¿½ï¿½ï¿½ï¿½ï¿½~
 	APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0);
 	if (PC)
 	{
@@ -56,6 +55,6 @@ void AARRangerGameMode::HandleGameClear()
 		PC->SetShowMouseCursor(true);
 	}
 
-	// ƒŒƒxƒ‹‘JˆÚ
+	// ï¿½ï¿½ï¿½xï¿½ï¿½ï¿½Jï¿½ï¿½
 	UGameplayStatics::OpenLevel(this, FName("GameClear"));
 }

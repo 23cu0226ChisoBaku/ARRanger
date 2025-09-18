@@ -1,18 +1,13 @@
 #pragma once
 
-#include "CoreMinimal.h"
 #include "EnemyAttackTypes.generated.h"
 
-/*
- * 敵の攻撃タイプを列挙
- * Blueprint でも使えるように UENUM(BlueprintType) を指定
- */
 UENUM(BlueprintType)
 enum class EAttackType : uint8
 {
-    None        UMETA(DisplayName = "None"),          // 攻撃なし
-    Punch       UMETA(DisplayName = "Punch"),         // パンチ攻撃
-    Slammed     UMETA(DisplayName = "Slammed "),      // 叩き付け攻撃
-    JumpAttack  UMETA(DisplayName = "Jump Attack"),   // ジャンプ攻撃
-    Roar        UMETA(DisplayName = "Roar")           // 吠え攻撃（演出用）
+  None        UMETA(DisplayName = "None"),          
+  Punch       UMETA(DisplayName = "Punch"),         
+  Slammed     UMETA(DisplayName = "Slammed "),      
+  JumpAttack  UMETA(DisplayName = "Jump Attack"),   
+  Roar        UMETA(DisplayName = "Roar")           
 };

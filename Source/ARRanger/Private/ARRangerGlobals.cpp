@@ -19,7 +19,9 @@ class FARDebugInputProcessor : public IInputProcessor
 
     bool HandleKeyDownEvent(FSlateApplication& SlateApp, const FKeyEvent& InKeyEvent) override
     {
-      if (InKeyEvent.GetKey() == EKeys::F1)
+      // Reset Game button
+      const FKey pressedKey = InKeyEvent.GetKey();
+      if (pressedKey == EKeys::F1)
       {
         if (m_gameInst.IsValid())
         {
@@ -27,6 +29,16 @@ class FARDebugInputProcessor : public IInputProcessor
           return true;
         }
       }
+
+      if (pressedKey == EKeys::F11)
+      {
+        if (m_gameInst.IsValid())
+        {
+          m_gameInst->ResetBattleTestStage();
+          return true;
+        }
+      }
+      
 
       return false;
     }

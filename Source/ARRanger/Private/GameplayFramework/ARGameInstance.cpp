@@ -4,13 +4,47 @@
 #include "GameplayFramework/ARGameInstance.h"
 #include "Kismet/GameplayStatics.h"
 
+namespace
+{
+  void ResetToLevel(const UObject* WorldContextObject, FName LevelName);
+}
+
 void UARGameInstance::ResetGame()
 {
-  if (UWorld* world = GetWorld())
+  if (OnReset.IsBound())
   {
-    if (world->IsGameWorld())
+    OnReset.Broadcast();
+  }
+  
+  ResetToLevel(this, ResetGameLevelName);
+
+}
+
+void UARGameInstance::ResetBattleTestStage()
+{
+  if (OnReset.IsBound())
+  {
+    OnReset.Broadcast();
+  }
+
+  ResetToLevel(this, ResetBattleTestStageLevelName);
+  
+}
+
+namespace
+{
+  void ResetToLevel(const UObject* WorldContextObject, FName LevelName)
+  {
+    if (GEngine != nullptr)
     {
-      UGameplayStatics::OpenLevel(this, ResetGameLevelName);
+      UWorld* world = GEngine->GetWorldFromContextObject(WorldContextObject, EGetWorldErrorMode::LogAndReturnNull); 
+      if (world != nullptr)
+      {
+        if (world->IsGameWorld())
+        {
+          UGameplayStatics::OpenLevel(WorldContextObject, LevelName);
+        }
+      }
     }
   }
 }

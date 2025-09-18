@@ -22,18 +22,30 @@
 #include "BlinkingSystem/DetectorMagnetizableComponent.h"
 
 #include "ARRangerGlobals.h"
+#include "GameplayFramework/ARGameInstance.h"
+
+// TODO
+#include "Enemy/Enemy_MiddleBoss.h"
 // TODO May move initialize function to another file
 #include "Physics/IARPhysicsSystemHost.h"
 
 AInsekiGameMode::AInsekiGameMode()
+  : bGameClearHandled{false}
 {
-    ProcessorActorClass = AARPhysicsTickProcessorActor::StaticClass();
+  ProcessorActorClass = AARPhysicsTickProcessorActor::StaticClass();
 }
 
 
 void AInsekiGameMode::BeginPlay()
 {
 	Super::BeginPlay();
+
+  GameClearTimerHandle.Invalidate();
+  // Register GameInstance OnReset
+  if (UARGameInstance* ARGI = ::Cast<UARGameInstance>(GetGameInstance()))
+  {
+    ARGI->OnReset.AddUObject(this, &ThisClass::OnResetCommandSent);
+  }
 
 	// 敵を取得しておく
 	TArray<AActor*> FoundEnemies;
@@ -70,19 +82,28 @@ void AInsekiGameMode::BeginPlay()
 	}
 
   InitializeObserver();
+  InitializeEvents();
 
   // 物理システム初期化
   ARRanger::Private::FARPhysicsCore::InitializeARPhysicsInWorldWithActorType(GetWorld(), ProcessorActorClass);
 
   // Register debug key
   ARRanger::Global::RegisterDebugKey();
+
+
 }
 
 void AInsekiGameMode::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
   Super::EndPlay(EndPlayReason);
 
-    ARRanger::Global::UnregisterDebugKey();
+  ARRanger::Global::UnregisterDebugKey();
+
+  // Remove GameInstance OnReset
+  if (UARGameInstance* ARGI = ::Cast<UARGameInstance>(GetGameInstance()))
+  {
+    ARGI->OnReset.RemoveAll(this);
+  }
 }
 
 void AInsekiGameMode::InitializeObserver()
@@ -162,48 +183,73 @@ void AInsekiGameMode::InitializeObserver()
 
 }
 
-void AInsekiGameMode::OnEnemyKilled()
+void AInsekiGameMode::OnEnemyKilled(AActor* KilledEnemy)
 {
-	EnemyCount--;
+	(void)EnemyCount--;
 
-	UE_LOG(LogTemp, Warning, TEXT("Enemy Count: %d"), EnemyCount);
-
-	if (EnemyCount <= 0)
+  if (BossPtr != nullptr)
+  {
+    if (KilledEnemy == BossPtr)
+    {
+      ProcessGameClear();
+    }
+  }
+	else if (EnemyCount <= 0)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Game Clear!"));
-
-		APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0);
-		if (PC)
-		{
-			PC->SetShowMouseCursor(true);
-			PC->SetInputMode(FInputModeUIOnly());
-
-            // プレイヤー操作停止
-            PC->SetIgnoreMoveInput(true);
-            PC->SetIgnoreLookInput(true);
-            PC->SetShowMouseCursor(true);
-
-            // キャラクターの速度を完全にゼロにする
-            APawn* PlayerPawn = PC ? PC->GetPawn() : nullptr;
-            if (PlayerPawn)
-            {
-                if (UCharacterMovementComponent* MoveComp = Cast<UCharacterMovementComponent>(PlayerPawn->GetMovementComponent()))
-                {
-                    MoveComp->StopMovementImmediately();
-                }
-
-                // さらにAddMovementInputの残りを消すためにLocationの更新を止める
-                PlayerPawn->DisableInput(PC);
-            }
-
-            FTimerHandle ClearTimerHandle;
-            GetWorldTimerManager().SetTimer(ClearTimerHandle, this, &AInsekiGameMode::HandleGameClear, 3.0f, false);
-		}
+		ProcessGameClear();
 	}
 }
 
-void AInsekiGameMode::HandleGameClear()
+void AInsekiGameMode::InitializeEvents()
 {
-    // レベル遷移
+  // Find boss
+  AActor* boss = UGameplayStatics::GetActorOfClass(this, AEnemy_MiddleBoss::StaticClass());
+  if (boss != nullptr)
+  {
+    BossPtr = boss;
+  }
+
+  bGameClearHandled = false;
+}
+
+void AInsekiGameMode::ProcessGameClear()
+{
+  if (bGameClearHandled)
+  {
+    return;
+  }
+
+  APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0);
+  if (PC != nullptr)
+  {
+    // キャラクターの速度を完全にゼロにする
+    APawn* PlayerPawn = PC ? PC->GetPawn() : nullptr;
+    if (PlayerPawn != nullptr)
+    {
+      if (UPawnMovementComponent* MoveComp = PlayerPawn->GetMovementComponent())  
+      {
+        MoveComp->StopMovementImmediately();
+      }
+      // さらにAddMovementInputの残りを消すためにLocationの更新を止める
+      PlayerPawn->DisableInput(PC);
+    }
+  }
+
+  // Set clear timer
+  auto gameClearHandler = [this]()
+  {
     UGameplayStatics::OpenLevel(this, FName("GameClear"));
+  };
+
+  GetWorldTimerManager().SetTimer(GameClearTimerHandle, gameClearHandler, 3.0f, false);
+  bGameClearHandled = true;
+}
+
+void AInsekiGameMode::OnResetCommandSent()
+{
+  if (GameClearTimerHandle.IsValid())
+  {
+    GetWorldTimerManager().ClearTimer(GameClearTimerHandle);
+    GameClearTimerHandle.Invalidate();
+  }
 }

@@ -1,90 +1,96 @@
 ﻿#pragma once
 
-#include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "BattleSystem/IARAttackable.h" 
 #include "ISpecialAttractInterface.h"
+
 #include "Enemy_Zako.generated.h"
 
+#define UE_API ARRANGER_API
+
 UCLASS()
-class ARRANGER_API AEnemy_Zako : public ACharacter, public IARAttackable
+class ARRANGER_API AEnemy_Zako : public ACharacter, 
+                                public IARAttackable,
+                                public ISpecialAttractInterface
 {
-    GENERATED_BODY()
+  GENERATED_BODY()
 
 public:
-    AEnemy_Zako();
+  AEnemy_Zako();
 
-    void SetIsChasing(bool bChasing);
+  void SetIsChasing(bool bChasing);
 
-    void ReceiveDamage(int DamageAmount, FVector LaunchDirection, bool bEnableHitStop);
+  void ReceiveDamage(int DamageAmount, FVector LaunchDirection, bool bEnableHitStop);
 
-    virtual void Zako_PerformAttack();
+  virtual void Zako_PerformAttack();
 
 protected:
-  virtual bool IsDead(); 
+virtual bool IsDead(); 
 
 public:
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Enemy|Stats")
-    int32 maxHP;
+  UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Enemy|Stats")
+  int32 maxHP;
 
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Enemy|Stats")
-    int32 currentHP;
+  UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Enemy|Stats")
+  int32 currentHP;
 
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Enemy|Stats")
-    bool isDead;
+  UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Enemy|Stats")
+  bool isDead;
 
-    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Enemy|Stats")
-    UAnimMontage* AttackMontage;
+  UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Enemy|Stats")
+  TObjectPtr<UAnimMontage> AttackMontage;
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Enemy|Stats")
-    float PreferredDistance = 20.0f; 
+  UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Enemy|Stats")
+  float PreferredDistance = 20.0f; 
 
-    // 引き寄せ開始関数
-    void StartAttraction(AActor* Target);
-
-    // IARAttackable のオーバーライド
+  // 引き寄せ開始関数
+  void StartAttraction(AActor* Target);
 
 private:
-    // 引き寄せられ中フラグ
-    bool bIsAttracted = false;
+  // 引き寄せられ中フラグ
+  bool bIsAttracted = false;
 
-    // 引き寄せられる対象(プレイヤー)
-    AActor* attractionTarget = nullptr;
+  // 引き寄せられる対象(プレイヤー)
+  UPROPERTY()
+  TObjectPtr<AActor> attractionTarget = nullptr;
 
-    // 引き寄せ停止関数
-    void StopAttraction();
+  // 引き寄せ停止関数
+  void StopAttraction();
 
 protected:
-    // 引き寄せ時のスピード
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Enemy")
-    float attractionSpeed = 800.f;
+  // 引き寄せ時のスピード
+  UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Enemy")
+  float attractionSpeed = 800.f;
 
-    // 引き寄せの最低距離(これ以下になったらパンチ開始)
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Enemy")
-    float MinDistance = 150.f;
+  // 引き寄せの最低距離(これ以下になったらパンチ開始)
+  UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Enemy")
+  float MinDistance = 150.f;
 
-    virtual bool CanAttack() override;
+  virtual bool CanAttack() override;
 
-    virtual void OnPreAttacked(
-        const FARAttackParameters& InAttackParams,
-        ARRanger::Battle::FARAttackResult& OutAttackResult) override;
+  virtual void OnPreAttacked(
+      const FARAttackParameters& InAttackParams,
+      ARRanger::Battle::FARAttackResult& OutAttackResult) override;
 
-    virtual void OnDamaged(
-        const ARRanger::Battle::FARDamageResult& InDamageResult) override;
+  virtual void OnDamaged(
+      const ARRanger::Battle::FARDamageResult& InDamageResult) override;
 
-    virtual void OnPostAttacked(
-        const FARAttackParameters& InAttackParams) override;
+  virtual void OnPostAttacked(
+      const FARAttackParameters& InAttackParams) override;
 
-    //ISpecialAttractInterface functions Start
-    
-    //引力必殺技が始まった時の通知
-    virtual void OnStartSpecialAttractNotify();
+  /**Start ISpecialAttractInterface Interface */
 
-    //brief 引力必殺技の中間通知
-    //param 経過時間
-    virtual void OnUpdateSpecialAttractNotify(float elapsed);
+  //引力必殺技が始まった時の通知
+  virtual void OnStartSpecialAttractNotify() override;
 
-    //brief 引力必殺技の終了通知
-    virtual void OnEndSpecialAttractNotify();
+  //brief 引力必殺技の中間通知
+  //param 経過時間
+  virtual void OnUpdateSpecialAttractNotify(float ElapsedTime) override;
 
+  //brief 引力必殺技の終了通知
+  virtual void OnEndSpecialAttractNotify() override;
+  
+  /**End ISpecialAttractInterface Interface */
 };
+
+#undef UE_API

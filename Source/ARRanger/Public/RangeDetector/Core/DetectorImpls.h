@@ -11,7 +11,7 @@ class USphereDetectorData;
 #define UE_API ARRANGER_API
 
 #define DECLARE_DETECT_TARGETS_IMPL(DetectorDataType) \
-  extern UE_API int32 DetectTargetsImpl(UWorld* World, AActor* OriginActor, const FVector& InOriginLocation, const FRotator& InOriginRotation, const FVector& InOriginScale3D, const DetectorDataType& InData, TArray<TObjectPtr<AActor>>& OutResult);
+  extern UE_API int32 DetectTargetsImpl(UWorld* World, AActor* OriginActor, const FVector& InOriginLocation, const FRotator& InOriginRotation, const FVector& InOriginScale3D, const DetectorDataType& InData, TArray<AActor*>& OutResult);
 
 namespace ARRanger
 {
