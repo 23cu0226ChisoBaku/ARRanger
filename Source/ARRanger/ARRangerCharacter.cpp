@@ -585,6 +585,14 @@ void AARRangerCharacter::ResetIsAttacked()
 	UE_LOG(LogTemp, Warning, TEXT("ResetAttack → IsAttacked = false"));
 }
 
+void AARRangerCharacter::SetIsBattledInAnimInstance(bool IsBattled)
+{
+	if (UARRangerAnimInstance* MyAnim = Cast<UARRangerAnimInstance>(GetMesh()->GetAnimInstance()))
+	{
+		MyAnim->bIsBattled = IsBattled;
+	}
+}
+
 void AARRangerCharacter::OnMagneticForceFieldBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	if (IARMagnetizableInterface* magnetizableObj = Cast<IARMagnetizableInterface>(OtherActor))

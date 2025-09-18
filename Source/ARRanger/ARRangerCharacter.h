@@ -258,6 +258,9 @@ public:
   UFUNCTION(BlueprintCallable, Category = "GameAbility|Callbacks")
   void OnPunchStarted();
 
+  // AnimInstance内の戦闘フラグを設定する関数
+  void SetIsBattledInAnimInstance(bool IsBattled);
+
 private:
 	// 攻撃中フラグ
 	bool bIsAttacked = false;
