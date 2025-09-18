@@ -51,6 +51,22 @@ public:
 	// 麦
 private:
 
+	/**
+	 * @brief バトルイベントが開始した際の処理
+	 */
+	UFUNCTION()
+	void OnStartBattleEvent();
+
+	/**
+	 * @brief バトルイベントが終了した際の処理
+	 */
+	UFUNCTION()
+	void OnEndBattleEvent();
+
+	void RegisterBattleEventDelegate();
+
+	void UnregisterBattleEventDelegate();
+
   // TODO Temporary
   UPROPERTY(EditDefaultsOnly)
   TSubclassOf<class AARPhysicsTickProcessorActor> ProcessorActorClass;

@@ -32,6 +32,16 @@ void ABattleEventManager::BeginPlay()
     }
 }
 
+void ABattleEventManager::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+    if (OnAnyFieldBattleEnd.IsBound())
+    {
+        OnAnyFieldBattleEnd.Broadcast();
+    }
+
+    Super::EndPlay(EndPlayReason);
+}
+
 /**
  * @brief バトルフィールドがスポナーを収集完了
  * 
