@@ -136,7 +136,7 @@ public:
   void Transform();
 
   // AnimInstanceの戦闘中フラグを設定
-  void SetIsBattledInAnimInstance(bool IsBattled);
+  void SetIsBattledInAnimInstance(const bool IsBattled);
 
   void RotateCharacter_Charge(float Yaw);
 
