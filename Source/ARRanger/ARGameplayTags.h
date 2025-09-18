@@ -31,7 +31,7 @@ namespace GameplayTags
   UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputState_Punch_Combo2);
   UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputState_Punch_Combo3);
   UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputState_Kick);
-  UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputState_Jump);
+  UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputState_OnAir);
   UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputState_Charge_AttractionKick);
 
   /**Native Input Tag */

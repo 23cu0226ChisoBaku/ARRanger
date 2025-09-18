@@ -34,7 +34,6 @@ public:
 #endif
   
   /**Start IARGameplayAbilityNotifyInterface Interface*/
-  UE_API virtual void GANotify_ActorArray(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const TArray<TObjectPtr<AActor>>& InActorArray) override;
   UE_API virtual void GANotify_ImpactResult(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const TArray<FGANotify_ImpactResult>& InImpactResults) override;
   /**End IARGameplayAbilityNotifyInterface Interface */
 
@@ -77,11 +76,8 @@ private:
   UPROPERTY(EditDefaultsOnly, Category = "Ability|Attack")
   bool bClampKnockbackAngle;
 
-  UPROPERTY(EditDefaultsOnly, Category = "Ability|Attack", meta = (ClampMin = -180, ClampMax = 180, EditCondition = "bClampKnockbackAngle == true", EditConditionHides))
-  float KnockbackAngleRangeMax;
-
-  UPROPERTY(EditDefaultsOnly, Category = "Ability|Attack", meta = (ClampMin = -180, ClampMax = 180, EditCondition = "bClampKnockbackAngle == true", EditConditionHides))
-  float KnockbackAngleRangeMin;
+  UPROPERTY(EditDefaultsOnly, Category = "Ability|Attack", meta = (ClampMin = 0, ClampMax = 180, EditCondition = "bClampKnockbackAngle == true", EditConditionHides))
+  float KnockbackAngleHalfRange;
 };
 
 #undef UE_API

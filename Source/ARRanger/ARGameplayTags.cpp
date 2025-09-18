@@ -21,7 +21,7 @@ namespace GameplayTags
   UE_DEFINE_GAMEPLAY_TAG_COMMENT(InputState_Punch_Combo2, "InputState.Punch.Combo2", "Player punch combo 2 input state");
   UE_DEFINE_GAMEPLAY_TAG_COMMENT(InputState_Punch_Combo3, "InputState.Punch.Combo3", "Player punch combo 3 input state");
   UE_DEFINE_GAMEPLAY_TAG_COMMENT(InputState_Kick, "InputState.Kick", "Player kick input state");
-  UE_DEFINE_GAMEPLAY_TAG_COMMENT(InputState_Jump, "InputState.Jump", "Player jump input state");
+  UE_DEFINE_GAMEPLAY_TAG_COMMENT(InputState_OnAir, "InputState.OnAir", "Player on air input state");
   UE_DEFINE_GAMEPLAY_TAG_COMMENT(InputState_Charge_AttractionKick, "InputState.Charge.AttractionKick", "Player attraction charge input state");
 
   UE_DEFINE_GAMEPLAY_TAG_COMMENT(NativeInput_Move, "NativeInput.Move", "Character movement input");
