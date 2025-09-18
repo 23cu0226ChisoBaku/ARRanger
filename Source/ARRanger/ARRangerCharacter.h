@@ -133,7 +133,10 @@ public:
   void SwitchTargetLeft();
 
   // 変身の際に呼び出される
-	void Transform();
+  void Transform();
+
+  // AnimInstanceの戦闘中フラグを設定
+  void SetIsBattledInAnimInstance(bool IsBattled);
 
   void RotateCharacter_Charge(float Yaw);
 
