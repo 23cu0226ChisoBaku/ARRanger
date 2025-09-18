@@ -76,7 +76,10 @@ void ABattleEventManager::BeginInitialBattleEvent()
     if (m_BattleFields.Num() > 0)
     {
         SetActiveField(m_BattleFields[0]);
-        ActivateNextFields();
+        if(m_ActiveFieldOffset != 0)
+        {
+            ActivateNextFields();
+        }
     }
 }
 

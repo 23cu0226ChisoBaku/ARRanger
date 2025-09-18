@@ -199,7 +199,7 @@ void UAttractSpecialAttackComponent::SpecialFinishKick(float deltaTime)
 			/*着地アニメーション*/
 			if(m_AnimInstance != nullptr)
 			{
-				m_AnimInstance->Montage_Play(m_LandMontage, 0.2f);
+				m_AnimInstance->Montage_Play(m_LandMontage, 1.0f);
 			}
 			m_IsAttractKick = false;
 			m_IsLand = true;
