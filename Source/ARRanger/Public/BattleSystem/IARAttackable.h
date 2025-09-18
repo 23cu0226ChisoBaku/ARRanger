@@ -6,6 +6,8 @@
 
 #include "IARAttackable.generated.h"
 
+#define UE_API ARRANGER_API
+
 namespace ARRanger
 {
 
@@ -100,28 +102,36 @@ public:
    * @param InAttackParams  攻撃パラメータ
    * @return 成功だったらtrue, それ以外はfalseを返す
    */
-  ARRANGER_API bool AttackTarget(IARAttackerInterface* Attacker, FARAttackParameters InAttackParams = FARAttackParameters::GetBlank());
+  UE_API bool AttackTarget(IARAttackerInterface* Attacker, FARAttackParameters InAttackParams = FARAttackParameters::GetBlank());
 
   /**
    * @brief   アクターを返す
    * @return  AActor
    */
-  ARRANGER_API virtual AActor* GetActor() { return ::Cast<AActor>(_getUObject()); }
+  UE_API virtual AActor* GetActor() { return ::Cast<AActor>(_getUObject()); }
+
+  /**
+   * @brief   攻撃できるか
+   * @return  攻撃できたらtrue, それ以外はfalse
+   */
+  UE_API virtual bool CanAttack() { return true; }
 
 protected:
 
   /**
    * @brief 攻撃を受ける前に呼び出されるコールバック
    */
-  ARRANGER_API virtual void OnPreAttacked(const FARAttackParameters& InAttackParams, ARRanger::Battle::FARAttackResult& OutAttackResult) { }
+  UE_API virtual void OnPreAttacked(const FARAttackParameters& InAttackParams, ARRanger::Battle::FARAttackResult& OutAttackResult) { }
 
   /**
    * @brief 攻撃を受けた後に呼び出されるコールバック
    */
-  ARRANGER_API virtual void OnPostAttacked(const FARAttackParameters& InAttackParams) { }
+  UE_API virtual void OnPostAttacked(const FARAttackParameters& InAttackParams) { }
 
   /**
    * @brief ダメージ計算を済んだ時に呼び出されるコールバック
    */
-  ARRANGER_API virtual void OnDamaged(const ARRanger::Battle::FARDamageResult& InDamageResult) { }
+  UE_API virtual void OnDamaged(const ARRanger::Battle::FARDamageResult& InDamageResult) { }
 };
+
+#undef UE_API

@@ -58,10 +58,6 @@ void AZakoAIController::BeginPlay()
 	if (BlackboardAsset && BehaviorTreeAsset)
 	{
 		RunBehaviorTree(BehaviorTreeAsset);
-
-		// 初期テスト用
-		//APawn* PlayerPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
-		//GetBlackboardComponent()->SetValueAsObject(TargetActorKey, PlayerPawn);
 	}
 }
 
@@ -87,7 +83,6 @@ void AZakoAIController::OnPossess(APawn* InPawn)
 
 void AZakoAIController::StopChasing()
 {
-	// 3秒経過後、ブラックボードの情報をクリアして追跡を停止
 	UBlackboardComponent* BB = GetBlackboardComponent();
 	if (BB)
 	{
@@ -98,49 +93,55 @@ void AZakoAIController::StopChasing()
 
 void AZakoAIController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)
 {
-	if (!Actor || !Actor->ActorHasTag("Player"))
+	if ((Actor == nullptr) || !Actor->ActorHasTag("Player"))
+  {
 		return;
+  }
 
 	UBlackboardComponent* BB = GetBlackboardComponent();
-	if (!BB) return;
+	if (!BB)
+  {
+    return;
+  }
 
 	if (Stimulus.WasSuccessfullySensed())
 	{
-		// プレイヤーを発見した場合
 		BB->SetValueAsObject(TargetActorKey, Actor);
 		BB->SetValueAsBool("IsPlayerDetected", true);
 
-		// 周囲の仲間に警告を送る
 		BroadcastAlert(Actor);
 
-		// 追跡停止タイマーをクリア
 		GetWorld()->GetTimerManager().ClearTimer(LostSightTimerHandle);
 	}
 	else
 	{
-		// プレイヤーを見失った場合
-		// 最後に発見した場所を記憶するために、TargetActorKeyはクリアしない
 		BB->SetValueAsBool("IsPlayerDetected", false);
 
-		// 2秒後に追跡を停止するタイマーを開始
 		GetWorld()->GetTimerManager().SetTimer(LostSightTimerHandle, this, &AZakoAIController::StopChasing, 2.0f, false);
 	}
 }
 
 void AZakoAIController::BroadcastAlert(AActor* SeenActor)
 {
-	if (!SeenActor) return;
+	if (SeenActor == nullptr)
+  {
+    return;
+  }
+
 	APawn* SelfPawn = GetPawn();
-	if (!SelfPawn) return;
+	if (SelfPawn == nullptr)
+  {
+    return;
+  } 
 
 	const float AlertRadius = 500.0f;
-	FVector Origin = SelfPawn->GetActorLocation();
+	const FVector Origin = SelfPawn->GetActorLocation();
 
-	TArray<FOverlapResult> Overlaps;
-	FCollisionQueryParams Params;
+	TArray<FOverlapResult> Overlaps{};
+	FCollisionQueryParams Params{};
 	Params.AddIgnoredActor(SelfPawn);
 
-	bool bHit = GetWorld()->OverlapMultiByObjectType(
+	const bool bHit = GetWorld()->OverlapMultiByObjectType(
 		Overlaps,
 		Origin,
 		FQuat::Identity,
@@ -149,20 +150,27 @@ void AZakoAIController::BroadcastAlert(AActor* SeenActor)
 		Params
 	);
 
-	if (!bHit || Overlaps.Num() == 0) return;
-
+	if (!bHit)
+  {
+    return;
+  }
+    
 	for (const FOverlapResult& Result : Overlaps)
 	{
 		AActor* OtherActor = Result.GetActor();
-		if (!OtherActor || OtherActor == SelfPawn) continue;
+		if ((OtherActor == nullptr) || (OtherActor == SelfPawn))
+    { 
+      continue;
+    }
 
+    // Notify all allies near enemy
 		if (AEnemy_Zako* AllyChar = Cast<AEnemy_Zako>(OtherActor))
 		{
 			if (AAIController* AllyAI = Cast<AAIController>(AllyChar->GetController()))
 			{
 				if (UBlackboardComponent* BB = AllyAI->GetBlackboardComponent())
 				{
-					BB->SetValueAsObject("TargetActor", SeenActor);
+					BB->SetValueAsObject(TargetActorKey, SeenActor);
 					BB->SetValueAsBool("IsPlayerDetected", true);
 					BB->SetValueAsBool("IsInAlertState", true); 
 				}

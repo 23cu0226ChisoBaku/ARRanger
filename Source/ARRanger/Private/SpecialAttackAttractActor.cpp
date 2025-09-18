@@ -16,7 +16,6 @@ ASpecialAttackAttractActor::ASpecialAttackAttractActor()
 void ASpecialAttackAttractActor::BeginPlay()
 {
 	Super::BeginPlay();
-	OnStartSpecialAttractNotify();
 }
 
 void ASpecialAttackAttractActor::Tick(float DeltaTime)
@@ -93,9 +92,9 @@ void ASpecialAttackAttractActor::Tick(float DeltaTime)
 		FVector v2 = -rotationAxis; 
 		FVector verticalV = -movedirection - v2;
 		FVector w = rotationAxis * -movedirection;
-		FVector DashVerticalV  = FMath::Cos(Theta) * verticalV + FMath::Sin(Theta) * w;
-		FVector DashV = DashVerticalV + v2;
-		newLocation = newLocation + DashV * m_RotationSpeed;
+		FVector dashVerticalV  = FMath::Cos(Theta) * verticalV + FMath::Sin(Theta) * w;
+		FVector dashV = dashVerticalV + v2;
+		newLocation = newLocation + dashV * m_RotationSpeed;
 
 		actor->SetActorLocation(newLocation, true);
 

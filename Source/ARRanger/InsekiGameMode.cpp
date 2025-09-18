@@ -21,7 +21,7 @@
 #include "Public/BlinkingSystem/BlinkingOutlineWorldSubsystem.h"
 #include "BlinkingSystem/DetectorMagnetizableComponent.h"
 
-
+#include "ARRangerGlobals.h"
 // TODO May move initialize function to another file
 #include "Physics/IARPhysicsSystemHost.h"
 
@@ -73,6 +73,16 @@ void AInsekiGameMode::BeginPlay()
 
   // 物理システム初期化
   ARRanger::Private::FARPhysicsCore::InitializeARPhysicsInWorldWithActorType(GetWorld(), ProcessorActorClass);
+
+  // Register debug key
+  ARRanger::Global::RegisterDebugKey();
+}
+
+void AInsekiGameMode::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+  Super::EndPlay(EndPlayReason);
+
+    ARRanger::Global::UnregisterDebugKey();
 }
 
 void AInsekiGameMode::InitializeObserver()
