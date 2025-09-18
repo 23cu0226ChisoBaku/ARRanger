@@ -9,21 +9,29 @@
 #include "GameFramework/Actor.h"
 
 #include "Public/BattleEvent/EnemySpawner.h"
+#include "Public/BattleEvent/BattleEventCage.h"
 
 ABattleEventField::ABattleEventField()
+    : m_Player(nullptr)               
+    , m_RemainingEnemiesInField(0) 
+    , m_RemainingEnemiesInPhase(0)    
+    , m_CurrentPhaseIndex(0)
+    , m_IsActiveField(false)
+    , m_EventTriggered(false)
+
 {
-    PrimaryActorTick.bCanEverTick = false;
+    PrimaryActorTick.bCanEverTick = true;
 }
 
 void ABattleEventField::BeginPlay()
 {
     Super::BeginPlay();
 
+    /*Tick処理を無効化*/
+    SetActorTickEnabled(false);
+
     /*バトルフィールド範囲用（コリジョン）コンポーネントを全て取得*/
     GetPrimitiveComponents();
-
-    /*範囲内のスポナーを取得*/
-    CollectSpawners();
 
     /*各範囲コリンジョンコンポーネントににオーバーラップ関数をバインド*/
     for (UPrimitiveComponent* primComp : m_PrimitiveComponents)
@@ -33,6 +41,39 @@ void ABattleEventField::BeginPlay()
             continue;
         }
         primComp->OnComponentBeginOverlap.AddDynamic(this, &ABattleEventField::OnFieldBeginOverlap);
+    }
+    
+    /*次フレームで範囲内のスポナーを取得*/
+    GetWorld()->GetTimerManager().SetTimerForNextTick(this, &ABattleEventField::CollectSpawners);
+}
+
+void ABattleEventField::Tick(float deltaTime)
+{
+    Super::Tick(deltaTime);
+
+    if (m_Player == nullptr)
+    {
+        return;
+    }
+
+    /*どれか一つのフィールドコリジョンにプレイヤーが完全に入っているか*/
+    FBox playerBox = m_Player->GetComponentsBoundingBox();
+    for (UPrimitiveComponent* primComp : m_PrimitiveComponents)
+    {
+        if (primComp == nullptr)
+        {
+            continue;
+        }
+
+        FBox fieldBox = primComp->Bounds.GetBox();
+
+        /*完全に入っていたらイベント開始*/
+        if (fieldBox.IsInside(playerBox))
+        {
+            /*バトルイベント開始処理*/
+            OnStartBattleEvent();
+            break;
+        }
     }
 }
 
@@ -62,6 +103,8 @@ void ABattleEventField::GetPrimitiveComponents()
 void ABattleEventField::CollectSpawners()
 {
     m_Spawners.Empty();
+    m_RemainingEnemiesInField = 0;
+    m_FieldPhases.Empty();  
 
     /*自身のUPrimitiveComponentを全て取得*/
     for (UPrimitiveComponent* primComp : m_PrimitiveComponents)
@@ -79,27 +122,92 @@ void ABattleEventField::CollectSpawners()
             if (AEnemySpawner* spawner = Cast<AEnemySpawner>(actor))
             {
                 m_Spawners.Add(spawner);
+                
+                /*フィールドに湧く敵の数をカウント*/
+                ++m_RemainingEnemiesInField;
 
                 /*スポナーが持つフェーズを収集*/
-                const TArray<ESpawnPhase> phases = spawner->GetSpawnPhases();
+                const TSet<ESpawnPhase> phases = spawner->GetSpawnPhases();
                 for (const ESpawnPhase& phase : phases)
                 {
-                    m_FieldPhases.Add(phase);
+                    /*すでにあれば入れない*/
+                    if (!m_FieldPhases.Contains(phase))
+                    {
+                        m_FieldPhases.Add(phase);
+                    }
                 }
             }
         }
+
+        /*ESpawnPhase の定義順にソート*/
+        m_FieldPhases.Sort([](const ESpawnPhase& A, const ESpawnPhase& B) {
+            return static_cast<uint8>(A) < static_cast<uint8>(B);
+        });
     }
+
+    /*スポナーの取得完了通知*/
+    OnSpawnersCollected.Broadcast(this);
 }
 
 /**
  * @brief イベントフィールドを稼働させる
  */
-void ABattleEventField::Active()
+void ABattleEventField::ActiveEventField()
 {
-    /*フェーズをカウントする*/
-    ++m_CurrentPhaseIndex;
+    if (m_IsActiveField)
+    {
+        return;
+    }
+
+    m_IsActiveField = true;
     /*スポナーに敵の生成を促す*/
     RequestSpawn();
+}
+
+/**
+ * @brief バトルイベントが開始されるときの処理
+ */
+void ABattleEventField::OnStartBattleEvent()
+{
+    /*見えない壁(鳥かご)を有効*/
+    ActiveCageCollision(true);
+    /*Managerに通知*/
+    OnBattleEventStart.Broadcast(this);
+
+    m_EventTriggered = true;
+
+    /*Tickを無効化*/
+    SetActorTickEnabled(false);
+}
+
+/**
+ * @brief バトルイベントが終了するときの処理
+ */
+void ABattleEventField::OnEndBattleEvent()
+{
+    /*見えない壁(鳥かご)を無効*/
+    ActiveCageCollision(false);
+
+    /*Managerに通知*/
+    OnBattleEventEnd.Broadcast(this);
+}
+
+/**
+ * @brief 見えない壁(鳥かご)の当たり判定を 有効 / 無効にする
+ * 
+ * @param 有効 or 無効
+ */
+void ABattleEventField::ActiveCageCollision(bool enable)
+{
+    for (TObjectPtr<ABattleEventCage> cage : m_CageActors)
+    {
+        if (cage == nullptr) 
+        {
+            continue;
+        }
+
+        cage->EnableCageCollision(enable);
+    }
 }
 
 /**
@@ -114,36 +222,31 @@ void ABattleEventField::RequestSpawn()
             continue;
         }
 
-        /*スポナーに敵の生成を促し、敵死亡時のコールバック関数を引数で渡す*/
-        FScriptDelegate delegate;
-        delegate.BindUFunction(this, FName("OnEnemyDestroyed"));
-        spawner->SpawnEnemy(delegate);
+        /*スポナーが対象フェーズを持っていれば敵をスポーン*/
+        if (m_FieldPhases.IsValidIndex(m_CurrentPhaseIndex))
+        {
+            ESpawnPhase CurrentPhase = m_FieldPhases[m_CurrentPhaseIndex];
+            if (spawner->GetSpawnPhases().Contains(CurrentPhase))
+            {
+                /*スポナーに敵の生成を促し、敵死亡時のコールバック関数を引数で渡す*/
+                FScriptDelegate delegate;
+                delegate.BindUFunction(this, FName("OnEnemyDestroyed"));
+                spawner->SpawnEnemy(delegate);
 
-        /*敵の数をカウント*/
-        ++m_RemainingEnemiesInPhase;
+                /*敵の数をカウント*/
+                ++m_RemainingEnemiesInPhase;
+            }
+        } 
     }
 }
 
 /**
  * @brief フェーズがスタートするときに処理
- * 
- * @param 始めるフェーズ
  */
-void ABattleEventField::StartNextPhase(ESpawnPhase phase)
-{
-    for (TObjectPtr<AEnemySpawner> spawner : m_Spawners)
-    {
-        if (spawner == nullptr)
-        {
-            continue;
-        }
-            
-        /*スポナーが対象フェーズを持っていれば敵を出す*/
-        if (spawner->GetSpawnPhases().Contains(phase))
-        {
-            RequestSpawn();
-        }
-    }
+void ABattleEventField::StartNextPhase()
+{  
+    /*敵キャラクターのスポーンを催促*/
+    RequestSpawn();  
 }
 
 /**
@@ -152,6 +255,7 @@ void ABattleEventField::StartNextPhase(ESpawnPhase phase)
 void ABattleEventField::OnEnemyDestroyed()
 {    
     /*残りの敵キャラクターの数を減らす*/
+    --m_RemainingEnemiesInField;
     --m_RemainingEnemiesInPhase;
 
     if (m_RemainingEnemiesInPhase <= 0)
@@ -163,30 +267,33 @@ void ABattleEventField::OnEnemyDestroyed()
         if (m_CurrentPhaseIndex < m_FieldPhases.Num())
         {
             /*スポーン開始*/
-            StartNextPhase(m_FieldPhases[m_CurrentPhaseIndex]);
+            StartNextPhase();
         }
         /*フィールド内の敵を全滅させた*/
         else
         {
-            /*Managerに通知*/
-            //OnBattleEventEnd
+            /*バトルイベント終了処理*/
+            OnEndBattleEvent();
         }
     }
 }
 
 /** 
- * @brief オーバーラップ関数
+ * @brief オーバーラップ開始関数
  */
 void ABattleEventField::OnFieldBeginOverlap(UPrimitiveComponent* overlappedComp, AActor* otherActor,UPrimitiveComponent* otherComp, int32 otherBodyIndex, bool bFromSweep, const FHitResult& sweepResult)
 {
-    if (otherActor && otherActor->ActorHasTag("Player"))
+    /*すでにイベントが発動されていないなら処理*/
+    if(!m_EventTriggered)
     {
-        FBox fieldBox = overlappedComp->Bounds.GetBox();
-        FBox playerBox = otherActor->GetComponentsBoundingBox();
-
-        if (fieldBox.IsInside(playerBox))
+        /*オーバーラップしたアクターがPlayerなら処理*/
+        if (otherActor != nullptr && otherActor->ActorHasTag("Player"))
         {
-            /*鳥かごを作る*/
+            /*プレイヤーを一時的に保持しTick処理を稼働させる*/
+            m_Player = otherActor;
+
+            /*Tickを有効化しプレイヤーが完全にフィールド内に入ったかどうかを監視*/
+            SetActorTickEnabled(true);
         }
     }
 }

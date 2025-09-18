@@ -23,30 +23,27 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
-	void OnPossess(APawn* InPawn);
+	virtual void OnPossess(APawn* InPawn) override;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI")
-	UAIPerceptionComponent* AIPerceptionComponent;
+	TObjectPtr<UAIPerceptionComponent> AIPerceptionComponent;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI")
-	UAISenseConfig_Sight* SightConfig;
+	TObjectPtr<UAISenseConfig_Sight> SightConfig;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "AI")
-	UBlackboardData* BlackboardAsset;
+	TObjectPtr<UBlackboardData> BlackboardAsset;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "AI")
-	UBehaviorTree* BehaviorTreeAsset;
+	TObjectPtr<UBehaviorTree> BehaviorTreeAsset;
 
-	// ブラックボードのキー名をハードコードしないように、FNameで保持
 	UPROPERTY(EditDefaultsOnly, Category = "Blackboard Keys")
 	FName TargetActorKey = "TargetActor";
 
 protected:
-	// 認識イベントのコールバック関数
 	UFUNCTION()
 	void OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus);
 
-	// 近くの味方に警告をブロードキャストする関数
 	virtual void BroadcastAlert(AActor* SeenActor);
 
 	FTimerHandle LostSightTimerHandle;
