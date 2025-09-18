@@ -14,9 +14,6 @@ class ARRANGER_API AARGameState : public AGameStateBase
 {
 	GENERATED_BODY()
 	
-
-
-  
 private:
   UPROPERTY(EditDefaultsOnly, Category = "State Machine", meta = (AllowPrivateAccess = "true"))
   TSubclassOf<AActor> StateMachineActorClass;

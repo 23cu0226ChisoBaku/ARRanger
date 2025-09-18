@@ -28,9 +28,14 @@ public:
   UE_API bool IsAssociatedWithTag(const FGameplayTag& InTag) const;
 
   UE_API virtual void ForceCancelAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateCancelAbility, bool bForceCancel = false);
+
+#if WITH_EDITOR
+
   /**Start UObject Interface */
   UE_API virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
   /**End UObject Interface */
+
+#endif
 
   /**Start UGameplayAbility Interface */
   UE_API virtual bool CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags = nullptr, const FGameplayTagContainer* TargetTags = nullptr, OUT FGameplayTagContainer* OptionalRelevantTags = nullptr) const override;

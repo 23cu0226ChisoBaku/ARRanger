@@ -258,6 +258,9 @@ public:
   UFUNCTION(BlueprintCallable, Category = "GameAbility|Callbacks")
   void OnPunchStarted();
 
+  UFUNCTION(BlueprintCallable, Category = "GameAbility|Callbacks")
+  void OnPunchEnded();
+
 private:
 	// 攻撃中フラグ
 	bool bIsAttacked = false;
@@ -299,16 +302,25 @@ private:
   UPROPERTY()
   TObjectPtr<AActor> TargetToSnap;
 
-  UPROPERTY(EditAnywhere, Category = "ARRanger|TargetSnap")
-  float SnapRangeAngleDeg;
+  UPROPERTY()
+  TObjectPtr<UPrimitiveComponent> TargetPrimitiveComp;
+
+  FVector TargetImpactPoint_Local;
 
   UPROPERTY(EditAnywhere, Category = "ARRanger|TargetSnap")
   float TargetSnapDetectLength;
 
   UPROPERTY(EditAnywhere, Category = "ARRanger|TargetSnap")
-  TSubclassOf<AActor> TargetClass;
+  float SnapTimeInterval = 0.2f;
+
+  float m_snapTimeCnt = 0.0f;
+
+  FVector m_startSnapPlayerLocation;
+  FRotator m_startSnapPlayerRotation;
 
   void SearchTargetToSnap();
+
+  void SnapToTarget(float DeltaTime);
   // TODO End
 
 	// 必殺技を使用可能かを返す関数

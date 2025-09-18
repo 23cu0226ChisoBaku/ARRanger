@@ -103,7 +103,7 @@ public:
 
   UE_API void ED_DrawComponentVisualizer(class FPrimitiveDrawInterface* PDI) const;
 
-  UE_API void ED_DrawWithLineBatchComp(class ULineBatchComponent* LineBatch, float DeltaTime) const;
+  UE_API void ED_DrawWithLineBatchComp(class ULineBatchComponent* LineBatch) const;
   
 #endif 
 

@@ -25,10 +25,14 @@ class UARGameplayAbility_Attack : public UARGameplayAbilityBase,
 public:
   UE_API UARGameplayAbility_Attack();
 
+#if WITH_EDITOR
+
   /**Start UObject Interface */
   UE_API virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override; 
   /**End UObject Interface */
 
+#endif
+  
   /**Start IARGameplayAbilityNotifyInterface Interface*/
   UE_API virtual void GANotify_ActorArray(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const TArray<TObjectPtr<AActor>>& InActorArray) override;
   UE_API virtual void GANotify_ImpactResult(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const TArray<FGANotify_ImpactResult>& InImpactResults) override;

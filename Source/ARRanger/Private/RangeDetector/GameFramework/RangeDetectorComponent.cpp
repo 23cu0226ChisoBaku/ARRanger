@@ -229,7 +229,7 @@ void URangeDetectorComponent::ED_DrawComponentVisualizer(FPrimitiveDrawInterface
   }
 }
 
-void URangeDetectorComponent::ED_DrawWithLineBatchComp(ULineBatchComponent* LineBatch, float DeltaTime) const
+void URangeDetectorComponent::ED_DrawWithLineBatchComp(ULineBatchComponent* LineBatch) const
 {
   if (LineBatch != nullptr)
   {

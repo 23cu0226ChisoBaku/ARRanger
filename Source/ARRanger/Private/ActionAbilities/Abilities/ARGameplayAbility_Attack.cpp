@@ -14,6 +14,8 @@ UARGameplayAbility_Attack::UARGameplayAbility_Attack()
   InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
 }
 
+#if WITH_EDITOR
+
 void UARGameplayAbility_Attack::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
   Super::PostEditChangeProperty(PropertyChangedEvent);
@@ -27,6 +29,8 @@ void UARGameplayAbility_Attack::PostEditChangeProperty(FPropertyChangedEvent& Pr
     KnockbackAngleRangeMin = FMath::Min(KnockbackAngleRangeMin, KnockbackAngleRangeMax);
   }
 }
+
+#endif
 
 void UARGameplayAbility_Attack::GANotify_ActorArray(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const TArray<TObjectPtr<AActor>>& InActorArray)
 {
