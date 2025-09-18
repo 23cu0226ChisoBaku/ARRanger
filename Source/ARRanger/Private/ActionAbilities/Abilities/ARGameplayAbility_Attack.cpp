@@ -95,7 +95,7 @@ void UARGameplayAbility_Attack::GANotify_ImpactResult(USkeletalMeshComponent* Me
     // TODO Use Avatar location to knockback Target Temporary
     FVector knockbackDir = result.HitActor->GetActorLocation() - result.ImpactLocation;
     // Make it Z to zero so we can only use Direction on XY-Plane to determine knockback Direction
-    // knockbackDir.Z = 0.0;
+    knockbackDir.Z = 0.0;
 
     attackParam.Instigator = result.SourceActor;
     // TODO Stock damage in GA maybe not a great idea
