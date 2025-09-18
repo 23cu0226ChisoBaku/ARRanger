@@ -19,6 +19,10 @@ public:
     void ReceiveDamage(int DamageAmount, FVector LaunchDirection, bool bEnableHitStop);
 
     virtual void Zako_PerformAttack();
+
+protected:
+  virtual bool IsDead(); 
+
 public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Enemy|Stats")
     int32 maxHP;
@@ -58,6 +62,8 @@ protected:
     // 引き寄せの最低距離(これ以下になったらパンチ開始)
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Enemy")
     float MinDistance = 150.f;
+
+    virtual bool CanAttack() override;
 
     virtual void OnPreAttacked(
         const FARAttackParameters& InAttackParams,

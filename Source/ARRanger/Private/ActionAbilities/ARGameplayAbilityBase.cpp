@@ -9,6 +9,8 @@ UARGameplayAbilityBase::UARGameplayAbilityBase()
   bIsCancelable = true;
 }
 
+#if WITH_EDITOR
+
 void UARGameplayAbilityBase::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
   Super::PostEditChangeProperty(PropertyChangedEvent);
@@ -18,6 +20,8 @@ void UARGameplayAbilityBase::PostEditChangeProperty(FPropertyChangedEvent& Prope
     bIsCancelable = bCancelableAfterActivate;
   }
 }
+
+#endif
 
 void UARGameplayAbilityBase::SetAbilityCancelable()
 {
@@ -78,5 +82,5 @@ void UARGameplayAbilityBase::InputReleased(const FGameplayAbilitySpecHandle Hand
 
 FGameplayTagContainer UARGameplayAbilityBase::K2_GetAssetTags() const
 {
-  return AbilityTags;
+  return GetAssetTags();
 }

@@ -46,7 +46,7 @@ public:
       FOnDetectionNotify DetectionNotify;
   };
 
-private:
+protected:
 
   /**Start of UAnimNotifyState Interface */
   UE_API virtual void NotifyBegin(USkeletalMeshComponent * MeshComp, UAnimSequenceBase * Animation, float TotalDuration, const FAnimNotifyEventReference& EventReference) override;
@@ -79,20 +79,30 @@ private:
   UPROPERTY(EditAnywhere, Category = "RangeDetection", meta = (EditCondition = "DetectionType == EANS_DetectRange_NotifyDetectionType::NotifyDuringHit && FrequencyType == EANS_DetectRange_NotifyDetectionFrequencyType::Notify_TimeBase", EditConditionHides))
   float TimeInterval;
 
-  UPROPERTY(EditAnywhere, Category = "RangeDetection", meta = (MustImplement = "ARGameplayAbilityNotifyInterface"))
-  TSet<TSubclassOf<UGameplayAbility>> NotifyAbilityClasses;
-
   UPROPERTY(EditAnywhere, Category = "Auto Destroy")
   bool bDestroyAtEnd = true;
 
+#if WITH_EDITORONLY_DATA
+
   UPROPERTY(EditAnywhere, Category = "Debug", meta = (EditCondition = "RangeData != nullptr", DisplayName = "Draw Debug Line if activating"))
   bool bDrawDebugDuringActivation = true;
+
+#endif
+
+  uint8 bNotifyOnceIsTriggered : 1;
 
 private:
   bool ValidateParameters(USkeletalMeshComponent* MeshComp) const;
 
   void NotifyAbility(USkeletalMeshComponent* MeshComp, UAnimSequenceBase * Animation);
 
+#if WITH_EDITOR
+
+  void DrawDebugRange(USceneComponent* RootComponent);
+
+#endif
+
+private:
   TUniquePtr<FDetectTickObject> m_detectTickObject;
    
 };

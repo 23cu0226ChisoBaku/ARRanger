@@ -29,7 +29,8 @@ public class ARRanger : ModuleRules
     });
 
     PrivateDependencyModuleNames.AddRange(new string[] {
-
+        "Slate",
+        "SlateCore",
      });
 
     PublicIncludePaths.AddRange(new string[] {
