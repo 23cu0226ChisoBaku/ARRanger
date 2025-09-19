@@ -557,11 +557,13 @@ void AARRangerCharacter::ResetIsAttacked()
 	UE_LOG(LogTemp, Warning, TEXT("ResetAttack → IsAttacked = false"));
 }
 
-void AARRangerCharacter::SetIsBattledInAnimInstance(bool IsBattled)
+void AARRangerCharacter::SetIsBattledInAnimInstance(const bool IsBattled)
 {
 	if (UARRangerAnimInstance* MyAnim = Cast<UARRangerAnimInstance>(GetMesh()->GetAnimInstance()))
 	{
 		MyAnim->bIsBattled = IsBattled;
+		UE_LOG(LogTemp, Warning, TEXT("IsBattled : %s"), IsBattled ? TEXT("True") : TEXT("False"));
+		UE_LOG(LogTemp, Warning, TEXT("bIsBattled : %s"), MyAnim->bIsBattled ? TEXT("True") : TEXT("False"));
 	}
 }
 

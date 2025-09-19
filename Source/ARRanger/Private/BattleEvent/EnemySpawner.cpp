@@ -25,6 +25,9 @@ void AEnemySpawner::SpawnEnemy(const FScriptDelegate& onDestroyedCallback)
         return;
     } 
 
+    /*スポーンエフェクト再生*/
+    PlaySpawnEffect();
+
     /*敵キャラクターをスポーンさせる*/
     AActor* enemyActor = GetWorld()->SpawnActor<AActor>(
         m_SpawnEnemy, 
