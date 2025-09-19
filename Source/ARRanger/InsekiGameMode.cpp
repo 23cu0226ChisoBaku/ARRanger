@@ -84,6 +84,9 @@ void AInsekiGameMode::BeginPlay()
 
   // Register debug key
   ARRanger::Global::RegisterDebugKey();
+
+  /*Event Manager デリゲートバインド*/
+  RegisterBattleEventDelegate();
 }
 
 void AInsekiGameMode::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -217,10 +220,11 @@ void AInsekiGameMode::OnEnemyKilled()
  */
 void AInsekiGameMode::OnStartBattleEvent()
 {
-
+  UE_LOG(LogTemp, Warning, TEXT("What??????????????????"));
   ACharacter* playerChar = UGameplayStatics::GetPlayerCharacter(this, MAIN_PLAYER_INDEX);
   if (AARRangerCharacter* arPlayerChar = ::Cast<AARRangerCharacter>(playerChar))
   {
+      UE_LOG(LogTemp, Warning, TEXT("What?!?!?!?!??!?!?!?!?!??!?!!?!?!?!?!!?!?!?!?!?!?"));
       // AnimInstance内の戦闘中フラグを上げる
       arPlayerChar->SetIsBattledInAnimInstance(true);
   }
@@ -257,7 +261,7 @@ void AInsekiGameMode::RegisterBattleEventDelegate()
     ABattleEventManager* manager = ::Cast<ABattleEventManager>(eventManager[0]);
 
     manager->OnAnyFieldBattleStart.AddUniqueDynamic(this, &AInsekiGameMode::OnStartBattleEvent);
-    manager->OnAnyFieldBattleStart.AddUniqueDynamic(this, &AInsekiGameMode::OnEndBattleEvent);
+    manager->OnAnyFieldBattleEnd.AddUniqueDynamic(this, &AInsekiGameMode::OnEndBattleEvent);
   }
   
 }
@@ -272,6 +276,6 @@ void AInsekiGameMode::UnregisterBattleEventDelegate()
     ABattleEventManager* manager = ::Cast<ABattleEventManager>(eventManager[0]);
 
     manager->OnAnyFieldBattleStart.RemoveDynamic(this, &AInsekiGameMode::OnStartBattleEvent);
-    manager->OnAnyFieldBattleStart.RemoveDynamic(this, &AInsekiGameMode::OnEndBattleEvent);
+    manager->OnAnyFieldBattleEnd.RemoveDynamic(this, &AInsekiGameMode::OnEndBattleEvent);
   }
 }

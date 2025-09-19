@@ -185,6 +185,10 @@ void ABattleEventField::OnStartBattleEvent()
  */
 void ABattleEventField::OnEndBattleEvent()
 {
+    if(!m_IsActiveField)
+    {
+        return;
+    }
     /*見えない壁(鳥かご)を無効*/
     ActiveCageCollision(false);
 

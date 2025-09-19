@@ -114,15 +114,8 @@ void ABattleEventManager::HandleBattleEventStart(ABattleEventField* startedBattl
  */ 
 void ABattleEventManager::HandleBattleEventEnd(ABattleEventField* finishedBattleField)
 {
-    // /*終了したイベントフィールドを破棄*/
-    // if (m_CurrentBattleField == finishedBattleField)
-    // {
-    //     m_CurrentBattleField = nullptr;
-    // }
-
     /*外部クラス用*/
     OnAnyFieldBattleEnd.Broadcast();
-
     /*次のフィールドをアクティブ化*/
     ActivateNextFields();
 }
