@@ -49,6 +49,9 @@ AZakoAIController::AZakoAIController()
 	AIPerceptionComponent->SetDominantSense(SightConfig->GetSenseImplementation());
 
 	AIPerceptionComponent->OnTargetPerceptionUpdated.AddDynamic(this, &AZakoAIController::OnTargetPerceptionUpdated);
+
+  // Use Player State to activate ASC
+  bWantsPlayerState = true;
 }
 
 void AZakoAIController::BeginPlay()

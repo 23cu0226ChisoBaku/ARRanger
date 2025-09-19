@@ -21,6 +21,8 @@ namespace GameplayTags
   UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Attack_Kick);
   UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Special_HookShot);
   UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Cancel);
+  UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Jump);
+  UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Cancel_OnDamaged);
 
   UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Charge_AttractionKick);
 
@@ -36,8 +38,6 @@ namespace GameplayTags
 
   /**Native Input Tag */
   UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(NativeInput_Move);
-  UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(NativeInput_JumpStart);
-  UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(NativeInput_JumpEnd);
   UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(NativeInput_Look);
   UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(NativeInput_LockOn);
   UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(NativeInput_SwitchTarget_Left);

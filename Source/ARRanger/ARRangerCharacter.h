@@ -29,6 +29,8 @@ struct FGameplayTag;
 
 DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);
 
+#define UE_API ARRANGER_API
+
 
 /**
  *  シンプルでプレイヤーが操作可能な三人称視点キャラクター
@@ -336,15 +338,22 @@ private:
 	void OnMagnetizedObjectHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
   /**Start IARMagnetizableInterface interface */
-  ARRANGER_API virtual void OnRepulsionEvaluated(const FARMagneticForceResult& Result) override;
-  ARRANGER_API virtual AActor* GetActor() override { return this; }
+  UE_API virtual void OnRepulsionEvaluated(const FARMagneticForceResult& Result) override;
+  UE_API virtual AActor* GetActor() override { return this; }
   /**End IARMagnetizableInterface interface */
 
   /**Start IARAttackable Interface */
-
+protected:
+  UE_API virtual AActor* Attackable_GetActor() override { return this; }
+  UE_API virtual bool CanAttack() override;
+  UE_API virtual void OnPreAttacked(const FARAttackParameters& InAttackParams, ARRanger::Battle::FARAttackResult& OutAttackResult) override;
+  UE_API virtual void OnPostAttacked(const FARAttackParameters& InAttackParams) override;
+  UE_API virtual void OnDamaged(const ARRanger::Battle::FARDamageResult& InDamageResult) override;
   /**End IARAttackable Interface */
 
   /**Start IARAttackerInterface Interface */
-  ARRANGER_API virtual void OnNotifyAttackResult_Success(const ARRanger::Battle::FARAttackNotifyParameter& InNotifyParams) override;
+  UE_API virtual void OnNotifyAttackResult_Success(const ARRanger::Battle::FARAttackNotifyParameter& InNotifyParams) override;
   /**End IARAttackerInterface Interface */
 };
+
+#undef UE_API

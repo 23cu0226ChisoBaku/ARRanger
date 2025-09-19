@@ -13,9 +13,6 @@ class UAnimInstance;
 
 #define UE_API ARRANGER_API
 
-/**
- * 
- */
 UCLASS(Abstract)
 class UARGameplayAbility_Attack : public UARGameplayAbilityBase,
                                   public IARGameplayAbilityNotifyInterface

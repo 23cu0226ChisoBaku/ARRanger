@@ -82,7 +82,7 @@ bool IARAttackable::AttackTarget(IARAttackerInterface* Attacker, FARAttackParame
   ARRanger::Battle::FARBattleTask task{};
   ARRanger::Battle::FARDamageResult damageResult{};
   task.Instigator = InAttackParams.Instigator;
-  task.Target = this->GetActor();
+  task.Target = this->Attackable_GetActor();
   task.OriginDamage = InAttackParams.Damage;
   battleSystem.HandleBattleTask(task, damageResult);
 

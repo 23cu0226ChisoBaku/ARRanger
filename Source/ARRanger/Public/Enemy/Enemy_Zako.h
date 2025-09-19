@@ -16,6 +16,12 @@ class ARRANGER_API AEnemy_Zako : public ACharacter,
   GENERATED_BODY()
 
 public:
+  
+  DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnEnemyDead, AActor*, DeadActor);
+  UPROPERTY(BlueprintAssignable)
+  FOnEnemyDead OnDead;
+
+public:
   AEnemy_Zako();
 
   void SetIsChasing(bool bChasing);
@@ -23,6 +29,13 @@ public:
   void ReceiveDamage(int DamageAmount, FVector LaunchDirection, bool bEnableHitStop);
 
   virtual void Zako_PerformAttack();
+
+  UFUNCTION(BlueprintImplementableEvent, Category = "Enemy", meta = (DisplayName = "Perform Attack"))
+  void K2_PerformAttack();
+
+  UFUNCTION(BlueprintImplementableEvent, Category = "Enemy", meta = (DisplayName = "Receive Damage"))
+  void K2_ReceiveDamage(int DamageAmount, FVector LaunchDirection, bool bIsDead);
+
 
 protected:
 virtual bool IsDead(); 

@@ -7,9 +7,6 @@
 
 #define UE_API ARRANGER_API
 
-/**
- * 
- */
 UCLASS()
 class UARGameplayAbility_Jump : public UARGameplayAbilityBase
 {

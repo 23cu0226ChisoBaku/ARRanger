@@ -30,7 +30,4 @@ protected:
   UPROPERTY(EditDefaultsOnly, Category = "Combat")
   float RangeTolerance;
 
-public:
-  UFUNCTION(BlueprintCallable, Category = "Combat")
-  void Zako_PerformAttack()override;
 };

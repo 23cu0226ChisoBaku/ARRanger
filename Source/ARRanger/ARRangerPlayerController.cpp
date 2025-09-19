@@ -287,8 +287,6 @@ void AARRangerPlayerController::InitializePlayerInput()
 
   // Bind native input actions
   ARIC->BindNativeAction(InputConfig, ARRanger::GameplayTags::NativeInput_Move, ETriggerEvent::Triggered, this, &ThisClass::NativeInput_Move);
-  ARIC->BindNativeAction(InputConfig, ARRanger::GameplayTags::NativeInput_JumpStart, ETriggerEvent::Started, this, &ThisClass::NativeInput_JumpStart);
-  ARIC->BindNativeAction(InputConfig, ARRanger::GameplayTags::NativeInput_JumpEnd, ETriggerEvent::Completed, this, &ThisClass::NativeInput_JumpEnd);
   ARIC->BindNativeAction(InputConfig, ARRanger::GameplayTags::NativeInput_Look, ETriggerEvent::Triggered, this, &ThisClass::NativeInput_Look);
   ARIC->BindNativeAction(InputConfig, ARRanger::GameplayTags::NativeInput_LockOn, ETriggerEvent::Triggered, this, &ThisClass::NativeInput_ToggleLockOn);
   ARIC->BindNativeAction(InputConfig, ARRanger::GameplayTags::NativeInput_SwitchTarget_Left, ETriggerEvent::Triggered, this, &ThisClass::NativeInput_SwitchTarget_Left);

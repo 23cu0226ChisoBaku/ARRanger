@@ -62,7 +62,7 @@ protected:
 
     bool bIsMovingToTarget = false;
 
-    // ƒWƒƒƒ“ƒvUŒ‚—p
+    // ï¿½Wï¿½ï¿½ï¿½ï¿½ï¿½vï¿½Uï¿½ï¿½ï¿½p
     bool bHasStartedJump = false;
     FVector JumpTargetLocation;
 };

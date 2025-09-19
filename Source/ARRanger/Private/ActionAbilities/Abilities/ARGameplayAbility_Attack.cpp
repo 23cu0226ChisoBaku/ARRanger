@@ -118,7 +118,7 @@ void UARGameplayAbility_Attack::GANotify_ImpactResult(USkeletalMeshComponent* Me
     attackParam.LaunchDirection = knockbackDirNorm;
     
     // Apply Attack
-    attackable->AttackTarget(attacker, attackParam); 
+    attackable->AttackTarget(attacker, attackParam);
   }
 }
 
@@ -156,7 +156,6 @@ void UARGameplayAbility_Attack::OnAttackAbilityActivated()
     animInst->Montage_Play(AttackMontage);
     animInst->OnMontageEnded.AddUniqueDynamic(this, &UARGameplayAbility_Attack::OnAttackMontageEnded);
   }
-
 }
 
 void UARGameplayAbility_Attack::OnAttackAbilityEnded(bool bWasCancelled)

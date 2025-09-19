@@ -98,18 +98,10 @@ void AARRangerCharacter::BeginPlay()
   GetCapsuleComponent()->OnComponentEndOverlap.AddDynamic(this, &AARRangerCharacter::OnMagneticForceFieldEndOverlap);
   GetCapsuleComponent()->OnComponentHit.AddDynamic(this, &AARRangerCharacter::OnMagnetizedObjectHit);
 
-  // TODO Temporary
-  if (AARPlayerState* ARPS = GetPlayerState<AARPlayerState>())
-  {
-    if (UARPawnInitComponent* PIC = ::Cast<UARPawnInitComponent>(GetComponentByClass(UARPawnInitComponent::StaticClass())))
-    {
-      PIC->InitializeAbilitySystem(ARPS->GetARAbilitySystemComponent(), ARPS); 
-
-      PIC->InitializeChargeAttack(ARPS->GetARChargeAttackComponent());
-    }
-  }
-
   attractSpecialAttackComponent = FindComponentByClass<UAttractSpecialAttackComponent>();
+
+  // Set Repulsion as default state
+  SetMagnetismType(EARMagnetismType::Repulsion);
 }
 
 // 麦
@@ -587,6 +579,31 @@ void AARRangerCharacter::OnRepulsionEvaluated(const FARMagneticForceResult& Resu
   LaunchCharacter(Result.FinalForce, true, false);
 }
 
+/**Start IARAttackable implementation */
+bool AARRangerCharacter::CanAttack()
+{
+  return true;
+}
+
+void AARRangerCharacter::OnPreAttacked(const FARAttackParameters& InAttackParams, ARRanger::Battle::FARAttackResult& OutAttackResult)
+{
+  OutAttackResult.Result = ARRanger::Battle::EARAttackResult::Success;
+}
+void AARRangerCharacter::OnPostAttacked(const FARAttackParameters& InAttackParams)
+{
+
+}
+
+void AARRangerCharacter::OnDamaged(const ARRanger::Battle::FARDamageResult& InDamageResult)
+{
+  if (GEngine)
+  {
+    GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("Player On Damaged: [%f]"), InDamageResult.FinalDamage));
+  }
+}
+
+/**End IARAttackable implementation */
+
 
 /**Start IARAttackerInterface implementation */
 #pragma region IARAttackerInterface implementation
@@ -601,8 +618,6 @@ void AARRangerCharacter::OnNotifyAttackResult_Success(const ARRanger::Battle::FA
     OnPlayerHit.Broadcast(GetActorLocation());
   }
 }
-
-
 
 #pragma endregion IARAttackerInterface implementation
 /**End IARAttackerInterface implementation */

@@ -12,30 +12,30 @@ AEnemy_Zako::AEnemy_Zako()
     , currentHP(maxHP)
     , isDead(false)
 {
-    AIControllerClass = AZakoAIController::StaticClass();
-    AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
+  AIControllerClass = AZakoAIController::StaticClass();
+  AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 }
 
 void AEnemy_Zako::SetIsChasing(bool bChasing)
 {
-    if (UEnemyAnimInstance* Anim = Cast<UEnemyAnimInstance>(GetMesh()->GetAnimInstance()))
-    {
-        Anim->bIsChasing = bChasing;
-    }
+  if (UEnemyAnimInstance* Anim = Cast<UEnemyAnimInstance>(GetMesh()->GetAnimInstance()))
+  {
+    Anim->bIsChasing = bChasing;
+  }
 }
 
 void AEnemy_Zako::ReceiveDamage(int DamageAmount, FVector LaunchDirection, bool bEnableHitStop)
 {
   currentHP -= DamageAmount;
 
-  if (GEngine)
-  {
-    GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, LaunchDirection.ToString());
-  }
-
   if (currentHP <= 0 && !isDead)
   {
     isDead = true;
+
+    if (OnDead.IsBound())
+    {
+      OnDead.Broadcast(this);
+    }
 
     // TODO Bad thing
     if (AInsekiGameMode* GM = Cast<AInsekiGameMode>(UGameplayStatics::GetGameMode(this)))
@@ -51,7 +51,7 @@ void AEnemy_Zako::ReceiveDamage(int DamageAmount, FVector LaunchDirection, bool 
     GetMesh()->bBlendPhysics = true;
 
     // 死亡時は大きく吹っ飛ばす
-    FVector DeathImpulse = LaunchDirection * 5000.0f;
+    const FVector DeathImpulse = LaunchDirection * 5000.0f;
     GetMesh()->AddImpulse(DeathImpulse, NAME_None, true);
 
     SetLifeSpan(3.0f);
@@ -59,8 +59,8 @@ void AEnemy_Zako::ReceiveDamage(int DamageAmount, FVector LaunchDirection, bool 
   else
   {
     // 生存時は前方ベクトルの逆方向にノックバック
-    FVector KnockbackDir = LaunchDirection;
-    LaunchCharacter(KnockbackDir * 1000.f, true, true);
+    const FVector KnockbackDir = LaunchDirection * 1000.f;
+    LaunchCharacter(KnockbackDir, true, true);
   }
 
   if (bEnableHitStop)
@@ -72,6 +72,8 @@ void AEnemy_Zako::ReceiveDamage(int DamageAmount, FVector LaunchDirection, bool 
             UGameplayStatics::SetGlobalTimeDilation(GWorld, 1.0f);
         }, 0.03f, false);
   }
+
+  K2_ReceiveDamage(DamageAmount, LaunchDirection, IsDead());
 }
 
 void AEnemy_Zako::Zako_PerformAttack()
@@ -81,16 +83,7 @@ void AEnemy_Zako::Zako_PerformAttack()
     return;
   }
 
-  UE_LOG(LogTemp, Log, TEXT("Enemy_Zako: PerforAttack executed."));
-
-  //攻撃モンタージュ再生
-  if (UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance())
-  {
-    if (AttackMontage)
-    {
-      AnimInstance->Montage_Play(AttackMontage);
-    }
-  }
+  K2_PerformAttack();
 }
 
 bool AEnemy_Zako::IsDead()

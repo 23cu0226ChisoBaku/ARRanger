@@ -2,6 +2,8 @@
 
 
 #include "ActionAbilities/ARGameplayAbilityBase.h"
+#include "GameFramework/Controller.h"
+#include "GameFramework/Pawn.h"
 
 UARGameplayAbilityBase::UARGameplayAbilityBase()
   : bCancelableAfterActivate{true}
@@ -83,4 +85,19 @@ void UARGameplayAbilityBase::InputReleased(const FGameplayAbilitySpecHandle Hand
 FGameplayTagContainer UARGameplayAbilityBase::K2_GetAssetTags() const
 {
   return GetAssetTags();
+}
+
+AController* UARGameplayAbilityBase::GetController() const
+{
+  if (APawn* ownerPawn = ::Cast<APawn>(GetAvatarActorFromActorInfo()))
+  {
+    return ownerPawn->GetController();
+  }
+  
+  return nullptr;
+}
+
+bool UARGameplayAbilityBase::CanCancelByAnyTag(const FGameplayTag& InTag) const
+{
+  return CancleableConditionTags.HasTagExact(InTag);
 }
