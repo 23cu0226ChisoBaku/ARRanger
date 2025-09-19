@@ -32,6 +32,16 @@ void ABattleEventManager::BeginPlay()
     }
 }
 
+void ABattleEventManager::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+    if (OnAnyFieldBattleEnd.IsBound())
+    {
+        OnAnyFieldBattleEnd.Broadcast();
+    }
+
+    Super::EndPlay(EndPlayReason);
+}
+
 /**
  * @brief バトルフィールドがスポナーを収集完了
  * 
@@ -76,7 +86,10 @@ void ABattleEventManager::BeginInitialBattleEvent()
     if (m_BattleFields.Num() > 0)
     {
         SetActiveField(m_BattleFields[0]);
-        ActivateNextFields();
+        if(m_ActiveFieldOffset != 0)
+        {
+            ActivateNextFields();
+        }
     }
 }
 
@@ -137,16 +150,24 @@ void ABattleEventManager::ActivateNextFields()
         return;
     }
 
-    /*オフセット分だけ次のフィールドを順に稼働させる*/
-    for (int32 offset = 1; offset <= m_ActiveFieldOffset; ++offset)
+    /*もしオフセットがない場合*/
+    if(m_ActiveFieldOffset == 0)
     {
-        int32 nextIndex = currentIndex + offset;
-        if (m_BattleFields.IsValidIndex(nextIndex))
+        SetActiveField(m_BattleFields[currentIndex + 1]);
+    }
+    else
+    {
+        /*オフセット分だけ次のフィールドを順に稼働させる*/
+        for (int32 offset = 1; offset <= m_ActiveFieldOffset; ++offset)
         {
-            ABattleEventField* nextField = m_BattleFields[nextIndex];
-            if (nextField != nullptr && !nextField->IsActivedField())
+            int32 nextIndex = currentIndex + offset;
+            if (m_BattleFields.IsValidIndex(nextIndex))
             {
-                SetActiveField(nextField);
+                ABattleEventField* nextField = m_BattleFields[nextIndex];
+                if (nextField != nullptr && !nextField->IsActivedField())
+                {
+                    SetActiveField(nextField);
+                }
             }
         }
     }

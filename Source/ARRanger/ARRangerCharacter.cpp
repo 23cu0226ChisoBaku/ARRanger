@@ -177,7 +177,7 @@ void AARRangerCharacter::Tick(float DeltaTime)
 	// 引力クライム中に処理
 	if (bIsClimbed)
 	{
-		const float ClimbSpeed = 700.0f; // 上昇速度
+		const float ClimbSpeed = 2100.0f; // 上昇速度
 		AddActorWorldOffset(FVector(0, 0, ClimbSpeed * DeltaTime), false);
 
 		// 壁回転処理
@@ -341,14 +341,14 @@ void AARRangerCharacter::StartClimbing(AInsekiClimbingObject* ClimbActor)
 		wallNormal = HitResult.ImpactNormal;
 
 		// UpをwallNormalにする
-		FVector Up = wallNormal;
+		//FVector Up = wallNormal;
 
-		// 前方向を作成（Up とワールド右ベクトルから計算）
-		FVector Forward = FVector::CrossProduct(Up, FVector::RightVector).GetSafeNormal();
+		//// 前方向を作成（Up とワールド右ベクトルから計算）
+		//FVector Forward = FVector::CrossProduct(Up, FVector::RightVector).GetSafeNormal();
 
-		// 回転を作成
-		const FRotator NewRot = FRotationMatrix::MakeFromXZ(Forward, Up).Rotator();
-		SetActorRotation(NewRot);
+		//// 回転を作成
+		//const FRotator NewRot = FRotationMatrix::MakeFromXZ(Forward, Up).Rotator();
+		//SetActorRotation(NewRot);
 	}
 }
 
@@ -555,6 +555,14 @@ void AARRangerCharacter::ResetIsAttacked()
 	SetIsAttacked(false);
 	SetIsStrongAttacked(false);
 	UE_LOG(LogTemp, Warning, TEXT("ResetAttack → IsAttacked = false"));
+}
+
+void AARRangerCharacter::SetIsBattledInAnimInstance(bool IsBattled)
+{
+	if (UARRangerAnimInstance* MyAnim = Cast<UARRangerAnimInstance>(GetMesh()->GetAnimInstance()))
+	{
+		MyAnim->bIsBattled = IsBattled;
+	}
 }
 
 void AARRangerCharacter::OnMagneticForceFieldBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)

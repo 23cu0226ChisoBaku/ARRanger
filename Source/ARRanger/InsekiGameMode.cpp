@@ -4,6 +4,7 @@
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "ARRangerCharacter.h"
 
 #include "AudioSystem/ARAudioSystem.h"
 
@@ -22,12 +23,19 @@
 #include "BlinkingSystem/DetectorMagnetizableComponent.h"
 
 #include "ARRangerGlobals.h"
+#include "BattleEvent/BattleEventManager.h"
 // TODO May move initialize function to another file
 #include "Physics/IARPhysicsSystemHost.h"
 
+namespace
+{
+  constexpr int32 MAIN_PLAYER_INDEX = 0;
+}
+
 AInsekiGameMode::AInsekiGameMode()
 {
-    ProcessorActorClass = AARPhysicsTickProcessorActor::StaticClass();
+  ProcessorActorClass = AARPhysicsTickProcessorActor::StaticClass();
+  DefaultPawnClass = AARRangerCharacter::StaticClass();
 }
 
 
@@ -43,18 +51,18 @@ void AInsekiGameMode::BeginPlay()
 
 	UE_LOG(LogTemp, Warning, TEXT("Initial Enemy Count: %d"), EnemyCount);
 
-  // 音声データを初期化
-  const UWorld* world = GetWorld();
-  if (world != nullptr)
-  {
-    UARAudioSystem* audioSystem = world->GetGameInstance()->GetSubsystem<UARAudioSystem>();
-    if (audioSystem != nullptr)
+    // 音声データを初期化
+    const UWorld* world = GetWorld();
+    if (world != nullptr)
     {
-      audioSystem->InitializeSounds(/**BGM */ nullptr, /**SE */ SoundEffectData);
+      UARAudioSystem* audioSystem = world->GetGameInstance()->GetSubsystem<UARAudioSystem>();
+      if (audioSystem != nullptr)
+      {
+        audioSystem->InitializeSounds(/**BGM */ nullptr, /**SE */ SoundEffectData);
+      }
     }
-  }
 
-  // BlinkingOutlineWorldSubsystem を取得
+    // BlinkingOutlineWorldSubsystem を取得
 	UBlinkingOutlineWorldSubsystem* WorldSubsystem = GetWorld()->GetSubsystem<UBlinkingOutlineWorldSubsystem>();
 	if (WorldSubsystem != nullptr)
 	{
@@ -82,7 +90,9 @@ void AInsekiGameMode::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
   Super::EndPlay(EndPlayReason);
 
-    ARRanger::Global::UnregisterDebugKey();
+  ARRanger::Global::UnregisterDebugKey();
+
+  UnregisterBattleEventDelegate();
 }
 
 void AInsekiGameMode::InitializeObserver()
@@ -202,8 +212,66 @@ void AInsekiGameMode::OnEnemyKilled()
 	}
 }
 
+/**
+ * @brief バトルイベントが開始した際の処理
+ */
+void AInsekiGameMode::OnStartBattleEvent()
+{
+
+  ACharacter* playerChar = UGameplayStatics::GetPlayerCharacter(this, MAIN_PLAYER_INDEX);
+  if (AARRangerCharacter* arPlayerChar = ::Cast<AARRangerCharacter>(playerChar))
+  {
+      // AnimInstance内の戦闘中フラグを上げる
+      arPlayerChar->SetIsBattledInAnimInstance(true);
+  }
+
+}
+
+/**
+ * @brief バトルイベントが終了した際の処理
+ */
+void AInsekiGameMode::OnEndBattleEvent()
+{
+   ACharacter* playerChar = UGameplayStatics::GetPlayerCharacter(this, MAIN_PLAYER_INDEX);
+   if (AARRangerCharacter* arPlayerChar = ::Cast<AARRangerCharacter>(playerChar))
+   {
+       // AnimInstance内の戦闘中フラグを下げる
+       arPlayerChar->SetIsBattledInAnimInstance(false);
+   }
+}
+
+
 void AInsekiGameMode::HandleGameClear()
 {
     // レベル遷移
     UGameplayStatics::OpenLevel(this, FName("GameClear"));
+}
+
+void AInsekiGameMode::RegisterBattleEventDelegate()
+{
+  TArray<AActor*> eventManager{};
+  UGameplayStatics::GetAllActorsOfClass(this, ABattleEventManager::StaticClass(), eventManager);
+  if (eventManager.Num() > 0)
+  {
+    // Register delegate to first manager we found
+    ABattleEventManager* manager = ::Cast<ABattleEventManager>(eventManager[0]);
+
+    manager->OnAnyFieldBattleStart.AddUniqueDynamic(this, &AInsekiGameMode::OnStartBattleEvent);
+    manager->OnAnyFieldBattleStart.AddUniqueDynamic(this, &AInsekiGameMode::OnEndBattleEvent);
+  }
+  
+}
+
+void AInsekiGameMode::UnregisterBattleEventDelegate()
+{
+  TArray<AActor*> eventManager{};
+  UGameplayStatics::GetAllActorsOfClass(this, ABattleEventManager::StaticClass(), eventManager);
+  if (eventManager.Num() > 0)
+  {
+    // Register delegate to first manager we found
+    ABattleEventManager* manager = ::Cast<ABattleEventManager>(eventManager[0]);
+
+    manager->OnAnyFieldBattleStart.RemoveDynamic(this, &AInsekiGameMode::OnStartBattleEvent);
+    manager->OnAnyFieldBattleStart.RemoveDynamic(this, &AInsekiGameMode::OnEndBattleEvent);
+  }
 }
