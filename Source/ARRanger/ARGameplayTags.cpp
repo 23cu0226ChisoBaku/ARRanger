@@ -6,6 +6,8 @@ namespace ARRanger
 
 namespace GameplayTags
 {
+  UE_DEFINE_GAMEPLAY_TAG_COMMENT(Ability_Attack_Punch, "Ability.Attack.Punch", "Standard punch attack ability");
+  UE_DEFINE_GAMEPLAY_TAG_COMMENT(Ability_Attack_JumpAttack, "Ability.Attack.JumpAttack", "Jump attack ability");
   UE_DEFINE_GAMEPLAY_TAG_COMMENT(Ability_Attack_Punch_Combo1, "Ability.Attack.Punch_Combo1", "Punch (Combo 1) attack ability");
   UE_DEFINE_GAMEPLAY_TAG_COMMENT(Ability_Attack_Punch_Combo2, "Ability.Attack.Punch_Combo2", "Punch (Combo 2) attack ability");
   UE_DEFINE_GAMEPLAY_TAG_COMMENT(Ability_Attack_Punch_Combo3, "Ability.Attack.Punch_Combo3", "Punch (Combo 3) attack ability");

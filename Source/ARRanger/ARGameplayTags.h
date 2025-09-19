@@ -15,6 +15,8 @@ namespace GameplayTags
   extern UE_API FGameplayTag FindExactTagByString(const FString& InTagString);
 
   /**Ability Tags */
+  UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Attack_Punch);
+  UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Attack_JumpAttack);
   UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Attack_Punch_Combo1);
   UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Attack_Punch_Combo2);
   UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Attack_Punch_Combo3);
