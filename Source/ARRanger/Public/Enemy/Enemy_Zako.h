@@ -2,6 +2,7 @@
 
 #include "GameFramework/Character.h"
 #include "BattleSystem/IARAttackable.h" 
+#include "BattleSystem/IARAttackerInterface.h"
 #include "ISpecialAttractInterface.h"
 
 #include "Enemy_Zako.generated.h"
@@ -9,9 +10,10 @@
 #define UE_API ARRANGER_API
 
 UCLASS()
-class ARRANGER_API AEnemy_Zako : public ACharacter, 
-                                public IARAttackable,
-                                public ISpecialAttractInterface
+class ARRANGER_API AEnemy_Zako :  public ACharacter, 
+                                  public IARAttackable,
+                                  public IARAttackerInterface,
+                                  public ISpecialAttractInterface
 {
   GENERATED_BODY()
 

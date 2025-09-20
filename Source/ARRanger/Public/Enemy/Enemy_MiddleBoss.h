@@ -16,6 +16,8 @@ class AEnemy_MiddleBoss : public AEnemy_Zako
 
 public:
 
+  UE_API AEnemy_MiddleBoss();
+
   class UE_API FPreAttackTask
   {
     public:
@@ -49,6 +51,9 @@ public:
 
   UFUNCTION(BlueprintImplementableEvent, Category = "ARRanger|Enemy")
   UE_API void K2_OnPreAttackTaskFinished(EAttackType InAttackType);
+
+  UFUNCTION(BlueprintCallable, Category = "ARRanger|Enemy")
+  UE_API void K2_OnAttackFinished();
 
   UE_API void UpdatePreAttack(float DeltaTime);
 

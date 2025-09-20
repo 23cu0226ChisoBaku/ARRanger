@@ -2,6 +2,7 @@
 
 
 #include "Enemy/Enemy_MiddleBoss.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 #include "Enemy/EnemyAttackTypes.h"
 
@@ -62,6 +63,10 @@ class FPreAttackTask_Roar : public AEnemy_MiddleBoss::FPreAttackTask
 
     void UpdateTask(float DeltaTime) override final;
 };  
+
+AEnemy_MiddleBoss::AEnemy_MiddleBoss()
+{
+}
 
 void AEnemy_MiddleBoss::OnAttackPerformed(EAttackType InAttackType)
 {
@@ -136,6 +141,20 @@ void AEnemy_MiddleBoss::OnPreAttackTaskFinished(EAttackType InAttackType)
   }
 }
 
+void AEnemy_MiddleBoss::K2_OnAttackFinished()
+{
+  if (OnAttackFinished.IsBound())
+  {
+    OnAttackFinished.Broadcast();
+  }
+
+  // TODO
+  if (GetCharacterMovement()->IsFlying())
+  {
+    GetCharacterMovement()->SetMovementMode(MOVE_Walking);
+  }
+}
+
 void FPreAttackTask_Punch::UpdateTask(float DeltaTime)
 {
   if (!m_targetActor.IsValid())
@@ -176,6 +195,8 @@ void FPreAttackTask_JumpAttack::UpdateTask(float DeltaTime)
   else
   {
     SourceBoss->CurrentSpeed = 0.f;
+    // TODO Test
+    SourceBoss->GetCharacterMovement()->SetMovementMode(MOVE_Flying);
     SourceBoss->OnPreAttackTaskFinished(TaskType);
   }
 }

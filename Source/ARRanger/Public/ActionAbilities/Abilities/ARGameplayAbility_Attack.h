@@ -63,7 +63,7 @@ private:
 
 private:
 
-  UPROPERTY(EditDefaultsOnly, Category = "Ability|Attack", meta = (AllowPrivateAccess = "true"))
+  UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ability|Attack", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UAnimMontage> AttackMontage;
 
   // TODO Instead put damage in ability, Maybe it can be put in another structure(GameplayEffect or something else)

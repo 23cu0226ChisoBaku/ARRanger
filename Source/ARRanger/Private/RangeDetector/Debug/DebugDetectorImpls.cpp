@@ -76,17 +76,19 @@
       const FVector coneOrigin = InOriginLocation + CenterPositionOffset;
       const FVector coneDirection = (InOriginRotation + LocalDirectionRotator).Vector();
       const float halfAngleToRad = FMath::DegreesToRadians(ConeAngle) / 2.0f;
+      const double scale = FMath::Max(InOriginScale3D.GetMax(), 1.0);
+
       LineBatch->DrawCone(
                           coneOrigin,
                           coneDirection,
-                          Height,
+                          Height / scale,
                           halfAngleToRad,
                           halfAngleToRad,
                           NumSides,
                           DebugLineColor,
                           0.0f,
                           SDPG_World,
-                          1.0f              // TODO
+                          1.0f / scale             // TODO
                          );
     }
   }
@@ -120,16 +122,18 @@
     {
       const FVector originLoc = InOriginLocation + CenterPositionOffset;
       const FQuat originRot = (InOriginRotation + RotationOffset).Quaternion();
+      // FIXME Why scaling is affected?????
+      const double scale = FMath::Max(InOriginScale3D.GetMax(), 1.0);
 
       LineBatch->DrawCapsule(
                               originLoc,
-                              CapsuleHalfHeight,
-                              CapsuleRadius,
+                              CapsuleHalfHeight / scale,
+                              CapsuleRadius / scale,
                               originRot,
                               DebugLineColor,
                               0.0f,
                               SDPG_World,
-                              1.0f              // TODO
+                              1.0f / scale              // TODO
                             );
     }
   }
@@ -161,15 +165,16 @@
     {
       const int32 segments = 8;
       const FVector originLoc = InOriginLocation + CenterPositionOffset;
+      const double scale = FMath::Max(InOriginScale3D.GetMax(), 1.0);
       
       LineBatch->DrawSphere(
                               originLoc,
-                              SphereRadius,
+                              SphereRadius / scale,
                               segments,
                               DebugLineColor,
                               0.0f,
                               SDPG_World,
-                              1.0f
+                              1.0f / scale
       );
     }
   }

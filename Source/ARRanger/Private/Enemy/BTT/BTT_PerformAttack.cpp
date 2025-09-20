@@ -69,6 +69,9 @@ EBTNodeResult::Type UBTT_PerformAttack::ExecuteTask(UBehaviorTreeComponent& Owne
     break;
   }
 
+  // Notify Boss to perform an attack
+  Boss->OnAttackPerformed(AttackType);
+
   return EBTNodeResult::InProgress;
 }
 

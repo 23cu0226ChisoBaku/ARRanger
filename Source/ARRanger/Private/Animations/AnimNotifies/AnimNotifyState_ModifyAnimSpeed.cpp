@@ -6,6 +6,7 @@
 void UAnimNotifyState_ModifyAnimSpeed::NotifyBegin(USkeletalMeshComponent * MeshComp, UAnimSequenceBase * Animation, float TotalDuration, const FAnimNotifyEventReference& EventReference)
 {
   Super::NotifyBegin(MeshComp, Animation, TotalDuration, EventReference);
+
   if (MeshComp != nullptr)
   {
     UAnimInstance* animInst = MeshComp->GetAnimInstance();
@@ -41,6 +42,8 @@ void UAnimNotifyState_ModifyAnimSpeed::NotifyEnd(USkeletalMeshComponent * MeshCo
       }
     }
   }
+  
+  Super::NotifyEnd(MeshComp, Animation, EventReference);
 }
 FString UAnimNotifyState_ModifyAnimSpeed::GetNotifyName_Implementation() const
 {

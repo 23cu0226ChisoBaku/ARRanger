@@ -26,16 +26,18 @@ AMiddleBossAIController::AMiddleBossAIController()
   SightConfig->SightRadius = 2000.0f;
   SightConfig->LoseSightRadius = 2500.0f;
   SightConfig->PeripheralVisionAngleDegrees = 120.0f;
+
+
 }
 
 void AMiddleBossAIController::BeginPlay()
 {
-    Super::BeginPlay();
+  Super::BeginPlay();
 
-    if (BlackboardAsset && BehaviorTreeAsset)
-    {
-        RunBehaviorTree(BehaviorTreeAsset);
-    }
+  if (BlackboardAsset && BehaviorTreeAsset)
+  {
+    RunBehaviorTree(BehaviorTreeAsset);
+  }
 }
 
 void AMiddleBossAIController::StopChasing()
