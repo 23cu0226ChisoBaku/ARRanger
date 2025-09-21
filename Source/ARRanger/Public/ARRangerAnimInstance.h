@@ -22,4 +22,8 @@ public:
     // 引力クライム中フラグ
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Climb")
     bool IsClimbing = false;
+
+    // 戦闘中フラグ
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Battle")
+    bool bIsBattled = false;
 };

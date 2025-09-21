@@ -33,7 +33,14 @@ public:
      */
     TSet<ESpawnPhase> GetSpawnPhases() const { return m_SpawnPhases; }
 
+    /**
+     * @brief BP側からナイアガラを再生する
+     */
+    UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
+    void PlaySpawnEffect();
+
 private:
+
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spawner", meta = (AllowPrivateAccess = "true"))
     TSubclassOf<AActor> m_SpawnEnemy;   /*スポーンさせる敵*/
 
