@@ -20,17 +20,15 @@
 class UAttackBaseComponent;
 class UAbilitySystemComponent;
 class UAnimMontage;
-class UInputAction;
 class USkeletalMesh;
 class UAttractSpecialAttackComponent;
+class UARHealthComponent;
 
-struct FInputActionValue;
 struct FGameplayTag;
 
 DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);
 
 #define UE_API ARRANGER_API
-
 
 /**
  *  シンプルでプレイヤーが操作可能な三人称視点キャラクター
@@ -133,6 +131,9 @@ public:
   
   UFUNCTION(BlueprintCallable, Category = "InputCallback")
   void SwitchTargetLeft();
+
+  UFUNCTION(BlueprintImplementableEvent, Category = "ARRanger|Transform", meta = (DisplayName = "OnTransformed"))
+  void K2_OnTransformed(USkeletalMesh* NewTransformedMesh);
 
   // 変身の際に呼び出される
 	void Transform();
@@ -285,6 +286,9 @@ private:
 	// 必殺技コンポーネントを取得
 	UPROPERTY()
 	UAttractSpecialAttackComponent* attractSpecialAttackComponent = nullptr;
+
+  UPROPERTY(EditDefaultsOnly, Category = "Character|Parameters", meta = (AllowPrivateAccess = "true"))
+  TObjectPtr<UARHealthComponent> HealthComponent;
 
   // TODO Use to rotate when player is in charge state
   FVector FaceDir_HoldStart;

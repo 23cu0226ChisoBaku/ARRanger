@@ -18,16 +18,20 @@ public:
 
   UE_API AEnemy_MiddleBoss();
 
-  class UE_API FPreAttackTask
+  class UE_API FAttackTask
   {
     public:
-      FPreAttackTask(AEnemy_MiddleBoss* InSourceBoss, EAttackType InTaskType)
+      FAttackTask(AEnemy_MiddleBoss* InSourceBoss, EAttackType InTaskType)
         : SourceBoss{InSourceBoss}
         , TaskType{InTaskType}
-      { }
+      { 
+        check(InSourceBoss != nullptr);
+      }
 
-      virtual ~FPreAttackTask() = default;
+      virtual ~FAttackTask() = default;
       virtual void UpdateTask(float DeltaTime) = 0;
+
+      EAttackType GetTaskType() { return TaskType; }
       uint8 bIsFinished : 1 = false;
       
     protected:
@@ -46,6 +50,11 @@ public:
 
   UE_API virtual void OnPreAttackTaskFinished(EAttackType InAttackType);
 
+  // TODO We create condition task in this class temporary
+  UE_API virtual void AddAttackTaskCondition(EAttackType InAttackType);
+
+  UE_API void OnAttackTaskConditionMet(EAttackType InAttackType);
+
   UFUNCTION(BlueprintImplementableEvent, Category = "ARRanger|Enemy")
   UE_API void K2_OnAttackPerformed(EAttackType InAttackType);
 
@@ -54,6 +63,12 @@ public:
 
   UFUNCTION(BlueprintCallable, Category = "ARRanger|Enemy")
   UE_API void K2_OnAttackFinished();
+
+  UFUNCTION(BlueprintImplementableEvent, Category = "ARRanger|Enemy")
+  UE_API void K2_OnAttackTaskConditionMet(EAttackType InAttackType);
+
+  UFUNCTION(BlueprintImplementableEvent, Category = "ARRanger|Enemy")
+  UE_API void K2_AddAttackTaskCondition(EAttackType InAttackType);
 
   UE_API void UpdatePreAttack(float DeltaTime);
 
@@ -67,6 +82,9 @@ public:
   float PunchRange;
 
   UPROPERTY(EditDefaultsOnly, Category = "Enemy|Attack")
+  float JumpAttackRange;
+
+  UPROPERTY(EditDefaultsOnly, Category = "Enemy|Attack")
   float JumpMoveSpeed;
 
 private:
@@ -74,7 +92,9 @@ private:
   UPROPERTY()
   TObjectPtr<AActor> TargetActor;
 
-  TUniquePtr<FPreAttackTask> Task; 
+  TUniquePtr<FAttackTask> Task; 
+
+  TUniquePtr<FAttackTask> ConditionTask;
 };
 
 #undef UE_API

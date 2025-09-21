@@ -78,8 +78,8 @@ EBTNodeResult::Type UBTT_SelectAttack::ExecuteTask(UBehaviorTreeComponent& Owner
   }
 
   // TODO Perform only punch for test purpose
-  BB->SetValueAsEnum("AttackType", static_cast<uint8>(EAttackType::JumpAttack));
-  BB->SetValueAsEnum("LastAttackType", static_cast<uint8>(EAttackType::JumpAttack));
+  BB->SetValueAsEnum("AttackType", static_cast<uint8>(ChosenAttack));
+  BB->SetValueAsEnum("LastAttackType", static_cast<uint8>(ChosenAttack));
 
   return EBTNodeResult::Succeeded;
 

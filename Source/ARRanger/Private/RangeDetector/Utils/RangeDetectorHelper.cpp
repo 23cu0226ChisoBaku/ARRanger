@@ -34,7 +34,7 @@ URangeDetectorComponent* URangeDetectorHelper::AttachRangeDetector(const FDetect
     return nullptr;
   }
 
-  URangeDetectorComponent* RDC = NewObject<URangeDetectorComponent>(AttachToComponent->GetOwner(), NAME_None, RF_Transient);
+  URangeDetectorComponent* RDC = NewObject<URangeDetectorComponent>(AttachToComponent, NAME_None);
   if (RDC != nullptr)
   {
     RDC->SetupAttachment(AttachToComponent, AttachPointName);

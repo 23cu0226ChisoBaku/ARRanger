@@ -31,6 +31,21 @@ void UARGameInstance::ResetBattleTestStage()
   
 }
 
+void UARGameInstance::SetColorBlindMode(bool bEnabled)
+{
+  if (OnColorBlindModeEnabled.IsBound())
+  {
+    OnColorBlindModeEnabled.Broadcast(bEnabled);
+  }
+
+  bColorBlindModeOn = bEnabled;
+}
+
+bool UARGameInstance::IsColorBlindMode() const
+{
+  return bColorBlindModeOn;
+}
+
 namespace
 {
   void ResetToLevel(const UObject* WorldContextObject, FName LevelName)

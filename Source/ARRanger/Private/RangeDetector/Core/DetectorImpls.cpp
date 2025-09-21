@@ -36,13 +36,14 @@ namespace Detector
     const FVector startPosition = InOriginLocation + InData.CenterPositionOffset;
     const FRotator finalRotation = InOriginRotation + InData.LocalDirectionRotator;
     const float halfAngle = InData.ConeAngle / 2.0f;
+    const float scale = InOriginScale3D.GetMax();
 
     // TODO Channelに変更する
     const int32 resultNum = UCollisionTraceFunctionLibrary::SweepConeMulti(
                               World, 
                               startPosition,
                               finalRotation,
-                              InData.Height,
+                              InData.Height * scale,
                               halfAngle,
                               ignoreActors,
                               hitResults);
@@ -75,6 +76,7 @@ namespace Detector
     ignoreActors.Add(OriginActor);
 
     const FVector startLoc = InOriginLocation + InData.CenterPositionOffset;
+    const float scale = InOriginScale3D.GetMax();
 
     TArray<TEnumAsByte<EObjectTypeQuery>> objTypes{};
     objTypes.Add(UEngineTypes::ConvertToObjectType(ECC_WorldStatic));
@@ -85,8 +87,8 @@ namespace Detector
     const bool bHit = UKismetSystemLibrary::CapsuleOverlapActors(
                         OriginActor,
                         startLoc,
-                        InData.CapsuleRadius,
-                        InData.CapsuleHalfHeight,
+                        InData.CapsuleRadius * scale,
+                        InData.CapsuleHalfHeight * scale,
                         objTypes,
                         nullptr,
                         ignoreActors,
@@ -119,6 +121,7 @@ namespace Detector
     ignoreActors.Add(OriginActor);
 
     const FVector originLoc = InOriginLocation + InData.CenterPositionOffset;
+    const float scale = InOriginScale3D.GetMax();
 
     TArray<TEnumAsByte<EObjectTypeQuery>> objTypes{};
     objTypes.Add(UEngineTypes::ConvertToObjectType(ECC_WorldStatic));
@@ -129,7 +132,7 @@ namespace Detector
     const bool bHit = UKismetSystemLibrary::SphereOverlapActors(
                         OriginActor,
                         InOriginLocation,
-                        InData.SphereRadius,
+                        InData.SphereRadius * scale,
                         objTypes,
                         nullptr,
                         ignoreActors,

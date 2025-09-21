@@ -33,6 +33,8 @@ namespace Battle
    */
   struct FARDamageResult
   {
+    TObjectPtr<AActor> Instigator;
+
     float FinalDamage = 0.0f;
 
     FVector FinalLaunchDirection = FVector::ZeroVector;

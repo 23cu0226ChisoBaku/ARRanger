@@ -88,6 +88,7 @@ bool IARAttackable::AttackTarget(IARAttackerInterface* Attacker, FARAttackParame
 
   /**Handle damage */
   damageResult.FinalLaunchDirection = InAttackParams.LaunchDirection;
+  damageResult.Instigator = (Attacker != nullptr) ? Attacker->GetActor() : nullptr;
   OnDamaged(damageResult);
 
   // Attack success

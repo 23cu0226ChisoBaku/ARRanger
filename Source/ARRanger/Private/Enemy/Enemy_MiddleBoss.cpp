@@ -6,11 +6,11 @@
 
 #include "Enemy/EnemyAttackTypes.h"
 
-class FPreAttackTask_Punch : public AEnemy_MiddleBoss::FPreAttackTask
+class FAttackTask_ApproachTarget : public AEnemy_MiddleBoss::FAttackTask
 {
   public:
-    FPreAttackTask_Punch(AEnemy_MiddleBoss* InSourceBoss, AActor* TargetActor, float InPerformRange)
-      : FPreAttackTask(InSourceBoss, EAttackType::Punch)
+    FAttackTask_ApproachTarget(AEnemy_MiddleBoss* InSourceBoss, AActor* TargetActor, EAttackType InAttackType, float InPerformRange)
+      : FAttackTask(InSourceBoss, InAttackType)
       , m_targetActor{TargetActor}
       , m_performRange{InPerformRange}
     {
@@ -24,16 +24,17 @@ class FPreAttackTask_Punch : public AEnemy_MiddleBoss::FPreAttackTask
     float m_performRange;
 };
 
-class FPreAttackTask_JumpAttack : public AEnemy_MiddleBoss::FPreAttackTask
+class FAttackTask_JumpAttack : public AEnemy_MiddleBoss::FAttackTask
 {
   public:
-    FPreAttackTask_JumpAttack(AEnemy_MiddleBoss* InSourceBoss, AActor* TargetActor, float InJumpMoveSpeed)
-      : FPreAttackTask(InSourceBoss, EAttackType::JumpAttack)
+    FAttackTask_JumpAttack(AEnemy_MiddleBoss* InSourceBoss, AActor* TargetActor, float InJumpMoveSpeed)
+      : FAttackTask(InSourceBoss, EAttackType::JumpAttack)
       , m_targetActor{TargetActor}
       , m_jumpMoveSpeed{InJumpMoveSpeed}
     {
       check(TargetActor != nullptr);
       m_targetLocation = TargetActor->GetActorLocation();
+      SourceBoss->CurrentSpeed = m_jumpMoveSpeed;
     }
 
     void UpdateTask(float DeltaTime) override final;
@@ -44,21 +45,21 @@ class FPreAttackTask_JumpAttack : public AEnemy_MiddleBoss::FPreAttackTask
     FVector m_targetLocation;
 };
 
-class FPreAttackTask_Slammed : public AEnemy_MiddleBoss::FPreAttackTask
+class FAttackTask_PreSlammed : public AEnemy_MiddleBoss::FAttackTask
 {
   public:
-    FPreAttackTask_Slammed(AEnemy_MiddleBoss* InSourceBoss)
-      : FPreAttackTask(InSourceBoss, EAttackType::Slammed)
+    FAttackTask_PreSlammed(AEnemy_MiddleBoss* InSourceBoss)
+      : FAttackTask(InSourceBoss, EAttackType::Slammed)
     { }
 
     void UpdateTask(float DeltaTime) override final;
 };  
 
-class FPreAttackTask_Roar : public AEnemy_MiddleBoss::FPreAttackTask
+class FAttackTask_PreRoar : public AEnemy_MiddleBoss::FAttackTask
 {
   public:
-    FPreAttackTask_Roar(AEnemy_MiddleBoss* InSourceBoss)
-      : FPreAttackTask(InSourceBoss, EAttackType::Roar)
+    FAttackTask_PreRoar(AEnemy_MiddleBoss* InSourceBoss)
+      : FAttackTask(InSourceBoss, EAttackType::Roar)
     { }
 
     void UpdateTask(float DeltaTime) override final;
@@ -78,25 +79,27 @@ void AEnemy_MiddleBoss::OnAttackPerformed(EAttackType InAttackType)
   {
     case EAttackType::Punch:
     {
-      Task = ::MakeUnique<FPreAttackTask_Punch>(this, TargetActor, PunchRange);
+      Task = ::MakeUnique<FAttackTask_ApproachTarget>(this, TargetActor, EAttackType::Punch, PunchRange);
     }
     break;
 
     case EAttackType::JumpAttack:
     {
-      Task = ::MakeUnique<FPreAttackTask_JumpAttack>(this, TargetActor, JumpMoveSpeed);
+      Task = ::MakeUnique<FAttackTask_ApproachTarget>(this, TargetActor, EAttackType::JumpAttack, JumpAttackRange);
+      // TODO Test
+      GetCharacterMovement()->SetMovementMode(MOVE_Flying);
     }
     break;
     
     case EAttackType::Slammed:
     {
-      Task = ::MakeUnique<FPreAttackTask_Slammed>(this);
+      Task = ::MakeUnique<FAttackTask_PreSlammed>(this);
     }
     break;
     
     case EAttackType::Roar:
     {
-      Task = ::MakeUnique<FPreAttackTask_Roar>(this);
+      Task = ::MakeUnique<FAttackTask_PreRoar>(this);
     }
     break;
   }
@@ -106,14 +109,29 @@ void AEnemy_MiddleBoss::UpdatePreAttack(float DeltaTime)
 {
   if (Task.IsValid())
   {
-    if (Task->bIsFinished)
+    if (!Task->bIsFinished)
+    {
+      Task->UpdateTask(DeltaTime);    
+    }
+    else
     {
       Task.Reset();
-      return;
     }
 
-    Task->UpdateTask(DeltaTime);
   }
+
+  if (ConditionTask.IsValid())
+  {
+    if (!ConditionTask->bIsFinished)
+    {
+      ConditionTask->UpdateTask(DeltaTime);
+    }
+    else
+    {
+      ConditionTask.Reset();
+    }
+  }
+
 }
 
 void AEnemy_MiddleBoss::SetTargetActor(AActor* InTargetActor)
@@ -139,6 +157,7 @@ void AEnemy_MiddleBoss::OnPreAttackTaskFinished(EAttackType InAttackType)
   {
     OnPreAttackTaskFinishedEvent.Broadcast(InAttackType);
   }
+ 
 }
 
 void AEnemy_MiddleBoss::K2_OnAttackFinished()
@@ -155,7 +174,36 @@ void AEnemy_MiddleBoss::K2_OnAttackFinished()
   }
 }
 
-void FPreAttackTask_Punch::UpdateTask(float DeltaTime)
+void AEnemy_MiddleBoss::AddAttackTaskCondition(EAttackType InAttackType)
+{
+  if (ConditionTask.IsValid())
+  {
+    ConditionTask.Reset();
+  }
+
+  switch(InAttackType)
+  {
+    case EAttackType::JumpAttack:
+    {
+      ConditionTask = ::MakeUnique<FAttackTask_JumpAttack>(this, TargetActor, JumpMoveSpeed);
+    }
+    break;
+  }
+
+  K2_AddAttackTaskCondition(InAttackType);
+}
+
+void AEnemy_MiddleBoss::OnAttackTaskConditionMet(EAttackType InAttackType)
+{
+  if (ConditionTask.IsValid())
+  {
+    ConditionTask->bIsFinished = true;
+  }
+
+  K2_OnAttackTaskConditionMet(InAttackType);
+}
+
+void FAttackTask_ApproachTarget::UpdateTask(float DeltaTime)
 {
   if (!m_targetActor.IsValid())
   {
@@ -176,39 +224,49 @@ void FPreAttackTask_Punch::UpdateTask(float DeltaTime)
   }
 }
 
-void FPreAttackTask_JumpAttack::UpdateTask(float DeltaTime)
+void FAttackTask_JumpAttack::UpdateTask(float DeltaTime)
 {
   if (!m_targetActor.IsValid())
   {
-    SourceBoss->OnPreAttackTaskFinished(TaskType);
+    SourceBoss->OnAttackTaskConditionMet(TaskType);
     return;
   } 
 
-  const FVector Dir = (m_targetLocation - SourceBoss->GetActorLocation()).GetSafeNormal2D();
-  float Distance = FVector::Dist2D(SourceBoss->GetActorLocation(), m_targetLocation);
+  FVector Dir = (m_targetLocation - SourceBoss->GetActorLocation());
+  Dir.Z = 0.0;
+  if (!Dir.IsNearlyZero())
+  {
+    // We keep its Pitch and Roll
+    const FRotator curtRot = SourceBoss->GetActorRotation();
+    const float dirYaw = Dir.Rotation().Yaw;
+    const FRotator newRot = FRotator{curtRot.Pitch, dirYaw, curtRot.Roll};
+    SourceBoss->SetActorRotation(newRot);
+  }
+
+  const float Distance = FVector::Dist2D(SourceBoss->GetActorLocation(), m_targetLocation);
 
   if (Distance > 50.f)
   {
-    SourceBoss->AddMovementInput(Dir, m_jumpMoveSpeed * DeltaTime);
-    SourceBoss->CurrentSpeed = m_jumpMoveSpeed;
+    const FVector destination = SourceBoss->GetActorLocation() + Dir.GetSafeNormal2D() * m_jumpMoveSpeed * DeltaTime;
+    SourceBoss->SetActorLocation(destination);
   }
   else
   {
     SourceBoss->CurrentSpeed = 0.f;
-    // TODO Test
-    SourceBoss->GetCharacterMovement()->SetMovementMode(MOVE_Flying);
-    SourceBoss->OnPreAttackTaskFinished(TaskType);
+    SourceBoss->OnAttackTaskConditionMet(TaskType);
   }
 }
 
-void FPreAttackTask_Slammed::UpdateTask(float DeltaTime)
+void FAttackTask_PreSlammed::UpdateTask(float DeltaTime)
 {
   // TODO Do nothing
   SourceBoss->OnPreAttackTaskFinished(TaskType);
+  SourceBoss->K2_OnAttackFinished();
 }
 
-void FPreAttackTask_Roar::UpdateTask(float DeltaTime)
+void FAttackTask_PreRoar::UpdateTask(float DeltaTime)
 {
   // TODO Do nothing
   SourceBoss->OnPreAttackTaskFinished(TaskType);
+  SourceBoss->K2_OnAttackFinished();
 }

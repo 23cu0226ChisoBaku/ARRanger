@@ -117,6 +117,7 @@ void AARRangerPlayerController::PostProcessInput(const float DeltaTime, const bo
     ASC->ProcessAbilityInputs(inputProcessParam);
   }
 
+#if WITH_EDITOR
   if (CurrentIMC != nullptr)
   {
     if (GEngine)
@@ -124,7 +125,7 @@ void AARRangerPlayerController::PostProcessInput(const float DeltaTime, const bo
       GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Green, CurrentIMC->GetName());
     }
   }
-
+#endif
 }
 
 void AARRangerPlayerController::OnPossess(APawn* InPawn)
@@ -245,7 +246,11 @@ void AARRangerPlayerController::ClearHoldSpec(const FGA_HoldHandle& InHoldHandle
 void AARRangerPlayerController::SwitchNextIMC(const FGameplayTag& InNextIMCTag)
 {
   check(InputMappingContext != nullptr);
-
+  if (InputMappingContext == nullptr)
+  {
+    return;
+  }
+  
   UInputMappingContext* nextIMC = InputMappingContext->FindIMCWithTag(InNextIMCTag);
   if (nextIMC != nullptr && CurrentIMC != nextIMC)
   {

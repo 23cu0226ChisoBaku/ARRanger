@@ -15,7 +15,14 @@ class UARGameInstance : public UGameInstance
 {
 	GENERATED_BODY()
 
+public:
+  DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnColorBlindModeEnabledDelegate, bool, bEnable);
+  UPROPERTY(BlueprintAssignable)
+  FOnColorBlindModeEnabledDelegate OnColorBlindModeEnabled;
+
   public:
+    UE_API void SetColorBlindMode(bool bEnabled);
+    UE_API bool IsColorBlindMode() const;
     UE_API void ResetGame();
     UE_API void ResetBattleTestStage();
 
@@ -31,6 +38,9 @@ class UARGameInstance : public UGameInstance
 
     // For debug purpose
     FSimpleMulticastDelegate OnReset;
+
+  private:
+    uint8 bColorBlindModeOn : 1 = false;
 };
 
 #undef UE_API

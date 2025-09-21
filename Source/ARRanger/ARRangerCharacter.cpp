@@ -24,8 +24,8 @@
 #include "PunchCameraShake.h"
 #include "Player/ARPlayerState.h"
 #include "PlayerComponents/AttractSpecialAttackComponent.h"
-
 #include "Pawn/ARPawnInitComponent.h"
+#include "Character/ARHealthComponent.h"
 
 #include "MLibrary.h"
 
@@ -63,6 +63,7 @@ AARRangerCharacter::AARRangerCharacter()
 	// 各種コンポーネントを取得
 	LockOnComponent = CreateDefaultSubobject<ULockOnComponent>(TEXT("LockOnComponent"));
 	AttackBaseComp = CreateDefaultSubobject<UAttackBaseComponent>(TEXT("AttackBaseComponent"));
+  HealthComponent = CreateDefaultSubobject<UARHealthComponent>(TEXT("HealthComponent"));
 }
 
 void AARRangerCharacter::PostInitializeComponents()
@@ -474,6 +475,7 @@ void AARRangerCharacter::Transform()
 	if (NewMesh)
 	{
 		GetMesh()->SetSkeletalMesh(NewMesh);
+    K2_OnTransformed(NewMesh);
 	}
 
 	// 変身エフェクトを再生
@@ -589,6 +591,7 @@ void AARRangerCharacter::OnPreAttacked(const FARAttackParameters& InAttackParams
 {
   OutAttackResult.Result = ARRanger::Battle::EARAttackResult::Success;
 }
+
 void AARRangerCharacter::OnPostAttacked(const FARAttackParameters& InAttackParams)
 {
 
@@ -599,6 +602,11 @@ void AARRangerCharacter::OnDamaged(const ARRanger::Battle::FARDamageResult& InDa
   if (GEngine)
   {
     GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("Player On Damaged: [%f]"), InDamageResult.FinalDamage));
+  }
+
+  if (HealthComponent != nullptr)
+  {
+    HealthComponent->HandleHealthChange(InDamageResult.Instigator, InDamageResult.FinalDamage);
   }
 }
 
