@@ -150,11 +150,11 @@ public:
   void OnHoldEnded();
 
 	// 引力用プレイヤーメッシュ
-	UPROPERTY(EditAnywhere, Category = "PlayerMesh")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "PlayerMesh")
 	USkeletalMesh* AttractionMesh;
 
 	// 斥力用プレイヤーメッシュ
-	UPROPERTY(EditAnywhere, Category = "PlayerMesh")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "PlayerMesh")
 	USkeletalMesh* RepulsionMesh;
 
 	// ダッシュ中フラグ

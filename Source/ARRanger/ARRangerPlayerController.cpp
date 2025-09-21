@@ -116,16 +116,6 @@ void AARRangerPlayerController::PostProcessInput(const float DeltaTime, const bo
     inputProcessParam.bGamePaused = bGamePaused;
     ASC->ProcessAbilityInputs(inputProcessParam);
   }
-
-#if WITH_EDITOR
-  if (CurrentIMC != nullptr)
-  {
-    if (GEngine)
-    {
-      GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Green, CurrentIMC->GetName());
-    }
-  }
-#endif
 }
 
 void AARRangerPlayerController::OnPossess(APawn* InPawn)

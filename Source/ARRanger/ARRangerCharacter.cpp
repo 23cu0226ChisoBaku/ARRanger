@@ -616,7 +616,9 @@ void AARRangerCharacter::OnDamaged(const ARRanger::Battle::FARDamageResult& InDa
 
   if (HealthComponent != nullptr)
   {
-    HealthComponent->HandleHealthChange(InDamageResult.Instigator, InDamageResult.FinalDamage);
+    // Value of damage is positive. Make it negative.
+    const float HPChangeValue = -InDamageResult.FinalDamage;
+    HealthComponent->HandleHealthChange(InDamageResult.Instigator, HPChangeValue);
   }
 }
 

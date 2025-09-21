@@ -35,9 +35,14 @@ private:
   void ProcessGameClear();
   void OnResetCommandSent();
 
+  // Enemy Initialization
+  void InitializeOnMapEnemies();
+  void UninitializeAliveEnemies();
+
 public:
 
-	UE_API void OnEnemyKilled(AActor* KilledEnemy);
+  UFUNCTION()
+	UE_API void OnEnemyDead(AActor* InEnemy);
 
 	UPROPERTY(EditAnywhere, Category = "Game")
 	int32 EnemyCount;

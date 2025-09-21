@@ -90,6 +90,7 @@ void AInsekiGameMode::BeginPlay()
 
   InitializeObserver();
   InitializeEvents();
+  InitializeOnMapEnemies();
 
   // 物理システム初期化
   ARRanger::Private::FARPhysicsCore::InitializeARPhysicsInWorldWithActorType(GetWorld(), ProcessorActorClass);
@@ -114,6 +115,7 @@ void AInsekiGameMode::EndPlay(const EEndPlayReason::Type EndPlayReason)
   }
   
   UnregisterBattleEventDelegate();
+  UninitializeAliveEnemies();
 }
 
 void AInsekiGameMode::InitializeObserver()
@@ -193,13 +195,13 @@ void AInsekiGameMode::InitializeObserver()
 
 }
 
-void AInsekiGameMode::OnEnemyKilled(AActor* KilledEnemy)
+void AInsekiGameMode::OnEnemyDead(AActor* InEnemy)
 {
 	(void)EnemyCount--;
 
   if (BossPtr != nullptr)
   {
-    if (KilledEnemy == BossPtr)
+    if (InEnemy == BossPtr)
     {
       ProcessGameClear();
     }
@@ -293,6 +295,17 @@ void AInsekiGameMode::OnResetCommandSent()
   }
 }
 
+void AInsekiGameMode::InitializeOnMapEnemies()
+{
+  TArray<AActor*> onMapEnemies{};
+  UGameplayStatics::GetAllActorsOfClass(this, AEnemy_Zako::StaticClass(), onMapEnemies);
+  for (AActor* foundActorPtr : onMapEnemies)
+  {
+    AEnemy_Zako* enemy = ::Cast<AEnemy_Zako>(foundActorPtr);
+    enemy->OnDead.AddUniqueDynamic(this, &ThisClass::OnEnemyDead);
+  }
+}
+
 void AInsekiGameMode::RegisterBattleEventDelegate()
 {
   TArray<AActor*> eventManager{};
@@ -319,5 +332,16 @@ void AInsekiGameMode::UnregisterBattleEventDelegate()
 
     manager->OnAnyFieldBattleStart.RemoveDynamic(this, &AInsekiGameMode::OnStartBattleEvent);
     manager->OnAnyFieldBattleEnd.RemoveDynamic(this, &AInsekiGameMode::OnEndBattleEvent);
+  }
+}
+
+void AInsekiGameMode::UninitializeAliveEnemies()
+{
+  TArray<AActor*> onMapEnemies{};
+  UGameplayStatics::GetAllActorsOfClass(this, AEnemy_Zako::StaticClass(), onMapEnemies);
+  for (AActor* foundActorPtr : onMapEnemies)
+  {
+    AEnemy_Zako* enemy = ::Cast<AEnemy_Zako>(foundActorPtr);
+    enemy->OnDead.RemoveDynamic(this, &ThisClass::OnEnemyDead);
   }
 }
