@@ -121,6 +121,16 @@ void AARRangerPlayerController::PostProcessInput(const float DeltaTime, const bo
 void AARRangerPlayerController::OnPossess(APawn* InPawn)
 {
   Super::OnPossess(InPawn);
+
+  if (AARPlayerState* ARPS = GetPlayerState<AARPlayerState>())
+  {
+    if (UARPawnInitComponent* PIC = ::Cast<UARPawnInitComponent>(InPawn->GetComponentByClass(UARPawnInitComponent::StaticClass())))
+    {
+      PIC->InitializeAbilitySystem(ARPS->GetARAbilitySystemComponent(), ARPS); 
+  
+      PIC->InitializeChargeAttack(ARPS->GetARChargeAttackComponent());
+    }
+  }
 }
 
 void AARRangerPlayerController::SetupInputComponent()

@@ -20,6 +20,18 @@ AEnemy_Zako::AEnemy_Zako()
 
 }
 
+void AEnemy_Zako::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+  Super::EndPlay(EndPlayReason);
+
+  // Destroy AIController
+  if (AController* controller = GetController())
+  {
+    controller->UnPossess();
+    controller->Destroy();
+  }
+}
+
 void AEnemy_Zako::SetIsChasing(bool bChasing)
 {
   if (UEnemyAnimInstance* Anim = Cast<UEnemyAnimInstance>(GetMesh()->GetAnimInstance()))

@@ -37,34 +37,13 @@ void AARPlayerState::PostInitializeComponents()
 {
   Super::PostInitializeComponents();
 
-
+  check(AbilitySystemComponent != nullptr);
+  AbilitySystemComponent->InitAbilityActorInfo(this, GetPawn());
 }
 
 void AARPlayerState::BeginPlay()
 {
   Super::BeginPlay();
-
-  check(AbilitySystemComponent != nullptr);
-
-  if (APawn* avatarPawn = GetPawn())
-  {
-    if (UARPawnInitComponent* PIC = ::Cast<UARPawnInitComponent>(avatarPawn->GetComponentByClass(UARPawnInitComponent::StaticClass())))
-    {
-      PIC->InitializeAbilitySystem(GetARAbilitySystemComponent(), this); 
-  
-      PIC->InitializeChargeAttack(GetARChargeAttackComponent());
-
-      UE_LOG(LogTemp, Error, TEXT("PIC Initialized"));
-    }
-    else
-    {
-      if (GEngine)
-      {
-        GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Cyan, FString::Printf(TEXT("Can not find PIC in pawn: [%s]"), *avatarPawn->GetName()));
-      }
-    }
-  }
-  
 }
 
 

@@ -30,6 +30,10 @@ public:
 
   UE_API void SetIsChasing(bool bChasing);
 
+  /**Start AActor Interface */
+  UE_API virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+  /**End AActor Interface */
+
 protected:
   UE_API virtual void ReceiveDamage(AActor* InInstigator, float DamageAmount);
 
