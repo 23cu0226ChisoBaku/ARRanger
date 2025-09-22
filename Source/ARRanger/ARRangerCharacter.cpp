@@ -27,6 +27,7 @@
 #include "Sound/SoundBase.h"
 
 #include "Pawn/ARPawnInitComponent.h"
+#include "Character/ARHealthComponent.h"
 
 #include "MLibrary.h"
 
@@ -64,6 +65,7 @@ AARRangerCharacter::AARRangerCharacter()
 	// 各種コンポーネントを取得
 	LockOnComponent = CreateDefaultSubobject<ULockOnComponent>(TEXT("LockOnComponent"));
 	AttackBaseComp = CreateDefaultSubobject<UAttackBaseComponent>(TEXT("AttackBaseComponent"));
+  HealthComponent = CreateDefaultSubobject<UARHealthComponent>(TEXT("HealthComponent"));
 }
 
 void AARRangerCharacter::PostInitializeComponents()
@@ -111,6 +113,8 @@ void AARRangerCharacter::BeginPlay()
   }
 
   attractSpecialAttackComponent = FindComponentByClass<UAttractSpecialAttackComponent>();
+
+  SetMagnetismType(EARMagnetismType::Repulsion);
 }
 
 // 麦
@@ -352,16 +356,6 @@ void AARRangerCharacter::StartClimbing(AInsekiClimbingObject* ClimbActor)
 	{
 		// 壁の法線を保存
 		wallNormal = HitResult.ImpactNormal;
-
-		// UpをwallNormalにする
-		//FVector Up = wallNormal;
-
-		//// 前方向を作成（Up とワールド右ベクトルから計算）
-		//FVector Forward = FVector::CrossProduct(Up, FVector::RightVector).GetSafeNormal();
-
-		//// 回転を作成
-		//const FRotator NewRot = FRotationMatrix::MakeFromXZ(Forward, Up).Rotator();
-		//SetActorRotation(NewRot);
 	}
 }
 
@@ -481,20 +475,24 @@ void AARRangerCharacter::Transform()
 		return;
 	}
 
+  const EARMagnetismType prevType = GetMagnetismType();
 	// 現在と別のモードに変身
 	SetMagnetismType(
-		(GetMagnetismType() == EARMagnetismType::Attraction)
-		? EARMagnetismType::Repulsion
-		: EARMagnetismType::Attraction);
+		(prevType == EARMagnetismType::Repulsion)
+		? EARMagnetismType::Attraction
+		: EARMagnetismType::Repulsion);
+
+  const EARMagnetismType curtType = GetMagnetismType();
 
 	// メッシュを別モードに変更
-	USkeletalMesh* NewMesh = (GetMagnetismType() == EARMagnetismType::Repulsion)
+	USkeletalMesh* NewMesh = (curtType == EARMagnetismType::Repulsion)
 		? RepulsionMesh
 		: AttractionMesh;
 
 	if (NewMesh)
 	{
 		GetMesh()->SetSkeletalMesh(NewMesh);
+    K2_OnTransformed(NewMesh, curtType);
 	}
 
 	// 変身エフェクトを再生
@@ -618,6 +616,33 @@ void AARRangerCharacter::OnRepulsionEvaluated(const FARMagneticForceResult& Resu
   LaunchCharacter(Result.FinalForce, true, false);
 }
 
+/**Start IARAttackable implementation */
+bool AARRangerCharacter::CanAttack()
+{
+  return true;
+}
+
+void AARRangerCharacter::OnPreAttacked(const FARAttackParameters& InAttackParams, ARRanger::Battle::FARAttackResult& OutAttackResult)
+{
+  OutAttackResult.Result = ARRanger::Battle::EARAttackResult::Success;
+}
+
+void AARRangerCharacter::OnPostAttacked(const FARAttackParameters& InAttackParams)
+{
+
+}
+
+void AARRangerCharacter::OnDamaged(const ARRanger::Battle::FARDamageResult& InDamageResult)
+{
+  if (HealthComponent != nullptr)
+  {
+    // Value of damage is positive. Make it negative
+    const float HPChangeValue = -InDamageResult.FinalDamage;
+    HealthComponent->HandleHealthChange(InDamageResult.Instigator, HPChangeValue);
+  }
+}
+
+/**End IARAttackable implementation */
 
 /**Start IARAttackerInterface implementation */
 #pragma region IARAttackerInterface implementation
@@ -632,8 +657,6 @@ void AARRangerCharacter::OnNotifyAttackResult_Success(const ARRanger::Battle::FA
     OnPlayerHit.Broadcast(GetActorLocation());
   }
 }
-
-
 
 #pragma endregion IARAttackerInterface implementation
 /**End IARAttackerInterface implementation */

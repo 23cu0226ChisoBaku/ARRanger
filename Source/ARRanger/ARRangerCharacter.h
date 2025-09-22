@@ -90,6 +90,7 @@ private:
 	FVector wallNormal;
 
 	// 引力クライムオブジェクトに触れた際に呼び出される
+  UFUNCTION()
 	void OnClimbSurfaceOverlap(
 		UPrimitiveComponent* OverlappedComp,
 		AActor* OtherActor,
