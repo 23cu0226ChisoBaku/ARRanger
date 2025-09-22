@@ -133,7 +133,7 @@ public:
   void SwitchTargetLeft();
 
   UFUNCTION(BlueprintImplementableEvent, Category = "ARRanger|Transform", meta = (DisplayName = "OnTransformed"))
-  void K2_OnTransformed(USkeletalMesh* NewTransformedMesh);
+  void K2_OnTransformed(USkeletalMesh* NewTransformedMesh, EARMagnetismType NewType);
 
   // 変身の際に呼び出される
   void Transform();

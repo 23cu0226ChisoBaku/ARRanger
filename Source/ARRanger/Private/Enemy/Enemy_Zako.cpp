@@ -102,7 +102,7 @@ bool AEnemy_Zako::CanAttack()
 
 void AEnemy_Zako::OnPreAttacked(const FARAttackParameters& InAttackParams,ARRanger::Battle::FARAttackResult& OutAttackResult)
 {
-  if (IsDead())
+  if (IsDead() && (InAttackParams.Instigator != nullptr) && InAttackParams.Instigator->IsA(this->StaticClass()))
   {
     OutAttackResult.Result = ARRanger::Battle::EARAttackResult::Inmune;
     return;

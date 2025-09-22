@@ -467,15 +467,16 @@ void AARRangerCharacter::Transform()
 		? EARMagnetismType::Repulsion
 		: EARMagnetismType::Attraction);
 
+  const EARMagnetismType curtType = GetMagnetismType();
 	// メッシュを別モードに変更
-	USkeletalMesh* NewMesh = (GetMagnetismType() == EARMagnetismType::Repulsion)
+	USkeletalMesh* NewMesh = (curtType == EARMagnetismType::Repulsion)
 		? RepulsionMesh
 		: AttractionMesh;
 
 	if (NewMesh)
 	{
 		GetMesh()->SetSkeletalMesh(NewMesh);
-    K2_OnTransformed(NewMesh);
+    K2_OnTransformed(NewMesh, curtType);
 	}
 
 	// 変身エフェクトを再生
