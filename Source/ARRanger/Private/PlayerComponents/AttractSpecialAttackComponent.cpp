@@ -48,6 +48,14 @@ void UAttractSpecialAttackComponent::TickComponent(float DeltaTime, ELevelTick T
 		}
 	}
 }
+void UAttractSpecialAttackComponent::EndPlay(const EEndPlayReason::Type endPlayReason)
+{
+	/*タイマーハンドルの解除*/
+	if (GetWorld() != nullptr && m_DelayTimerHandle.IsValid())
+	{
+		GetWorld()->GetTimerManager().ClearTimer(m_DelayTimerHandle);
+	}
+}
 
 /**
  * @brief 引力必殺技を始めた際の処理
@@ -92,12 +100,15 @@ void UAttractSpecialAttackComponent::OnStartSpecialAttract()
 		}
 	});
 
-	GetWorld()->GetTimerManager().SetTimer(
+	if(GetWorld() != nullptr)
+	{
+		GetWorld()->GetTimerManager().SetTimer(
 		m_DelayTimerHandle,
 		TimerDelegate,
 		m_AttractTimeInterval,
 		false
-	);
+		);
+	}
 
 	/*プレイヤーの向きを修正*/
 	const FRotator newFaceDir = GetPlayerCameraRotation().Rotation();
