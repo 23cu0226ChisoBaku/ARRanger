@@ -17,12 +17,13 @@
 
 #include "ARRangerCharacter.generated.h"
 
-class UAttackBaseComponent;
 class UAbilitySystemComponent;
 class UAnimMontage;
+class UAttackBaseComponent;
+class UAttractSpecialAttackComponent;
+class UForceFeedbackEffect;
 class UInputAction;
 class USkeletalMesh;
-class UAttractSpecialAttackComponent;
 
 struct FInputActionValue;
 struct FGameplayTag;
@@ -90,6 +91,7 @@ private:
 	FVector wallNormal;
 
 	// 引力クライムオブジェクトに触れた際に呼び出される
+	UFUNCTION()
 	void OnClimbSurfaceOverlap(
 		UPrimitiveComponent* OverlappedComp,
 		AActor* OtherActor,
@@ -161,13 +163,21 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<ULockOnComponent> LockOnComponent;
 
+	// 一定の落下時間を設定(落下時間がこの値を超えると着地時に振動が発生)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sound")
+	float MinFallTimeForFeedback = 0.0f;
+
 	// 変身時のサウンド
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sound")
 	USoundBase* SE_Transform;
 
-	// 引力クライム時のアニメーションモンタージュ
-	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gravity")
-	//UAnimMontage* Montage_AttractionClimb;
+	// 攻撃時のフォースフィードバックエフェクトを設定
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Feedback")
+	UForceFeedbackEffect* FFE_Attack;
+
+	// 着地時のフォースフィードバックエフェクトを設定
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Feedback")
+	UForceFeedbackEffect* FFE_Landed;
 
 public:
 	virtual void Tick(float DeltaTime) override;
