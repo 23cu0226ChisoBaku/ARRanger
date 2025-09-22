@@ -24,6 +24,7 @@
 #include "PunchCameraShake.h"
 #include "Player/ARPlayerState.h"
 #include "PlayerComponents/AttractSpecialAttackComponent.h"
+#include "Sound/SoundBase.h"
 
 #include "Pawn/ARPawnInitComponent.h"
 
@@ -174,6 +175,18 @@ void AARRangerCharacter::Tick(float DeltaTime)
 		}
 	}
 
+	// 今フレームで重なってるコンポーネントを取得
+	TArray<UPrimitiveComponent*> OverlappingComps;
+	GetOverlappingComponents(OverlappingComps);
+
+	for (UPrimitiveComponent* Comp : OverlappingComps)
+	{
+		if (AInsekiClimbingObject* Surface = Cast<AInsekiClimbingObject>(Comp->GetOwner()))
+		{
+			// OnClimbSurfaceOverlap を手動で呼ぶ
+			StartClimbing(Surface);
+		}
+	}
 	// 引力クライム中に処理
 	if (bIsClimbed)
 	{
@@ -498,6 +511,14 @@ void AARRangerCharacter::Transform()
 			ENCPoolMethod::AutoRelease
 		);
 	}
+
+	// 変身音を再生
+	UGameplayStatics::PlaySound2D(
+		GetWorld(),
+		SE_Transform,
+		1.0f,   // VolumeMultiplier
+		1.0f    // PitchMultiplier
+	);
 }
 
 bool AARRangerCharacter::CanSpecialAttractAttack()
