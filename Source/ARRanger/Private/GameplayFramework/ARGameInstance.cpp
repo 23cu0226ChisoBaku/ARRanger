@@ -6,7 +6,7 @@
 
 namespace
 {
-  void ResetToLevel(const UObject* WorldContextObject, FName LevelName);
+  void LoadLevel(const UObject* WorldContextObject, FName LevelName);
 }
 
 void UARGameInstance::ResetGame()
@@ -16,7 +16,7 @@ void UARGameInstance::ResetGame()
     OnReset.Broadcast();
   }
   
-  ResetToLevel(this, ResetGameLevelName);
+  LoadLevel(this, ResetGameLevelName);
 
 }
 
@@ -27,8 +27,18 @@ void UARGameInstance::ResetBattleTestStage()
     OnReset.Broadcast();
   }
 
-  ResetToLevel(this, ResetBattleTestStageLevelName);
+  LoadLevel(this, ResetBattleTestStageLevelName);
   
+}
+
+void UARGameInstance::ProcessGameClear()
+{
+  LoadLevel(this, GameClearLevelName);
+}
+
+void UARGameInstance::ProcessGameOver()
+{
+  LoadLevel(this, GameOverLevelName);
 }
 
 void UARGameInstance::SetColorBlindMode(bool bEnabled)
@@ -48,7 +58,7 @@ bool UARGameInstance::IsColorBlindMode() const
 
 namespace
 {
-  void ResetToLevel(const UObject* WorldContextObject, FName LevelName)
+  void LoadLevel(const UObject* WorldContextObject, FName LevelName)
   {
     if (GEngine != nullptr)
     {

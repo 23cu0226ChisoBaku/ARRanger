@@ -25,6 +25,8 @@ public:
     UE_API bool IsColorBlindMode() const;
     UE_API void ResetGame();
     UE_API void ResetBattleTestStage();
+    UE_API void ProcessGameClear();
+    UE_API void ProcessGameOver();
 
   public:
     UPROPERTY(EditDefaultsOnly)
@@ -35,6 +37,12 @@ public:
 
     UPROPERTY(EditDefaultsOnly)
     FName ResetBattleTestStageLevelName;
+
+    UPROPERTY(EditDefaultsOnly)
+    FName GameClearLevelName;
+
+    UPROPERTY(EditDefaultsOnly)
+    FName GameOverLevelName;
 
     // For debug purpose
     FSimpleMulticastDelegate OnReset;

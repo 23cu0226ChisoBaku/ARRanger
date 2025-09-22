@@ -26,6 +26,7 @@
 #include "GameplayFramework/ARGameInstance.h"
 #include "Enemy/Enemy_MiddleBoss.h"
 #include "BattleEvent/BattleEventManager.h"
+#include "BattleEvent/EnemySpawner.h"
 
 // TODO May move initialize function to another file
 #include "Physics/IARPhysicsSystemHost.h"
@@ -36,7 +37,8 @@ namespace
 }
 
 AInsekiGameMode::AInsekiGameMode()
-  : bGameClearHandled{false}
+  : bGameResultHandled{false}
+  , GameResultTimerHandle{}
 {
   ProcessorActorClass = AARPhysicsTickProcessorActor::StaticClass();
   DefaultPawnClass = AARRangerCharacter::StaticClass();
@@ -47,31 +49,23 @@ void AInsekiGameMode::BeginPlay()
 {
 	Super::BeginPlay();
 
-  GameClearTimerHandle.Invalidate();
+  GameResultTimerHandle.Invalidate();
   // Register GameInstance OnReset
   if (UARGameInstance* ARGI = ::Cast<UARGameInstance>(GetGameInstance()))
   {
     ARGI->OnReset.AddUObject(this, &ThisClass::OnResetCommandSent);
   }
 
-	// 敵を取得しておく
-	TArray<AActor*> FoundEnemies;
-	UGameplayStatics::GetAllActorsWithTag(GetWorld(), FName("Enemy"), FoundEnemies);
-
-	EnemyCount = FoundEnemies.Num();
-
-	UE_LOG(LogTemp, Warning, TEXT("Initial Enemy Count: %d"), EnemyCount);
-
-    // 音声データを初期化
-    const UWorld* world = GetWorld();
-    if (world != nullptr)
+  // 音声データを初期化
+  const UWorld* world = GetWorld();
+  if (world != nullptr)
+  {
+    UARAudioSystem* audioSystem = world->GetGameInstance()->GetSubsystem<UARAudioSystem>();
+    if (audioSystem != nullptr)
     {
-      UARAudioSystem* audioSystem = world->GetGameInstance()->GetSubsystem<UARAudioSystem>();
-      if (audioSystem != nullptr)
-      {
-        audioSystem->InitializeSounds(/**BGM */ nullptr, /**SE */ SoundEffectData);
-      }
+      audioSystem->InitializeSounds(/**BGM */ nullptr, /**SE */ SoundEffectData);
     }
+  }
 
     // BlinkingOutlineWorldSubsystem を取得
 	UBlinkingOutlineWorldSubsystem* WorldSubsystem = GetWorld()->GetSubsystem<UBlinkingOutlineWorldSubsystem>();
@@ -116,6 +110,7 @@ void AInsekiGameMode::EndPlay(const EEndPlayReason::Type EndPlayReason)
   
   UnregisterBattleEventDelegate();
   UninitializeAliveEnemies();
+  UninitializeEvents();
 }
 
 void AInsekiGameMode::InitializeObserver()
@@ -203,13 +198,9 @@ void AInsekiGameMode::OnEnemyDead(AActor* InEnemy)
   {
     if (InEnemy == BossPtr)
     {
-      ProcessGameClear();
+      ProcessGameResult(GameClear);
     }
   }
-	else if (EnemyCount <= 0)
-	{
-		ProcessGameClear();
-	}
 }
 
 /**
@@ -250,12 +241,21 @@ void AInsekiGameMode::InitializeEvents()
     BossPtr = boss;
   }
 
-  bGameClearHandled = false;
+  bGameResultHandled = false;
+
+  TArray<AActor*> allSpawners{};
+  UGameplayStatics::GetAllActorsOfClass(this, AEnemySpawner::StaticClass(), allSpawners);
+  for (AActor* spawnerActor : allSpawners)
+  {
+    AEnemySpawner* spawner = ::Cast<AEnemySpawner>(spawnerActor);
+    spawner->GetSpawnedActorDelegate.AddUObject(this, &ThisClass::OnEnemySpawned);
+  }
+
 }
 
-void AInsekiGameMode::ProcessGameClear()
+void AInsekiGameMode::ProcessGameResult(EGameResultState ResultState)
 {
-  if (bGameClearHandled)
+  if (bGameResultHandled)
   {
     return;
   }
@@ -277,21 +277,37 @@ void AInsekiGameMode::ProcessGameClear()
   }
 
   // Set clear timer
-  auto gameClearHandler = [this]()
+  auto gameResultHandler = [this, ResultState]()
   {
-    UGameplayStatics::OpenLevel(this, FName("GameClear"));
+    if (UARGameInstance* gameInst = this->GetGameInstance<UARGameInstance>())
+    {
+      switch (ResultState)
+      {
+        case GameClear:
+        {
+          gameInst->ProcessGameClear();
+        }
+        break;
+
+        case GameOver:
+        {
+          gameInst->ProcessGameOver();
+        }
+        break;
+      }
+    }
   };
 
-  GetWorldTimerManager().SetTimer(GameClearTimerHandle, gameClearHandler, 3.0f, false);
-  bGameClearHandled = true;
+  GetWorldTimerManager().SetTimer(GameResultTimerHandle, gameResultHandler, 3.0f, false);
+  bGameResultHandled = true;
 }
 
 void AInsekiGameMode::OnResetCommandSent()
 {
-  if (GameClearTimerHandle.IsValid())
+  if (GameResultTimerHandle.IsValid())
   {
-    GetWorldTimerManager().ClearTimer(GameClearTimerHandle);
-    GameClearTimerHandle.Invalidate();
+    GetWorldTimerManager().ClearTimer(GameResultTimerHandle);
+    GameResultTimerHandle.Invalidate();
   }
 }
 
@@ -343,5 +359,35 @@ void AInsekiGameMode::UninitializeAliveEnemies()
   {
     AEnemy_Zako* enemy = ::Cast<AEnemy_Zako>(foundActorPtr);
     enemy->OnDead.RemoveDynamic(this, &ThisClass::OnEnemyDead);
+  }
+}
+
+void AInsekiGameMode::OnEnemySpawned(AActor* InSpawnedEnemy)
+{
+  if (InSpawnedEnemy == nullptr)
+  {
+    return;
+  }
+
+  if (AEnemy_Zako* enemy = ::Cast<AEnemy_Zako>(InSpawnedEnemy))
+  {
+    ++EnemyCount;
+    enemy->OnDead.AddUniqueDynamic(this, &ThisClass::OnEnemyDead);
+
+    if (AEnemy_MiddleBoss* middleBoss = ::Cast<AEnemy_MiddleBoss>(enemy))
+    {
+      BossPtr = middleBoss;
+    }
+  }
+}
+
+void AInsekiGameMode::UninitializeEvents()
+{
+  TArray<AActor*> allSpawners{};
+  UGameplayStatics::GetAllActorsOfClass(this, AEnemySpawner::StaticClass(), allSpawners);
+  for (AActor* spawnerActor : allSpawners)
+  {
+    AEnemySpawner* spawner = ::Cast<AEnemySpawner>(spawnerActor);
+    spawner->GetSpawnedActorDelegate.RemoveAll(this);
   }
 }
