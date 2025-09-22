@@ -19,6 +19,7 @@ public:
 	UAttractSpecialAttackComponent();
 	virtual void BeginPlay() override;
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+	virtual void EndPlay(const EEndPlayReason::Type endPlayReason) override;
 
 	/**
 	 * @brief コンポーネント所有者についているカメラコンポ―ネントを取得する関数

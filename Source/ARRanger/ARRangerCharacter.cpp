@@ -24,8 +24,9 @@
 #include "PunchCameraShake.h"
 #include "Player/ARPlayerState.h"
 #include "PlayerComponents/AttractSpecialAttackComponent.h"
+#include "Sound/SoundBase.h"
+
 #include "Pawn/ARPawnInitComponent.h"
-#include "Character/ARHealthComponent.h"
 
 #include "MLibrary.h"
 
@@ -63,7 +64,6 @@ AARRangerCharacter::AARRangerCharacter()
 	// 各種コンポーネントを取得
 	LockOnComponent = CreateDefaultSubobject<ULockOnComponent>(TEXT("LockOnComponent"));
 	AttackBaseComp = CreateDefaultSubobject<UAttackBaseComponent>(TEXT("AttackBaseComponent"));
-  HealthComponent = CreateDefaultSubobject<UARHealthComponent>(TEXT("HealthComponent"));
 }
 
 void AARRangerCharacter::PostInitializeComponents()
@@ -99,10 +99,18 @@ void AARRangerCharacter::BeginPlay()
   GetCapsuleComponent()->OnComponentEndOverlap.AddDynamic(this, &AARRangerCharacter::OnMagneticForceFieldEndOverlap);
   GetCapsuleComponent()->OnComponentHit.AddDynamic(this, &AARRangerCharacter::OnMagnetizedObjectHit);
 
-  attractSpecialAttackComponent = FindComponentByClass<UAttractSpecialAttackComponent>();
+  // TODO Temporary
+  if (AARPlayerState* ARPS = GetPlayerState<AARPlayerState>())
+  {
+    if (UARPawnInitComponent* PIC = ::Cast<UARPawnInitComponent>(GetComponentByClass(UARPawnInitComponent::StaticClass())))
+    {
+      PIC->InitializeAbilitySystem(ARPS->GetARAbilitySystemComponent(), ARPS); 
 
-  // Set Repulsion as default state
-  SetMagnetismType(EARMagnetismType::Repulsion);
+      PIC->InitializeChargeAttack(ARPS->GetARChargeAttackComponent());
+    }
+  }
+
+  attractSpecialAttackComponent = FindComponentByClass<UAttractSpecialAttackComponent>();
 }
 
 // 麦
@@ -167,6 +175,18 @@ void AARRangerCharacter::Tick(float DeltaTime)
 		}
 	}
 
+	// 今フレームで重なってるコンポーネントを取得
+	TArray<UPrimitiveComponent*> OverlappingComps;
+	GetOverlappingComponents(OverlappingComps);
+
+	for (UPrimitiveComponent* Comp : OverlappingComps)
+	{
+		if (AInsekiClimbingObject* Surface = Cast<AInsekiClimbingObject>(Comp->GetOwner()))
+		{
+			// OnClimbSurfaceOverlap を手動で呼ぶ
+			StartClimbing(Surface);
+		}
+	}
 	// 引力クライム中に処理
 	if (bIsClimbed)
 	{
@@ -467,16 +487,14 @@ void AARRangerCharacter::Transform()
 		? EARMagnetismType::Repulsion
 		: EARMagnetismType::Attraction);
 
-  const EARMagnetismType curtType = GetMagnetismType();
 	// メッシュを別モードに変更
-	USkeletalMesh* NewMesh = (curtType == EARMagnetismType::Repulsion)
+	USkeletalMesh* NewMesh = (GetMagnetismType() == EARMagnetismType::Repulsion)
 		? RepulsionMesh
 		: AttractionMesh;
 
 	if (NewMesh)
 	{
 		GetMesh()->SetSkeletalMesh(NewMesh);
-    K2_OnTransformed(NewMesh, curtType);
 	}
 
 	// 変身エフェクトを再生
@@ -493,6 +511,14 @@ void AARRangerCharacter::Transform()
 			ENCPoolMethod::AutoRelease
 		);
 	}
+
+	// 変身音を再生
+	UGameplayStatics::PlaySound2D(
+		GetWorld(),
+		SE_Transform,
+		1.0f,   // VolumeMultiplier
+		1.0f    // PitchMultiplier
+	);
 }
 
 bool AARRangerCharacter::CanSpecialAttractAttack()
@@ -592,39 +618,6 @@ void AARRangerCharacter::OnRepulsionEvaluated(const FARMagneticForceResult& Resu
   LaunchCharacter(Result.FinalForce, true, false);
 }
 
-/**Start IARAttackable implementation */
-bool AARRangerCharacter::CanAttack()
-{
-  return true;
-}
-
-void AARRangerCharacter::OnPreAttacked(const FARAttackParameters& InAttackParams, ARRanger::Battle::FARAttackResult& OutAttackResult)
-{
-  OutAttackResult.Result = ARRanger::Battle::EARAttackResult::Success;
-}
-
-void AARRangerCharacter::OnPostAttacked(const FARAttackParameters& InAttackParams)
-{
-
-}
-
-void AARRangerCharacter::OnDamaged(const ARRanger::Battle::FARDamageResult& InDamageResult)
-{
-  if (GEngine)
-  {
-    GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("Player On Damaged: [%f]"), InDamageResult.FinalDamage));
-  }
-
-  if (HealthComponent != nullptr)
-  {
-    // Value of damage is positive. Make it negative.
-    const float HPChangeValue = -InDamageResult.FinalDamage;
-    HealthComponent->HandleHealthChange(InDamageResult.Instigator, HPChangeValue);
-  }
-}
-
-/**End IARAttackable implementation */
-
 
 /**Start IARAttackerInterface implementation */
 #pragma region IARAttackerInterface implementation
@@ -639,6 +632,8 @@ void AARRangerCharacter::OnNotifyAttackResult_Success(const ARRanger::Battle::FA
     OnPlayerHit.Broadcast(GetActorLocation());
   }
 }
+
+
 
 #pragma endregion IARAttackerInterface implementation
 /**End IARAttackerInterface implementation */
