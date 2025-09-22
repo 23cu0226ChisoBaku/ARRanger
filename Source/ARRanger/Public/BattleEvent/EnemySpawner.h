@@ -6,10 +6,13 @@
 
 #include "CoreMinimal.h"
 #include "Public/BattleEvent/SpawnPhase.h"
+#include "Delegates/DelegateCombinations.h"
 #include "EnemySpawner.generated.h"
 
 /*前方宣言*/
 class FOnEnemyDestroyed;
+
+DECLARE_MULTICAST_DELEGATE_OneParam(FGetSpawnActorDelegate, AActor*);
 
 UCLASS()
 class AEnemySpawner : public AActor
@@ -38,6 +41,9 @@ public:
      */
     UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
     void PlaySpawnEffect();
+
+    /*スポーンしたアクターを受け渡す (for 麦)*/
+    FGetSpawnActorDelegate GetSpawnedActorDelegate;
 
 private:
 

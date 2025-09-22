@@ -40,6 +40,8 @@ void AEnemySpawner::SpawnEnemy(const FScriptDelegate& onDestroyedCallback)
         return;
     }
 
-    /*OnDestroyed デリゲートに登録*/
+    /*関数呼び出し*/
+    GetSpawnedActorDelegate.Broadcast(enemyActor);
+    /*デリゲートに登録*/
     enemyActor->OnDestroyed.Add(onDestroyedCallback);
 }
