@@ -2,7 +2,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Enemy/EnemyAttackTypes.h" // © EAttackType—ñ‹“Œ^‚ğ’è‹`‚µ‚Ä‚¢‚éƒtƒ@ƒCƒ‹
+#include "Enemy/EnemyAttackTypes.h" // ï¿½ï¿½ EAttackTypeï¿½ñ‹“Œ^ï¿½ï¿½ï¿½`ï¿½ï¿½ï¿½Ä‚ï¿½ï¿½ï¿½tï¿½@ï¿½Cï¿½ï¿½
 #include "BehaviorTree/BTTaskNode.h"
 #include "BTT_SelectAttack.generated.h"
 
@@ -17,11 +17,11 @@ public:
 	virtual EBTNodeResult::Type ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;
 
 protected:
-	// ƒ‰ƒ“ƒ_ƒ€‘I‘ğ‚Ég‚¤UŒ‚ƒŠƒXƒg
+
 	UPROPERTY(EditAnywhere, Category = "Attack")
 	TArray<EAttackType> CandidateAttacks;
 
-	// d‚İ•t‚«‘I‘ğ‚Ég‚¤ê‡
+
 	UPROPERTY(EditAnywhere, Category = "Attack")
 	TMap<EAttackType, float> WeightedAttacks;
 };

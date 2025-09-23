@@ -7,222 +7,120 @@
 
 UBTT_PerformAttack::UBTT_PerformAttack()
 {
-    NodeName = TEXT("Perform Attack");
-    bNotifyTick = true;
-    bHasStartedJump = false;
-    bIsMovingToTarget = false;
+  NodeName = TEXT("Perform Attack");
+  bNotifyTick = true;
 }
 
 EBTNodeResult::Type UBTT_PerformAttack::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
-    CachedOwnerComp = &OwnerComp;
-    CachedAICon = OwnerComp.GetAIOwner();
-    if (!CachedAICon) return EBTNodeResult::Failed;
+  if ((OwnerComp.GetAIOwner() == nullptr) ||
+      (OwnerComp.GetBlackboardComponent() == nullptr)
+    )
+  {
+    return EBTNodeResult::Failed;
+  }
+  
+  CachedOwnerComp = &OwnerComp;
+  CachedAICon = OwnerComp.GetAIOwner();
+  CachedBB = OwnerComp.GetBlackboardComponent();
 
-    ACharacter* Boss = Cast<ACharacter>(CachedAICon->GetPawn());
-    if (!Boss) return EBTNodeResult::Failed;
+  Boss = ::Cast<AEnemy_MiddleBoss>(CachedAICon->GetPawn());
+  if (Boss == nullptr)
+  {
+    return EBTNodeResult::Failed;
+  } 
 
-    CachedBB = OwnerComp.GetBlackboardComponent();
-    if (!CachedBB) return EBTNodeResult::Failed;
+  AActor* targetActor = Cast<AActor>(CachedBB->GetValueAsObject("TargetActor"));
+  if (targetActor == nullptr)
+  {
+    return EBTNodeResult::Failed;
+  } 
 
-    TargetActor = Cast<AActor>(CachedBB->GetValueAsObject("TargetActor"));
-    if (!TargetActor) return EBTNodeResult::Failed;
+  Boss->SetTargetActor(targetActor);
+  Boss->OnPreAttackTaskFinishedEvent.AddUObject(this, &ThisClass::OnPreAttackFinished);
+  Boss->OnAttackFinished.AddUniqueDynamic(this, &ThisClass::OnAttackFinished);
 
-    EAttackType AttackType = (EAttackType)CachedBB->GetValueAsEnum("AttackType");
-
-    switch (AttackType)
-    {
+  EAttackType AttackType = (EAttackType)CachedBB->GetValueAsEnum("AttackType");
+  switch (AttackType)
+  {
+    // æ”»æ’ƒ
     case EAttackType::Punch:
     {
-        if (!PunchMontage) return EBTNodeResult::Failed;
-
-        // ƒvƒŒƒCƒ„[•ûŒü‚ÉŒü‚­
-        FVector Dir = (TargetActor->GetActorLocation() - Boss->GetActorLocation());
-        Dir.Z = 0.f;
-        if (!Dir.IsNearlyZero())
-            Boss->SetActorRotation(Dir.Rotation());
-
-        // ‹——£ƒ`ƒFƒbƒN
-        float Distance = FVector::Dist(Boss->GetActorLocation(), TargetActor->GetActorLocation());
-        if (Distance > PunchRange)
-        {
-            bIsMovingToTarget = true;
-            CachedAICon->MoveToActor(TargetActor, PunchRange, true, true, true, nullptr, true);
-            return EBTNodeResult::InProgress;
-        }
-        else
-        {
-            bIsMovingToTarget = false;
-            CachedAICon->StopMovement();
-            return PlayAttackMontage(Boss, PunchMontage, AttackType);
-        }
+      CachedAICon->MoveToActor(targetActor, Boss->PunchRange, true, true, true, nullptr, true);
     }
+    break;
 
     case EAttackType::JumpAttack:
     {
-        if (!JumpAttackMontage) return EBTNodeResult::Failed;
 
-        // Œü‚«’²®
-        FVector Dir = (TargetActor->GetActorLocation() - Boss->GetActorLocation());
-        Dir.Z = 0.f;
-        if (!Dir.IsNearlyZero())
-            Boss->SetActorRotation(Dir.Rotation());
-
-        // ƒWƒƒƒ“ƒvƒ^[ƒQƒbƒg‚ğŒÅ’è
-        JumpTargetLocation = TargetActor->GetActorLocation();
-        bHasStartedJump = true;
-
-        return PlayAttackMontage(Boss, JumpAttackMontage, AttackType);
     }
+    break;
 
     case EAttackType::Roar:
     {
-        if (!RoarMontage) return EBTNodeResult::Failed;
 
-        // Œü‚«’²®
-        FVector Dir = (TargetActor->GetActorLocation() - Boss->GetActorLocation());
-        Dir.Z = 0.f;
-        if (!Dir.IsNearlyZero())
-            Boss->SetActorRotation(Dir.Rotation());
-
-        return PlayAttackMontage(Boss, RoarMontage, AttackType);
     }
+    break;
 
     case EAttackType::Slammed:
     {
-        if (!SlammedMontage) return EBTNodeResult::Failed;
 
-        // Œü‚«’²®
-        FVector Dir = (TargetActor->GetActorLocation() - Boss->GetActorLocation());
-        Dir.Z = 0.f;
-        if (!Dir.IsNearlyZero())
-            Boss->SetActorRotation(Dir.Rotation());
-
-        return PlayAttackMontage(Boss, SlammedMontage, AttackType);
     }
+    break;
+  }
 
-    default:
-        return EBTNodeResult::Failed;
-    }
+  // Notify Boss to perform an attack
+  Boss->OnAttackPerformed(AttackType);
+
+  return EBTNodeResult::InProgress;
 }
 
 void UBTT_PerformAttack::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
 {
-    if (!CachedAICon || !TargetActor) return;
+  if ((CachedAICon == nullptr) || (Boss == nullptr))
+  {
+    FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
+    return;
+  } 
 
-    ACharacter* Boss = Cast<ACharacter>(CachedAICon->GetPawn());
-    if (!Boss) return;
+  if (CachedOwnerComp == nullptr)
+  {
+    CachedOwnerComp = &OwnerComp;
+  }
 
-    EAttackType AttackType = (EAttackType)CachedBB->GetValueAsEnum("AttackType");
-
-    // 1. ’ÊíUŒ‚iƒpƒ“ƒ`j‘Oi§Œä
-    if (AttackType == EAttackType::Punch && bIsMovingToTarget)
-    {
-        FVector Dir = (TargetActor->GetActorLocation() - Boss->GetActorLocation());
-        Dir.Z = 0.f;
-        if (!Dir.IsNearlyZero())
-            Boss->SetActorRotation(Dir.Rotation());
-
-        float Distance = FVector::Dist(Boss->GetActorLocation(), TargetActor->GetActorLocation());
-
-        // ƒvƒŒƒCƒ„[‚Æ‚Ì‹——£‚ªUŒ‚”ÍˆÍ“à‚È‚çUŒ‚
-        if (Distance <= PunchRange)
-        {
-            bIsMovingToTarget = false;
-            CachedAICon->StopMovement();
-            PlayAttackMontage(Boss, PunchMontage, AttackType);
-        }
-        else
-        {
-            // ˆÚ“®’†‚Í‘¬“xî•ñ‚ğAnimBP‚É“n‚·
-            AEnemy_MiddleBoss* BossChar = Cast<AEnemy_MiddleBoss>(Boss);
-            if (BossChar)
-            {
-                BossChar->CurrentSpeed = PunchMoveSpeed; 
-            }
-        }
-    }
-
-    // 2. ƒWƒƒƒ“ƒvUŒ‚ ‘Oi§ŒäiXY‚Ì‚İj
-    if (AttackType == EAttackType::JumpAttack && bHasStartedJump)
-    {
-        FVector Dir = (JumpTargetLocation - Boss->GetActorLocation()).GetSafeNormal2D();
-        float Distance = FVector::Dist2D(Boss->GetActorLocation(), JumpTargetLocation);
-
-        if (Distance > 50.f) // ’â~‹——£
-        {
-            Boss->AddMovementInput(Dir, JumpMoveSpeed * DeltaSeconds);
-
-            // ˆÚ“®’†‚Í•à‚«ƒAƒjƒ[ƒVƒ‡ƒ“‚ğÄ¶
-            AEnemy_MiddleBoss* BossChar = Cast<AEnemy_MiddleBoss>(Boss);
-            if (BossChar)
-            {
-                BossChar->CurrentSpeed = JumpMoveSpeed;
-            }
-        }
-        else
-        {
-            bHasStartedJump = false;
-
-            // ’â~‚Í‘¬“x‚ğƒ[ƒ‚É
-            AEnemy_MiddleBoss* BossChar = Cast<AEnemy_MiddleBoss>(Boss);
-            if (BossChar)
-            {
-                BossChar->CurrentSpeed = 0.f;
-            }
-        }
-    }
+  Boss->UpdatePreAttack(DeltaSeconds);
 }
 
-EBTNodeResult::Type UBTT_PerformAttack::PlayAttackMontage(ACharacter* Boss, UAnimMontage* Montage, EAttackType AttackType)
+void UBTT_PerformAttack::OnPreAttackFinished(EAttackType InType)
 {
-    if (!Montage || !Boss) return EBTNodeResult::Failed;
-
-    UAnimInstance* AnimInst = Boss->GetMesh()->GetAnimInstance();
-    if (!AnimInst) return EBTNodeResult::Failed;
-
-    // Root Motion ‚Í–³Œø‰»‚µ‚Ä C++‚ÅˆÚ“®
-    AnimInst->RootMotionMode = ERootMotionMode::IgnoreRootMotion;
-
-    FOnMontageEnded EndDelegate;
-    EndDelegate.BindUFunction(this, FName("OnAttackMontageEnded"));
-    AnimInst->Montage_Play(Montage, 1.f);
-    AnimInst->Montage_SetEndDelegate(EndDelegate, Montage);
-
-    PerformAttackEffect(Boss, AttackType);
-
-    return EBTNodeResult::InProgress;
-}
-
-void UBTT_PerformAttack::OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted)
-{
-    if (CachedAICon)
-    {
-        ACharacter* Boss = Cast<ACharacter>(CachedAICon->GetPawn());
-        if (Boss && Boss->GetMesh() && Boss->GetMesh()->GetAnimInstance())
-        {
-            Boss->GetMesh()->GetAnimInstance()->RootMotionMode = ERootMotionMode::IgnoreRootMotion;
-        }
-    }
-
-    if (CachedOwnerComp)
-        FinishLatentTask(*CachedOwnerComp, EBTNodeResult::Succeeded);
-}
-
-void UBTT_PerformAttack::PerformAttackEffect(ACharacter* Boss, EAttackType AttackType)
-{
-    switch (AttackType)
-    {
+  switch (InType)
+  {
     case EAttackType::Punch:
-        // Notify ‚ÅÕ“Ë”»’è‚âƒ_ƒ[ƒW
-        break;
-    case EAttackType::JumpAttack:
-        // Notify ‚Å’…’n”»’èE”ÍˆÍƒ_ƒ[ƒW
-        break;
-    case EAttackType::Roar:
-        // Notify ‚ÅƒJƒƒ‰ƒVƒFƒCƒNE‰¹Eƒoƒt
-        break;
-    default:
-        break;
+    {
+      if (CachedAICon != nullptr)
+      {
+        CachedAICon->StopMovement();
+      }
     }
+    break;
+  }
+
+  if (Boss != nullptr)
+  {
+    Boss->OnPreAttackTaskFinishedEvent.RemoveAll(this);
+  }
 }
+
+void UBTT_PerformAttack::OnAttackFinished()
+{
+  if (CachedOwnerComp != nullptr)
+  {
+    FinishLatentTask(*CachedOwnerComp, EBTNodeResult::Succeeded);
+  }
+
+  if (Boss != nullptr)
+  {
+    Boss->OnAttackFinished.RemoveDynamic(this, &ThisClass::OnAttackFinished);
+  }
+}
+

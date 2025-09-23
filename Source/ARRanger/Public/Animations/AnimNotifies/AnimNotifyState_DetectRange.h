@@ -89,8 +89,6 @@ protected:
 
 #endif
 
-  uint8 bNotifyOnceIsTriggered : 1;
-
 private:
   bool ValidateParameters(USkeletalMeshComponent* MeshComp) const;
 
@@ -104,6 +102,9 @@ private:
 
 private:
   TUniquePtr<FDetectTickObject> m_detectTickObject;
+
+  // TODO 
+  TSet<AActor*> m_notifiedActors;
    
 };
 

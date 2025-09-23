@@ -8,7 +8,6 @@
 #include "BattleSystem/IARAttackable.h"
 #include "BattleSystem/IARAttackerInterface.h"
 
-
 UARGameplayAbility_Attack::UARGameplayAbility_Attack()
 {
   InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
@@ -19,52 +18,9 @@ UARGameplayAbility_Attack::UARGameplayAbility_Attack()
 void UARGameplayAbility_Attack::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
   Super::PostEditChangeProperty(PropertyChangedEvent);
-
-  if (PropertyChangedEvent.GetPropertyName() == GET_MEMBER_NAME_CHECKED(UARGameplayAbility_Attack, KnockbackAngleRangeMax))
-  {
-    KnockbackAngleRangeMax = FMath::Max(KnockbackAngleRangeMin, KnockbackAngleRangeMax);
-  }
-  else if (PropertyChangedEvent.GetPropertyName() == GET_MEMBER_NAME_CHECKED(UARGameplayAbility_Attack, KnockbackAngleRangeMin))
-  {
-    KnockbackAngleRangeMin = FMath::Min(KnockbackAngleRangeMin, KnockbackAngleRangeMax);
-  }
 }
 
 #endif
-
-void UARGameplayAbility_Attack::GANotify_ActorArray(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const TArray<TObjectPtr<AActor>>& InActorArray)
-{
-  AActor* avatarActor = GetAvatarActorFromActorInfo();
-  check(avatarActor != nullptr);
-  // Make sure Owern of MeshComp is the same Actor as Avatar
-  if ((MeshComp == nullptr) || (avatarActor != MeshComp->GetOwner()))
-  {
-    return;
-  }
-
-  IARAttackerInterface* attackerInterface = ::Cast<IARAttackerInterface>(avatarActor);
-  for (const TObjectPtr<AActor>& actor : InActorArray)
-  {
-    IARAttackable* attackable = ::Cast<IARAttackable>(actor);
-    if (attackable != nullptr)
-    {
-      FARAttackParameters attackParam{};
-      // TODO Use Avatar location to knockback Target Temporary
-      FVector knockbackDir = actor->GetActorLocation() - avatarActor->GetActorLocation();
-      // Make it Z to zero so we can only use Direction on XY-Plane to determine knockback Direction
-      knockbackDir.Z = 0.0;
-
-      attackParam.Instigator = avatarActor;
-      // TODO Stock damage in GA maybe not a great idea
-      attackParam.Damage = AttackDamage;
-      attackParam.bUseAttackerActor = true;
-      attackParam.LaunchDirection = knockbackDir.GetSafeNormal();
-
-      // Apply
-      attackable->AttackTarget(attackerInterface, attackParam);
-    }
-  }
-}
 
 void UARGameplayAbility_Attack::GANotify_ImpactResult(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const TArray<FGANotify_ImpactResult>& InImpactResults)
 {
@@ -77,7 +33,7 @@ void UARGameplayAbility_Attack::GANotify_ImpactResult(USkeletalMeshComponent* Me
 
   for (const FGANotify_ImpactResult& result : InImpactResults)
   {
-    // TODO Temporary
+
     IARAttackable* attackable = ::Cast<IARAttackable>(result.HitActor);
     if (attackable == nullptr)
     {
@@ -88,7 +44,6 @@ void UARGameplayAbility_Attack::GANotify_ImpactResult(USkeletalMeshComponent* Me
     // TODO Use Avatar location to knockback Target Temporary
     FVector knockbackDir = result.HitActor->GetActorLocation() - result.ImpactLocation;
     // Make it Z to zero so we can only use Direction on XY-Plane to determine knockback Direction
-    knockbackDir.Z = 0.0;
 
     attackParam.Instigator = result.SourceActor;
     // TODO Stock damage in GA maybe not a great idea
@@ -148,22 +103,22 @@ void UARGameplayAbility_Attack::GANotify_ImpactResult(USkeletalMeshComponent* Me
       const float projectionAngleCos = FVector::DotProduct(norm, knockbackDirNorm); 
       const FVector projectionVec = knockbackDir - (projectionAngleCos * knockbackDir.Length()) * norm;
       const float curtKnockbackRangeCos = FVector::DotProduct(attackerFwdDir, projectionVec.GetSafeNormal());
-      float curtKnockbackRangeDeg = FMath::DegreesToRadians(FMath::Acos(curtKnockbackRangeCos));
-  
-      // Clamp current degree
-      curtKnockbackRangeDeg = FMath::Clamp(curtKnockbackRangeDeg, KnockbackAngleRangeMin, KnockbackAngleRangeMax);
+      float curtKnockbackRangeAngleDeg = FMath::RadiansToDegrees(FMath::Acos(curtKnockbackRangeCos));
+      // Clamp current radian
+      curtKnockbackRangeAngleDeg = FMath::Clamp(curtKnockbackRangeAngleDeg, 0.0f, KnockbackAngleHalfRange);
       // Change knockbackDirNorm
-      if (!FMath::IsNearlyEqual(FMath::Cos(curtKnockbackRangeDeg), curtKnockbackRangeCos))
+      if (!FMath::IsNearlyEqual(FMath::Cos(curtKnockbackRangeAngleDeg), curtKnockbackRangeCos))
       {
-        knockbackDirNorm = (attackerFwdDir.RotateAngleAxis(curtKnockbackRangeDeg, norm) + norm).GetSafeNormal();
+        const float rotateAngleSign = FVector::DotProduct(FVector::CrossProduct(attackerFwdDir, projectionVec).GetSafeNormal(), norm);
+        knockbackDirNorm = attackerFwdDir.RotateAngleAxis(FMath::Sign(rotateAngleSign) * curtKnockbackRangeAngleDeg, norm).GetSafeNormal();
       }
     }
-    
+
     // Finally we put knockbackDirNorm to attackParam
     attackParam.LaunchDirection = knockbackDirNorm;
     
     // Apply Attack
-    attackable->AttackTarget(attacker, attackParam); 
+    attackable->AttackTarget(attacker, attackParam);
   }
 }
 
@@ -201,7 +156,6 @@ void UARGameplayAbility_Attack::OnAttackAbilityActivated()
     animInst->Montage_Play(AttackMontage);
     animInst->OnMontageEnded.AddUniqueDynamic(this, &UARGameplayAbility_Attack::OnAttackMontageEnded);
   }
-
 }
 
 void UARGameplayAbility_Attack::OnAttackAbilityEnded(bool bWasCancelled)
@@ -215,10 +169,6 @@ void UARGameplayAbility_Attack::OnAttackAbilityEnded(bool bWasCancelled)
       animInst->Montage_Stop(0.0f, AttackMontage);
     }
     animInst->OnMontageEnded.RemoveDynamic(this, &UARGameplayAbility_Attack::OnAttackMontageEnded);
-  }
-  else
-  {
-    UE_LOG(LogTemp, Error, TEXT("Anim instance is null"));
   }
 }
 

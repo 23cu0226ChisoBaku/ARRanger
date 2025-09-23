@@ -36,11 +36,12 @@
     const FVector originLoc = InOriginLocation + CenterPositionOffset;
     const FVector direction = (InOriginRotation + LocalDirectionRotator).Vector();
     const float halfAngleRad = FMath::DegreesToRadians(ConeAngle / 2.0f);
+    const float scale = InOriginScale3D.GetMax();
 
     ::DrawDebugCone(InWorld, 
                     originLoc, 
                     direction, 
-                    Height,
+                    Height * scale,
                     halfAngleRad,
                     halfAngleRad,
                     NumSides,
@@ -55,10 +56,12 @@
       const FRotator originRot = InOriginRotation + LocalDirectionRotator;
       const FVector originScale3D = InOriginScale3D;
       const FTransform originTransform{originRot, originLoc, originScale3D};
+      const float scale = InOriginScale3D.GetMax();
+
       ::DrawWireSphereCappedCone(
                                   PDI,
                                   originTransform,
-                                  Height,
+                                  Height * scale,
                                   halfAngle,
                                   NumSides,
                                   1,           // Draw arc between every vertex
@@ -76,17 +79,19 @@
       const FVector coneOrigin = InOriginLocation + CenterPositionOffset;
       const FVector coneDirection = (InOriginRotation + LocalDirectionRotator).Vector();
       const float halfAngleToRad = FMath::DegreesToRadians(ConeAngle) / 2.0f;
+      const float scale = InOriginScale3D.GetMax();
+
       LineBatch->DrawCone(
                           coneOrigin,
                           coneDirection,
-                          Height,
+                          Height * scale,
                           halfAngleToRad,
                           halfAngleToRad,
                           NumSides,
                           DebugLineColor,
                           0.0f,
                           SDPG_World,
-                          1.0f              // TODO
+                          0.0f             // TODO
                          );
     }
   }
@@ -98,12 +103,13 @@
 
     const FVector originLoc = InOriginLocation + CenterPositionOffset;
     const FQuat originRot = (InOriginRotation + RotationOffset).Quaternion();
+    const float scale = InOriginScale3D.GetMax();
 
     ::DrawDebugCapsule(
                         InWorld,
                         originLoc,
-                        CapsuleHalfHeight,
-                        CapsuleRadius,
+                        CapsuleHalfHeight * scale,
+                        CapsuleRadius * scale,
                         originRot,
                         DebugLineColor.ToFColorSRGB()
                         );
@@ -120,16 +126,17 @@
     {
       const FVector originLoc = InOriginLocation + CenterPositionOffset;
       const FQuat originRot = (InOriginRotation + RotationOffset).Quaternion();
+      const float scale = InOriginScale3D.GetMax();
 
       LineBatch->DrawCapsule(
                               originLoc,
-                              CapsuleHalfHeight,
-                              CapsuleRadius,
+                              CapsuleHalfHeight * scale,
+                              CapsuleRadius * scale,
                               originRot,
                               DebugLineColor,
                               0.0f,
                               SDPG_World,
-                              1.0f              // TODO
+                              0.0f              // TODO
                             );
     }
   }
@@ -140,11 +147,12 @@
 
     const int32 segments = 8;
     const FVector originLoc = InOriginLocation + CenterPositionOffset;
+    const float scale = InOriginScale3D.GetMax();
 
     ::DrawDebugSphere(
                       InWorld,
                       originLoc,
-                      SphereRadius,
+                      SphereRadius * scale,
                       segments,
                       DebugLineColor.ToFColorSRGB()
                      );
@@ -161,15 +169,16 @@
     {
       const int32 segments = 8;
       const FVector originLoc = InOriginLocation + CenterPositionOffset;
+      const float scale = InOriginScale3D.GetMax();
       
       LineBatch->DrawSphere(
                               originLoc,
-                              SphereRadius,
+                              SphereRadius * scale,
                               segments,
                               DebugLineColor,
                               0.0f,
                               SDPG_World,
-                              1.0f
+                              0.0f
       );
     }
   }

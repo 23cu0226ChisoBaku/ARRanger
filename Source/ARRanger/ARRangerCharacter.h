@@ -20,15 +20,15 @@
 class UAttackBaseComponent;
 class UAbilitySystemComponent;
 class UAnimMontage;
-class UInputAction;
 class USkeletalMesh;
 class UAttractSpecialAttackComponent;
+class UARHealthComponent;
 
-struct FInputActionValue;
 struct FGameplayTag;
 
 DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);
 
+#define UE_API ARRANGER_API
 
 /**
  *  シンプルでプレイヤーが操作可能な三人称視点キャラクター
@@ -69,6 +69,10 @@ public:
   UPROPERTY(BlueprintAssignable)
   FOnPlayerHitDelegate OnPlayerHit;
 
+  DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnDeadDelegate);
+  UPROPERTY(BlueprintAssignable)
+  FOnDeadDelegate OnPlayerDead;
+
 	// コンストラクタ
 	AARRangerCharacter();
 
@@ -90,6 +94,7 @@ private:
 	FVector wallNormal;
 
 	// 引力クライムオブジェクトに触れた際に呼び出される
+  UFUNCTION()
 	void OnClimbSurfaceOverlap(
 		UPrimitiveComponent* OverlappedComp,
 		AActor* OtherActor,
@@ -131,6 +136,9 @@ public:
   UFUNCTION(BlueprintCallable, Category = "InputCallback")
   void SwitchTargetLeft();
 
+  UFUNCTION(BlueprintImplementableEvent, Category = "ARRanger|Transform", meta = (DisplayName = "OnTransformed"))
+  void K2_OnTransformed(USkeletalMesh* NewTransformedMesh, EARMagnetismType NewType);
+
   // 変身の際に呼び出される
   void Transform();
 
@@ -146,11 +154,11 @@ public:
   void OnHoldEnded();
 
 	// 引力用プレイヤーメッシュ
-	UPROPERTY(EditAnywhere, Category = "PlayerMesh")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "PlayerMesh")
 	USkeletalMesh* AttractionMesh;
 
 	// 斥力用プレイヤーメッシュ
-	UPROPERTY(EditAnywhere, Category = "PlayerMesh")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "PlayerMesh")
 	USkeletalMesh* RepulsionMesh;
 
 	// ダッシュ中フラグ
@@ -171,6 +179,10 @@ public:
 
 public:
 	virtual void Tick(float DeltaTime) override;
+
+  // 麦
+  UFUNCTION(BlueprintImplementableEvent, Category = "Character|HealthEffect")
+  UE_API void OnVignetteEffectChanged(UARHealthComponent* InHealthComponent, AActor* InInstigator, float InOldHealthValue, float InNewHealthValue);
 
 	// AttackBaseComponentを保存
   UPROPERTY()
@@ -264,6 +276,16 @@ public:
   void OnPunchEnded();
 
 private:
+  UFUNCTION()
+  UE_API void OnPlayerDeadStarted(AActor* PlayerActor);
+
+  UFUNCTION()
+  UE_API void OnPlayerDeadEnded(AActor* PlayerActor);
+
+  void DisableMovementAndCollision();
+
+
+private:
 	// 攻撃中フラグ
 	bool bIsAttacked = false;
 
@@ -286,6 +308,13 @@ private:
 	UPROPERTY()
 	UAttractSpecialAttackComponent* attractSpecialAttackComponent = nullptr;
 
+  UPROPERTY(EditDefaultsOnly, Category = "Character|Parameters", meta = (AllowPrivateAccess = "true"))
+  TObjectPtr<UARHealthComponent> HealthComponent;
+
+  UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+  int32 CameraRigIndex;
+
+ 
   // TODO Use to rotate when player is in charge state
   FVector FaceDir_HoldStart;
 
@@ -338,15 +367,22 @@ private:
 	void OnMagnetizedObjectHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
   /**Start IARMagnetizableInterface interface */
-  ARRANGER_API virtual void OnRepulsionEvaluated(const FARMagneticForceResult& Result) override;
-  ARRANGER_API virtual AActor* GetActor() override { return this; }
+  UE_API virtual void OnRepulsionEvaluated(const FARMagneticForceResult& Result) override;
+  UE_API virtual AActor* GetActor() override { return this; }
   /**End IARMagnetizableInterface interface */
 
   /**Start IARAttackable Interface */
-
+protected:
+  UE_API virtual AActor* Attackable_GetActor() override { return this; }
+  UE_API virtual bool CanAttack() override;
+  UE_API virtual void OnPreAttacked(const FARAttackParameters& InAttackParams, ARRanger::Battle::FARAttackResult& OutAttackResult) override;
+  UE_API virtual void OnPostAttacked(const FARAttackParameters& InAttackParams) override;
+  UE_API virtual void OnDamaged(const ARRanger::Battle::FARDamageResult& InDamageResult) override;
   /**End IARAttackable Interface */
 
   /**Start IARAttackerInterface Interface */
-  ARRANGER_API virtual void OnNotifyAttackResult_Success(const ARRanger::Battle::FARAttackNotifyParameter& InNotifyParams) override;
+  UE_API virtual void OnNotifyAttackResult_Success(const ARRanger::Battle::FARAttackNotifyParameter& InNotifyParams) override;
   /**End IARAttackerInterface Interface */
 };
+
+#undef UE_API

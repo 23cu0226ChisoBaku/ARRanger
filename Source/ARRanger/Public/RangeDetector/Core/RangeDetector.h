@@ -19,7 +19,10 @@ struct FRangeDetectorEvaluationParameter
 
 struct FRangeDetectorEvaluationResult
 {
-  TArray<TObjectPtr<AActor>> DetectedActors{};
+  TArray<AActor*> DetectedActors{};
+
+  // TODO Currently it is unuse. 
+  TArray<FHitResult> HitResults{};
 
   ARRANGER_API void Reset();
 };

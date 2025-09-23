@@ -15,14 +15,23 @@ namespace GameplayTags
   extern UE_API FGameplayTag FindExactTagByString(const FString& InTagString);
 
   /**Ability Tags */
+  UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Attack_Punch);
+  UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Attack_JumpAttack);
   UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Attack_Punch_Combo1);
   UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Attack_Punch_Combo2);
   UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Attack_Punch_Combo3);
-  UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Attack_Kick);
+  UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Attack_RepulsionKick_Weak);
+  UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Attack_RepulsionKick_Moderate);
+  UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Attack_RepulsionKick_Strong);
   UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Special_HookShot);
+  UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Special_StrongPunch);
   UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Cancel);
+  UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Jump);
+  UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Cancel_OnDamaged);
+  UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Dead);
 
-  UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Charge_AttractionKick);
+  UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Charge_RepulsionKick);
+  UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Charge_Punch_Combo3);
 
   /**InputState Tag */
   UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputState_BlockAll);
@@ -31,13 +40,12 @@ namespace GameplayTags
   UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputState_Punch_Combo2);
   UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputState_Punch_Combo3);
   UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputState_Kick);
-  UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputState_Jump);
-  UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputState_Charge_AttractionKick);
+  UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputState_OnAir);
+  UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputState_Charge_RepulsionKick);
+  UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputState_Charge_Punch_Combo3);
 
   /**Native Input Tag */
   UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(NativeInput_Move);
-  UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(NativeInput_JumpStart);
-  UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(NativeInput_JumpEnd);
   UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(NativeInput_Look);
   UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(NativeInput_LockOn);
   UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(NativeInput_SwitchTarget_Left);

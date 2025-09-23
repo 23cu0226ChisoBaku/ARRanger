@@ -39,6 +39,12 @@ void AARPlayerState::PostInitializeComponents()
 
   check(AbilitySystemComponent != nullptr);
   AbilitySystemComponent->InitAbilityActorInfo(this, GetPawn());
-
 }
+
+void AARPlayerState::BeginPlay()
+{
+  Super::BeginPlay();
+}
+
+
 
