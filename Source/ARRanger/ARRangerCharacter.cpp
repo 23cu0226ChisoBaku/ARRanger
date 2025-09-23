@@ -10,8 +10,9 @@
 #include "Enemy.h"
 #include "Engine/LocalPlayer.h"
 #include "GameFramework/CharacterMovementComponent.h"
-#include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/Controller.h"
+#include "GameFramework/ForceFeedbackEffect.h"
+#include "GameFramework/SpringArmComponent.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "InputActionValue.h"
@@ -165,6 +166,35 @@ void AARRangerCharacter::Tick(float DeltaTime)
 	bool isLockedOn = LockOnComponent->GetIsLockedOn();
 	AActor* Target = LockOnComponent->GetLockedOnTarget();
 
+	// 落下中に処理
+	UARRangerAnimInstance* MyAnim = Cast<UARRangerAnimInstance>(GetMesh()->GetAnimInstance());
+	if (MyAnim->IsFalled)
+	{
+		MyAnim->InFallingTime += DeltaTime;
+	}
+	else
+	{
+		// 一定時間以上落下していたら着地時に振動を発生
+		if (MyAnim->InFallingTime >= MinFallTimeForFeedback)
+		{
+			if (APlayerController* PC = Cast<APlayerController>(GetController()))
+			{
+				if (FFE_Landed)
+				{
+					FForceFeedbackParameters Params;
+					Params.bLooping = false;
+					Params.bIgnoreTimeDilation = false;
+					Params.Tag = FName("LandedFeedback");
+
+					PC->ClientPlayForceFeedback(FFE_Landed, Params);
+				}
+			}
+		}
+
+		// 落下時間をリセット
+		MyAnim->InFallingTime = 0.0f;
+	}
+
 	// ロックオン中に処理
 	if (isLockedOn && Target)
 	{
@@ -232,10 +262,7 @@ void AARRangerCharacter::Tick(float DeltaTime)
 			GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Falling);
 			GetCharacterMovement()->bOrientRotationToMovement = true;
 			// AnimInstance側のフラグも下げる
-			if (UARRangerAnimInstance* MyAnim = Cast<UARRangerAnimInstance>(GetMesh()->GetAnimInstance()))
-			{
-				MyAnim->IsClimbing = false;
-			}
+			MyAnim->IsClimbing = false;
 
 			// 少し上方向にジャンプさせる
 			LaunchCharacter(FVector(0.0f, 0.0f, 700.0f), true, true);
@@ -552,8 +579,8 @@ void AARRangerCharacter::Transform()
 	UGameplayStatics::PlaySound2D(
 		GetWorld(),
 		SE_Transform,
-		1.0f,   // VolumeMultiplier
-		1.0f    // PitchMultiplier
+		1.0f,
+		1.0f
 	);
 }
 
@@ -709,6 +736,20 @@ void AARRangerCharacter::OnNotifyAttackResult_Success(const ARRanger::Battle::FA
 {
   // ヒット音を再生
   OnAttackHitNotify();
+
+  // 攻撃時フォースフィードバックエフェクトを再生
+  if (APlayerController* PC = Cast<APlayerController>(GetController()))
+  {
+	  if (FFE_Attack)
+	  {
+		  FForceFeedbackParameters Params;
+		  Params.bLooping = false;
+		  Params.bIgnoreTimeDilation = false;
+		  Params.Tag = FName("AttackFeedback");
+
+		  PC->ClientPlayForceFeedback(FFE_Attack, Params);
+	  }
+  }
 
   if (OnPlayerHit.IsBound())
   {

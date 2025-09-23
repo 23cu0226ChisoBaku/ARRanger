@@ -11,8 +11,9 @@ UCLASS()
 class ABattleEventCage : public AActor
 {
     GENERATED_BODY()
-
 public:
+
+    void BeginPlay() override;
 
     /** 
      * @brief 見えない壁(鳥かご)の当たり判定を 有効 / 無効にする *
