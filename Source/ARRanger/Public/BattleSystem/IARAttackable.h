@@ -33,6 +33,8 @@ namespace Battle
    */
   struct FARDamageResult
   {
+    TObjectPtr<AActor> Instigator;
+
     float FinalDamage = 0.0f;
 
     FVector FinalLaunchDirection = FVector::ZeroVector;
@@ -108,7 +110,7 @@ public:
    * @brief   アクターを返す
    * @return  AActor
    */
-  UE_API virtual AActor* GetActor() { return ::Cast<AActor>(_getUObject()); }
+  UE_API virtual AActor* Attackable_GetActor() { return ::Cast<AActor>(_getUObject()); }
 
   /**
    * @brief   攻撃できるか

@@ -47,9 +47,13 @@ public:
   UE_API void AbilityInputTagPressed(const FGameplayTag& InTag);
   UE_API void AbilityInputTagReleased(const FGameplayTag& InTag);
 
-  UE_API static UARAbilitySystemComponent* FindARAbilitySystemComponent(AActor* InActor);
+  UFUNCTION(BlueprintCallable, Category = "ARRanger|Ability System Component")
+  static UE_API UARAbilitySystemComponent* FindARAbilitySystemComponent(AActor* InActor);
 
   UE_API void ClearAbilityInputStates();
+
+  UFUNCTION(BlueprintCallable, Category = "ARRanger|Ability System Component")
+  UE_API void CancleAbilitiesWithCancelableTag(const FGameplayTag& InTag, bool bForceCancel = true);
 
 private:
 

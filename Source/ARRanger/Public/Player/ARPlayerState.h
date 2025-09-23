@@ -33,6 +33,7 @@ public:
 
   /**Start AActor Interface */
   UE_API virtual void PostInitializeComponents() override;
+  UE_API virtual void BeginPlay() override;
   /**End AActor Interface */
 
   UFUNCTION(BlueprintPure, Category = "ARRanger|PlayerState")

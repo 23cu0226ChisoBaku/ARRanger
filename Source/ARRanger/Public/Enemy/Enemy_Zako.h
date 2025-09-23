@@ -1,90 +1,129 @@
 ﻿#pragma once
 
-#include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "BattleSystem/IARAttackable.h" 
+#include "BattleSystem/IARAttackerInterface.h"
 #include "ISpecialAttractInterface.h"
+
 #include "Enemy_Zako.generated.h"
 
+#define UE_API ARRANGER_API
+
+class UARHealthComponent;
+
 UCLASS()
-class ARRANGER_API AEnemy_Zako : public ACharacter, public IARAttackable
+class AEnemy_Zako : public ACharacter, 
+                    public IARAttackable,
+                    public IARAttackerInterface,
+                    public ISpecialAttractInterface
 {
-    GENERATED_BODY()
+  GENERATED_BODY()
 
 public:
-    AEnemy_Zako();
+  
+  DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnEnemyDead, AActor*, DeadActor);
+  UPROPERTY(BlueprintAssignable)
+  FOnEnemyDead OnDead;
 
-    void SetIsChasing(bool bChasing);
+public:
+  UE_API AEnemy_Zako();
 
-    void ReceiveDamage(int DamageAmount, FVector LaunchDirection, bool bEnableHitStop);
+  UE_API void SetIsChasing(bool bChasing);
 
-    virtual void Zako_PerformAttack();
+  /**Start AActor Interface */
+  UE_API virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+  /**End AActor Interface */
 
 protected:
-  virtual bool IsDead(); 
+  UE_API virtual void ReceiveDamage(AActor* InInstigator, float DamageAmount);
+
+  UE_API virtual void ReceiveLaunch(const FVector& LaunchDirection);
 
 public:
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Enemy|Stats")
-    int32 maxHP;
+  UE_API virtual void Zako_PerformAttack();
 
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Enemy|Stats")
-    int32 currentHP;
+  UFUNCTION(BlueprintImplementableEvent, Category = "Enemy", meta = (DisplayName = "Perform Attack"))
+  UE_API void K2_PerformAttack();
 
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Enemy|Stats")
-    bool isDead;
+  UFUNCTION(BlueprintImplementableEvent, Category = "Enemy", meta = (DisplayName = "Receive Damage"))
+  UE_API void K2_ReceiveDamage(int DamageAmount, bool bIsDead);
 
-    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Enemy|Stats")
-    UAnimMontage* AttackMontage;
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Enemy|Stats")
-    float PreferredDistance = 20.0f; 
+protected:
+  UE_API virtual bool IsDead() const; 
 
-    // 引き寄せ開始関数
-    void StartAttraction(AActor* Target);
+public:
 
-    // IARAttackable のオーバーライド
+  UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Enemy|Stats")
+  bool isDead;
+
+  UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Enemy|Stats")
+  float PreferredDistance = 20.0f; 
+
+  // 引き寄せ開始関数
+  void StartAttraction(AActor* Target);
 
 private:
-    // 引き寄せられ中フラグ
-    bool bIsAttracted = false;
+  // 引き寄せられ中フラグ
+  bool bIsAttracted = false;
 
-    // 引き寄せられる対象(プレイヤー)
-    AActor* attractionTarget = nullptr;
+  bool bDeadLaunchHandled = false;
 
-    // 引き寄せ停止関数
-    void StopAttraction();
+  // 引き寄せられる対象(プレイヤー)
+  UPROPERTY()
+  TObjectPtr<AActor> attractionTarget = nullptr;
+
+  UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Enemy|Health", meta = (AllowPrivateAccess = "true"))
+  TObjectPtr<UARHealthComponent> HealthComponent;
+
+  FTimerHandle StartDeadTimer;
+
+  // 引き寄せ停止関数
+  void StopAttraction();
+
+  UFUNCTION()
+  void OnEnemyDead(AActor* OwningActor);
+
+  UFUNCTION()
+  void OnEnemyDeadFinished(AActor* OwningActor);
+  
+  UFUNCTION()
+  void OnEnemyHealthChanged(UARHealthComponent* InHealthComponent, AActor* InInstigator, float PreviousHealth, float CurrentHealth);
 
 protected:
-    // 引き寄せ時のスピード
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Enemy")
-    float attractionSpeed = 800.f;
+  // 引き寄せ時のスピード
+  UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Enemy")
+  float attractionSpeed = 800.f;
 
-    // 引き寄せの最低距離(これ以下になったらパンチ開始)
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Enemy")
-    float MinDistance = 150.f;
+  // 引き寄せの最低距離(これ以下になったらパンチ開始)
+  UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Enemy")
+  float MinDistance = 150.f;
 
-    virtual bool CanAttack() override;
+  UE_API virtual bool CanAttack() override;
 
-    virtual void OnPreAttacked(
-        const FARAttackParameters& InAttackParams,
-        ARRanger::Battle::FARAttackResult& OutAttackResult) override;
+  UE_API virtual void OnPreAttacked(
+      const FARAttackParameters& InAttackParams,
+      ARRanger::Battle::FARAttackResult& OutAttackResult) override;
 
-    virtual void OnDamaged(
-        const ARRanger::Battle::FARDamageResult& InDamageResult) override;
+  UE_API virtual void OnDamaged(
+      const ARRanger::Battle::FARDamageResult& InDamageResult) override;
 
-    virtual void OnPostAttacked(
-        const FARAttackParameters& InAttackParams) override;
+  UE_API virtual void OnPostAttacked(
+      const FARAttackParameters& InAttackParams) override;
 
-    //ISpecialAttractInterface functions Start
-    
-    //引力必殺技が始まった時の通知
-    virtual void OnStartSpecialAttractNotify();
+  /**Start ISpecialAttractInterface Interface */
 
-    //brief 引力必殺技の中間通知
-    //param 経過時間
-    virtual void OnUpdateSpecialAttractNotify(float elapsed);
+  //引力必殺技が始まった時の通知
+  UE_API virtual void OnStartSpecialAttractNotify() override;
 
-    //brief 引力必殺技の終了通知
-    virtual void OnEndSpecialAttractNotify();
+  //brief 引力必殺技の中間通知
+  //param 経過時間
+  UE_API virtual void OnUpdateSpecialAttractNotify(float ElapsedTime) override;
 
+  //brief 引力必殺技の終了通知
+  UE_API virtual void OnEndSpecialAttractNotify() override;
+  
+  /**End ISpecialAttractInterface Interface */
 };
+
+#undef UE_API

@@ -4,6 +4,7 @@
 #include "UObject/ConstructorHelpers.h"
 #include "GameFramework/Actor.h"
 #include "GameFramework/Character.h"
+#include "Player/ARPlayerState.h"
 #include "Engine/World.h"
 #include "CollisionQueryParams.h"
 #include "Engine/OverlapResult.h"
@@ -18,6 +19,7 @@
 #include "Perception/AIPerceptionTypes.h"
 #include "Kismet/GameplayStatics.h"
 #include "TimerManager.h"
+#include "Pawn/ARPawnInitComponent.h"
 
 AZakoAIController::AZakoAIController()
 {
@@ -49,6 +51,9 @@ AZakoAIController::AZakoAIController()
 	AIPerceptionComponent->SetDominantSense(SightConfig->GetSenseImplementation());
 
 	AIPerceptionComponent->OnTargetPerceptionUpdated.AddDynamic(this, &AZakoAIController::OnTargetPerceptionUpdated);
+
+  // Use Player State to activate ASC
+  bWantsPlayerState = true;
 }
 
 void AZakoAIController::BeginPlay()
@@ -79,6 +84,16 @@ void AZakoAIController::OnPossess(APawn* InPawn)
 			}
 		}
 	}
+
+  if (AARPlayerState* ARPS = GetPlayerState<AARPlayerState>())
+  {
+    if (UARPawnInitComponent* PIC = ::Cast<UARPawnInitComponent>(InPawn->GetComponentByClass(UARPawnInitComponent::StaticClass())))
+    {
+      PIC->InitializeAbilitySystem(ARPS->GetARAbilitySystemComponent(), ARPS); 
+  
+      PIC->InitializeChargeAttack(ARPS->GetARChargeAttackComponent());
+    }
+  }
 }
 
 void AZakoAIController::StopChasing()

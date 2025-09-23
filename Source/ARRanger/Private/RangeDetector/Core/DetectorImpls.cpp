@@ -13,12 +13,12 @@ namespace ARRanger
 
 namespace Detector
 {
-  int32 DetectTargetsImpl(UWorld* World, AActor* OriginActor, const FVector& InOriginLocation, const FRotator& InOriginRotation, const FVector& InOriginScale3D, const UPrimitiveDetectorData& InData, TArray<TObjectPtr<AActor>>& OutResult)
+  int32 DetectTargetsImpl(UWorld* World, AActor* OriginActor, const FVector& InOriginLocation, const FRotator& InOriginRotation, const FVector& InOriginScale3D, const UPrimitiveDetectorData& InData, TArray<AActor*>& OutResult)
   {
     return 0;
   }
 
-  int32 DetectTargetsImpl(UWorld* World, AActor* OriginActor, const FVector& InOriginLocation, const FRotator& InOriginRotation, const FVector& InOriginScale3D, const UConeCollisionDataAsset& InData, TArray<TObjectPtr<AActor>>& OutResult)
+  int32 DetectTargetsImpl(UWorld* World, AActor* OriginActor, const FVector& InOriginLocation, const FRotator& InOriginRotation, const FVector& InOriginScale3D, const UConeCollisionDataAsset& InData, TArray<AActor*>& OutResult)
   {
     if (World == nullptr)
     {
@@ -36,13 +36,14 @@ namespace Detector
     const FVector startPosition = InOriginLocation + InData.CenterPositionOffset;
     const FRotator finalRotation = InOriginRotation + InData.LocalDirectionRotator;
     const float halfAngle = InData.ConeAngle / 2.0f;
+    const float scale = InOriginScale3D.GetMax();
 
     // TODO Channelに変更する
     const int32 resultNum = UCollisionTraceFunctionLibrary::SweepConeMulti(
                               World, 
                               startPosition,
                               finalRotation,
-                              InData.Height,
+                              InData.Height * scale,
                               halfAngle,
                               ignoreActors,
                               hitResults);
@@ -52,17 +53,15 @@ namespace Detector
       UE_LOG(LogTemp, Warning, TEXT("Cone hit nothing"));
     }
 
-    // Sweep multi will hit all components.So we should ignore same actor adding into array
-    /**同じActorの複数のコンポネントが追加される可能性があるため、同じActorを一つだけ入れる */
-    for (int32 idx = 0; idx < resultNum; ++idx)
+    for (const FHitResult& hitResult : hitResults)
     {
-      OutResult.AddUnique(hitResults[idx].GetActor());
+      OutResult.AddUnique(hitResult.GetActor());
     }
 
     return resultNum;
   }
 
-  int32 DetectTargetsImpl(UWorld* World, AActor* OriginActor, const FVector& InOriginLocation, const FRotator& InOriginRotation, const FVector& InOriginScale3D, const UCapsuleDetectorData& InData, TArray<TObjectPtr<AActor>>& OutResult)
+  int32 DetectTargetsImpl(UWorld* World, AActor* OriginActor, const FVector& InOriginLocation, const FRotator& InOriginRotation, const FVector& InOriginScale3D, const UCapsuleDetectorData& InData, TArray<AActor*>& OutResult)
   {
     check(World != nullptr);
     if (World == nullptr)
@@ -76,7 +75,8 @@ namespace Detector
     TArray<TObjectPtr<AActor>> ignoreActors{};
     ignoreActors.Add(OriginActor);
 
-    const FVector originLoc = InOriginLocation + InData.CenterPositionOffset;
+    const FVector startLoc = InOriginLocation + InData.CenterPositionOffset;
+    const float scale = InOriginScale3D.GetMax();
 
     TArray<TEnumAsByte<EObjectTypeQuery>> objTypes{};
     objTypes.Add(UEngineTypes::ConvertToObjectType(ECC_WorldStatic));
@@ -86,9 +86,9 @@ namespace Detector
 
     const bool bHit = UKismetSystemLibrary::CapsuleOverlapActors(
                         OriginActor,
-                        InOriginLocation,
-                        InData.CapsuleRadius,
-                        InData.CapsuleHalfHeight,
+                        startLoc,
+                        InData.CapsuleRadius * scale,
+                        InData.CapsuleHalfHeight * scale,
                         objTypes,
                         nullptr,
                         ignoreActors,
@@ -97,16 +97,16 @@ namespace Detector
     
     if (bHit)
     {
-      for (AActor* hitActor : hitActors)
+      for (AActor* actor : hitActors)
       {
-        OutResult.AddUnique(hitActor);
+        OutResult.AddUnique(actor);
       }
     }
 
     return OutResult.Num();
   }
 
-  int32 DetectTargetsImpl(UWorld* World, AActor* OriginActor, const FVector& InOriginLocation, const FRotator& InOriginRotation, const FVector& InOriginScale3D, const USphereDetectorData& InData, TArray<TObjectPtr<AActor>>& OutResult)
+  int32 DetectTargetsImpl(UWorld* World, AActor* OriginActor, const FVector& InOriginLocation, const FRotator& InOriginRotation, const FVector& InOriginScale3D, const USphereDetectorData& InData, TArray<AActor*>& OutResult)
   {
     check(World != nullptr);
     if (World == nullptr)
@@ -121,6 +121,7 @@ namespace Detector
     ignoreActors.Add(OriginActor);
 
     const FVector originLoc = InOriginLocation + InData.CenterPositionOffset;
+    const float scale = InOriginScale3D.GetMax();
 
     TArray<TEnumAsByte<EObjectTypeQuery>> objTypes{};
     objTypes.Add(UEngineTypes::ConvertToObjectType(ECC_WorldStatic));
@@ -131,7 +132,7 @@ namespace Detector
     const bool bHit = UKismetSystemLibrary::SphereOverlapActors(
                         OriginActor,
                         InOriginLocation,
-                        InData.SphereRadius,
+                        InData.SphereRadius * scale,
                         objTypes,
                         nullptr,
                         ignoreActors,

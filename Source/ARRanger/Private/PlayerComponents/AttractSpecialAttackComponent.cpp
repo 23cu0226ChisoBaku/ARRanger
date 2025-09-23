@@ -48,13 +48,15 @@ void UAttractSpecialAttackComponent::TickComponent(float DeltaTime, ELevelTick T
 		}
 	}
 }
-void UAttractSpecialAttackComponent::EndPlay(const EEndPlayReason::Type endPlayReason)
+void UAttractSpecialAttackComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	/*タイマーハンドルの解除*/
 	if (GetWorld() != nullptr && m_DelayTimerHandle.IsValid())
 	{
 		GetWorld()->GetTimerManager().ClearTimer(m_DelayTimerHandle);
 	}
+
+  Super::EndPlay(EndPlayReason);
 }
 
 /**

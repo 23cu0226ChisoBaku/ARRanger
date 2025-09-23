@@ -85,8 +85,6 @@ void UAnimNotifyState_DetectRange::NotifyBegin(USkeletalMeshComponent * MeshComp
         }
       }
 
-      bNotifyOnceIsTriggered = false;
-
 #if WITH_EDITORONLY_DATA
 
       if (RDC != nullptr)
@@ -97,6 +95,8 @@ void UAnimNotifyState_DetectRange::NotifyBegin(USkeletalMeshComponent * MeshComp
 #endif // WITH_EDITORONLY_DATA  
     }
   }
+
+  m_notifiedActors.Reset();
 }
 
 void UAnimNotifyState_DetectRange::NotifyTick(USkeletalMeshComponent * MeshComp, UAnimSequenceBase * Animation, float FrameDeltaTime, const FAnimNotifyEventReference& EventReference)
@@ -111,46 +111,8 @@ void UAnimNotifyState_DetectRange::NotifyTick(USkeletalMeshComponent * MeshComp,
   // Get result and notify once
   else
   {
-    if (!bNotifyOnceIsTriggered)
-    {
-      TArray<USceneComponent*> children{};
-      MeshComp->GetChildrenComponents(false, children);
-  
-      for (USceneComponent* child : children)
-      {
-        URangeDetectorComponent* RDC = ::Cast<URangeDetectorComponent>(child);
-        if ((RDC == nullptr) || !RDC->HasRangeData(RangeData))
-        {
-          continue;
-        } 
-  
-        FRangeDetectorEvaluationResult result{};
-        const int32 resultCnt = RDC->GetResultByRangeData(RangeData, result);
-        if (resultCnt <= 0)
-        {
-          continue;
-        }
-  
-        // Notify Ability
-        UARAbilitySystemComponent* ARASC = UARAbilitySystemComponent::FindARAbilitySystemComponent(MeshComp->GetOwner());
-        if (ARASC != nullptr)
-        {
-          const TArray<FGameplayAbilitySpec>& allActivatableAbilites = ARASC->GetActivatableAbilities();
-          for (const FGameplayAbilitySpec& activatableAbility : allActivatableAbilites)
-          {
-            if (activatableAbility.IsActive())
-            {
-              if (IARGameplayAbilityNotifyInterface* notifyInterface = ::Cast<IARGameplayAbilityNotifyInterface>(activatableAbility.GetPrimaryInstance()))
-              {
-                // Change to GANotify_ImpactResult
-                notifyInterface->GANotify_ActorArray(MeshComp, Animation, result.DetectedActors);
-                bNotifyOnceIsTriggered = true;
-              }
-            }
-          }
-        } 
-      }
-    }
+    // Try to notify abilities
+    NotifyAbility(MeshComp, Animation);
   }
 
 #if WITH_EDITORONLY_DATA
@@ -197,6 +159,8 @@ void UAnimNotifyState_DetectRange::NotifyEnd(USkeletalMeshComponent * MeshComp, 
   }
 
   Super::NotifyEnd(MeshComp, Animation, EventReference);
+
+  m_notifiedActors.Reset();
 
 #if WITH_EDITOR
 
@@ -272,6 +236,8 @@ void UAnimNotifyState_DetectRange::NotifyAbility(USkeletalMeshComponent* MeshCom
     UARAbilitySystemComponent* ARASC = UARAbilitySystemComponent::FindARAbilitySystemComponent(MeshComp->GetOwner());
     if (ARASC != nullptr)
     {
+      const bool bIsOnlyNotifyOnce = DetectionType == EANS_DetectRange_NotifyDetectionType::NotifyOnce;
+
       const TArray<FGameplayAbilitySpec>& allActivatableAbilites = ARASC->GetActivatableAbilities();
       for (const FGameplayAbilitySpec& activatableAbility : allActivatableAbilites)
       {
@@ -283,6 +249,14 @@ void UAnimNotifyState_DetectRange::NotifyAbility(USkeletalMeshComponent* MeshCom
 
             for (const auto& detectedActor : result.DetectedActors)
             {
+              // TODO Only for notify once use. Maybe we should need some other solution
+              if (bIsOnlyNotifyOnce && m_notifiedActors.Contains(detectedActor))
+              {
+                continue;
+              }
+
+              m_notifiedActors.Emplace(detectedActor);
+
               FGANotify_ImpactResult impactResult{
                 .SourceActor = MeshComp->GetOwner(),
                 .HitActor = detectedActor,

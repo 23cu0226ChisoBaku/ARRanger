@@ -8,6 +8,9 @@
 
 #define UE_API ARRANGER_API
 
+/**Forward declaration */
+class AController;
+
 /**
  * 
  */
@@ -28,6 +31,8 @@ public:
   UE_API bool IsAssociatedWithTag(const FGameplayTag& InTag) const;
 
   UE_API virtual void ForceCancelAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateCancelAbility, bool bForceCancel = false);
+
+  UE_API bool CanCancelByAnyTag(const FGameplayTag& InTag) const;
 
 #if WITH_EDITOR
 
@@ -52,6 +57,9 @@ public:
   UFUNCTION(BlueprintPure, Category = "GameplayAbilityBase", meta = (DisplayName = "Get Default Tags"))
   FGameplayTagContainer K2_GetAssetTags() const;
 
+  UFUNCTION(BlueprintPure, Category = "GameplayAbilityBase", meta = (DisplayName = "Get Controller"))
+  AController* GetController() const;
+
 public:
   UPROPERTY(EditDefaultsOnly, meta = (DisplayName = "Cancelable from beginning"))
   bool bCancelableAfterActivate = true;
@@ -61,6 +69,9 @@ public:
 
   UPROPERTY(EditDefaultsOnly, meta = (EditCondition = "bNeedActivateCondition == true", EditConditionHides, DisplayName = "Condition Tag"))
   FGameplayTag ActivateConditionTag;
+
+  UPROPERTY(EditDefaultsOnly, Category = "GameplayAbilityBase", meta = (DisplayName = "Cancle By Tags"))
+  FGameplayTagContainer CancleableConditionTags;
 	
 };
 

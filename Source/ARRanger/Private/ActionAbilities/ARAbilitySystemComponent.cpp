@@ -263,6 +263,31 @@ void UARAbilitySystemComponent::ClearAbilityInputStates()
   m_inputReleasedSpecHandles.Reset();
 }
 
+void UARAbilitySystemComponent::CancleAbilitiesWithCancelableTag(const FGameplayTag& InTag, bool bForceCancel)
+{
+  const TArray<FGameplayAbilitySpec>& abilitySpecs = GetActivatableAbilities();
+  for (const FGameplayAbilitySpec& abilitySpec : abilitySpecs)
+  {
+    if ((abilitySpec.Ability == nullptr) || !abilitySpec.IsActive())
+    {
+      continue;
+    }
+
+    if (UARGameplayAbilityBase* abilityBase = ::Cast<UARGameplayAbilityBase>(abilitySpec.Ability))
+    {
+      if(abilityBase->CanCancelByAnyTag(InTag))
+      {
+        if (bForceCancel)
+        {
+          abilityBase->SetAbilityCancelable();
+        }
+        
+        CancelAbility(abilitySpec.Ability);
+      }
+    }
+  }
+}
+
 namespace
 {
   UAbilitySystemComponent* GetASCByInterface_ActorImpl(const AActor* InActor)

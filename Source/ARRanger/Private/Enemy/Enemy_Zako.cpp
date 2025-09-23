@@ -6,132 +6,97 @@
 #include "Kismet/GameplayStatics.h"
 #include "Enemy/ZakoAIController.h"
 #include "Components/CapsuleComponent.h"
+#include "Character/ARHealthComponent.h"
 
 AEnemy_Zako::AEnemy_Zako()
-    : maxHP(100)
-    , currentHP(maxHP)
-    , isDead(false)
+  : isDead{false}
 {
-    AIControllerClass = AZakoAIController::StaticClass();
-    AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
+  AIControllerClass = AZakoAIController::StaticClass();
+  AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
+
+  HealthComponent = CreateDefaultSubobject<UARHealthComponent>(TEXT("HealthComponent"));
+  HealthComponent->OnDeadStarted.AddUniqueDynamic(this, &ThisClass::OnEnemyDead);
+  HealthComponent->OnDeadFinished.AddUniqueDynamic(this, &ThisClass::OnEnemyDeadFinished);
+  HealthComponent->OnHealthChanged.AddUniqueDynamic(this, &ThisClass::OnEnemyHealthChanged);
+
+}
+
+void AEnemy_Zako::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+  Super::EndPlay(EndPlayReason);
+
+  // Destroy AIController
+  if (AController* controller = GetController())
+  {
+    controller->UnPossess();
+    controller->Destroy();
+  }
 }
 
 void AEnemy_Zako::SetIsChasing(bool bChasing)
 {
-    if (UEnemyAnimInstance* Anim = Cast<UEnemyAnimInstance>(GetMesh()->GetAnimInstance()))
-    {
-        Anim->bIsChasing = bChasing;
-    }
-}
-
-void AEnemy_Zako::ReceiveDamage(int DamageAmount, FVector LaunchDirection, bool bEnableHitStop)
-{
-  currentHP -= DamageAmount;
-
-  if (currentHP <= 0 && !isDead)
+  if (UEnemyAnimInstance* Anim = Cast<UEnemyAnimInstance>(GetMesh()->GetAnimInstance()))
   {
-      isDead = true;
-
-      if (AInsekiGameMode* GM = Cast<AInsekiGameMode>(UGameplayStatics::GetGameMode(this)))
-      {
-          //GM->OnEnemyKilled();
-      }
-
-      GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-      GetMesh()->SetCollisionProfileName(TEXT("Ragdoll"));
-      GetMesh()->SetSimulatePhysics(true);
-      GetMesh()->SetAllBodiesSimulatePhysics(true);
-      GetMesh()->SetAllBodiesPhysicsBlendWeight(1.0f);
-      GetMesh()->bBlendPhysics = true;
-
-      // 死亡時は大きく吹っ飛ばす
-      FVector DeathImpulse = -GetActorForwardVector() * 5000.0f;
-      GetMesh()->AddImpulse(DeathImpulse, NAME_None, true);
-
-      SetLifeSpan(3.0f);
-  }
-  else
-  {
-      // 生存時は前方ベクトルの逆方向にノックバック
-      FVector KnockbackDir = -GetActorForwardVector();
-      LaunchCharacter(KnockbackDir * 1000.f, true, true);
-  }
-
-  if (bEnableHitStop)
-  {
-      UGameplayStatics::SetGlobalTimeDilation(GetWorld(), 0.1f);
-      FTimerHandle TimerHandle;
-      GetWorldTimerManager().SetTimer(TimerHandle, []()
-          {
-              UGameplayStatics::SetGlobalTimeDilation(GWorld, 1.0f);
-          }, 0.03f, false);
+    Anim->bIsChasing = bChasing;
   }
 }
 
-void AEnemy_Zako::Zako_PerformAttack()
+void AEnemy_Zako::ReceiveDamage(AActor* InInstigator, float DamageAmount)
 {
-
-  if (isDead)
+  if (IsDead())
   {
     return;
   }
 
-  UE_LOG(LogTemp, Log, TEXT("Enemy_Zako: PerforAttack executed."));
-
-  //攻撃モンタージュ再生
-  if (UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance())
+  if (HealthComponent != nullptr)
   {
-      if (AttackMontage)
-      {
-          AnimInstance->Montage_Play(AttackMontage);
-      }
+    HealthComponent->HandleHealthChange(InInstigator, -DamageAmount);
+
+    if (IsDead())
+    {
+      HealthComponent->StartDead();
+    }
   }
 
-  //攻撃判定
-  /*FVector AttackCenter = GetActorLocation() + GetActorForwardVector() * 100.f;
-  float AttackRadius = 150.f;
-
-  TArray<FOverlapResult> Overlaps;
-  FCollisionQueryParams Params;
-  Params.AddIgnoredActor(this);
-
-  bool bHit = GetWorld()->OverlapMultiByChannel(
-      Overlaps,
-      AttackCenter,
-      FQuat::Identity,
-      ECC_Pawn,
-      FCollisionShape::MakeSphere(AttackRadius),
-      Params
-  );
-
-  if (bHit)
-  {
-      for (auto& Result : Overlaps)
-      {
-          if (AActor* HitActor = Result.GetActor())
-          {
-              UE_LOG(LogTemp, Log, TEXT("Enemy_Zako hit: %s"), *HitActor->GetName());
-
-              // IARAttackable を持っていれば攻撃イベントを送る
-              if (HitActor->GetClass()->ImplementsInterface(UIARAttackable::StaticClass()))
-              {
-                  FARAttackParameters AttackParams;
-                  AttackParams.Attacker = this;
-                  AttackParams.Damage = 10; // ← 適宜調整
-                  AttackParams.LaunchDirection = GetActorForwardVector();
-
-                  ARRanger::Battle::FARAttackResult ResultData;
-                  IARAttackable::Execute_OnPreAttacked(HitActor, AttackParams, ResultData);
-                  IARAttackable::Execute_OnPostAttacked(HitActor, AttackParams);
-              }
-          }
-      }
-  }*/
+  K2_ReceiveDamage(DamageAmount, IsDead());
 }
 
-bool AEnemy_Zako::IsDead()
+void AEnemy_Zako::ReceiveLaunch(const FVector& LaunchDirection)
 {
-  return (currentHP <= 0) && isDead;
+  if (bDeadLaunchHandled)
+  {
+    return;
+  }
+
+  if (IsDead())
+  {
+    bDeadLaunchHandled = true;
+    // 死亡時は大きく吹っ飛ばす
+    const FVector DeathImpulse = LaunchDirection * 5000.0f;
+    GetMesh()->AddImpulse(DeathImpulse, NAME_None, true);
+
+  }
+  else
+  {
+    const FVector KnockbackDir = LaunchDirection * 1000.f;
+    LaunchCharacter(KnockbackDir, true, true);
+  }
+
+}
+
+void AEnemy_Zako::Zako_PerformAttack()
+{
+  if (IsDead())
+  {
+    return;
+  }
+
+  K2_PerformAttack();
+}
+
+bool AEnemy_Zako::IsDead() const
+{
+  return isDead;
 }
 
 // ==== IARAttackable 実装 ====
@@ -142,63 +107,136 @@ bool AEnemy_Zako::CanAttack()
 
 void AEnemy_Zako::OnPreAttacked(const FARAttackParameters& InAttackParams,ARRanger::Battle::FARAttackResult& OutAttackResult)
 {
-    if (isDead)
-    {
-        OutAttackResult.Result = ARRanger::Battle::EARAttackResult::Inmune;
-        return;
-    }
-    OutAttackResult.Result = ARRanger::Battle::EARAttackResult::Success;
+  if (IsDead() || ((InAttackParams.Instigator != nullptr) && InAttackParams.Instigator->IsA(StaticClass())))
+  {
+    OutAttackResult.Result = ARRanger::Battle::EARAttackResult::Inmune;
+    return;
+  }
+
+  OutAttackResult.Result = ARRanger::Battle::EARAttackResult::Success;
 }
 
 void AEnemy_Zako::OnDamaged(const ARRanger::Battle::FARDamageResult& InDamageResult)
 {
-    //既存の ReceiveDamage を利用
-    ReceiveDamage(static_cast<int32>(InDamageResult.FinalDamage),
-        InDamageResult.FinalLaunchDirection,
-            (currentHP - InDamageResult.FinalDamage <= 0));
+  //既存の ReceiveDamage を利用
+  ReceiveDamage(InDamageResult.Instigator, InDamageResult.FinalDamage);
+
+  ReceiveLaunch(InDamageResult.FinalLaunchDirection);
 }
 
 void AEnemy_Zako::OnPostAttacked(const FARAttackParameters& InAttackParams)
 {
-    //ヒットエフェクトやSEをここで再生
-
+  //ヒットエフェクトやSEをここで再生
 }
 
 //ISpecialAttractInterface functions Start
 //brief 引力必殺技が始まった時の通知
 void AEnemy_Zako::OnStartSpecialAttractNotify()
 {
-    /*重力をゼロにする*/
-    if (ACharacter* character = Cast<ACharacter>(this))
-    {
-        character->GetCharacterMovement()->GravityScale = 0.0f;
-    }
+  if (IsDead())
+  {
+    return;
+  }
+  
+  /*重力をゼロにする*/
+  if (ACharacter* character = Cast<ACharacter>(this))
+  {
+    character->GetCharacterMovement()->GravityScale = 0.0f;
+  }
 }
 
 //引力必殺技の中間通知
 void AEnemy_Zako::OnUpdateSpecialAttractNotify(float elapsed)
 {
-    ;
+
 }
 
 //brief 引力必殺技の終了通知
 void AEnemy_Zako::OnEndSpecialAttractNotify()
 {
-    /*重力を元に戻す*/
-    if (ACharacter* character = Cast<ACharacter>(this))
-    {
-        character->GetCharacterMovement()->GravityScale = 1.0f;
-    }
+  if (IsDead())
+  {
+    return;
+  }
+
+  /*重力を元に戻す*/
+  if (ACharacter* character = Cast<ACharacter>(this))
+  {
+    character->GetCharacterMovement()->GravityScale = 1.0f;
+  }
 }
 
 void AEnemy_Zako::StartAttraction(AActor* Target)
 {
-    attractionTarget = Target;
-    bIsAttracted = true;
+  attractionTarget = Target;
+  bIsAttracted = true;
 }
 
 void AEnemy_Zako::StopAttraction()
 {
-    bIsAttracted = false;
-    attractionTarget = nullptr;
+  bIsAttracted = false;
+  attractionTarget = nullptr;
+}
+
+void AEnemy_Zako::OnEnemyDead(AActor* OwningActor)
+{
+  if (OnDead.IsBound())
+  {
+    OnDead.Broadcast(OwningActor);
+  }
+
+  GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+  GetMesh()->SetCollisionProfileName(TEXT("Ragdoll"));
+  GetMesh()->SetSimulatePhysics(true);
+  GetMesh()->SetAllBodiesSimulatePhysics(true);
+  GetMesh()->SetAllBodiesPhysicsBlendWeight(1.0f);
+  GetMesh()->bBlendPhysics = true;
+
+  auto deadFinishHandler = [this]
+  {
+    if (HealthComponent == nullptr)
+    {
+      OnEnemyDeadFinished(this);
+    }
+    else
+    {
+      HealthComponent->FinishDead();
+    }
+  };
+
+  GetWorld()->GetTimerManager().SetTimer(StartDeadTimer, deadFinishHandler, 3.0f, false);
+}
+
+void AEnemy_Zako::OnEnemyDeadFinished(AActor* OwningActor)
+{
+  Destroy();
+}
+
+void AEnemy_Zako::OnEnemyHealthChanged(UARHealthComponent* InHealthComponent, AActor* InInstigator, float PreviousHealth, float CurrentHealth)
+{
+  if (IsDead())
+  {
+    return;
+  }
+
+  if (CurrentHealth <= 0.f)
+  {
+    isDead = true;
+  }
+
+  // TODO
+  if ((InHealthComponent != nullptr) && (InHealthComponent == HealthComponent))
+  {
+    const bool bEnableHitStop = HealthComponent->GetHealth() <= 0.0f;
+    if (bEnableHitStop)
+    {
+      UGameplayStatics::SetGlobalTimeDilation(GetWorld(), 0.6f);
+      FTimerHandle TimerHandle;
+      GetWorldTimerManager().SetTimer(TimerHandle, 
+      []()
+      {
+        UGameplayStatics::SetGlobalTimeDilation(GWorld, 1.0f);
+      }, 0.03f, false);
+    }
+  }
 }

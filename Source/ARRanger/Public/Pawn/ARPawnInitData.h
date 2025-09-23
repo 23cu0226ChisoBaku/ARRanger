@@ -56,7 +56,7 @@ public:
   TSet< TSoftClassPtr<UARAttributeSet> > AttributeSets;
 
   UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "GameplayAbility", meta = (TitleProperty = "Charge Branch Tag: {BranchTag}."))
-  TSet< FChargeAttackBranchEntry > ChargeBranchEntries;
+  TArray< FChargeAttackBranchEntry > ChargeBranchEntries;
 };
 
 extern UE_API bool operator==(const FChargeAttackLeaf& Lhs, const FChargeAttackLeaf& Rhs);

@@ -6,12 +6,16 @@
 
 #include "IARAttackerInterface.generated.h"
 
+#define UE_API ARRANGER_API
+
+/**Forwar declaration */
+class IARBattleNotifyHandler;
+
 namespace ARRanger
 {
 
 namespace Battle
 {
-
   /**Forward declaration */
   enum struct EARAttackResult : uint8;
 
@@ -36,35 +40,41 @@ class UARAttackerInterface : public UInterface
 	GENERATED_BODY()
 };
 
-/**
- * 
- */
 class IARAttackerInterface
 {
 	GENERATED_BODY()
 
-	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
 
   /**
    * @brief   攻撃者のアクターを返す
    * @return  AActor
    */
-  ARRANGER_API virtual AActor* GetActor() { return ::Cast<AActor>(_getUObject()); }
+  UE_API virtual AActor* GetActor() { return ::Cast<AActor>(_getUObject()); }
 
+  /**
+   * @brief  バトル通知ハンドラーを返す
+   * @return IARBattleNotifyHandler (Maybe null)
+   */
+  UE_API virtual IARBattleNotifyHandler* GetBattleNotifyHandler() const { return nullptr; }
+  
   /**
    * @brief                 攻撃結果通知送る
    * @param InResult        攻撃結果(列挙型)
    * @param InNotifyParams  通知パラメータ
    */
-  ARRANGER_API void NotifyAttackResult(ARRanger::Battle::EARAttackResult InResult, const ARRanger::Battle::FARAttackNotifyParameter& InNotifyParams);
+  UE_API void NotifyAttackResult(ARRanger::Battle::EARAttackResult InResult, const ARRanger::Battle::FARAttackNotifyParameter& InNotifyParams);
+
+
   
 protected:
 
   /**攻撃が成功した時のコールバック */
-  ARRANGER_API virtual void OnNotifyAttackResult_Success(const ARRanger::Battle::FARAttackNotifyParameter& InNotifyParams) { };
+  UE_API virtual void OnNotifyAttackResult_Success(const ARRanger::Battle::FARAttackNotifyParameter& InNotifyParams) { };
 
   /**攻撃が失敗した時のコールバック */
-  ARRANGER_API virtual void OnNotifyAttackResult_Failed(ARRanger::Battle::EARAttackResult Reason, const ARRanger::Battle::FARAttackNotifyParameter& InNotifyParams) { };
+  UE_API virtual void OnNotifyAttackResult_Failed(ARRanger::Battle::EARAttackResult Reason, const ARRanger::Battle::FARAttackNotifyParameter& InNotifyParams) { };
 
 };
+
+#undef UE_API

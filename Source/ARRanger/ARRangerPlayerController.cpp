@@ -116,20 +116,21 @@ void AARRangerPlayerController::PostProcessInput(const float DeltaTime, const bo
     inputProcessParam.bGamePaused = bGamePaused;
     ASC->ProcessAbilityInputs(inputProcessParam);
   }
-
-  if (CurrentIMC != nullptr)
-  {
-    if (GEngine)
-    {
-      GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Green, CurrentIMC->GetName());
-    }
-  }
-
 }
 
 void AARRangerPlayerController::OnPossess(APawn* InPawn)
 {
   Super::OnPossess(InPawn);
+
+  if (AARPlayerState* ARPS = GetPlayerState<AARPlayerState>())
+  {
+    if (UARPawnInitComponent* PIC = ::Cast<UARPawnInitComponent>(InPawn->GetComponentByClass(UARPawnInitComponent::StaticClass())))
+    {
+      PIC->InitializeAbilitySystem(ARPS->GetARAbilitySystemComponent(), ARPS); 
+  
+      PIC->InitializeChargeAttack(ARPS->GetARChargeAttackComponent());
+    }
+  }
 }
 
 void AARRangerPlayerController::SetupInputComponent()
@@ -245,7 +246,11 @@ void AARRangerPlayerController::ClearHoldSpec(const FGA_HoldHandle& InHoldHandle
 void AARRangerPlayerController::SwitchNextIMC(const FGameplayTag& InNextIMCTag)
 {
   check(InputMappingContext != nullptr);
-
+  if (InputMappingContext == nullptr)
+  {
+    return;
+  }
+  
   UInputMappingContext* nextIMC = InputMappingContext->FindIMCWithTag(InNextIMCTag);
   if (nextIMC != nullptr && CurrentIMC != nextIMC)
   {
@@ -287,8 +292,6 @@ void AARRangerPlayerController::InitializePlayerInput()
 
   // Bind native input actions
   ARIC->BindNativeAction(InputConfig, ARRanger::GameplayTags::NativeInput_Move, ETriggerEvent::Triggered, this, &ThisClass::NativeInput_Move);
-  ARIC->BindNativeAction(InputConfig, ARRanger::GameplayTags::NativeInput_JumpStart, ETriggerEvent::Started, this, &ThisClass::NativeInput_JumpStart);
-  ARIC->BindNativeAction(InputConfig, ARRanger::GameplayTags::NativeInput_JumpEnd, ETriggerEvent::Completed, this, &ThisClass::NativeInput_JumpEnd);
   ARIC->BindNativeAction(InputConfig, ARRanger::GameplayTags::NativeInput_Look, ETriggerEvent::Triggered, this, &ThisClass::NativeInput_Look);
   ARIC->BindNativeAction(InputConfig, ARRanger::GameplayTags::NativeInput_LockOn, ETriggerEvent::Triggered, this, &ThisClass::NativeInput_ToggleLockOn);
   ARIC->BindNativeAction(InputConfig, ARRanger::GameplayTags::NativeInput_SwitchTarget_Left, ETriggerEvent::Triggered, this, &ThisClass::NativeInput_SwitchTarget_Left);

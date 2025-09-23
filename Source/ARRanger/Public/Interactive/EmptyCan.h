@@ -23,7 +23,7 @@ public:
 
 /**Start IARAttackable Interface */
 public:
-  ARRANGER_API virtual AActor* GetActor() override { return this; }
+  ARRANGER_API virtual AActor* Attackable_GetActor() override { return this; }
 
 protected:
   ARRANGER_API virtual void OnPreAttacked(const FARAttackParameters& InAttackParams, ARRanger::Battle::FARAttackResult& OutAttackResult) override;
