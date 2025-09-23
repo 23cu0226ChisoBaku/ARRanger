@@ -11,6 +11,7 @@
 /*前方宣言*/
 class AEnemySpawner;
 class ABattleEventCage;
+class UNiagaraComponent;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnSpawnersCollected, ABattleEventField*, field);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FBattleEventStarted, ABattleEventField*, startedBattleField);
@@ -118,6 +119,8 @@ private:
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cage", meta = (AllowPrivateAccess = "true"))
     TArray<TObjectPtr<ABattleEventCage>> m_CageActors;              /*見えない壁(鳥かご)*/
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Effect", meta = (AllowPrivateAccess = "true"))
+    TObjectPtr<UNiagaraComponent> m_BarrierEffect;                  /*バリアのエフェクト*/
 
     UPROPERTY()
     TSet<TObjectPtr<AEnemySpawner>> m_Spawners;                     /*範囲内にあるスポナー*/ 

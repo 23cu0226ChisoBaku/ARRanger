@@ -7,6 +7,8 @@
 #include "Components/PrimitiveComponent.h"
 #include "Engine/World.h"
 #include "GameFramework/Actor.h"
+#include "NiagaraComponent.h"
+#include "NiagaraFunctionLibrary.h"
 
 #include "Public/BattleEvent/EnemySpawner.h"
 #include "Public/BattleEvent/BattleEventCage.h"
@@ -21,6 +23,9 @@ ABattleEventField::ABattleEventField()
 
 {
     PrimaryActorTick.bCanEverTick = true;
+
+    /*エフェクトは最初は再生しない*/ 
+    m_BarrierEffect->bAutoActivate = false;
 }
 
 void ABattleEventField::BeginPlay()
