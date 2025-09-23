@@ -74,6 +74,14 @@ public:
 
   UE_API void SetTargetActor(AActor* InTargetActor);
 
+  /**Start IARAttackable Interface */
+  UE_API virtual void OnDamaged(const ARRanger::Battle::FARDamageResult& InDamageResult) override;
+  /**End IARAttackable Interface */
+
+  /**Start AEnemy_Zako Interface */
+  UE_API virtual void ReceiveLaunch(const FVector& LaunchDirection) override;
+  /**End AEnemy_Zako Interface */
+
 public:
 	UPROPERTY(BlueprintReadOnly, Category = "Animation")
 	float CurrentSpeed;

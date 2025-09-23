@@ -15,6 +15,7 @@
 #include "BattleSystem/IARAttackerInterface.h"
 #include "BattleSystem/IARAttackable.h"
 
+
 #include "ARRangerCharacter.generated.h"
 
 class UAttackBaseComponent;
@@ -23,6 +24,7 @@ class UAnimMontage;
 class USkeletalMesh;
 class UAttractSpecialAttackComponent;
 class UARHealthComponent;
+class UForceFeedbackEffect;
 
 struct FGameplayTag;
 
@@ -314,7 +316,20 @@ private:
   UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
   int32 CameraRigIndex;
 
- 
+  /**Controler vibration */
+  public:
+  // 一定の落下時間を設定(落下時間がこの値を超えると着地時に振動が発生)
+  UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sound")
+  float MinFallTimeForFeedback = 0.0f;
+
+  // 攻撃時のフォースフィードバックエフェクトを設定
+  UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Feedback")
+  TObjectPtr<UForceFeedbackEffect> FFE_Attack;
+
+  // 着地時のフォースフィードバックエフェクトを設定
+  UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Feedback")
+  TObjectPtr<UForceFeedbackEffect> FFE_Landed;
+
   // TODO Use to rotate when player is in charge state
   FVector FaceDir_HoldStart;
 
