@@ -3,81 +3,84 @@
 
 UBTT_SelectAttack::UBTT_SelectAttack()
 {
-    NodeName = TEXT("Choose Attack");
+  NodeName = TEXT("Choose Attack");
 }
 
 EBTNodeResult::Type UBTT_SelectAttack::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
-    UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent();
-    if (!BB) return EBTNodeResult::Failed;
+  UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent();
+  if (BB == nullptr)
+  {
+    return EBTNodeResult::Failed;
+  }
 
-    EAttackType ChosenAttack = EAttackType::None;
+  EAttackType ChosenAttack = EAttackType::None;
+  EAttackType LastAttack = (EAttackType)BB->GetValueAsEnum("LastAttackType");
 
-    // 前回の攻撃を取得
-    EAttackType LastAttack = (EAttackType)BB->GetValueAsEnum("LastAttackType");
-
-    // ▼ 1. WeightedAttacks が設定されていたら重み付きランダム選択
-    if (WeightedAttacks.Num() > 0)
+  if (WeightedAttacks.Num() > 0)
+  {
+    float TotalWeight = 0.f;
+    for (const auto& [ attackType, weight ] : WeightedAttacks)
     {
-        float TotalWeight = 0.f;
-        for (const auto& Elem : WeightedAttacks)
-        {
-            // 前回と同じRoarは除外
-            if (Elem.Key == EAttackType::Roar && LastAttack == EAttackType::Roar)
-                continue;
+      if ((attackType == EAttackType::Roar) && (LastAttack == EAttackType::Roar))
+      {
+        continue;
+      }
 
-            TotalWeight += Elem.Value;
-        }
-
-        if (TotalWeight > 0.f)
-        {
-            const float Rand = FMath::FRandRange(0.f, TotalWeight);
-            float Accum = 0.f;
-
-            for (const auto& Elem : WeightedAttacks)
-            {
-                if (Elem.Key == EAttackType::Roar && LastAttack == EAttackType::Roar)
-                    continue;
-
-                Accum += Elem.Value;
-                if (Rand <= Accum)
-                {
-                    ChosenAttack = Elem.Key;
-                    break;
-                }
-            }
-        }
+      TotalWeight += weight;
     }
-    // ▼ 2. CandidateAttacks が設定されていたら単純ランダム選択
-    else if (CandidateAttacks.Num() > 0)
+
+    if (TotalWeight > 0.f)
     {
-        TArray<EAttackType> Filtered;
-        for (auto Attack : CandidateAttacks)
+      const float Rand = FMath::FRandRange(0.f, TotalWeight);
+      float Accum = 0.f;
+
+      for (const auto& [ attackType, weight ] : WeightedAttacks)
+      {
+        if ((attackType == EAttackType::Roar) && (LastAttack == EAttackType::Roar))
         {
-            if (!(Attack == EAttackType::Roar && LastAttack == EAttackType::Roar))
-                Filtered.Add(Attack);
+          continue;
         }
 
-        if (Filtered.Num() > 0)
+        Accum += weight;
+        if (Rand <= Accum)
         {
-            int32 Index = FMath::RandRange(0, Filtered.Num() - 1);
-            ChosenAttack = Filtered[Index];
+          ChosenAttack = attackType;
+          break;
         }
-        else
-        {
-            // 前回がRoarで他の候補がなければRoar選択
-            ChosenAttack = EAttackType::Roar;
-        }
+      }
+    }
+  }
+  else if (CandidateAttacks.Num() > 0)
+  {
+    TArray<EAttackType> Filtered;
+    for (const EAttackType& Attack : CandidateAttacks)
+    {
+      if (!(Attack == EAttackType::Roar && LastAttack == EAttackType::Roar))
+      {
+        Filtered.Add(Attack);
+      }
+    }
+
+    if (Filtered.Num() > 0)
+    {
+      int32 Index = FMath::RandRange(0, Filtered.Num() - 1);
+      ChosenAttack = Filtered[Index];
     }
     else
     {
-        UE_LOG(LogTemp, Warning, TEXT("No attacks set in BTT_ChooseAttack"));
-        return EBTNodeResult::Failed;
+      ChosenAttack = EAttackType::Roar;
     }
+  }
+  else
+  {
+    return EBTNodeResult::Failed;
+  }
 
-    // Blackboardに書き込み
-    BB->SetValueAsEnum("AttackType", static_cast<uint8>(ChosenAttack));
-    BB->SetValueAsEnum("LastAttackType", static_cast<uint8>(ChosenAttack)); // 前回攻撃として保存
+  // TODO Perform only punch for test purpose
+  BB->SetValueAsEnum("AttackType", static_cast<uint8>(ChosenAttack));
+  BB->SetValueAsEnum("LastAttackType", static_cast<uint8>(ChosenAttack));
 
-    return EBTNodeResult::Succeeded;
+  return EBTNodeResult::Succeeded;
+
 }

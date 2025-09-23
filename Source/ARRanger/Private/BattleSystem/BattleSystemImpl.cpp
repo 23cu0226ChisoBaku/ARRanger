@@ -4,6 +4,7 @@
 
 #include "BattleSystem/IARAttackable.h"
 #include "BattleSystem/IARAttackerInterface.h"
+#include "BattleSystem/IARBattleNotifyHandler.h"
 #include "BattleSystem/IBattleSystemInterface.h"
 
 /**Internal use */
@@ -36,6 +37,14 @@ bool IARAttackable::AttackTarget(IARAttackerInterface* Attacker, FARAttackParame
   if (Attacker == nullptr)
   {
     AR_LOG(LogARBattle, Error, TEXT("Attacker is INVALID!!!"));
+  }
+  else
+  {
+    // TODO Should we notify here? 
+    if (IARBattleNotifyHandler* notifyHandler = Attacker->GetBattleNotifyHandler())
+    {
+      notifyHandler->NotifyBattleState(EARBattleState::StartBattle);
+    }
   }
 
   /**Preattack Phase */
@@ -73,12 +82,13 @@ bool IARAttackable::AttackTarget(IARAttackerInterface* Attacker, FARAttackParame
   ARRanger::Battle::FARBattleTask task{};
   ARRanger::Battle::FARDamageResult damageResult{};
   task.Instigator = InAttackParams.Instigator;
-  task.Target = this->GetActor();
+  task.Target = this->Attackable_GetActor();
   task.OriginDamage = InAttackParams.Damage;
   battleSystem.HandleBattleTask(task, damageResult);
 
   /**Handle damage */
   damageResult.FinalLaunchDirection = InAttackParams.LaunchDirection;
+  damageResult.Instigator = (Attacker != nullptr) ? Attacker->GetActor() : nullptr;
   OnDamaged(damageResult);
 
   // Attack success

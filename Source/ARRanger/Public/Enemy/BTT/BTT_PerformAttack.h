@@ -6,63 +6,44 @@
 #include "BTT_PerformAttack.generated.h"
 
 class ACharacter;
+class AAIController;
 class UAnimMontage;
 class UBlackboardComponent;
+class AEnemy_MiddleBoss;
+
+#define UE_API ARRANGER_API
 
 UCLASS()
-class ARRANGER_API UBTT_PerformAttack : public UBTTaskNode
+class UBTT_PerformAttack : public UBTTaskNode
 {
     GENERATED_BODY()
 
 public:
-    UBTT_PerformAttack();
+  UE_API UBTT_PerformAttack();
 
-    virtual EBTNodeResult::Type ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;
-    virtual void TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds) override;
-
-protected:
-    EBTNodeResult::Type PlayAttackMontage(ACharacter* Boss, UAnimMontage* Montage, EAttackType AttackType);
-    UFUNCTION()
-    void OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted);
-    void PerformAttackEffect(ACharacter* Boss, EAttackType AttackType);
+  UE_API virtual EBTNodeResult::Type ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;
+  UE_API virtual void TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds) override;
 
 protected:
-    UPROPERTY(EditAnywhere, Category = "Attack")
-    float PunchRange = 500.f;
 
-    UPROPERTY(EditAnywhere, Category = "Attack")
-    float PunchMoveSpeed = 300.f;
+  UE_API void OnPreAttackFinished(EAttackType InType);
 
-    UPROPERTY(EditAnywhere, Category = "Attack")
-    float JumpMoveSpeed = 600.f;
+  UFUNCTION()
+  UE_API void OnAttackFinished();
 
-    UPROPERTY(EditAnywhere, Category = "Attack")
-    UAnimMontage* PunchMontage;
+protected:
 
-    UPROPERTY(EditAnywhere, Category = "Attack")
-    UAnimMontage* JumpAttackMontage;
+  UPROPERTY()
+  TObjectPtr<UBlackboardComponent> CachedBB;
 
-    UPROPERTY(EditAnywhere, Category = "Attack")
-    UAnimMontage* SlammedMontage;
+  UPROPERTY()
+  TObjectPtr<AAIController> CachedAICon;
 
-    UPROPERTY(EditAnywhere, Category = "Attack")
-    UAnimMontage* RoarMontage;
+  UPROPERTY()
+  TObjectPtr<UBehaviorTreeComponent> CachedOwnerComp;
 
-    UPROPERTY()
-    UBlackboardComponent* CachedBB;
-
-    UPROPERTY()
-    class AAIController* CachedAICon;
-
-    UPROPERTY()
-    UBehaviorTreeComponent* CachedOwnerComp;
-
-    UPROPERTY()
-    AActor* TargetActor;
-
-    bool bIsMovingToTarget = false;
-
-    // ÉWÉÉÉìÉvçUåÇóp
-    bool bHasStartedJump = false;
-    FVector JumpTargetLocation;
+  UPROPERTY()
+  TObjectPtr<AEnemy_MiddleBoss> Boss;
 };
+
+#undef UE_API

@@ -51,10 +51,12 @@ void UARPlayerInputBuffer::EvaluateBuffer(const AARRangerPlayerController* InPla
           m_removeTags.AddUnique(inputBufferTag);
         }
         
+#if WITH_EDITOR
         if (GEngine)
         {
           GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, inputBufferTag.ToString());
         }
+#endif
       }
 
 

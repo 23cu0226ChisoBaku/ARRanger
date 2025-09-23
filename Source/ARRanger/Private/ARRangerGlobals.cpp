@@ -19,16 +19,33 @@ class FARDebugInputProcessor : public IInputProcessor
 
     bool HandleKeyDownEvent(FSlateApplication& SlateApp, const FKeyEvent& InKeyEvent) override
     {
-      if (InKeyEvent.GetKey() == EKeys::F1)
+      // Ignore Key that is combine with modifier key
+      if (InKeyEvent.IsAltDown() || InKeyEvent.IsCommandDown() || InKeyEvent.IsControlDown() || InKeyEvent.IsShiftDown())
+      {
+        return false;
+      }
+
+      bool bKeyDownHandled = false;
+      const FKey pressedKey = InKeyEvent.GetKey();
+      // Reset Game button
+      if (pressedKey == EKeys::F1)
       {
         if (m_gameInst.IsValid())
         {
           m_gameInst->ResetGame();
-          return true;
+          bKeyDownHandled = true;
         }
       }
-
-      return false;
+      else if (pressedKey == EKeys::F11)
+      {
+        if (m_gameInst.IsValid())
+        {
+          m_gameInst->ResetBattleTestStage();
+          bKeyDownHandled = true;
+        }
+      }
+      
+      return bKeyDownHandled;
     }
 
     static TSharedPtr<FARDebugInputProcessor> MakeInstance(UARGameInstance* InGI)

@@ -13,9 +13,6 @@ class UAnimInstance;
 
 #define UE_API ARRANGER_API
 
-/**
- * 
- */
 UCLASS(Abstract)
 class UARGameplayAbility_Attack : public UARGameplayAbilityBase,
                                   public IARGameplayAbilityNotifyInterface
@@ -34,7 +31,6 @@ public:
 #endif
   
   /**Start IARGameplayAbilityNotifyInterface Interface*/
-  UE_API virtual void GANotify_ActorArray(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const TArray<TObjectPtr<AActor>>& InActorArray) override;
   UE_API virtual void GANotify_ImpactResult(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const TArray<FGANotify_ImpactResult>& InImpactResults) override;
   /**End IARGameplayAbilityNotifyInterface Interface */
 
@@ -67,7 +63,7 @@ private:
 
 private:
 
-  UPROPERTY(EditDefaultsOnly, Category = "Ability|Attack", meta = (AllowPrivateAccess = "true"))
+  UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ability|Attack", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UAnimMontage> AttackMontage;
 
   // TODO Instead put damage in ability, Maybe it can be put in another structure(GameplayEffect or something else)
@@ -77,11 +73,8 @@ private:
   UPROPERTY(EditDefaultsOnly, Category = "Ability|Attack")
   bool bClampKnockbackAngle;
 
-  UPROPERTY(EditDefaultsOnly, Category = "Ability|Attack", meta = (ClampMin = -180, ClampMax = 180, EditCondition = "bClampKnockbackAngle == true", EditConditionHides))
-  float KnockbackAngleRangeMax;
-
-  UPROPERTY(EditDefaultsOnly, Category = "Ability|Attack", meta = (ClampMin = -180, ClampMax = 180, EditCondition = "bClampKnockbackAngle == true", EditConditionHides))
-  float KnockbackAngleRangeMin;
+  UPROPERTY(EditDefaultsOnly, Category = "Ability|Attack", meta = (ClampMin = 0, ClampMax = 180, EditCondition = "bClampKnockbackAngle == true", EditConditionHides))
+  float KnockbackAngleHalfRange;
 };
 
 #undef UE_API

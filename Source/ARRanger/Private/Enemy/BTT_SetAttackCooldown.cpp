@@ -7,20 +7,35 @@
 UBTT_SetAttackCooldown::UBTT_SetAttackCooldown()
 {
 	NodeName = TEXT("Set Attack Cooldown");
+  // Use this to safe TimerHandler for every node
+  bCreateNodeInstance = true;
+
+  m_coolDownTimerHandle.Invalidate();
 }
 
 EBTNodeResult::Type UBTT_SetAttackCooldown::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
-    UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent();
-    if (!BB) return EBTNodeResult::Failed;
+  UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent();
+  if (BB == nullptr)
+  {
+    return EBTNodeResult::Failed;
+  } 
 
-    BB->SetValueAsBool(TEXT("CanAttack"), false);
+  BB->SetValueAsBool(TEXT("CanAttack"), false);
 
-    FTimerHandle TimerHandle;
-    OwnerComp.GetWorld()->GetTimerManager().SetTimer(TimerHandle, [BB]()
-        {
-            BB->SetValueAsBool(TEXT("CanAttack"), true);
-        }, CooldownTime, false);
+  OwnerComp.GetWorld()->GetTimerManager().SetTimer(m_coolDownTimerHandle, [BB]()
+    {
+      BB->SetValueAsBool(TEXT("CanAttack"), true);
+    }, CooldownTime, false);
 
-    return EBTNodeResult::Succeeded;
+  return EBTNodeResult::Succeeded;
+}
+
+void UBTT_SetAttackCooldown::OnInstanceDestroyed(UBehaviorTreeComponent& OwnerComp)
+{
+  if (m_coolDownTimerHandle.IsValid())
+  {
+    OwnerComp.GetWorld()->GetTimerManager().ClearTimer(m_coolDownTimerHandle);
+    m_coolDownTimerHandle.Invalidate();
+  }
 }
