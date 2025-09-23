@@ -455,7 +455,8 @@ void AARRangerPlayerController::NativeInput_ToggleLockOn(const FInputActionValue
 
   if (OwningCharacter != nullptr)
   {
-    OwningCharacter->ToggleLockOn();
+    // TODO Uncomment it when we finish debugging
+    // OwningCharacter->ToggleLockOn();
   }
 }
 

@@ -29,6 +29,7 @@
 #include "Pawn/ARPawnInitComponent.h"
 #include "Character/ARHealthComponent.h"
 #include "Pawn/ARPawnInitComponent.h"
+#include "GameFramework/ForceFeedbackEffect.h"
 
 #include "MLibrary.h"
 
@@ -198,6 +199,7 @@ void AARRangerCharacter::Tick(float DeltaTime)
 			StartClimbing(Surface);
 		}
 	}
+
 	// 引力クライム中に処理
 	if (bIsClimbed)
 	{
@@ -239,6 +241,35 @@ void AARRangerCharacter::Tick(float DeltaTime)
 			LaunchCharacter(FVector(0.0f, 0.0f, 700.0f), true, true);
 		}
 	}
+
+  // 落下中に処理
+  UARRangerAnimInstance* MyAnim = Cast<UARRangerAnimInstance>(GetMesh()->GetAnimInstance());
+  if (MyAnim->IsFalled)
+  {
+      MyAnim->InFallingTime += DeltaTime;
+  }
+  else
+  {
+    // 一定時間以上落下していたら着地時に振動を発生
+    if (MyAnim->InFallingTime >= MinFallTimeForFeedback)
+    {
+        if (APlayerController* PC = Cast<APlayerController>(GetController()))
+        {
+            if (FFE_Landed)
+            {
+                FForceFeedbackParameters Params;
+                Params.bLooping = false;
+                Params.bIgnoreTimeDilation = false;
+                Params.Tag = FName("LandedFeedback");
+
+                PC->ClientPlayForceFeedback(FFE_Landed, Params);
+            }
+        }
+    }
+
+    // 落下時間をリセット
+    MyAnim->InFallingTime = 0.0f;
+  }
 }
 
 void AARRangerCharacter::OnClimbSurfaceOverlap(
@@ -590,6 +621,13 @@ void AARRangerCharacter::SetIsBattledInAnimInstance(const bool IsBattled)
 		MyAnim->bIsBattled = IsBattled;
 		UE_LOG(LogTemp, Warning, TEXT("IsBattled : %s"), IsBattled ? TEXT("True") : TEXT("False"));
 		UE_LOG(LogTemp, Warning, TEXT("bIsBattled : %s"), MyAnim->bIsBattled ? TEXT("True") : TEXT("False"));
+
+    // TODO We should not let auto generation system in HealtComponent
+    if (HealthComponent != nullptr)
+    {
+      HealthComponent->SetAutoRegenerationEnable(!IsBattled);
+    }
+  
 	}
 }
 
@@ -651,6 +689,14 @@ void AARRangerCharacter::OnDamaged(const ARRanger::Battle::FARDamageResult& InDa
     {
       HealthComponent->HandleOutOfHealth(this);
     }
+    else
+    {
+      FVector knockbackDir = InDamageResult.FinalLaunchDirection;
+      knockbackDir.Z = 0.0;
+      knockbackDir.Normalize();
+
+      LaunchCharacter(knockbackDir * 200.0, true, true);
+    }
   }
 }
 
@@ -667,6 +713,20 @@ void AARRangerCharacter::OnNotifyAttackResult_Success(const ARRanger::Battle::FA
   if (OnPlayerHit.IsBound())
   {
     OnPlayerHit.Broadcast(GetActorLocation());
+  }
+
+  // 攻撃時フォースフィードバックエフェクトを再生
+  if (APlayerController* PC = Cast<APlayerController>(GetController()))
+  {
+    if (FFE_Attack)
+    {
+      FForceFeedbackParameters Params;
+      Params.bLooping = false;
+      Params.bIgnoreTimeDilation = false;
+      Params.Tag = FName("AttackFeedback");
+
+      PC->ClientPlayForceFeedback(FFE_Attack, Params);
+    }
   }
 }
 

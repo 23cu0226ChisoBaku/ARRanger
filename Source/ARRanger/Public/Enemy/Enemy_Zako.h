@@ -67,6 +67,7 @@ private:
   // 引き寄せられ中フラグ
   bool bIsAttracted = false;
 
+protected:
   bool bDeadLaunchHandled = false;
 
   // 引き寄せられる対象(プレイヤー)
