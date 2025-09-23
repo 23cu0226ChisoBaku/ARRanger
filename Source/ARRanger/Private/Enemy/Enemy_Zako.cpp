@@ -15,7 +15,8 @@ AEnemy_Zako::AEnemy_Zako()
   AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 
   HealthComponent = CreateDefaultSubobject<UARHealthComponent>(TEXT("HealthComponent"));
-  HealthComponent->OnDead.AddUniqueDynamic(this, &ThisClass::OnEnemyDead);
+  HealthComponent->OnDeadStarted.AddUniqueDynamic(this, &ThisClass::OnEnemyDead);
+  HealthComponent->OnDeadFinished.AddUniqueDynamic(this, &ThisClass::OnEnemyDeadFinished);
   HealthComponent->OnHealthChanged.AddUniqueDynamic(this, &ThisClass::OnEnemyHealthChanged);
 
 }
@@ -50,6 +51,11 @@ void AEnemy_Zako::ReceiveDamage(AActor* InInstigator, float DamageAmount)
   if (HealthComponent != nullptr)
   {
     HealthComponent->HandleHealthChange(InInstigator, -DamageAmount);
+
+    if (IsDead())
+    {
+      HealthComponent->StartDead();
+    }
   }
 
   K2_ReceiveDamage(DamageAmount, IsDead());
@@ -69,7 +75,6 @@ void AEnemy_Zako::ReceiveLaunch(const FVector& LaunchDirection)
     const FVector DeathImpulse = LaunchDirection * 5000.0f;
     GetMesh()->AddImpulse(DeathImpulse, NAME_None, true);
 
-    SetLifeSpan(3.0f);
   }
   else
   {
@@ -187,6 +192,24 @@ void AEnemy_Zako::OnEnemyDead(AActor* OwningActor)
   GetMesh()->SetAllBodiesPhysicsBlendWeight(1.0f);
   GetMesh()->bBlendPhysics = true;
 
+  auto deadFinishHandler = [this]
+  {
+    if (HealthComponent == nullptr)
+    {
+      OnEnemyDeadFinished(this);
+    }
+    else
+    {
+      HealthComponent->FinishDead();
+    }
+  };
+
+  GetWorld()->GetTimerManager().SetTimer(StartDeadTimer, deadFinishHandler, 3.0f, false);
+}
+
+void AEnemy_Zako::OnEnemyDeadFinished(AActor* OwningActor)
+{
+  Destroy();
 }
 
 void AEnemy_Zako::OnEnemyHealthChanged(UARHealthComponent* InHealthComponent, AActor* InInstigator, float PreviousHealth, float CurrentHealth)
@@ -207,12 +230,13 @@ void AEnemy_Zako::OnEnemyHealthChanged(UARHealthComponent* InHealthComponent, AA
     const bool bEnableHitStop = HealthComponent->GetHealth() <= 0.0f;
     if (bEnableHitStop)
     {
-      UGameplayStatics::SetGlobalTimeDilation(GetWorld(), 0.1f);
+      UGameplayStatics::SetGlobalTimeDilation(GetWorld(), 0.6f);
       FTimerHandle TimerHandle;
-      GetWorldTimerManager().SetTimer(TimerHandle, []()
-          {
-              UGameplayStatics::SetGlobalTimeDilation(GWorld, 1.0f);
-          }, 0.03f, false);
+      GetWorldTimerManager().SetTimer(TimerHandle, 
+      []()
+      {
+        UGameplayStatics::SetGlobalTimeDilation(GWorld, 1.0f);
+      }, 0.03f, false);
     }
   }
 }

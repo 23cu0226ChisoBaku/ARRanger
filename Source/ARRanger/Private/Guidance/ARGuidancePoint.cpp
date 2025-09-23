@@ -11,8 +11,14 @@
 // Sets default values
 AARGuidancePoint::AARGuidancePoint()
   : GuidancePointCollision{nullptr}
-  , Visibility{EGuidancePointVisibilityType::Visible_Both}
+  , ChildPoint{nullptr}
+  , GuidanceAnimLength{1.0f}
+  , GuidanceAnimDelay{0.2f}
+  , m_guidanceAnimTimeCnt{0.0f}
+  , m_guidanceAnimDelayTimerHandle{}
+  , bLoopAnim{true}
   , bCanTerminationEventUpdate{false}
+  , bIsAnimDelaying{false}
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -26,7 +32,6 @@ AARGuidancePoint::AARGuidancePoint()
 void AARGuidancePoint::BeginPlay()
 {
 	Super::BeginPlay();
-	
 }
 
 void AARGuidancePoint::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -34,6 +39,11 @@ void AARGuidancePoint::EndPlay(const EEndPlayReason::Type EndPlayReason)
   if (GuidancePointCollision != nullptr)
   {
     GuidancePointCollision->OnComponentBeginOverlap.RemoveAll(this);
+  }
+
+  if (m_guidanceAnimDelayTimerHandle.IsValid())
+  {
+    GetWorld()->GetTimerManager().ClearTimer(m_guidanceAnimDelayTimerHandle);
   }
 
   Super::EndPlay(EndPlayReason);
@@ -47,6 +57,15 @@ void AARGuidancePoint::Tick(float DeltaTime)
   if (bCanTerminationEventUpdate)
   {
     K2_OnTerminationEventUpdated(DeltaTime);
+  }
+}
+
+void AARGuidancePoint::SetChildPoint(AARGuidancePoint* InChild)
+{
+  if (InChild != this)
+  {
+    ChildPoint = InChild;
+    OnChildPointSet(InChild);
   }
 }
 
@@ -79,6 +98,11 @@ bool AARGuidancePoint::IsTerminationTriggered() const
   return bCanTerminationEventUpdate;
 }
 
+bool AARGuidancePoint::CanPlayGuidanceAnimation() const
+{
+  return !bCanTerminationEventUpdate && (ChildPoint != nullptr);
+}
+
 void AARGuidancePoint::OnTerminationEnded()
 {
   K2_OnTerminationEnded();
@@ -98,5 +122,89 @@ void AARGuidancePoint::OnGuidancePointBeginOverlap(UPrimitiveComponent* Overlapp
   }
 }
 
+void AARGuidancePoint::UpdateGuidanceAnimation(float DeltaTime)
+{
+  if (ChildPoint != nullptr)
+  {
+    OnGuidanceAnimationUpdated(*ChildPoint, DeltaTime);
+  }
+}
+
+void AARGuidancePoint::ResetGuidanceAnimation()
+{
+  StopAnim();
+  ResetAnim(); 
+}
+
+void AARGuidancePoint::OnGuidanceAnimationUpdated(const AARGuidancePoint& InChildPoint, float DeltaTime)
+{
+  if (&InChildPoint == this)
+  {
+    ResetAnim();
+    return;
+  }
+
+  if (bIsAnimDelaying)
+  {
+    return;
+  }
+
+  const FVector guidanceDestination = InChildPoint.GetActorLocation();
+  UpdateAnim(guidanceDestination, DeltaTime);
+}
+
+void AARGuidancePoint::ResetAnim()
+{
+  m_guidanceAnimTimeCnt = 0.0f;
+  m_guidanceAnimDelayTimerHandle.Invalidate();
+  bIsAnimDelaying = false;
+
+  K2_OnGuidanceAnimationReset();
+}
+
+void AARGuidancePoint::UpdateAnim(const FVector& Destination, float DeltaTime)
+{
+  m_guidanceAnimTimeCnt += DeltaTime;
+  m_guidanceAnimTimeCnt = FMath::Clamp(m_guidanceAnimTimeCnt, 0.0f, GuidanceAnimLength);
+
+  // Update Animation On BP
+  K2_OnGuidanceAnimationUpdated(GetActorLocation(), Destination, GuidanceAnimLength, m_guidanceAnimTimeCnt, DeltaTime);
+
+  if (FMath::IsNearlyEqual(m_guidanceAnimTimeCnt, GuidanceAnimLength))
+  {
+    // Stop Animation
+    StopAnim();
+
+    if (!FMath::IsNearlyZero(GuidanceAnimDelay))
+    {
+      bIsAnimDelaying = true;
+
+      auto delayHandler = [this]()
+      {
+        this->ResetAnim();
+      };
+
+      if (!m_guidanceAnimDelayTimerHandle.IsValid())
+      {
+        GetWorld()->GetTimerManager().SetTimer(m_guidanceAnimDelayTimerHandle, delayHandler, GuidanceAnimDelay, /**bLoop */ false);
+      }
+    }
+  }
+}
+
+void AARGuidancePoint::StopAnim()
+{
+  K2_OnGuidanceAnimationEnded();
+}
+
+void AARGuidancePoint::OnChildPointSet(AARGuidancePoint* InChildPoint)
+{
+  // Reset parent animation when parent changed
+  if (InChildPoint != nullptr)
+  {
+    ResetAnim();
+    K2_OnChildPointSet(InChildPoint);
+  }
+}
 
 

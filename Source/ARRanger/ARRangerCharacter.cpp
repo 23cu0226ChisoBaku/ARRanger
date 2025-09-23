@@ -28,6 +28,7 @@
 
 #include "Pawn/ARPawnInitComponent.h"
 #include "Character/ARHealthComponent.h"
+#include "Pawn/ARPawnInitComponent.h"
 
 #include "MLibrary.h"
 
@@ -66,6 +67,12 @@ AARRangerCharacter::AARRangerCharacter()
 	LockOnComponent = CreateDefaultSubobject<ULockOnComponent>(TEXT("LockOnComponent"));
 	AttackBaseComp = CreateDefaultSubobject<UAttackBaseComponent>(TEXT("AttackBaseComponent"));
   HealthComponent = CreateDefaultSubobject<UARHealthComponent>(TEXT("HealthComponent"));
+
+  HealthComponent->OnHealthChanged.AddUniqueDynamic(this, &ThisClass::OnVignetteEffectChanged);
+  HealthComponent->OnDeadStarted.AddUniqueDynamic(this, &ThisClass::OnPlayerDeadStarted);
+  HealthComponent->OnDeadFinished.AddUniqueDynamic(this, &ThisClass::OnPlayerDeadEnded);
+
+  CameraRigIndex = 0;
 }
 
 void AARRangerCharacter::PostInitializeComponents()
@@ -639,6 +646,11 @@ void AARRangerCharacter::OnDamaged(const ARRanger::Battle::FARDamageResult& InDa
     // Value of damage is positive. Make it negative
     const float HPChangeValue = -InDamageResult.FinalDamage;
     HealthComponent->HandleHealthChange(InDamageResult.Instigator, HPChangeValue);
+
+    if (HealthComponent->GetHealth() <= 0.0f)
+    {
+      HealthComponent->HandleOutOfHealth(this);
+    }
   }
 }
 
@@ -909,5 +921,47 @@ void AARRangerCharacter::SnapToTarget(float DeltaTime)
   // Update Player
   SetActorLocation(newLocation);
   SetActorRotation(newRotation);
+
+}
+
+void AARRangerCharacter::OnPlayerDeadStarted(AActor* PlayerActor)
+{
+  DisableMovementAndCollision();
+
+  // Change to Top-down Camera
+  CameraRigIndex = 1;
+}
+
+void AARRangerCharacter::OnPlayerDeadEnded(AActor* PlayerActor)
+{
+  if (UARPawnInitComponent* PIC = GetComponentByClass<UARPawnInitComponent>())
+  {
+    PIC->UninitializeAbilitySystem();
+    PIC->UninitializeChargeAttack();
+  }
+
+  if (OnPlayerDead.IsBound())
+  {
+    OnPlayerDead.Broadcast();
+  }
+
+}
+
+void AARRangerCharacter::DisableMovementAndCollision()
+{
+  if (AController* controller = GetController())
+  {
+    controller->SetIgnoreMoveInput(true);
+  }
+
+  UCapsuleComponent* capsuleComp = GetCapsuleComponent();
+  check(capsuleComp != nullptr);
+
+  capsuleComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+  capsuleComp->SetCollisionResponseToAllChannels(ECR_Ignore);
+
+  UCharacterMovementComponent* moveComp = GetCharacterMovement();
+  moveComp->StopMovementImmediately();
+  moveComp->DisableMovement();
 
 }

@@ -76,11 +76,16 @@ private:
   UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Enemy|Health", meta = (AllowPrivateAccess = "true"))
   TObjectPtr<UARHealthComponent> HealthComponent;
 
+  FTimerHandle StartDeadTimer;
+
   // 引き寄せ停止関数
   void StopAttraction();
 
   UFUNCTION()
   void OnEnemyDead(AActor* OwningActor);
+
+  UFUNCTION()
+  void OnEnemyDeadFinished(AActor* OwningActor);
   
   UFUNCTION()
   void OnEnemyHealthChanged(UARHealthComponent* InHealthComponent, AActor* InInstigator, float PreviousHealth, float CurrentHealth);

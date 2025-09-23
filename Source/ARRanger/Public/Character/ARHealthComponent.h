@@ -8,6 +8,40 @@
 
 #define UE_API ARRANGER_API
 
+class UCurveFloat;
+
+USTRUCT(BlueprintType)
+struct FARHealthRegenerationEntry
+{
+  GENERATED_BODY()
+
+public:
+
+  UPROPERTY(EditDefaultsOnly)
+  float RegenerationDelay;
+
+  UPROPERTY(EditDefaultsOnly)
+  float RegenerationSpeed;
+
+  UPROPERTY(EditDefaultsOnly)
+  bool bUseRegenerationSpeedOverrideCurve;
+
+  UPROPERTY(EditDefaultsOnly, meta = (EditCondition = "bUseRegenerationSpeedOverrideCurve == true", EditConditionHides))
+  TSoftObjectPtr<UCurveFloat> OverrideCurve;
+
+  float RegenerationCurveEvaluationTimeValue = 0.0f;
+
+  float RegenerationDelayTimeCnt = 0.0f;
+  
+  uint8 bEnableRegeneration : 1;
+
+  UE_API void ResetRegenerationState();
+
+  UE_API void EvaluateRegeneration(float DeltaTime);
+
+  UE_API float GetRegenerationSpeed() const;
+};
+
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class UARHealthComponent : public UActorComponent
 {
@@ -24,7 +58,13 @@ public:
   FOnHealthChangedDelegate OnHealthChanged;
 
   UPROPERTY(BlueprintAssignable)
-  FOnDeadDelegate OnDead;
+  FOnDeadDelegate OnDeadStarted;
+
+  UPROPERTY(BlueprintAssignable)
+  FOnDeadDelegate OnDeadFinished;
+
+  UFUNCTION(BlueprintCallable, Category = "ARRanger|Health")
+  static UE_API UARHealthComponent* FindHealthComponent(AActor* OwningActor);
 
   UFUNCTION(BlueprintPure, Category = "ARRanger|Health")
   UE_API float GetHealth() const;
@@ -38,12 +78,22 @@ public:
   UFUNCTION(BlueprintPure, Category = "ARRanger|Health")
   UE_API bool IsDead() const;
 
+  UFUNCTION(BlueprintPure, Category = "ARRanger|Health")
+  UE_API bool IsHealthMax() const;
+
   UE_API void HandleHealthChange(AActor* Instigator, float ChangeValue);
+
+  UE_API void HandleOutOfHealth(AActor* OwningActor);
+
+  UE_API void StartDead();
+
+  UE_API void FinishDead();
 
 protected:
 
   /**Start UActorComponent Interface */
 	UE_API virtual void BeginPlay() override;
+  UE_API virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
   /**End UActorComponent Interface */
 
 private:
@@ -56,6 +106,12 @@ private:
 
   UPROPERTY(VisibleAnywhere, Category = "ARRanger|Health")
   float Health;
+
+  UPROPERTY(EditDefaultsOnly, Category = "ARRanger|Health", meta = (AllowPrivateAccess = "true"))
+  bool bAutoRegeneration;
+
+  UPROPERTY(EditDefaultsOnly, Category = "ARRanger|Health", meta = (EditCondition = "bAutoRegeneration == true", EditConditionHides))
+  FARHealthRegenerationEntry RegenerationEntry;
 		
 };
 

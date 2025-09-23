@@ -251,6 +251,12 @@ void AInsekiGameMode::InitializeEvents()
     spawner->GetSpawnedActorDelegate.AddUObject(this, &ThisClass::OnEnemySpawned);
   }
 
+  // Register Player Dead Event
+  if (AARRangerCharacter* player = ::Cast<AARRangerCharacter>(UGameplayStatics::GetActorOfClass(this, AARRangerCharacter::StaticClass())))
+  {
+    player->OnPlayerDead.AddUniqueDynamic(this, &ThisClass::ARGameOver);
+  }
+
 }
 
 void AInsekiGameMode::ProcessGameResult(EGameResultState ResultState)
@@ -258,22 +264,6 @@ void AInsekiGameMode::ProcessGameResult(EGameResultState ResultState)
   if (bGameResultHandled)
   {
     return;
-  }
-
-  APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0);
-  if (PC != nullptr)
-  {
-    // キャラクターの速度を完全にゼロにする
-    APawn* PlayerPawn = PC ? PC->GetPawn() : nullptr;
-    if (PlayerPawn != nullptr)
-    {
-      if (UPawnMovementComponent* MoveComp = PlayerPawn->GetMovementComponent())  
-      {
-        MoveComp->StopMovementImmediately();
-      }
-      // さらにAddMovementInputの残りを消すためにLocationの更新を止める
-      PlayerPawn->DisableInput(PC);
-    }
   }
 
   // Set clear timer
@@ -390,4 +380,9 @@ void AInsekiGameMode::UninitializeEvents()
     AEnemySpawner* spawner = ::Cast<AEnemySpawner>(spawnerActor);
     spawner->GetSpawnedActorDelegate.RemoveAll(this);
   }
+}
+
+void AInsekiGameMode::ARGameOver()
+{
+  ProcessGameResult(GameOver);
 }

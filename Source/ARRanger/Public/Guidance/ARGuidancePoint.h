@@ -9,14 +9,6 @@
 
 #define UE_API ARRANGER_API
 
-UENUM(BlueprintType)
-enum struct EGuidancePointVisibilityType : uint8
-{
-  Visible_Attraction,
-  Visible_Repulsion,
-  Visible_Both,
-};
-
 /**Forward declaration */
 enum class EARMagnetismType : uint8;
 class UPrimitiveComponent;
@@ -40,6 +32,9 @@ public:
   // Called every frame
   UE_API virtual void Tick(float DeltaTime) override;
 
+  UFUNCTION(BlueprintCallable)
+  UE_API void SetChildPoint(AARGuidancePoint* InChild);
+
   UFUNCTION(BlueprintCallable, Category = "Guidance|Visibility")
   UE_API virtual void OnMagnetismTypeChanged(EARMagnetismType Type);
 
@@ -61,27 +56,73 @@ public:
   UFUNCTION(BlueprintImplementableEvent, Category = "Guidance", meta = (DisplayName = "OnActivationSet"))
   UE_API void K2_OnActivationSet(bool bActive);
 
+  UFUNCTION(BlueprintImplementableEvent, Category = "Guidance|Animation", meta = (DisplayName = "OnGuidanceAnimationUpdated"))
+  UE_API void K2_OnGuidanceAnimationUpdated(const FVector& Origin, const FVector& Destination, float AnimTotalLength, float AnimCurrentTime, float DeltaTime);
+
+  UFUNCTION(BlueprintImplementableEvent, Category = "Guidance|Animation", meta = (DisplayName = "OnGuidanceAnimationEnded"))
+  UE_API void K2_OnGuidanceAnimationEnded();
+
+  UFUNCTION(BlueprintImplementableEvent, Category = "Guidance|Animation", meta = (DisplayName = "OnGuidanceAnimationReset"))
+  UE_API void K2_OnGuidanceAnimationReset();
+
+  UFUNCTION(BlueprintImplementableEvent, Category = "Guidance|Animation", meta = (DisplayName = "OnChildPointSet"))
+  UE_API void K2_OnChildPointSet(AARGuidancePoint* InChild);
+
   UFUNCTION(BlueprintCallable, Category = "Guidance")
   UE_API void OnTerminationEnded();
 
   UFUNCTION(BlueprintPure, Category = "Guidance")
   UE_API bool IsTerminationTriggered() const;
 
+  UFUNCTION(BlueprintPure, Category = "Guidance|Animation")
+  UE_API bool CanPlayGuidanceAnimation() const;
+
+  UFUNCTION(BlueprintCallable, Category = "Guidance|Animation")
+  UE_API void UpdateGuidanceAnimation(float DeltaTime);
+
+  UFUNCTION(BlueprintCallable, Category = "Guidance|Animation")
+  UE_API void ResetGuidanceAnimation();
+  
   UE_API void SetActive(bool bActive);
 
 private:
   UFUNCTION()
-  UE_API void OnGuidancePointBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+  void OnGuidancePointBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+  void OnGuidanceAnimationUpdated(const AARGuidancePoint& ChildPoint, float DeltaTime);
+
+  void ResetAnim();
+
+  void UpdateAnim(const FVector& Destination, float DeltaTime);
+
+  void StopAnim();
+
+  void OnChildPointSet(AARGuidancePoint* InParentPoint);
 
 private:
   
   UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Guidance|Collision", meta = (AllowPrivateAccess = "true"))
   TObjectPtr<UBoxComponent> GuidancePointCollision;
 
-  UPROPERTY(EditDefaultsOnly, Category = "Guidance|Visibility")
-  EGuidancePointVisibilityType Visibility;
+  UPROPERTY(EditAnywhere)
+  TObjectPtr<AARGuidancePoint> ChildPoint;
+
+  UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Guidance|Animation", meta = (AllowPrivateAccess = "true", ClampMin = 0))
+  float GuidanceAnimLength;
+
+  UPROPERTY(EditDefaultsOnly, Category = "Guidance|Animation", meta = (ClampMin = 0))
+  float GuidanceAnimDelay;
+  
+  float m_guidanceAnimTimeCnt;
+
+  FTimerHandle m_guidanceAnimDelayTimerHandle;
+
+  UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Guidance|Animation", meta = (AllowPrivateAccess = "true", DisplayName = "Loop Animation"))
+  bool bLoopAnim;
 
   uint8 bCanTerminationEventUpdate : 1;
+
+  uint8 bIsAnimDelaying : 1;
 };
 
 #undef UE_API

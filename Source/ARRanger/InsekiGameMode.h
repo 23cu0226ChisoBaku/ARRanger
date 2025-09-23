@@ -46,6 +46,9 @@ private:
   void UninitializeAliveEnemies();
   void UninitializeEvents();
 
+  UFUNCTION()
+  void ARGameOver();
+
 public:
 
   UFUNCTION()

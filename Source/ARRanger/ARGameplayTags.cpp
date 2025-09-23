@@ -21,6 +21,7 @@ namespace GameplayTags
   UE_DEFINE_GAMEPLAY_TAG_COMMENT(Ability_Charge_RepulsionKick, "Ability.Charge.RepulsionKick", "Repulsion kick charge ability");
   UE_DEFINE_GAMEPLAY_TAG_COMMENT(Ability_Charge_Punch_Combo3, "Ability.Charge.Punch_Combo3", "Punch (Combo 3) charge ability");
   UE_DEFINE_GAMEPLAY_TAG_COMMENT(Ability_Cancel_OnDamaged, "Ability.Cancel.OnDamaged", "Tag to cancel abilities if avatar is damaged");
+  UE_DEFINE_GAMEPLAY_TAG_COMMENT(Ability_Dead, "Ability.Dead", "Tag to handle dead event");
 
   UE_DEFINE_GAMEPLAY_TAG_COMMENT(InputState_BlockAll, "InputState.BlockAll", "Block all player input");
   UE_DEFINE_GAMEPLAY_TAG_COMMENT(InputState_Default, "InputState.Default", "Player default input state");

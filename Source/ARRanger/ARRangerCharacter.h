@@ -69,6 +69,10 @@ public:
   UPROPERTY(BlueprintAssignable)
   FOnPlayerHitDelegate OnPlayerHit;
 
+  DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnDeadDelegate);
+  UPROPERTY(BlueprintAssignable)
+  FOnDeadDelegate OnPlayerDead;
+
 	// コンストラクタ
 	AARRangerCharacter();
 
@@ -176,6 +180,10 @@ public:
 public:
 	virtual void Tick(float DeltaTime) override;
 
+  // 麦
+  UFUNCTION(BlueprintImplementableEvent, Category = "Character|HealthEffect")
+  UE_API void OnVignetteEffectChanged(UARHealthComponent* InHealthComponent, AActor* InInstigator, float InOldHealthValue, float InNewHealthValue);
+
 	// AttackBaseComponentを保存
   UPROPERTY()
 	TObjectPtr<UAttackBaseComponent> AttackBaseComp = nullptr;
@@ -268,6 +276,16 @@ public:
   void OnPunchEnded();
 
 private:
+  UFUNCTION()
+  UE_API void OnPlayerDeadStarted(AActor* PlayerActor);
+
+  UFUNCTION()
+  UE_API void OnPlayerDeadEnded(AActor* PlayerActor);
+
+  void DisableMovementAndCollision();
+
+
+private:
 	// 攻撃中フラグ
 	bool bIsAttacked = false;
 
@@ -293,6 +311,10 @@ private:
   UPROPERTY(EditDefaultsOnly, Category = "Character|Parameters", meta = (AllowPrivateAccess = "true"))
   TObjectPtr<UARHealthComponent> HealthComponent;
 
+  UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+  int32 CameraRigIndex;
+
+ 
   // TODO Use to rotate when player is in charge state
   FVector FaceDir_HoldStart;
 
