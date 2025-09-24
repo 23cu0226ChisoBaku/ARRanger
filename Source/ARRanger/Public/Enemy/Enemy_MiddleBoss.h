@@ -80,6 +80,7 @@ public:
 
   /**Start AEnemy_Zako Interface */
   UE_API virtual void ReceiveLaunch(const FVector& LaunchDirection) override;
+  UE_API virtual void PerformDeadStartEffect() override;
   /**End AEnemy_Zako Interface */
 
 public:
