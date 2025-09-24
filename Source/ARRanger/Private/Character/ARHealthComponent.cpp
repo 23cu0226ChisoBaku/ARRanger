@@ -79,15 +79,18 @@ void UARHealthComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAc
 {
   Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-  if (!IsHealthMax() && bAutoRegeneration)
+  if (bAutoRegenerationEnable)
   {
-    RegenerationEntry.EvaluateRegeneration(DeltaTime);
-
-    if (RegenerationEntry.bEnableRegeneration)
+    if (!IsHealthMax() && bAutoRegeneration)
     {
-      const float regenerationHealth = RegenerationEntry.GetRegenerationSpeed();
-
-      HandleHealthChange(GetOwner(), regenerationHealth);
+      RegenerationEntry.EvaluateRegeneration(DeltaTime);
+  
+      if (RegenerationEntry.bEnableRegeneration)
+      {
+        const float regenerationHealth = RegenerationEntry.GetRegenerationSpeed() * DeltaTime;
+  
+        HandleHealthChange(GetOwner(), regenerationHealth);
+      }
     }
   }
 }
@@ -192,4 +195,15 @@ void UARHealthComponent::FinishDead()
   {
     OnDeadFinished.Broadcast(GetOwner());
   }
+}
+
+void UARHealthComponent::SetAutoRegenerationEnable(const bool bEnable)
+{
+  if (bAutoRegenerationEnable != bEnable)
+  {
+    RegenerationEntry.ResetRegenerationState();
+  }
+  
+  bAutoRegenerationEnable = bEnable;
+
 }

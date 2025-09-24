@@ -107,10 +107,10 @@ private:
   UPROPERTY(EditAnywhere)
   TObjectPtr<AARGuidancePoint> ChildPoint;
 
-  UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Guidance|Animation", meta = (AllowPrivateAccess = "true", ClampMin = 0))
+  UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Guidance|Animation", meta = (AllowPrivateAccess = "true", ClampMin = 0))
   float GuidanceAnimLength;
 
-  UPROPERTY(EditDefaultsOnly, Category = "Guidance|Animation", meta = (ClampMin = 0))
+  UPROPERTY(EditAnywhere, Category = "Guidance|Animation", meta = (ClampMin = 0))
   float GuidanceAnimDelay;
   
   float m_guidanceAnimTimeCnt;

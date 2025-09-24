@@ -25,7 +25,10 @@ ABattleEventField::ABattleEventField()
     PrimaryActorTick.bCanEverTick = true;
 
     /*エフェクトは最初は再生しない*/ 
-    m_BarrierEffect->bAutoActivate = false;
+    if(m_BarrierEffect != nullptr)
+    {
+        m_BarrierEffect->bAutoActivate = false;
+    }
 }
 
 void ABattleEventField::BeginPlay()

@@ -3,6 +3,7 @@
 
 #include "Enemy/Enemy_MiddleBoss.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Kismet/GameplayStatics.h"
 
 #include "Enemy/EnemyAttackTypes.h"
 
@@ -203,6 +204,39 @@ void AEnemy_MiddleBoss::OnAttackTaskConditionMet(EAttackType InAttackType)
   K2_OnAttackTaskConditionMet(InAttackType);
 }
 
+void AEnemy_MiddleBoss::OnDamaged(const ARRanger::Battle::FARDamageResult& InDamageResult)
+{
+  ReceiveDamage(InDamageResult.Instigator, InDamageResult.FinalDamage);
+
+  if (IsDead())
+  {
+    ReceiveLaunch(InDamageResult.FinalLaunchDirection);
+  }
+}
+
+void AEnemy_MiddleBoss::ReceiveLaunch(const FVector& LaunchDirection)
+{
+  bDeadLaunchHandled = true;
+
+  // 死亡時は大きく吹っ飛ばす
+  const float launchPower = 10000.0f;
+  FVector DeathImpulse = LaunchDirection;
+
+  TArray<AActor*> actors{};
+  UGameplayStatics::GetAllActorsWithTag(this, FName{"Landmark"}, actors);
+  if (actors.Num() > 0)
+  {
+    if (actors[0] != nullptr)
+    {
+      DeathImpulse = (actors[0]->GetActorLocation() - GetActorLocation()).GetSafeNormal();
+    }
+  }
+
+  DeathImpulse *= launchPower;
+  GetMesh()->AddImpulse(DeathImpulse, NAME_None, true);
+}
+
+
 void FAttackTask_ApproachTarget::UpdateTask(float DeltaTime)
 {
   if (!m_targetActor.IsValid())
@@ -270,3 +304,4 @@ void FAttackTask_PreRoar::UpdateTask(float DeltaTime)
   SourceBoss->OnPreAttackTaskFinished(TaskType);
   SourceBoss->K2_OnAttackFinished();
 }
+

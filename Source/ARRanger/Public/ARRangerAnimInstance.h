@@ -11,19 +11,27 @@ class ARRANGER_API UARRangerAnimInstance : public UAnimInstance
 	GENERATED_BODY()
 
 public:
-    // ˆø—ÍƒNƒ‰ƒCƒ€‚Ìã‰º•ûŒü‚Ì‘¬“x
+    // ï¿½ï¿½ï¿½ÍƒNï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½ï¿½ï¿½Ìã‰ºï¿½ï¿½ï¿½ï¿½ï¿½Ì‘ï¿½ï¿½x
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Climb")
     float ClimbUpSpeed;
 
-    // ˆø—ÍƒNƒ‰ƒCƒ€‚Ì¶‰E•ûŒü‚Ì‘¬“x
+    // ï¿½ï¿½ï¿½ÍƒNï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½ï¿½ï¿½Ìï¿½ï¿½Eï¿½ï¿½ï¿½ï¿½ï¿½Ì‘ï¿½ï¿½x
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Climb")
     float ClimbRightSpeed;
 
-    // ˆø—ÍƒNƒ‰ƒCƒ€’†ƒtƒ‰ƒO
+    // ï¿½ï¿½ï¿½ÍƒNï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½ï¿½ï¿½tï¿½ï¿½ï¿½O
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Climb")
     bool IsClimbing = false;
 
-    // í“¬’†ƒtƒ‰ƒO
+    // ï¿½í“¬ï¿½ï¿½ï¿½tï¿½ï¿½ï¿½O
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Battle")
     bool bIsBattled = false;
+
+        // è½ä¸‹ä¸­ãƒ•ãƒ©ã‚°
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Fall")
+    bool IsFalled = false;
+
+    // è½ä¸‹ä¸­ã®æ™‚é–“ã‚’ä¿å­˜
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Fall")
+    float InFallingTime = 0.0f;
 };
