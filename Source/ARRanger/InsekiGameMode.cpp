@@ -308,7 +308,7 @@ void AInsekiGameMode::InitializeOnMapEnemies()
   for (AActor* foundActorPtr : onMapEnemies)
   {
     AEnemy_Zako* enemy = ::Cast<AEnemy_Zako>(foundActorPtr);
-    enemy->OnDead.AddUniqueDynamic(this, &ThisClass::OnEnemyDead);
+    enemy->OnEnemyDeadEnded.AddUniqueDynamic(this, &ThisClass::OnEnemyDead);
   }
 }
 
@@ -348,7 +348,7 @@ void AInsekiGameMode::UninitializeAliveEnemies()
   for (AActor* foundActorPtr : onMapEnemies)
   {
     AEnemy_Zako* enemy = ::Cast<AEnemy_Zako>(foundActorPtr);
-    enemy->OnDead.RemoveDynamic(this, &ThisClass::OnEnemyDead);
+    enemy->OnEnemyDeadEnded.RemoveDynamic(this, &ThisClass::OnEnemyDead);
   }
 }
 
@@ -362,7 +362,7 @@ void AInsekiGameMode::OnEnemySpawned(AActor* InSpawnedEnemy)
   if (AEnemy_Zako* enemy = ::Cast<AEnemy_Zako>(InSpawnedEnemy))
   {
     ++EnemyCount;
-    enemy->OnDead.AddUniqueDynamic(this, &ThisClass::OnEnemyDead);
+    enemy->OnEnemyDeadEnded.AddUniqueDynamic(this, &ThisClass::OnEnemyDead);
 
     if (AEnemy_MiddleBoss* middleBoss = ::Cast<AEnemy_MiddleBoss>(enemy))
     {
