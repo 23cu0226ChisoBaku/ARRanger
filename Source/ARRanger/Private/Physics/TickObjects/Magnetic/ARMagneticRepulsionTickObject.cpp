@@ -41,7 +41,7 @@ void UARMagneticRepulsionTickObject::OnTick(const FARPhysicsTickParameters& Tick
       if (targetVelo.SizeSquared() > DOUBLE_KINDA_SMALL_NUMBER)
       {
         const FVector forwardDir = targetVelo.GetUnsafeNormal();
-        const FVector launchVelo = forwardDir * 1200.0 + FVector{0.0, 0.0, 800.0};
+        const FVector launchVelo = forwardDir * 1500.0 + FVector{0.0, 0.0, 1200.0};
         Result.ForceResult += launchVelo;
       }
       else

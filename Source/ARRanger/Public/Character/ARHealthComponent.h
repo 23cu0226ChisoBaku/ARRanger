@@ -89,6 +89,12 @@ public:
 
   UE_API void FinishDead();
 
+  UE_API void SetAutoRegenerationEnable(const bool bEnable);
+
+  /**TODO Temporary variable */
+  bool bAutoRegenerationEnable = true;
+  /** */
+
 protected:
 
   /**Start UActorComponent Interface */
