@@ -58,10 +58,10 @@ public:
   FOnHealthChangedDelegate OnHealthChanged;
 
   UPROPERTY(BlueprintAssignable)
-  FOnDeadDelegate OnDeadStarted;
+  FOnDeadDelegate OnDeadEventStarted;
 
   UPROPERTY(BlueprintAssignable)
-  FOnDeadDelegate OnDeadFinished;
+  FOnDeadDelegate OnDeadEventFinished;
 
   UFUNCTION(BlueprintCallable, Category = "ARRanger|Health")
   static UE_API UARHealthComponent* FindHealthComponent(AActor* OwningActor);
