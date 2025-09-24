@@ -55,12 +55,15 @@ void UARGameplayAbility_Charge::EndAbility(
 {
   Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 
-  if (OnChargeFinished.IsBound())
+  if (bWasCancelled)
   {
-    const float elapsedTime = GetHeldTime();
-    OnChargeFinished.Broadcast(bWasCancelled, elapsedTime, GetAssetTags());
+    if (OnChargeFinished.IsBound())
+    {
+      const float elapsedTime = GetHeldTime();
+      OnChargeFinished.Broadcast(bWasCancelled, elapsedTime, GetAssetTags());
+    }
   }
-
+  
   // TODO Currently in UARGameplayAbility_Attack we stop montage too. Maybe we should move this to base class?
   if (ChargeMontage != nullptr)
   {
@@ -71,7 +74,7 @@ void UARGameplayAbility_Charge::EndAbility(
         if(UAnimInstance* animInst = meshComp->GetAnimInstance())
         {
           // TODO 意味不明
-          animInst->Montage_Stop(0.15f, ChargeMontage);
+          animInst->Montage_Stop(0.0f, ChargeMontage);
         }
       }
     }
