@@ -5,6 +5,7 @@
 #pragma once
 #include "CoreMinimal.h" 
 #include "GameFramework/Actor.h"
+#include "Sound/SoundBase.h"
 
 #include "BattleEventManager.generated.h"
 
@@ -30,6 +31,14 @@ public:
     /*フィールド終了通知 (外部クラス用)*/ 
     UPROPERTY(BlueprintAssignable) 
     FBattleEventEnd OnAnyFieldBattleEnd;
+
+    // バリアエフェクト出現時のSE
+    UPROPERTY(EditAnywhere, Category = "SE")
+    USoundBase* SE_Barrier_Start;
+
+    // バリアエフェクト消失時のSE
+    UPROPERTY(EditAnywhere, Category = "SE")
+    USoundBase* SE_Barrier_End;
 
     /** 
      * @brief 進行中のフィールドの残りの敵数を取得 

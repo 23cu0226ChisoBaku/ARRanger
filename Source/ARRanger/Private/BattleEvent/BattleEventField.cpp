@@ -7,6 +7,7 @@
 #include "Components/PrimitiveComponent.h"
 #include "Engine/World.h"
 #include "GameFramework/Actor.h"
+#include "NiagaraActor.h"
 #include "NiagaraComponent.h"
 #include "NiagaraFunctionLibrary.h"
 
@@ -23,12 +24,6 @@ ABattleEventField::ABattleEventField()
 
 {
     PrimaryActorTick.bCanEverTick = true;
-
-    /*エフェクトは最初は再生しない*/ 
-    if(m_BarrierEffect != nullptr)
-    {
-        m_BarrierEffect->bAutoActivate = false;
-    }
 }
 
 void ABattleEventField::BeginPlay()
@@ -49,6 +44,18 @@ void ABattleEventField::BeginPlay()
             continue;
         }
         primComp->OnComponentBeginOverlap.AddDynamic(this, &ABattleEventField::OnFieldBeginOverlap);
+    }
+
+    /*バリアエフェクトのコンポーネントを取得する*/ 
+    if(m_BarrierEffectActor != nullptr)
+    {
+        UNiagaraComponent* niagaraComp = m_BarrierEffectActor->GetNiagaraComponent();
+        if (niagaraComp)
+        {
+            m_BarrierEffectComp = niagaraComp;
+            /*最初はナイアガラを再生しない*/
+            m_BarrierEffectComp->bAutoActivate = false;
+        }
     }
     
     /*次フレームで範囲内のスポナーを取得*/
@@ -177,6 +184,12 @@ void ABattleEventField::ActiveEventField()
  */
 void ABattleEventField::OnStartBattleEvent()
 {
+    /*バリアエフェクト再生*/
+    if(m_BarrierEffectComp != nullptr)
+    {
+        m_BarrierEffectComp->Activate(true); 
+    }
+
     /*見えない壁(鳥かご)を有効*/
     ActiveCageCollision(true);
     /*Managerに通知*/
@@ -196,6 +209,12 @@ void ABattleEventField::OnEndBattleEvent()
     if(!m_IsActiveField)
     {
         return;
+    }
+    
+    /*バリアエフェクトの停止*/
+    if(m_BarrierEffectComp != nullptr)
+    {
+        m_BarrierEffectComp->Deactivate();
     }
     /*見えない壁(鳥かご)を無効*/
     ActiveCageCollision(false);
