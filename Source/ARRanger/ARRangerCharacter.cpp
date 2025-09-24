@@ -692,11 +692,12 @@ void AARRangerCharacter::OnDamaged(const ARRanger::Battle::FARDamageResult& InDa
     }
     else
     {
-      FVector knockbackDir = InDamageResult.FinalLaunchDirection;
-      knockbackDir.Z = 0.0;
-      knockbackDir.Normalize();
+      /*プレイヤーのknockバック解除*/
+      // FVector knockbackDir = InDamageResult.FinalLaunchDirection;
+      // knockbackDir.Z = 0.0;
+      // knockbackDir.Normalize();
 
-      LaunchCharacter(knockbackDir * 200.0, true, true);
+      // LaunchCharacter(knockbackDir * 200.0, true, true);
     }
   }
 }
@@ -1024,5 +1025,4 @@ void AARRangerCharacter::DisableMovementAndCollision()
   UCharacterMovementComponent* moveComp = GetCharacterMovement();
   moveComp->StopMovementImmediately();
   moveComp->DisableMovement();
-
 }
