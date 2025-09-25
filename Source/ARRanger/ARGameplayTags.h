@@ -29,6 +29,9 @@ namespace GameplayTags
   UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Jump);
   UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Cancel_OnDamaged);
   UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Dead);
+  UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Special_Attract_StartPhase);
+  UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Special_Attract_AttackPhase);
+  UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Special_Attract_EndPhase);
 
   UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Charge_RepulsionKick);
   UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Charge_Punch_Combo3);

@@ -22,6 +22,9 @@ namespace GameplayTags
   UE_DEFINE_GAMEPLAY_TAG_COMMENT(Ability_Charge_Punch_Combo3, "Ability.Charge.Punch_Combo3", "Punch (Combo 3) charge ability");
   UE_DEFINE_GAMEPLAY_TAG_COMMENT(Ability_Cancel_OnDamaged, "Ability.Cancel.OnDamaged", "Tag to cancel abilities if avatar is damaged");
   UE_DEFINE_GAMEPLAY_TAG_COMMENT(Ability_Dead, "Ability.Dead", "Tag to handle dead event");
+  UE_DEFINE_GAMEPLAY_TAG_COMMENT(Ability_Special_Attract_StartPhase, "Ability.Special.AttractStartPhase", "Player Attract Special Start");
+  UE_DEFINE_GAMEPLAY_TAG_COMMENT(Ability_Special_Attract_AttackPhase, "Ability.Special.AttractAttackPhase", "Player Attract Special Attack");
+  UE_DEFINE_GAMEPLAY_TAG_COMMENT(Ability_Special_Attract_EndPhase, "Ability.Special.AttractEndPhase", "Player Attract Special End");
 
   UE_DEFINE_GAMEPLAY_TAG_COMMENT(InputState_BlockAll, "InputState.BlockAll", "Block all player input");
   UE_DEFINE_GAMEPLAY_TAG_COMMENT(InputState_Default, "InputState.Default", "Player default input state");
