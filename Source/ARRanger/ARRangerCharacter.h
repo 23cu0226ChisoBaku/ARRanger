@@ -87,6 +87,13 @@ protected:
 	// 入力アクションのバインディングを初期化する
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+  
+  UFUNCTION(BlueprintImplementableEvent, Category = "PlayerCharacter|DeadEvent", meta = (DisplayName = "OnPlayerDeadStarted"))
+  UE_API void K2_OnPlayerDeadStarted();
+
+  UFUNCTION(BlueprintImplementableEvent, Category = "PlayerCharacter|DeadEvent", meta = (DisplayName = "OnPlayerDeadFinished"))
+  UE_API void K2_OnPlayerDeadFinished();
+
 private:
 
 	// 現在歩いているオブジェクトの表面
@@ -283,11 +290,11 @@ private:
   UFUNCTION()
   UE_API void OnPlayerDeadEnded(AActor* PlayerActor);
 
+
   UFUNCTION()
-  UE_API void OnAbilityCostHandled(UARAbilityCostComponent* AbilityCostComponent, FGameplayTag AbilityCostTag, float InOldResourceValue, float InNewResourceValue, bool bAbilityCostHandled);
+  UE_API void OnAbilityCostHandled(UARAbilityCostComponent* InAbilityCostComponent, FGameplayTag AbilityCostTag, float InOldResourceValue, float InNewResourceValue, bool bAbilityCostHandled);
 
   void DisableMovementAndCollision();
-
 
 private:
 	// 攻撃中フラグ
@@ -318,7 +325,7 @@ private:
   UPROPERTY(EditDefaultsOnly, Category = "Character|Parameters", meta = (AllowPrivateAccess = "true"))
   TObjectPtr<UARAbilityCostComponent> AbilityCostComponent;
 
-  UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+  UPROPERTY(BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
   int32 CameraRigIndex;
 
   /**Controler vibration */

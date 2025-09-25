@@ -958,8 +958,7 @@ void AARRangerCharacter::OnPlayerDeadStarted(AActor* PlayerActor)
 {
   DisableMovementAndCollision();
 
-  // Change to Top-down Camera
-  CameraRigIndex = 1;
+  K2_OnPlayerDeadStarted();
 }
 
 void AARRangerCharacter::OnPlayerDeadEnded(AActor* PlayerActor)
@@ -974,6 +973,8 @@ void AARRangerCharacter::OnPlayerDeadEnded(AActor* PlayerActor)
   {
     OnPlayerDead.Broadcast();
   }
+
+  K2_OnPlayerDeadFinished();
 
 }
 
@@ -996,7 +997,7 @@ void AARRangerCharacter::DisableMovementAndCollision()
 
 }
 
-void AARRangerCharacter::OnAbilityCostHandled(UARAbilityCostComponent* AbilityCostComponent, FGameplayTag AbilityCostTag, float InOldResourceValue, float InNewResourceValue, bool bAbilityCostHandled)
+void AARRangerCharacter::OnAbilityCostHandled(UARAbilityCostComponent* InAbilityCostComponent, FGameplayTag AbilityCostTag, float InOldResourceValue, float InNewResourceValue, bool bAbilityCostHandled)
 {
   // TODO
 }

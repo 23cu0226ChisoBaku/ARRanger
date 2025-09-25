@@ -26,6 +26,8 @@ namespace GameplayTags
   UE_DEFINE_GAMEPLAY_TAG_COMMENT(Ability_Special_Attract_AttackPhase, "Ability.Special.AttractAttackPhase", "Player Attract Special Attack");
   UE_DEFINE_GAMEPLAY_TAG_COMMENT(Ability_Special_Attract_EndPhase, "Ability.Special.AttractEndPhase", "Player Attract Special End");
 
+  UE_DEFINE_GAMEPLAY_TAG_COMMENT(AbilityCost_ARBurst, "AbilityCost.ARBurst", "Resource for Special Action");
+
   UE_DEFINE_GAMEPLAY_TAG_COMMENT(InputState_BlockAll, "InputState.BlockAll", "Block all player input");
   UE_DEFINE_GAMEPLAY_TAG_COMMENT(InputState_Default, "InputState.Default", "Player default input state");
   UE_DEFINE_GAMEPLAY_TAG_COMMENT(InputState_Punch_Combo1, "InputState.Punch.Combo1", "Player punch combo 1 input state");
