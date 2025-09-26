@@ -29,6 +29,7 @@
 
 #include "Pawn/ARPawnInitComponent.h"
 #include "Character/ARHealthComponent.h"
+#include "Character/ARAbilityCostComponent.h"
 #include "Pawn/ARPawnInitComponent.h"
 #include "GameFramework/ForceFeedbackEffect.h"
 
@@ -73,6 +74,9 @@ AARRangerCharacter::AARRangerCharacter()
   HealthComponent->OnHealthChanged.AddDynamic(this, &ThisClass::OnVignetteEffectChanged);
   HealthComponent->OnDeadEventStarted.AddDynamic(this, &ThisClass::OnPlayerDeadStarted);
   HealthComponent->OnDeadEventFinished.AddDynamic(this, &ThisClass::OnPlayerDeadEnded);
+
+  AbilityCostComponent = CreateDefaultSubobject<UARAbilityCostComponent>(TEXT("AbilityCostComponent"));
+  AbilityCostComponent->OnAbilityCostApplied.AddDynamic(this, &ThisClass::OnAbilityCostHandled);
 
   CameraRigIndex = 0;
 }
@@ -596,7 +600,7 @@ void AARRangerCharacter::OnSpecialAttractAttack()
 
   if (attractSpecialAttackComponent != nullptr)
   {
-    attractSpecialAttackComponent->OnStartSpecialAttract();
+    attractSpecialAttackComponent->StartSpecialAttract();
   }
 }
 
@@ -954,8 +958,7 @@ void AARRangerCharacter::OnPlayerDeadStarted(AActor* PlayerActor)
 {
   DisableMovementAndCollision();
 
-  // Change to Top-down Camera
-  CameraRigIndex = 1;
+  K2_OnPlayerDeadStarted();
 }
 
 void AARRangerCharacter::OnPlayerDeadEnded(AActor* PlayerActor)
@@ -970,6 +973,8 @@ void AARRangerCharacter::OnPlayerDeadEnded(AActor* PlayerActor)
   {
     OnPlayerDead.Broadcast();
   }
+
+  K2_OnPlayerDeadFinished();
 
 }
 
@@ -990,4 +995,20 @@ void AARRangerCharacter::DisableMovementAndCollision()
   moveComp->StopMovementImmediately();
   moveComp->DisableMovement();
 
+}
+
+void AARRangerCharacter::OnAbilityCostHandled(UARAbilityCostComponent* InAbilityCostComponent, FGameplayTag AbilityCostTag, float InOldResourceValue, float InNewResourceValue, bool bAbilityCostHandled)
+{
+  // TODO
+}
+
+bool AARRangerCharacter::TryApplyAbilityCost(const FGameplayTag& InAbilityCostTag, float InAbilictCostChangeNum)
+{
+  bool bSuccess = false;
+  if (AbilityCostComponent != nullptr)
+  {
+    AbilityCostComponent->HandleAbilityCostChanged(InAbilityCostTag, InAbilictCostChangeNum, bSuccess);
+  }
+
+  return bSuccess;
 }
