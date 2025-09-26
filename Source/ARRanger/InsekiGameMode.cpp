@@ -27,14 +27,26 @@
 #include "Enemy/Enemy_MiddleBoss.h"
 #include "BattleEvent/BattleEventManager.h"
 #include "BattleEvent/EnemySpawner.h"
+#include "GameFramework/GameUserSettings.h"
 
 // TODO May move initialize function to another file
 #include "Physics/IARPhysicsSystemHost.h"
 
+namespace Private
+{
+  struct FARGameUserSettingsData
+  {
+    double FrameLimit = 0.0;
+  };
+}
+
 namespace
 {
   constexpr int32 MAIN_PLAYER_INDEX = 0;
+  constexpr float ACTION_FRAME_LIMIT = 60.0f;
+  TArray<Private::FARGameUserSettingsData> gSettingsDataStack;
 }
+
 
 AInsekiGameMode::AInsekiGameMode()
   : bGameResultHandled{false}
@@ -94,6 +106,8 @@ void AInsekiGameMode::BeginPlay()
 
   /*Event Manager デリゲートバインド*/
   RegisterBattleEventDelegate();
+
+  SetGameUserSettings(gSettingsDataStack);
 }
 
 void AInsekiGameMode::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -111,6 +125,8 @@ void AInsekiGameMode::EndPlay(const EEndPlayReason::Type EndPlayReason)
   UnregisterBattleEventDelegate();
   UninitializeAliveEnemies();
   UninitializeEvents();
+
+  UnsetGameUserSettings(gSettingsDataStack);
 }
 
 void AInsekiGameMode::InitializeObserver()
@@ -208,15 +224,12 @@ void AInsekiGameMode::OnEnemyDead(AActor* InEnemy)
  */
 void AInsekiGameMode::OnStartBattleEvent()
 {
-  UE_LOG(LogTemp, Warning, TEXT("What??????????????????"));
   ACharacter* playerChar = UGameplayStatics::GetPlayerCharacter(this, MAIN_PLAYER_INDEX);
   if (AARRangerCharacter* arPlayerChar = ::Cast<AARRangerCharacter>(playerChar))
   {
-      UE_LOG(LogTemp, Warning, TEXT("What?!?!?!?!??!?!?!?!?!??!?!!?!?!?!?!!?!?!?!?!?!?"));
-      // AnimInstance内の戦闘中フラグを上げる
-      arPlayerChar->SetIsBattledInAnimInstance(true);
+    // AnimInstance内の戦闘中フラグを上げる
+    arPlayerChar->SetIsBattledInAnimInstance(true);
   }
-
 }
 
 /**
@@ -224,12 +237,12 @@ void AInsekiGameMode::OnStartBattleEvent()
  */
 void AInsekiGameMode::OnEndBattleEvent()
 {
-   ACharacter* playerChar = UGameplayStatics::GetPlayerCharacter(this, MAIN_PLAYER_INDEX);
-   if (AARRangerCharacter* arPlayerChar = ::Cast<AARRangerCharacter>(playerChar))
-   {
-       // AnimInstance内の戦闘中フラグを下げる
-       arPlayerChar->SetIsBattledInAnimInstance(false);
-   }
+  ACharacter* playerChar = UGameplayStatics::GetPlayerCharacter(this, MAIN_PLAYER_INDEX);
+  if (AARRangerCharacter* arPlayerChar = ::Cast<AARRangerCharacter>(playerChar))
+  {
+    // AnimInstance内の戦闘中フラグを下げる
+    arPlayerChar->SetIsBattledInAnimInstance(false);
+  }
 }
 
 void AInsekiGameMode::InitializeEvents()
@@ -308,7 +321,7 @@ void AInsekiGameMode::InitializeOnMapEnemies()
   for (AActor* foundActorPtr : onMapEnemies)
   {
     AEnemy_Zako* enemy = ::Cast<AEnemy_Zako>(foundActorPtr);
-    enemy->OnDead.AddUniqueDynamic(this, &ThisClass::OnEnemyDead);
+    enemy->OnEnemyDeadEnded.AddUniqueDynamic(this, &ThisClass::OnEnemyDead);
   }
 }
 
@@ -348,7 +361,7 @@ void AInsekiGameMode::UninitializeAliveEnemies()
   for (AActor* foundActorPtr : onMapEnemies)
   {
     AEnemy_Zako* enemy = ::Cast<AEnemy_Zako>(foundActorPtr);
-    enemy->OnDead.RemoveDynamic(this, &ThisClass::OnEnemyDead);
+    enemy->OnEnemyDeadEnded.RemoveDynamic(this, &ThisClass::OnEnemyDead);
   }
 }
 
@@ -362,7 +375,7 @@ void AInsekiGameMode::OnEnemySpawned(AActor* InSpawnedEnemy)
   if (AEnemy_Zako* enemy = ::Cast<AEnemy_Zako>(InSpawnedEnemy))
   {
     ++EnemyCount;
-    enemy->OnDead.AddUniqueDynamic(this, &ThisClass::OnEnemyDead);
+    enemy->OnEnemyDeadEnded.AddUniqueDynamic(this, &ThisClass::OnEnemyDead);
 
     if (AEnemy_MiddleBoss* middleBoss = ::Cast<AEnemy_MiddleBoss>(enemy))
     {
@@ -385,4 +398,28 @@ void AInsekiGameMode::UninitializeEvents()
 void AInsekiGameMode::ARGameOver()
 {
   ProcessGameResult(GameOver);
+}
+
+void AInsekiGameMode::SetGameUserSettings(TArray<Private::FARGameUserSettingsData>& OutSettingsDataStack)
+{
+  if (UGameUserSettings* GUS = UGameUserSettings::GetGameUserSettings())
+  {
+
+    Private::FARGameUserSettingsData prevData{};
+    prevData.FrameLimit = GUS->GetFrameRateLimit();
+
+    // Set Frame rate
+    GUS->SetFrameRateLimit(ACTION_FRAME_LIMIT);
+
+    OutSettingsDataStack.Push(prevData);
+  }
+}
+
+void AInsekiGameMode::UnsetGameUserSettings(TArray<Private::FARGameUserSettingsData>& OutSettingsDataStack)
+{
+  if (UGameUserSettings* GUS = UGameUserSettings::GetGameUserSettings())
+  {
+    Private::FARGameUserSettingsData prevData = OutSettingsDataStack.Pop();
+    GUS->SetFrameRateLimit(prevData.FrameLimit);
+  }
 }

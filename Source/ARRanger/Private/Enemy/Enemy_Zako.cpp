@@ -15,9 +15,9 @@ AEnemy_Zako::AEnemy_Zako()
   AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 
   HealthComponent = CreateDefaultSubobject<UARHealthComponent>(TEXT("HealthComponent"));
-  HealthComponent->OnDeadStarted.AddUniqueDynamic(this, &ThisClass::OnEnemyDead);
-  HealthComponent->OnDeadFinished.AddUniqueDynamic(this, &ThisClass::OnEnemyDeadFinished);
-  HealthComponent->OnHealthChanged.AddUniqueDynamic(this, &ThisClass::OnEnemyHealthChanged);
+  HealthComponent->OnDeadEventStarted.AddDynamic(this, &ThisClass::EnemyDeadStarted);
+  HealthComponent->OnDeadEventFinished.AddDynamic(this, &ThisClass::EnemyDeadFinished);
+  HealthComponent->OnHealthChanged.AddDynamic(this, &ThisClass::OnEnemyHealthChanged);
 
 }
 
@@ -31,6 +31,12 @@ void AEnemy_Zako::EndPlay(const EEndPlayReason::Type EndPlayReason)
     controller->UnPossess();
     controller->Destroy();
   }
+
+  if (StartDeadTimer.IsValid())
+  {
+    GetWorld()->GetTimerManager().ClearTimer(StartDeadTimer);
+  }
+
 }
 
 void AEnemy_Zako::SetIsChasing(bool bChasing)
@@ -74,7 +80,6 @@ void AEnemy_Zako::ReceiveLaunch(const FVector& LaunchDirection)
     // 死亡時は大きく吹っ飛ばす
     const FVector DeathImpulse = LaunchDirection * 5000.0f;
     GetMesh()->AddImpulse(DeathImpulse, NAME_None, true);
-
   }
   else
   {
@@ -178,13 +183,8 @@ void AEnemy_Zako::StopAttraction()
   attractionTarget = nullptr;
 }
 
-void AEnemy_Zako::OnEnemyDead(AActor* OwningActor)
+void AEnemy_Zako::EnemyDeadStarted(AActor* OwningActor)
 {
-  if (OnDead.IsBound())
-  {
-    OnDead.Broadcast(OwningActor);
-  }
-
   GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
   GetMesh()->SetCollisionProfileName(TEXT("Ragdoll"));
   GetMesh()->SetSimulatePhysics(true);
@@ -192,24 +192,31 @@ void AEnemy_Zako::OnEnemyDead(AActor* OwningActor)
   GetMesh()->SetAllBodiesPhysicsBlendWeight(1.0f);
   GetMesh()->bBlendPhysics = true;
 
+  // Spawn dead start effect
+  PerformDeadStartEffect();
+
   auto deadFinishHandler = [this]
   {
-    if (HealthComponent == nullptr)
+    if (HealthComponent != nullptr)
     {
-      OnEnemyDeadFinished(this);
+      HealthComponent->FinishDead();
     }
     else
     {
-      HealthComponent->FinishDead();
+      EnemyDeadFinished(this);
     }
   };
 
   GetWorld()->GetTimerManager().SetTimer(StartDeadTimer, deadFinishHandler, 3.0f, false);
+
+  OnEnemyDeadStarted.Broadcast(OwningActor);
 }
 
-void AEnemy_Zako::OnEnemyDeadFinished(AActor* OwningActor)
+void AEnemy_Zako::EnemyDeadFinished(AActor* OwningActor)
 {
-  Destroy();
+  SetLifeSpan(0.1f);
+
+  OnEnemyDeadEnded.Broadcast(OwningActor);
 }
 
 void AEnemy_Zako::OnEnemyHealthChanged(UARHealthComponent* InHealthComponent, AActor* InInstigator, float PreviousHealth, float CurrentHealth)
@@ -223,20 +230,28 @@ void AEnemy_Zako::OnEnemyHealthChanged(UARHealthComponent* InHealthComponent, AA
   {
     isDead = true;
   }
-
-  // TODO
-  if ((InHealthComponent != nullptr) && (InHealthComponent == HealthComponent))
-  {
-    const bool bEnableHitStop = HealthComponent->GetHealth() <= 0.0f;
-    if (bEnableHitStop)
-    {
-      UGameplayStatics::SetGlobalTimeDilation(GetWorld(), 0.6f);
-      FTimerHandle TimerHandle;
-      GetWorldTimerManager().SetTimer(TimerHandle, 
-      []()
-      {
-        UGameplayStatics::SetGlobalTimeDilation(GWorld, 1.0f);
-      }, 0.03f, false);
-    }
-  }
 }
+
+void AEnemy_Zako::PerformDeadStartEffect()
+{
+  const float hitStopEffectMultiplier = 0.3f;
+  UGameplayStatics::SetGlobalTimeDilation(this, hitStopEffectMultiplier);
+  FTimerHandle Dummy{};
+  GetWorldTimerManager().SetTimer(Dummy, 
+  [this]()
+  {
+    UGameplayStatics::SetGlobalTimeDilation(this, 1.0f);
+  }, 0.03f, false);
+}
+
+void AEnemy_Zako::PerformDeadEndEffect()
+{
+  // TODO Try to do something?
+}
+
+void AEnemy_Zako::Destroyed()
+{
+  PerformDeadEndEffect();
+
+  Super::Destroyed();
+} 

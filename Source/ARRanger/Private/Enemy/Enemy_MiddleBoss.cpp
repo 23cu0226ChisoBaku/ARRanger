@@ -228,12 +228,26 @@ void AEnemy_MiddleBoss::ReceiveLaunch(const FVector& LaunchDirection)
   {
     if (actors[0] != nullptr)
     {
-      DeathImpulse = (actors[0]->GetActorLocation() - GetActorLocation()).GetSafeNormal();
+      const FVector relativeOffsetToLogo = FVector{0.0, 80.0, 400.0};
+      const FVector pointToHitLandmark = actors[0]->GetActorLocation() + relativeOffsetToLogo * actors[0]->GetActorScale3D();
+      DeathImpulse = (pointToHitLandmark - GetActorLocation()).GetSafeNormal();
     }
   }
 
   DeathImpulse *= launchPower;
   GetMesh()->AddImpulse(DeathImpulse, NAME_None, true);
+}
+
+void AEnemy_MiddleBoss::PerformDeadStartEffect()
+{
+  const float hitStopEffectMultiplier = 0.1f;
+  UGameplayStatics::SetGlobalTimeDilation(this, hitStopEffectMultiplier);
+  FTimerHandle Dummy{};
+  GetWorldTimerManager().SetTimer(Dummy, 
+  [this]()
+  {
+    UGameplayStatics::SetGlobalTimeDilation(this, 1.0f);
+  }, 0.3f, false);
 }
 
 
@@ -304,4 +318,3 @@ void FAttackTask_PreRoar::UpdateTask(float DeltaTime)
   SourceBoss->OnPreAttackTaskFinished(TaskType);
   SourceBoss->K2_OnAttackFinished();
 }
-

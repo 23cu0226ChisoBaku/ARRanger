@@ -18,15 +18,15 @@ void UARGameplayAbility_Dead::ActivateAbility(
                           const FGameplayEventData* TriggerEventData
                       )
 {
-  Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
-
+  
   UAbilitySystemComponent* ASC = ActorInfo->AbilitySystemComponent.Get();
   ASC->CancelAbilities(nullptr, nullptr, this);
-
+  
   SetCanBeCanceled(false);
-
+  
   OnDeadActivated();
-
+  
+  Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 }
 
 void UARGameplayAbility_Dead::EndAbility(

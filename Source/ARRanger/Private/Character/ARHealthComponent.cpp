@@ -181,9 +181,9 @@ void UARHealthComponent::StartDead()
 {
   check(GetOwner() != nullptr);
 
-  if (OnDeadStarted.IsBound())
+  if (OnDeadEventStarted.IsBound())
   {
-    OnDeadStarted.Broadcast(GetOwner());
+    OnDeadEventStarted.Broadcast(GetOwner());
   }
 }
 
@@ -191,9 +191,9 @@ void UARHealthComponent::FinishDead()
 {
   check(GetOwner() != nullptr);
 
-  if (OnDeadFinished.IsBound())
+  if (OnDeadEventFinished.IsBound())
   {
-    OnDeadFinished.Broadcast(GetOwner());
+    OnDeadEventFinished.Broadcast(GetOwner());
   }
 }
 

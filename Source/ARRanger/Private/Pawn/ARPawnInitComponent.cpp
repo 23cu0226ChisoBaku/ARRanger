@@ -151,7 +151,7 @@ void UARPawnInitComponent::InitializeChargeAttack(UARChargeAttackComponent* InCA
     {
       for (const FChargeAttackLeaf& leaf : entry.BranchLeaves)
       {
-        ChargeAttackComponent->AddChargeAttack(entry.BranchTag, leaf.TimeThreshold, leaf.AttackTag);
+        ChargeAttackComponent->AddChargeAttack(entry.BranchTag, leaf.TimeThreshold, leaf.ChargeAttackCost, leaf.AttackTag);
       }
     }
   }
