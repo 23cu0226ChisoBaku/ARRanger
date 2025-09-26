@@ -301,7 +301,7 @@ void AInsekiGameMode::ProcessGameResult(EGameResultState ResultState)
     }
   };
 
-  GetWorldTimerManager().SetTimer(GameResultTimerHandle, gameResultHandler, 3.0f, false);
+  GetWorldTimerManager().SetTimer(GameResultTimerHandle, gameResultHandler, 8.0f, false);
   bGameResultHandled = true;
 }
 
