@@ -22,6 +22,9 @@ struct FChargeAttackLeaf
   float TimeThreshold;
 
   UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+  float ChargeAttackCost;
+
+  UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
   FGameplayTag AttackTag;
 };
 

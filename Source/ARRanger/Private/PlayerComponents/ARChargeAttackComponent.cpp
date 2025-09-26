@@ -33,7 +33,7 @@ void UARChargeAttackComponent::TickComponent(float DeltaTime, ELevelTick TickTyp
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 }
 
-void UARChargeAttackComponent::AddChargeAttack(const FGameplayTag& InBranchTag, float InChargeTimeThreshold, const FGameplayTag& InChargeAttackTag)
+void UARChargeAttackComponent::AddChargeAttack(const FGameplayTag& InBranchTag, float InChargeTimeThreshold, float InChargeAttackCost, const FGameplayTag& InChargeAttackTag)
 {
   if (!m_chargeAttackTrees.Contains(InBranchTag))
   {
@@ -41,7 +41,7 @@ void UARChargeAttackComponent::AddChargeAttack(const FGameplayTag& InBranchTag, 
   }
 
   const int32 prevNum = m_chargeAttackTrees[InBranchTag].Num();
-  m_chargeAttackTrees[InBranchTag].AddUnique({InChargeTimeThreshold, InChargeAttackTag});
+  m_chargeAttackTrees[InBranchTag].AddUnique({InChargeTimeThreshold, InChargeAttackCost, InChargeAttackTag});
 
   // Sort as descending order
   if (prevNum != m_chargeAttackTrees[InBranchTag].Num())
@@ -77,6 +77,71 @@ FGameplayTag UARChargeAttackComponent::EvaluateCharge(float InTimeCharged, const
 void UARChargeAttackComponent::ClearAllChargeAttacks()
 {
   m_chargeAttackTrees.Reset();
+}
+
+float UARChargeAttackComponent::GetChargeTimeThresholdByAttackTag(const FGameplayTag& InChargeAttackTag) const
+{
+  for (const auto& [ _ , branches ] : m_chargeAttackTrees)
+  {
+    for (const FChargeAttackInfo& leaf : branches)
+    {
+      if (leaf.ChargeAttackTag.MatchesTagExact(InChargeAttackTag))
+      {
+        return leaf.TimeThreshold;
+      }
+    }
+  }
+
+  return 0.0;
+}
+
+float UARChargeAttackComponent::GetChargeAttackCostByAttackTag(const FGameplayTag& InChargeAttackTag) const
+{
+  for (const auto& [ _ , branches ] : m_chargeAttackTrees)
+  {
+    for (const FChargeAttackInfo& leaf : branches)
+    {
+      if (leaf.ChargeAttackTag.MatchesTagExact(InChargeAttackTag))
+      {
+        return leaf.AttackCost;
+      }
+    }
+  }
+
+  return 0.0;
+}
+
+
+float UARChargeAttackComponent::GetNextChargeTimeThresholdByAttackTag(const FGameplayTag& InChargeAttackTag) const
+{
+  for (const auto& [ _ , branches ] : m_chargeAttackTrees)
+  {
+    for (int32 index = 0; index < branches.Num(); ++index)
+    {
+      if (branches[index].ChargeAttackTag.MatchesTagExact(InChargeAttackTag))
+      {
+        return (index > 0) ? branches[index - 1].TimeThreshold : branches[index].TimeThreshold;
+      }
+    } 
+  }
+
+  return 0.0f;
+}
+
+float UARChargeAttackComponent::GetNextChargeAttackCostByAttackTag(const FGameplayTag& InChargeAttackTag) const
+{
+    for (const auto& [ _ , branches ] : m_chargeAttackTrees)
+  {
+    for (int32 index = 0; index < branches.Num(); ++index)
+    {
+      if (branches[index].ChargeAttackTag.MatchesTagExact(InChargeAttackTag))
+      {
+        return (index > 0) ? branches[index - 1].AttackCost : branches[index].AttackCost;
+      }
+    } 
+  }
+
+  return 0.0f;
 }
 
 bool UARChargeAttackComponent::FChargeAttackInfo::operator==(const UARChargeAttackComponent::FChargeAttackInfo& Other) const

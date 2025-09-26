@@ -9,6 +9,11 @@
 
 class AOutlineTickActor;
 
+namespace Private
+{
+  struct FARGameUserSettingsData;
+}
+
 // 麦
 namespace ARRanger
 {
@@ -40,11 +45,13 @@ private:
   void InitializeEvents();
   void ProcessGameResult(EGameResultState ResultState);
   void OnResetCommandSent();
+  void SetGameUserSettings(TArray<Private::FARGameUserSettingsData>& OutSettingsDataStack);
 
   // Enemy Initialization
   void InitializeOnMapEnemies();
   void UninitializeAliveEnemies();
   void UninitializeEvents();
+  void UnsetGameUserSettings(TArray<Private::FARGameUserSettingsData>& OutSettingsDataStack);
 
   UFUNCTION()
   void ARGameOver();
