@@ -38,6 +38,8 @@ namespace Battle
     float FinalDamage = 0.0f;
 
     FVector FinalLaunchDirection = FVector::ZeroVector;
+
+    FVector ImpactLocation = FVector::ZeroVector;
   };
 }  
 
@@ -63,6 +65,10 @@ struct FARAttackParameters
   /**飛ばす方向(単位ベクトル) */
   UPROPERTY(EditDefaultsOnly, Category = "Parameters|Attack")
   FVector LaunchDirection;
+
+  /**攻撃の与える座標 */
+  UPROPERTY(EditDefaultsOnly, Category = "Parameters|Attack")
+  FVector ImpactLocation;
   
   /**
    * 攻撃者のアクターを使用するか

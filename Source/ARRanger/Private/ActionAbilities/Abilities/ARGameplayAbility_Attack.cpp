@@ -49,6 +49,7 @@ void UARGameplayAbility_Attack::GANotify_ImpactResult(USkeletalMeshComponent* Me
     // TODO Stock damage in GA maybe not a great idea
     attackParam.Damage = AttackDamage;
     attackParam.bUseAttackerActor = true;
+    attackParam.ImpactLocation = result.ImpactLocation;
     // attackParam.LaunchDirection = knockbackDir.GetSafeNormal();
 
     // Try using SourceActor as attacker 
