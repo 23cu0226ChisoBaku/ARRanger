@@ -107,7 +107,7 @@ private:
   void SetMaxHealthInternal(float NewMaxHealth);
 
 private:
-  UPROPERTY(EditDefaultsOnly, Category = "ARRanger|Health", meta = (AllowPrivateAccess = "true"))
+  UPROPERTY(EditAnywhere, Category = "ARRanger|Health", meta = (AllowPrivateAccess = "true"))
   float MaxHealth;
 
   UPROPERTY(VisibleAnywhere, Category = "ARRanger|Health")
