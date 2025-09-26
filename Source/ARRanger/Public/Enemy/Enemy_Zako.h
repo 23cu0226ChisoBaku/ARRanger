@@ -21,9 +21,12 @@ class AEnemy_Zako : public ACharacter,
 
 public:
   
-  DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnEnemyDead, AActor*, DeadActor);
+  DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnEnemyDeadEvent, AActor*, DeadActor);
   UPROPERTY(BlueprintAssignable)
-  FOnEnemyDead OnDead;
+  FOnEnemyDeadEvent OnEnemyDeadStarted;
+
+  UPROPERTY(BlueprintAssignable)
+  FOnEnemyDeadEvent OnEnemyDeadEnded;
 
 public:
   UE_API AEnemy_Zako();
@@ -32,12 +35,17 @@ public:
 
   /**Start AActor Interface */
   UE_API virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+  UE_API virtual void Destroyed() override;
   /**End AActor Interface */
 
 protected:
   UE_API virtual void ReceiveDamage(AActor* InInstigator, float DamageAmount);
 
   UE_API virtual void ReceiveLaunch(const FVector& LaunchDirection);
+
+  UE_API virtual void PerformDeadStartEffect();
+
+  UE_API virtual void PerformDeadEndEffect();
 
 public:
   UE_API virtual void Zako_PerformAttack();
@@ -83,10 +91,10 @@ protected:
   void StopAttraction();
 
   UFUNCTION()
-  void OnEnemyDead(AActor* OwningActor);
+  void EnemyDeadStarted(AActor* OwningActor);
 
   UFUNCTION()
-  void OnEnemyDeadFinished(AActor* OwningActor);
+  void EnemyDeadFinished(AActor* OwningActor);
   
   UFUNCTION()
   void OnEnemyHealthChanged(UARHealthComponent* InHealthComponent, AActor* InInstigator, float PreviousHealth, float CurrentHealth);

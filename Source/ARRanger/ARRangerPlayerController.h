@@ -97,6 +97,9 @@ public:
   
   UFUNCTION(BlueprintCallable, Category = "ARRanger|PlayerController")
   [[nodiscard]] UE_API FGABlueprintableHoldHandle OnGameplayAbilityActivated_Hold(FGameplayTag InActivatedAbilityTag, bool bBlockInputTag, FGameplayTagContainer InInputBlockIgnoreTags);
+
+  UFUNCTION(BlueprintCallable, Category = "ARRanger|PlayerController")
+  UE_API void OnGameplayAbilityTaskTicked_Holding(FGameplayTag InTaskOwnerAbilityTag, float HeldTime, float DeltaTime);
   
   UFUNCTION(BlueprintCallable, Category = "ARRanger|PlayerController")
   UE_API void OnGameplayAbilityEnded_Hold(FGameplayTag InEndedAbilityTag, FGABlueprintableHoldHandle InHandle, float TimeHeld);

@@ -47,6 +47,10 @@ public:
     // For debug purpose
     FSimpleMulticastDelegate OnReset;
 
+    // コンボカウントを保存
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    int ComboCount = 0;
+
   private:
     uint8 bColorBlindModeOn : 1 = false;
 };

@@ -29,6 +29,7 @@
 
 #include "Pawn/ARPawnInitComponent.h"
 #include "Character/ARHealthComponent.h"
+#include "Character/ARAbilityCostComponent.h"
 #include "Pawn/ARPawnInitComponent.h"
 #include "GameFramework/ForceFeedbackEffect.h"
 
@@ -68,11 +69,14 @@ AARRangerCharacter::AARRangerCharacter()
   // 各種コンポーネントを取得
   LockOnComponent = CreateDefaultSubobject<ULockOnComponent>(TEXT("LockOnComponent"));
   AttackBaseComp = CreateDefaultSubobject<UAttackBaseComponent>(TEXT("AttackBaseComponent"));
-  HealthComponent = CreateDefaultSubobject<UARHealthComponent>(TEXT("HealthComponent"));
 
-  HealthComponent->OnHealthChanged.AddUniqueDynamic(this, &ThisClass::OnVignetteEffectChanged);
-  HealthComponent->OnDeadStarted.AddUniqueDynamic(this, &ThisClass::OnPlayerDeadStarted);
-  HealthComponent->OnDeadFinished.AddUniqueDynamic(this, &ThisClass::OnPlayerDeadEnded);
+  HealthComponent = CreateDefaultSubobject<UARHealthComponent>(TEXT("HealthComponent"));
+  HealthComponent->OnHealthChanged.AddDynamic(this, &ThisClass::OnVignetteEffectChanged);
+  HealthComponent->OnDeadEventStarted.AddDynamic(this, &ThisClass::OnPlayerDeadStarted);
+  HealthComponent->OnDeadEventFinished.AddDynamic(this, &ThisClass::OnPlayerDeadEnded);
+
+  AbilityCostComponent = CreateDefaultSubobject<UARAbilityCostComponent>(TEXT("AbilityCostComponent"));
+  AbilityCostComponent->OnAbilityCostApplied.AddDynamic(this, &ThisClass::OnAbilityCostHandled);
 
   CameraRigIndex = 0;
 }
@@ -452,9 +456,6 @@ void AARRangerCharacter::DoJumpStart()
     notifyHandler->OnJump();
     bIsJumping = true;
   }
-
-  // ジャンプ処理
-  Jump();
 }
 
 void AARRangerCharacter::DoJumpEnd()
@@ -599,7 +600,7 @@ void AARRangerCharacter::OnSpecialAttractAttack()
 
   if (attractSpecialAttackComponent != nullptr)
   {
-    attractSpecialAttackComponent->OnStartSpecialAttract();
+    attractSpecialAttackComponent->StartSpecialAttract();
   }
 }
 
@@ -690,14 +691,15 @@ void AARRangerCharacter::OnDamaged(const ARRanger::Battle::FARDamageResult& InDa
     {
       HealthComponent->HandleOutOfHealth(this);
     }
-    else
-    {
-      FVector knockbackDir = InDamageResult.FinalLaunchDirection;
-      knockbackDir.Z = 0.0;
-      knockbackDir.Normalize();
 
-      LaunchCharacter(knockbackDir * 200.0, true, true);
-    }
+    // else
+    // {
+    //   FVector knockbackDir = InDamageResult.FinalLaunchDirection;
+    //   knockbackDir.Z = 0.0;
+    //   knockbackDir.Normalize();
+
+    //   LaunchCharacter(knockbackDir * 200.0, true, true);
+    // }
   }
 }
 
@@ -744,39 +746,6 @@ void AARRangerCharacter::OnPunchStarted()
   }
 
   bReadyToTargetSnap = false;
-  
-  if (AttackBaseComp != nullptr)
-  {
-    AttackBaseComp->SetIsAttacked(false);
-    AttackBaseComp->SetIsStrongAttacked(false);
-    AttackBaseComp->SetIsAttractingEnemy(false);
-
-    AttackBaseComp->RotateOwnerToTarget();
-
-    if (GetIsApproachedEnemy())
-    {
-      UE_LOG(LogTemp, Warning, TEXT("AttractionPunch"))
-      AttackBaseComp->SetIsAttacked(true);
-      SetIsAttracted(false);
-      SetIsApproachedEnemy(false);
-
-      return;
-    }
-
-    if (GetMagnetismType() == EARMagnetismType::Attraction && GetIsLockedOn() && !GetIsAttracted())
-    {
-      // TODO
-    }
-
-    if (bIsInComboWindow)
-    {
-      const int32 MaxCombo = 3;
-      if (GetComboCount() < MaxCombo - 1)
-      {
-
-      }
-    }
-  }
 }
 
 void AARRangerCharacter::OnPunchEnded()
@@ -989,8 +958,7 @@ void AARRangerCharacter::OnPlayerDeadStarted(AActor* PlayerActor)
 {
   DisableMovementAndCollision();
 
-  // Change to Top-down Camera
-  CameraRigIndex = 1;
+  K2_OnPlayerDeadStarted();
 }
 
 void AARRangerCharacter::OnPlayerDeadEnded(AActor* PlayerActor)
@@ -1005,6 +973,8 @@ void AARRangerCharacter::OnPlayerDeadEnded(AActor* PlayerActor)
   {
     OnPlayerDead.Broadcast();
   }
+
+  K2_OnPlayerDeadFinished();
 
 }
 
@@ -1025,4 +995,20 @@ void AARRangerCharacter::DisableMovementAndCollision()
   moveComp->StopMovementImmediately();
   moveComp->DisableMovement();
 
+}
+
+void AARRangerCharacter::OnAbilityCostHandled(UARAbilityCostComponent* InAbilityCostComponent, FGameplayTag AbilityCostTag, float InOldResourceValue, float InNewResourceValue, bool bAbilityCostHandled)
+{
+  // TODO
+}
+
+bool AARRangerCharacter::TryApplyAbilityCost(const FGameplayTag& InAbilityCostTag, float InAbilictCostChangeNum)
+{
+  bool bSuccess = false;
+  if (AbilityCostComponent != nullptr)
+  {
+    AbilityCostComponent->HandleAbilityCostChanged(InAbilityCostTag, InAbilictCostChangeNum, bSuccess);
+  }
+
+  return bSuccess;
 }

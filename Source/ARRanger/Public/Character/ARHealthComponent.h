@@ -58,10 +58,10 @@ public:
   FOnHealthChangedDelegate OnHealthChanged;
 
   UPROPERTY(BlueprintAssignable)
-  FOnDeadDelegate OnDeadStarted;
+  FOnDeadDelegate OnDeadEventStarted;
 
   UPROPERTY(BlueprintAssignable)
-  FOnDeadDelegate OnDeadFinished;
+  FOnDeadDelegate OnDeadEventFinished;
 
   UFUNCTION(BlueprintCallable, Category = "ARRanger|Health")
   static UE_API UARHealthComponent* FindHealthComponent(AActor* OwningActor);
@@ -107,7 +107,7 @@ private:
   void SetMaxHealthInternal(float NewMaxHealth);
 
 private:
-  UPROPERTY(EditDefaultsOnly, Category = "ARRanger|Health", meta = (AllowPrivateAccess = "true"))
+  UPROPERTY(EditAnywhere, Category = "ARRanger|Health", meta = (AllowPrivateAccess = "true"))
   float MaxHealth;
 
   UPROPERTY(VisibleAnywhere, Category = "ARRanger|Health")

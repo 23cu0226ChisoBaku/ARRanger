@@ -27,7 +27,7 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Battle")
     bool bIsBattled = false;
 
-        // 落下中フラグ
+    // 落下中フラグ
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Fall")
     bool IsFalled = false;
 

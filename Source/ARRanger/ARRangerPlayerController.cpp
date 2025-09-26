@@ -11,6 +11,7 @@
 #include "Input/ARPlayerInputBuffer.h"
 #include "InputActionValue.h"
 #include "Player/ARPlayerState.h"
+#include "PlayerComponents/ARChargeAttackComponent.h"
 #include "Pawn/ARPawnInitComponent.h"
 // TODO
 #include "ARRangerCharacter.h"
@@ -198,6 +199,25 @@ FGABlueprintableHoldHandle AARRangerPlayerController::OnGameplayAbilityActivated
 
   return FGABlueprintableHoldHandle{};
 
+}
+
+void AARRangerPlayerController::OnGameplayAbilityTaskTicked_Holding(FGameplayTag InTaskOwnerAbilityTag, float HeldTime, float DeltaTime)
+{
+  // TODO Try use UARChargeAttackComponent in ARRangerCharacter
+  if (AARPlayerState* ARPS = GetPlayerState<AARPlayerState>())
+  {
+    if (UARChargeAttackComponent* CAC = ARPS->GetARChargeAttackComponent())
+    {
+      const FGameplayTag attackTag = CAC->EvaluateCharge(HeldTime, InTaskOwnerAbilityTag);
+      const float nextChargeAttackTimeThreshold = CAC->GetNextChargeTimeThresholdByAttackTag(attackTag);
+      const float nextChargeAttackCost = CAC->GetNextChargeAttackCostByAttackTag(attackTag);
+
+      const float chargeAttackTimeThreshold = CAC->GetChargeTimeThresholdByAttackTag(attackTag);
+      const float chargeAttackCost = CAC->GetChargeTimeThresholdByAttackTag(attackTag);
+
+      
+    }
+  }
 }
 
 void AARRangerPlayerController::OnGameplayAbilityEnded_Hold(FGameplayTag InEndedAbilityTag, FGABlueprintableHoldHandle InHandle, float TimeHeld)

@@ -55,28 +55,31 @@ void UARGameplayAbility_Charge::EndAbility(
 {
   Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 
-  if (OnChargeFinished.IsBound())
+  if (bWasCancelled)
   {
-    const float elapsedTime = GetHeldTime();
-    OnChargeFinished.Broadcast(bWasCancelled, elapsedTime, GetAssetTags());
-  }
-
-  // TODO Currently in UARGameplayAbility_Attack we stop montage too. Maybe we should move this to base class?
-  if (ChargeMontage != nullptr)
-  {
-    if (ACharacter* character = ::Cast<ACharacter>(GetAvatarActorFromActorInfo()))
+    if (OnChargeFinished.IsBound())
     {
-      if (USkeletalMeshComponent* meshComp = character->GetMesh())
+      const float elapsedTime = GetHeldTime();
+      OnChargeFinished.Broadcast(bWasCancelled, elapsedTime, GetAssetTags());
+    }
+
+    if (ChargeMontage != nullptr)
+    {
+      // TODO Currently in UARGameplayAbility_Attack we stop montage too. Maybe we should move this to base class?
+      if (ACharacter* character = ::Cast<ACharacter>(GetAvatarActorFromActorInfo()))
       {
-        if(UAnimInstance* animInst = meshComp->GetAnimInstance())
+        if (USkeletalMeshComponent* meshComp = character->GetMesh())
         {
-          // TODO 意味不明
-          animInst->Montage_Stop(0.15f, ChargeMontage);
+          if(UAnimInstance* animInst = meshComp->GetAnimInstance())
+          {
+            // TODO 意味不明
+            animInst->Montage_Stop(0.0f, ChargeMontage);
+          }
         }
       }
     }
   }
-
+  
   DiscardTasks();
 
 }

@@ -24,6 +24,7 @@ class UAnimMontage;
 class USkeletalMesh;
 class UAttractSpecialAttackComponent;
 class UARHealthComponent;
+class UARAbilityCostComponent;
 class UForceFeedbackEffect;
 
 struct FGameplayTag;
@@ -85,6 +86,13 @@ protected:
 
 	// 入力アクションのバインディングを初期化する
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+  
+  UFUNCTION(BlueprintImplementableEvent, Category = "PlayerCharacter|DeadEvent", meta = (DisplayName = "OnPlayerDeadStarted"))
+  UE_API void K2_OnPlayerDeadStarted();
+
+  UFUNCTION(BlueprintImplementableEvent, Category = "PlayerCharacter|DeadEvent", meta = (DisplayName = "OnPlayerDeadFinished"))
+  UE_API void K2_OnPlayerDeadFinished();
 
 private:
 
@@ -155,6 +163,8 @@ public:
   void OnHoldStarted(const FGameplayTag& InActivatedAbilityTag);
   void OnHoldEnded();
 
+  UE_API bool TryApplyAbilityCost(const FGameplayTag& InAbilityCostTag, float InAbilictCostChangeNum);
+
 	// 引力用プレイヤーメッシュ
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "PlayerMesh")
 	USkeletalMesh* AttractionMesh;
@@ -173,11 +183,7 @@ public:
 
 	// 変身時のサウンド
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sound")
-	USoundBase* SE_Transform;
-
-	// 引力クライム時のアニメーションモンタージュ
-	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gravity")
-	//UAnimMontage* Montage_AttractionClimb;
+	TObjectPtr<USoundBase> SE_Transform;
 
 public:
 	virtual void Tick(float DeltaTime) override;
@@ -284,8 +290,11 @@ private:
   UFUNCTION()
   UE_API void OnPlayerDeadEnded(AActor* PlayerActor);
 
-  void DisableMovementAndCollision();
 
+  UFUNCTION()
+  UE_API void OnAbilityCostHandled(UARAbilityCostComponent* InAbilityCostComponent, FGameplayTag AbilityCostTag, float InOldResourceValue, float InNewResourceValue, bool bAbilityCostHandled);
+
+  void DisableMovementAndCollision();
 
 private:
 	// 攻撃中フラグ
@@ -313,7 +322,10 @@ private:
   UPROPERTY(EditDefaultsOnly, Category = "Character|Parameters", meta = (AllowPrivateAccess = "true"))
   TObjectPtr<UARHealthComponent> HealthComponent;
 
-  UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+  UPROPERTY(EditDefaultsOnly, Category = "Character|Parameters", meta = (AllowPrivateAccess = "true"))
+  TObjectPtr<UARAbilityCostComponent> AbilityCostComponent;
+
+  UPROPERTY(BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
   int32 CameraRigIndex;
 
   /**Controler vibration */

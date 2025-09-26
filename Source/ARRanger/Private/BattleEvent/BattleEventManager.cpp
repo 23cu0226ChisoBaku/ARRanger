@@ -6,6 +6,8 @@
 #include "Public/BattleEvent/BattleEventField.h"
 #include "Engine/World.h"
 #include "Engine/Engine.h"
+#include "Kismet/GameplayStatics.h"
+#include "Sound/SoundBase.h"
 
 ABattleEventManager::ABattleEventManager()
 {
@@ -105,6 +107,14 @@ void ABattleEventManager::HandleBattleEventStart(ABattleEventField* startedBattl
 
     /*外部クラス用*/
     OnAnyFieldBattleStart.Broadcast();
+
+    // バリア出現時のSEを再生
+    UGameplayStatics::PlaySound2D(
+        GetWorld(),
+        SE_Barrier_Start,
+        3.0f,
+        1.0f
+    );
 }
 
 /**
@@ -118,6 +128,14 @@ void ABattleEventManager::HandleBattleEventEnd(ABattleEventField* finishedBattle
     OnAnyFieldBattleEnd.Broadcast();
     /*次のフィールドをアクティブ化*/
     ActivateNextFields();
+
+    // バリア消失時のSEを再生
+    UGameplayStatics::PlaySound2D(
+        GetWorld(),
+        SE_Barrier_End,
+        2.0f,
+        1.0f
+    );
 }
 
 /** 
