@@ -55,6 +55,11 @@ public:
      */ 
     int32 GetRemainingEnemiesInPhase() const { return m_RemainingEnemiesInPhase;}
 
+    /*妥協処理*/
+    UFUNCTION(BlueprintImplementableEvent)
+    void EventEndingPhase(int32 currentPhase);
+
+
     /*スポナー収集完了通知*/
     UPROPERTY(BlueprintAssignable, Category="BattleEvent")
     FOnSpawnersCollected OnSpawnersCollected;
@@ -117,6 +122,7 @@ private:
      * @brief バトルイベントが終了するときの処理
      */
     void OnEndBattleEvent();
+
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cage", meta = (AllowPrivateAccess = "true"))
     TArray<TObjectPtr<ABattleEventCage>> m_CageActors;              /*見えない壁(鳥かご)*/
