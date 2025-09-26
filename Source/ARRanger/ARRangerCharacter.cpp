@@ -128,6 +128,9 @@ void AARRangerCharacter::BeginPlay()
   attractSpecialAttackComponent = FindComponentByClass<UAttractSpecialAttackComponent>();
 
   SetMagnetismType(EARMagnetismType::Repulsion);
+
+  // Call this once in BeginPlay
+  K2_OnTransformed(RepulsionMesh, EARMagnetismType::Repulsion);
 }
 
 // 麦
@@ -631,6 +634,16 @@ void AARRangerCharacter::SetIsBattledInAnimInstance(const bool IsBattled)
     }
   
   }
+
+  // TODO
+  if (IsBattled)
+  {
+    K2_OnBattleStarted();
+  }
+  else
+  {
+    K2_OnBattleEnded();
+  }
 }
 
 void AARRangerCharacter::OnMagneticForceFieldBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
@@ -691,15 +704,14 @@ void AARRangerCharacter::OnDamaged(const ARRanger::Battle::FARDamageResult& InDa
     {
       HealthComponent->HandleOutOfHealth(this);
     }
+    else
+    {
+      FVector knockbackDir = InDamageResult.FinalLaunchDirection;
+      knockbackDir.Z = 0;
+      knockbackDir.Normalize();
 
-    // else
-    // {
-    //   FVector knockbackDir = InDamageResult.FinalLaunchDirection;
-    //   knockbackDir.Z = 0.0;
-    //   knockbackDir.Normalize();
-
-    //   LaunchCharacter(knockbackDir * 200.0, true, true);
-    // }
+      LaunchCharacter(knockbackDir * 400.0, false, true);
+    }
   }
 }
 
@@ -1011,4 +1023,9 @@ bool AARRangerCharacter::TryApplyAbilityCost(const FGameplayTag& InAbilityCostTa
   }
 
   return bSuccess;
+}
+
+void AARRangerCharacter::ResetCamera()
+{
+  CameraRigIndex = 2;
 }
