@@ -137,14 +137,15 @@ void ABattleEventField::CollectSpawners()
             if (AEnemySpawner* spawner = Cast<AEnemySpawner>(actor))
             {
                 m_Spawners.Add(spawner);
-                
-                /*フィールドに湧く敵の数をカウント*/
-                ++m_RemainingEnemiesInField;
 
+                if (GEngine) { GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, TEXT("aaaaaaaaaaaa")); }
                 /*スポナーが持つフェーズを収集*/
                 const TSet<ESpawnPhase> phases = spawner->GetSpawnPhases();
                 for (const ESpawnPhase& phase : phases)
                 {
+                    /*フィールドに湧く敵の数をカウント*/
+                    ++m_RemainingEnemiesInField;
+                    
                     /*すでにあれば入れない*/
                     if (!m_FieldPhases.Contains(phase))
                     {
@@ -173,6 +174,9 @@ void ABattleEventField::ActiveEventField()
     {
         return;
     }
+
+    /*現在のフェーズ数を更新*/
+    ++m_CurrentPhaseIndex;
 
     m_IsActiveField = true;
     /*スポナーに敵の生成を促す*/
@@ -254,9 +258,9 @@ void ABattleEventField::RequestSpawn()
         }
 
         /*スポナーが対象フェーズを持っていれば敵をスポーン*/
-        if (m_FieldPhases.IsValidIndex(m_CurrentPhaseIndex))
+        if (m_FieldPhases.IsValidIndex(m_CurrentPhaseIndex - 1))
         {
-            ESpawnPhase CurrentPhase = m_FieldPhases[m_CurrentPhaseIndex];
+            ESpawnPhase CurrentPhase = m_FieldPhases[m_CurrentPhaseIndex- 1];
             if (spawner->GetSpawnPhases().Contains(CurrentPhase))
             {
                 /*スポナーに敵の生成を促し、敵死亡時のコールバック関数を引数で渡す*/
@@ -291,12 +295,14 @@ void ABattleEventField::OnEnemyDestroyed()
 
     if (m_RemainingEnemiesInPhase <= 0)
     {
-        /*現在のフェーズが終了した*/
-        ++m_CurrentPhaseIndex;
+        /*妥協処理*/
+        EventEndingPhase(m_CurrentPhaseIndex);
 
         /*次のフェーズがある*/
         if (m_CurrentPhaseIndex < m_FieldPhases.Num())
         {
+            /*現在のフェーズ数を更新*/
+            ++m_CurrentPhaseIndex;
             /*スポーン開始*/
             StartNextPhase();
         }
