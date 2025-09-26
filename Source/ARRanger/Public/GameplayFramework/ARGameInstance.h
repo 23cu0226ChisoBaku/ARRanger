@@ -10,6 +10,14 @@ class UMagneticParametersList;
 
 #define UE_API ARRANGER_API
 
+#if !WITH_EDITOR
+#define AR_DEMO_BUILD 1
+#endif
+
+#ifndef AR_DEMO_BUILD
+#define AR_DEMO_BUILD 0
+#endif
+
 UCLASS()
 class UARGameInstance : public UGameInstance
 {
