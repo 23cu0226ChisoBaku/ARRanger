@@ -53,8 +53,8 @@ public:
   UFUNCTION(BlueprintImplementableEvent, Category = "Enemy", meta = (DisplayName = "Perform Attack"))
   UE_API void K2_PerformAttack();
 
-  UFUNCTION(BlueprintImplementableEvent, Category = "Enemy", meta = (DisplayName = "Receive Damage"))
-  UE_API void K2_ReceiveDamage(int DamageAmount, bool bIsDead);
+  UFUNCTION(BlueprintImplementableEvent, Category = "Enemy", meta = (DisplayName = "Receive Attack"))
+  UE_API void K2_ReceiveAttack(float DamageAmount, FVector LaunchDirection, FVector ImpactLocation, bool bIsDead);
 
 
 protected:

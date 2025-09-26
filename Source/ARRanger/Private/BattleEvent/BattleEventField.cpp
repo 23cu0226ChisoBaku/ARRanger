@@ -282,6 +282,7 @@ void ABattleEventField::StartNextPhase()
 {  
     /*敵キャラクターのスポーンを催促*/
     RequestSpawn();  
+    EventStartingPhase(m_CurrentPhaseIndex);
 }
 
 /**
