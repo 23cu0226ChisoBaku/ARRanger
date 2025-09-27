@@ -5,6 +5,8 @@
 #include "Framework/Application/IInputProcessor.h"
 #include "GameplayFramework/ARGameInstance.h"
 
+#include "Kismet/GameplayStatics.h"
+
 class FARDebugInputProcessor : public IInputProcessor
 {
   public:
@@ -44,6 +46,36 @@ class FARDebugInputProcessor : public IInputProcessor
           bKeyDownHandled = true;
         }
       }
+
+      // For Demo Build
+#if AR_DEMO_BUILD
+
+      const FName PunchLevelName = FName{ "Demo_Punch_Stage" };
+      const FName SpecialLevelName = FName{ "Demo_ChargeKick_Special_Stage" };
+      const FName AttractionLevelName = FName{ "Demo_AttractionClimb_Stage" };
+      const FName RepulsionLevelName = FName{ "Demo_RepulsionJump_Stage" };
+
+      if (pressedKey == EKeys::F5)
+      {
+          UGameplayStatics::OpenLevel(m_gameInst.Get(), PunchLevelName);
+          bKeyDownHandled = true;
+      }
+      else if (pressedKey == EKeys::F6)
+      {
+          UGameplayStatics::OpenLevel(m_gameInst.Get(), SpecialLevelName);
+          bKeyDownHandled = true;
+      }
+      else if (pressedKey == EKeys::F7)
+      {
+          UGameplayStatics::OpenLevel(m_gameInst.Get(), AttractionLevelName);
+          bKeyDownHandled = true;
+      }
+      else if (pressedKey == EKeys::F8)
+      {
+          UGameplayStatics::OpenLevel(m_gameInst.Get(), RepulsionLevelName);
+          bKeyDownHandled = true;
+      }
+#endif
       
       return bKeyDownHandled;
     }
