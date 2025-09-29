@@ -1,5 +1,5 @@
 //*************************************************
-// バトルイベントの管理クラス CPP
+// バトルイベントの管理クラス
 //*************************************************
 
 #include "Public/BattleEvent/BattleEventManager.h"
@@ -30,7 +30,9 @@ void ABattleEventManager::BeginPlay()
         field->OnSpawnersCollected.AddDynamic(this, &ABattleEventManager::HandleFieldSpawnersCollected);
         
         field->OnBattleEventStart.AddDynamic(this, &ABattleEventManager::HandleBattleEventStart);
-        field->OnBattleEventEnd.AddDynamic(this, &ABattleEventManager::HandleBattleEventEnd);     
+        field->OnBattleEventEnd.AddDynamic(this, &ABattleEventManager::HandleBattleEventEnd);  
+        
+        
     }
 }
 

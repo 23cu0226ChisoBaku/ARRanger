@@ -25,20 +25,12 @@ public:
     virtual void BeginPlay() override; 
     virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
-    /*フィールド開始通知 (外部クラス用)*/ 
-    UPROPERTY(BlueprintAssignable) 
-    FBattleEventStart OnAnyFieldBattleStart; 
-    /*フィールド終了通知 (外部クラス用)*/ 
-    UPROPERTY(BlueprintAssignable) 
+    /*フィールド開始通知 (外部クラス用)*/
+    UPROPERTY(BlueprintAssignable)
+    FBattleEventStart OnAnyFieldBattleStart;
+    /*フィールド終了通知 (外部クラス用)*/
+    UPROPERTY(BlueprintAssignable)
     FBattleEventEnd OnAnyFieldBattleEnd;
-
-    // バリアエフェクト出現時のSE
-    UPROPERTY(EditAnywhere, Category = "SE")
-    USoundBase* SE_Barrier_Start;
-
-    // バリアエフェクト消失時のSE
-    UPROPERTY(EditAnywhere, Category = "SE")
-    USoundBase* SE_Barrier_End;
 
     /** 
      * @brief 進行中のフィールドの残りの敵数を取得 
@@ -56,7 +48,30 @@ public:
     UFUNCTION(BlueprintCallable, Category = "BattleEvent") 
     int32 GetCurrentRemainingEnemiesInPhase() const;
 
+    // バリアエフェクト出現時のSE
+    UPROPERTY(EditAnywhere, Category = "SE")
+    TObjectPtr<USoundBase> SE_Barrier_Start;
+    // バリアエフェクト消失時のSE
+    UPROPERTY(EditAnywhere, Category = "SE")
+    TObjectPtr<USoundBase> SE_Barrier_End;
+
 private:
+
+    /**
+     * @brief 現在のバトルフィールドを取得する
+     * 
+     * @return 現在のバトルフィールド
+     */
+    UFUNCTION(BlueprintCallable)
+    ABattleEventField* GetCurrentBattleField() const { return m_CurrentBattleField;}
+
+    /**
+     * @brief レベル上のフィールドを取得する
+     * 
+     * @return レベル上のフィールド
+     */
+    UFUNCTION(BlueprintCallable)
+    TArray<ABattleEventField*> GetAllBattleField() const { return m_BattleFields;}
 
     /**
      * @brief バトルフィールドがスポナーを収集完了

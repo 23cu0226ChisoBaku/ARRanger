@@ -14,6 +14,7 @@ class ABattleEventCage;
 class UNiagaraComponent;
 class ANiagaraActor;
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FEndBattlePhase, int32, currentPhase);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnSpawnersCollected, ABattleEventField*, field);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FBattleEventStarted, ABattleEventField*, startedBattleField);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FBattleEventEnded, ABattleEventField*, finishedBattleField);
@@ -60,9 +61,8 @@ public:
     void EventEndingPhase(int32 currentPhase);
 
     UFUNCTION(BlueprintImplementableEvent)
-    void EventStartingPhase(int32 currentPhase);
-
-
+    void EventStartingPhase(int32 currentPhase);   
+    
     /*スポナー収集完了通知*/
     UPROPERTY(BlueprintAssignable, Category="BattleEvent")
     FOnSpawnersCollected OnSpawnersCollected;
@@ -72,8 +72,12 @@ public:
     FBattleEventStarted OnBattleEventStart;
 
     /*イベント終了通知*/
-    UPROPERTY(BlueprintAssignable, Category="BattleEvent")
+    UPROPERTY(BlueprintAssignable, Category = "BattleEvent")
     FBattleEventEnded OnBattleEventEnd;
+
+    /*フェーズ終了通知*/
+    UPROPERTY(BlueprintAssignable, Category = "BattleEvent")
+    FEndBattlePhase OnEndBattlePhase;
 
 private:  
 
