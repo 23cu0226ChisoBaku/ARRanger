@@ -43,8 +43,8 @@ namespace
 }
 
 AARRangerCharacter::AARRangerCharacter()
-  : currentClimbSurface(nullptr)
-  , bIsClimbed(false)
+  : bIsClimbed{false}
+  , currentClimbSurface{nullptr}
 {
   // カプセルサイズを設定
   GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
@@ -70,11 +70,13 @@ AARRangerCharacter::AARRangerCharacter()
   LockOnComponent = CreateDefaultSubobject<ULockOnComponent>(TEXT("LockOnComponent"));
   AttackBaseComp = CreateDefaultSubobject<UAttackBaseComponent>(TEXT("AttackBaseComponent"));
 
+  // HPコンポネント作成
   HealthComponent = CreateDefaultSubobject<UARHealthComponent>(TEXT("HealthComponent"));
   HealthComponent->OnHealthChanged.AddDynamic(this, &ThisClass::OnVignetteEffectChanged);
   HealthComponent->OnDeadEventStarted.AddDynamic(this, &ThisClass::OnPlayerDeadStarted);
   HealthComponent->OnDeadEventFinished.AddDynamic(this, &ThisClass::OnPlayerDeadEnded);
 
+  // アビリティコストコンポネント作成
   AbilityCostComponent = CreateDefaultSubobject<UARAbilityCostComponent>(TEXT("AbilityCostComponent"));
   AbilityCostComponent->OnAbilityCostApplied.AddDynamic(this, &ThisClass::OnAbilityCostHandled);
 
@@ -84,7 +86,6 @@ AARRangerCharacter::AARRangerCharacter()
 void AARRangerCharacter::PostInitializeComponents()
 {
   Super::PostInitializeComponents();
-
 }
 
 void AARRangerCharacter::BeginPlay()

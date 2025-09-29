@@ -1,7 +1,7 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 
-#include "ARRangerPlayerController.h"
+#include "Player/ARRangerPlayerController.h"
 #include "EnhancedInputSubsystems.h"
 #include "Engine/LocalPlayer.h"
 #include "InputMappingContext.h"
@@ -334,7 +334,7 @@ void AARRangerPlayerController::InitializePlayerInputBuffer(UARInputComponent* I
     InputBuffer = ::NewObject<UARPlayerInputBuffer>(/**Outer */this, InputBufferClass);
     check(InputBuffer != nullptr);
 
-    InputBuffer->InitializeInputBuffer(InInputComponent, *InputConfig);
+    InputBuffer->InitializeInputBuffer(InInputComponent);
   }
 }
 

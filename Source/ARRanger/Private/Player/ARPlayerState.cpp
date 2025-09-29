@@ -5,7 +5,7 @@
 #include "ActionAbilities/ARAbilitySystemComponent.h"
 #include "Pawn/ARPawnInitComponent.h"
 #include "PlayerComponents/ARChargeAttackComponent.h"
-#include "ARRangerPlayerController.h"
+#include "Player/ARRangerPlayerController.h"
 
 AARPlayerState::AARPlayerState(const FObjectInitializer& ObjectInitializer)
   : Super(ObjectInitializer)
