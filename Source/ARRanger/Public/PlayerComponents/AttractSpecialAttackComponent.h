@@ -101,12 +101,10 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AttractSpecialAttack|AttractionActor", meta = (AllowPrivateAccess = "true"))
 	float m_GenerateDistanceOffset;         /*生成位置が衝突していた際の調整距離*/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AttractSpecialAttack|Player", meta = (AllowPrivateAccess = "true"))
-  float m_KickPositionOffset;        		/*キック時に障害物に当たった時のプレイヤー座標調整用*/
+  	float m_KickPositionOffset;        		/*キック時に障害物に当たった時のプレイヤー座標調整用*/
 
 	UPROPERTY()
 	TArray<AActor*> m_InhaledActors;			/*吸引しているアクター*/
-	UPROPERTY()
-	FTimerHandle m_DelayTimerHandle;    		/*タイマーハンドル*/
 	UPROPERTY()
 	TObjectPtr<UGameplayCameraComponent> m_PlayerCameraComponent;	/*プレイヤーについているカメラ*/
 	UPROPERTY()
@@ -114,7 +112,7 @@ private:
 	UPROPERTY()
 	FVector m_kickDirection;					/*キックをする方向*/
 	UPROPERTY()
-  float m_CurrentKickSpeed;           		/*現在のキックスピード*/
+  	float m_CurrentKickSpeed;           		/*現在のキックスピード*/
 	UPROPERTY()
-  float m_ElapsedTime;                		/*経過時間計測用*/
+  	float m_ElapsedTime;                		/*経過時間計測用*/
 };

@@ -23,5 +23,5 @@ public:
 	 * @param 呼び出すオブジェクト、止める期間、モーション速度
 	 */
 	UFUNCTION(BlueprintCallable, Category = "HitStop")
-	static void OnHitStop(UObject* object, float duration, float motionSpeed = 0.0f);
+	static FTimerHandle StartHitStop(UObject* object, float duration, float motionSpeed = 0.0f);
 };
