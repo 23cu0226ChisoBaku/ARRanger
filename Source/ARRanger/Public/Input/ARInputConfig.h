@@ -28,6 +28,9 @@ struct FARInputAction
   /**Signature GameplayTag */
   UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
   FGameplayTag InputTag = FGameplayTag::EmptyTag;
+
+  UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+  bool bOverrideBufferIfStateChange = true;
 };
 
 /**

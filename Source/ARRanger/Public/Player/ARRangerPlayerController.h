@@ -127,8 +127,8 @@ private:
 
   void InitializePlayerInputBuffer(UARInputComponent* InInputComponent);
 
-  void AbilityInputTagPressed(FGameplayTag InInputTag);
-  void AbilityInputTagReleased(FGameplayTag InInputTag);
+  void AbilityInputTagPressed(FGameplayTag InInputTag, bool bOverrideInputState = true);
+  void AbilityInputTagReleased(FGameplayTag InInputTag, bool bOverrideInputState = true);
   void EvaluateInputBuffer(const float DeltaTime, const bool bGamePaused);
 
   void NativeInput_Move(const FInputActionValue& InputActionValue, /**PayLoad */ FGameplayTag InInputTag);

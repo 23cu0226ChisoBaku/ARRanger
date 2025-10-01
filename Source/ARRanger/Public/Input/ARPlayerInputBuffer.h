@@ -69,13 +69,13 @@ public:
    * @brief Handle input tag when button pressed
    * @param InInputTag input signature tag payload that binds to input action
    */
-  UE_API void HandleInputTagPressed(const FGameplayTag& InInputTag);
+  UE_API void HandleInputTagPressed(const FGameplayTag& InInputTag, bool bOverrideInputState);
 
   /**
    * @brief Handle input tag when button released
    * @param InInputTag input signature tag payload that binds to input action
    */
-  UE_API void HandleInputTagReleased(const FGameplayTag& InInputTag);
+  UE_API void HandleInputTagReleased(const FGameplayTag& InInputTag, bool bOverrideInputState);
 
 private:
 

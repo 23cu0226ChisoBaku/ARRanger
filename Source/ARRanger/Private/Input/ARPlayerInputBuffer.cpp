@@ -86,7 +86,7 @@ void UARPlayerInputBuffer::ClearAllInputs()
   m_inputStates.Reset();
 }
 
-void UARPlayerInputBuffer::HandleInputTagPressed(const FGameplayTag& InInputTag)
+void UARPlayerInputBuffer::HandleInputTagPressed(const FGameplayTag& InInputTag, bool bOverrideInputState)
 {
   // Refresh buffer during input pressed
   if (InputKeepTime > 0.0f)
@@ -94,13 +94,13 @@ void UARPlayerInputBuffer::HandleInputTagPressed(const FGameplayTag& InInputTag)
     bool bGenerateNew = true;
     for (const TPimplPtr<ARRanger::Input::FARInputBufferState>& inputState : m_inputStates)
     {
-      if (inputState.IsValid())
+      if (inputState.IsValid() && inputState->IsInputTagMatchesExact(InInputTag))
       {
-        if (inputState->IsInputTagMatchesExact(InInputTag))
+        bGenerateNew = false;
+        if (bOverrideInputState || inputState->IsPressedState())
         {
-          inputState->SetLifeTime(InputKeepTime);
           inputState->OnPressed();
-          bGenerateNew = false;
+          inputState->SetLifeTime(InputKeepTime);
           break;
         }
       }
@@ -113,20 +113,20 @@ void UARPlayerInputBuffer::HandleInputTagPressed(const FGameplayTag& InInputTag)
   }
 }
 
-void UARPlayerInputBuffer::HandleInputTagReleased(const FGameplayTag& InInputTag)
+void UARPlayerInputBuffer::HandleInputTagReleased(const FGameplayTag& InInputTag, bool bOverrideInputState)
 {
   if (InputKeepTime > 0.0f)
   {
     bool bGenerateNew = true;
     for (const TPimplPtr<ARRanger::Input::FARInputBufferState>& inputState : m_inputStates)
     {
-      if (inputState.IsValid())
+      if (inputState.IsValid() && inputState->IsInputTagMatchesExact(InInputTag))
       {
-        if (!inputState->IsPressedState() && inputState->IsInputTagMatchesExact(InInputTag))
+        bGenerateNew = false;
+        if (bOverrideInputState || inputState->IsReleasedState())
         {
-          inputState->SetLifeTime(InputKeepTime);
           inputState->OnReleased();
-          bGenerateNew = false;
+          inputState->SetLifeTime(InputKeepTime);
           break;
         }
       }

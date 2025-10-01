@@ -5,10 +5,15 @@
 
 #include "ARRangerAnimInstance.generated.h"
 
+#define UE_API ARRANGER_API
+
 UCLASS()
-class ARRANGER_API UARRangerAnimInstance : public UAnimInstance
+class UARRangerAnimInstance : public UAnimInstance
 {
 	GENERATED_BODY()
+
+protected:
+  UE_API virtual void NativeUpdateAnimation(float DeltaSeconds);
 
 public:
     // ���̓N���C�����̏㉺�����̑��x
@@ -34,4 +39,9 @@ public:
     // 落下中の時間を保存
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Fall")
     float InFallingTime = 0.0f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ARRanger|Anim")
+    float AnimModifiedSpeed = 1.0f;
 };
+
+#undef UE_API

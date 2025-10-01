@@ -70,12 +70,12 @@ void UARInputComponent::BindAbilityActions(const UARInputConfig* InInputConfig, 
     {
       if (PressedFunc != nullptr)
       {
-        OutHandles.AddUnique(BindAction(inputAction.InputAction, ETriggerEvent::Triggered, UserObject, PressedFunc, inputAction.InputTag).GetHandle());
+        OutHandles.AddUnique(BindAction(inputAction.InputAction, ETriggerEvent::Triggered, UserObject, PressedFunc, inputAction.InputTag, inputAction.bOverrideBufferIfStateChange).GetHandle());
       }
   
       if (ReleasedFunc != nullptr)
       {
-        OutHandles.AddUnique(BindAction(inputAction.InputAction, ETriggerEvent::Completed, UserObject, ReleasedFunc, inputAction.InputTag).GetHandle());
+        OutHandles.AddUnique(BindAction(inputAction.InputAction, ETriggerEvent::Completed, UserObject, ReleasedFunc, inputAction.InputTag, inputAction.bOverrideBufferIfStateChange).GetHandle());
       }
     }
   }

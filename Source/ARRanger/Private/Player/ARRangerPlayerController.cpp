@@ -352,7 +352,7 @@ void AARRangerPlayerController::InitializePlayerInputBuffer(UARInputComponent* I
   InputBuffer->Initialize(InInputComponent, this);
 }
 
-void AARRangerPlayerController::AbilityInputTagPressed(FGameplayTag InInputTag)
+void AARRangerPlayerController::AbilityInputTagPressed(FGameplayTag InInputTag, bool bOverrideInputState)
 {
   if (IsInputBlocked(InInputTag))
   {
@@ -369,12 +369,12 @@ void AARRangerPlayerController::AbilityInputTagPressed(FGameplayTag InInputTag)
   }
   else
   {
-    InputBuffer->HandleInputTagPressed(InInputTag);
+    InputBuffer->HandleInputTagPressed(InInputTag, bOverrideInputState);
   }
 
 }
 
-void AARRangerPlayerController::AbilityInputTagReleased(FGameplayTag InInputTag)
+void AARRangerPlayerController::AbilityInputTagReleased(FGameplayTag InInputTag, bool bOverrideInputState)
 {
   if (IsInputBlocked(InInputTag))
   {
@@ -391,7 +391,7 @@ void AARRangerPlayerController::AbilityInputTagReleased(FGameplayTag InInputTag)
   }
   else
   {
-    InputBuffer->HandleInputTagReleased(InInputTag); 
+    InputBuffer->HandleInputTagReleased(InInputTag, bOverrideInputState); 
   }
 }
 
