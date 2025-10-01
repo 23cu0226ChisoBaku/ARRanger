@@ -84,6 +84,7 @@ public:
 
   /**Start AActor Interface */
   UE_API virtual void BeginPlay() override;
+  UE_API virtual void EndPlay(const EEndPlayReason::Type EndReason) override;
   /**End AActor Interface */
 
   UFUNCTION(BlueprintPure, Category = "ARRanger|PlayerController", meta = (DisplayName = "Get ARAbilitySystemComponent"))

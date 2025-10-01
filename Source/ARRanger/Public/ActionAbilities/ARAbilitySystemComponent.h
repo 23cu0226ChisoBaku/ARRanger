@@ -24,7 +24,12 @@ class UARAbilitySystemComponent : public UAbilitySystemComponent
 {
 	GENERATED_BODY()
 
+  DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FNotifyActivateAbilityResultDelegate, UARAbilitySystemComponent*, InAbilitySystemComponent, FGameplayTagContainer, InAbilityAssetTags, bool, bResult);
+  
 public:
+
+  UPROPERTY(BlueprintAssignable)
+  FNotifyActivateAbilityResultDelegate NotifyActivateAbilityResult;
 
   UE_API UARAbilitySystemComponent(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
   /**

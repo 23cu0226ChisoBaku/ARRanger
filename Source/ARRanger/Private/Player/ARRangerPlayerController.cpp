@@ -98,6 +98,16 @@ void AARRangerPlayerController::BeginPlay()
   }
 }
 
+void AARRangerPlayerController::EndPlay(const EEndPlayReason::Type EndReason)
+{
+  Super::EndPlay(EndReason);
+
+  if (InputBuffer != nullptr)
+  {
+    InputBuffer->Uninitialize();
+  }
+} 
+
 UARAbilitySystemComponent* AARRangerPlayerController::GetARASC() const
 {
   return UARAbilitySystemComponent::FindARAbilitySystemComponent(GetPawn());
@@ -131,6 +141,12 @@ void AARRangerPlayerController::OnPossess(APawn* InPawn)
   
       PIC->InitializeChargeAttack(ARPS->GetARChargeAttackComponent());
     }
+  }
+
+  // Initialize Input Buffer
+  if (UARInputComponent* ARIC = ::Cast<UARInputComponent>(InputComponent))
+  {
+    InitializePlayerInputBuffer(ARIC);
   }
 }
 
@@ -283,10 +299,10 @@ void AARRangerPlayerController::SwitchNextIMC(const FGameplayTag& InNextIMCTag)
       CurrentIMC = nextIMC;
 
       // Clear input buffer
-      if (InputBuffer != nullptr)
-      {
-        InputBuffer->ClearAllInputs();
-      }
+      // if (InputBuffer != nullptr)
+      // {
+      //   InputBuffer->ClearAllInputs();
+      // }
     }
   }
 }
@@ -321,21 +337,19 @@ void AARRangerPlayerController::InitializePlayerInput()
   ARIC->BindNativeAction(InputConfig, ARRanger::GameplayTags::NativeInput_Target_Snap, ETriggerEvent::Triggered, this, &ThisClass::NativeInput_TargetSnap);
   ARIC->BindNativeAction(InputConfig, ARRanger::GameplayTags::NativeInput_ResetCamera, ETriggerEvent::Started, this, &ThisClass::NativeInput_ResetCamera);
 
-  // Initialize Input Buffer
-  InitializePlayerInputBuffer(ARIC);
-  
+  if (InputBufferClass != nullptr)
+  {
+    InputBuffer = ::NewObject<UARPlayerInputBuffer>(/**Outer */this, InputBufferClass);
+    check(InputBuffer != nullptr);
+  }
 }
 
 void AARRangerPlayerController::InitializePlayerInputBuffer(UARInputComponent* InInputComponent)
 {
   check(InInputComponent != nullptr);
-  if (InputBufferClass != nullptr)
-  {
-    InputBuffer = ::NewObject<UARPlayerInputBuffer>(/**Outer */this, InputBufferClass);
-    check(InputBuffer != nullptr);
+  check(InputBuffer != nullptr);
 
-    InputBuffer->InitializeInputBuffer(InInputComponent);
-  }
+  InputBuffer->Initialize(InInputComponent, this);
 }
 
 void AARRangerPlayerController::AbilityInputTagPressed(FGameplayTag InInputTag)
@@ -385,7 +399,7 @@ void AARRangerPlayerController::EvaluateInputBuffer(const float DeltaTime, const
 {
   if (InputBuffer != nullptr)
   {
-    InputBuffer->EvaluateBuffer(this, DeltaTime, bGamePaused);
+    InputBuffer->EvaluateBuffer(DeltaTime, bGamePaused);
   }
 }
 

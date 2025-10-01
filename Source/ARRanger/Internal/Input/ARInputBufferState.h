@@ -51,6 +51,15 @@ public:
 
   UE_API bool IsInputStateExpired() const;
 
+  UE_API bool IsInputTagMatchesExact(const FGameplayTag& InInputTag) const;
+
+  bool IsPressedState() const { return m_inputState == InternalState::Pressed; } 
+  bool IsReleasedState() const { return m_inputState == InternalState::Released; } 
+
+  UE_API void OnPressed();
+
+  UE_API void OnReleased();
+
 private:
   static TPimplPtr<FARInputBufferState> MakeInstanceInternal();
 

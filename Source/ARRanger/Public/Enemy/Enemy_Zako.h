@@ -87,6 +87,8 @@ protected:
 
   FTimerHandle StartDeadTimer;
 
+  FTimerHandle HitStopTimer;
+
   // 引き寄せ停止関数
   void StopAttraction();
 

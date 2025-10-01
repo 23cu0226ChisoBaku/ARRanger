@@ -142,7 +142,14 @@ void UARAbilitySystemComponent::ProcessAbilityInputs(const FARAbilityInputProces
     }
 
     // Finally we activate requested abilities
-    TryActivateAbility(abilitySpecHandleToActivate);
+    const bool bResult = TryActivateAbility(abilitySpecHandleToActivate);
+
+    // Notify result
+    if (NotifyActivateAbilityResult.IsBound())
+    {
+      FGameplayTagContainer abilityTags = abilitySpec->Ability->GetAssetTags(); 
+      NotifyActivateAbilityResult.Broadcast(this, abilityTags, bResult);
+    }
     
     // Try to trigger InputPressed
     // Only trigger once

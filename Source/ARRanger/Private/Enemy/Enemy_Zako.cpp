@@ -32,11 +32,9 @@ void AEnemy_Zako::EndPlay(const EEndPlayReason::Type EndPlayReason)
     controller->Destroy();
   }
 
-  if (StartDeadTimer.IsValid())
-  {
-    GetWorld()->GetTimerManager().ClearTimer(StartDeadTimer);
-  }
-
+  GetWorldTimerManager().ClearTimer(StartDeadTimer);
+  GetWorldTimerManager().ClearTimer(HitStopTimer);
+  
 }
 
 void AEnemy_Zako::SetIsChasing(bool bChasing)
@@ -236,12 +234,15 @@ void AEnemy_Zako::PerformDeadStartEffect()
 {
   const float hitStopEffectMultiplier = 0.3f;
   UGameplayStatics::SetGlobalTimeDilation(this, hitStopEffectMultiplier);
-  FTimerHandle Dummy{};
-  GetWorldTimerManager().SetTimer(Dummy, 
-  [this]()
+  
+  if (HitStopTimer.IsValid())
   {
-    UGameplayStatics::SetGlobalTimeDilation(this, 1.0f);
-  }, 0.03f, false);
+    GetWorldTimerManager().SetTimer(HitStopTimer, 
+    [this]()
+    {
+      UGameplayStatics::SetGlobalTimeDilation(this, 1.0f);
+    }, 0.03f, false);
+  }
 }
 
 void AEnemy_Zako::PerformDeadEndEffect()

@@ -14,6 +14,7 @@
 
 /**Forward declaration */
 class AARRangerPlayerController;
+class UARAbilitySystemComponent;
 class UARInputComponent;
 
 namespace ARRanger
@@ -42,13 +43,14 @@ public:
   /**
    * @brief Initialize input buffer
    * @param InInputComponent UARInputComponent (using by ARRanger project)
+   * @param InPlayerController PlayerController using by ARRanger project
    */
-  UE_API void InitializeInputBuffer(UARInputComponent* InInputComponent);
+  UE_API void Initialize(UARInputComponent* InInputComponent, AARRangerPlayerController* InPlayerController);
 
   /**
    * @brief Uninitialize input buffer
    */
-  UE_API void UninitializeInputBuffer();
+  UE_API void Uninitialize();
 
   /**
    * @brief Evaluate input buffer (Tick base)
@@ -56,15 +58,7 @@ public:
    * @param DeltaTime DeltaTime(Frame rate base)
    * @param bGamePaused Flag indicating whether the game is paused 
    */
-  UE_API void EvaluateBuffer(const AARRangerPlayerController* InPlayerController, const float DeltaTime, const bool bGamePaused);
-
-  /**
-   * @brief Check if input buffer exist
-   * @param InInputTag input tag (input signature)
-   * 
-   * @return True if buffer is exist and valid, otherwise false
-   */
-  UE_API bool IsInputBufferValid(const FGameplayTag& InInputTag) const;
+  UE_API void EvaluateBuffer(const float DeltaTime, const bool bGamePaused);
 
   /**
    * @brief Clear all buffers
@@ -95,7 +89,16 @@ private:
    * @brief Remove input buffer
    * @param InPlayerController Player controller using by ARRanger project
    */
-  void RemoveInputBufferInternal(const AARRangerPlayerController* InPlayerController);
+  void RemoveInputBufferInternal();
+
+  /**
+   * @brief Handle ability activation result
+   * @param InAbilitySystemComponent Ability system component using in project ARRanger
+   * @param InAbilityAssetTags       Tags of ability that try to activate
+   * @param bResult                  Result of ability activation
+   */
+  UFUNCTION()
+  void OnTryActivateAbilityHandled(UARAbilitySystemComponent* InAbilitySystemComponent, FGameplayTagContainer InAbilityAssetTags, bool bResult);
 
 private:
 
@@ -109,11 +112,8 @@ private:
   UPROPERTY()
   TObjectPtr<UARInputComponent> InputComponent;
 
-  /**List of buffer with signature tag(Key) and life time(Value)*/
-  TMap<FGameplayTag, float> m_inputTagBuffers;
-
-  /**Array of input signature tag to remove in next evaluation call*/
-  TArray<FGameplayTag> m_removeTags;
+  UPROPERTY()
+  TObjectPtr<AARRangerPlayerController> PlayerController;
 
   TArray< TPimplPtr< ARRanger::Input::FARInputBufferState > > m_inputStates;
 

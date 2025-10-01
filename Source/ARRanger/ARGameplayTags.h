@@ -45,6 +45,7 @@ namespace GameplayTags
 
   UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Charge_RepulsionKick);
   UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Charge_Punch_Combo3);
+  UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Charge_Enter_Punch_Combo3);
 
   UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(AbilityCost_ARBurst);
 
