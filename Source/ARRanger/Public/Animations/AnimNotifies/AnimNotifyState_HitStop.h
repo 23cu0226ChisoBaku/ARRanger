@@ -10,17 +10,21 @@
 
 #define UE_API ARRANGER_API
 
-UCLASS(editinlinenew, )
+UCLASS(editinlinenew, MinimalAPI, meta = (DisplayName = "HitStop") )
 class UAnimNotifyState_HitStop : public UAnimNotifyState
 {
 	GENERATED_BODY()
-public:	
-	UE_API virtual void NotifyBegin(USkeletalMeshComponent * MeshComp, UAnimSequenceBase * Animation, float TotalDuration, const FAnimNotifyEventReference& EventReference) override;
-  	UE_API virtual void NotifyEnd(USkeletalMeshComponent * MeshComp, UAnimSequenceBase * Animation, const FAnimNotifyEventReference& EventReference) override;
+
+protected:	
+	UE_API virtual void NotifyBegin(USkeletalMeshComponent * meshComp, UAnimSequenceBase * animation, float totalDuration, const FAnimNotifyEventReference& eventReference) override;
+  	UE_API virtual void NotifyEnd(USkeletalMeshComponent * meshComp, UAnimSequenceBase * animation, const FAnimNotifyEventReference& eventReference) override;
   	UE_API FString GetNotifyName_Implementation() const override;
 
-  	UPROPERTY(EditAnywhere, Category = "" , meta = (DisplayName = "Play Speed", ClampMin = 0.1))
-	float m_MotionSpeed;		/*モーション速度*/
+private:
+  	UPROPERTY(EditAnywhere, Category = "HitStop", meta = (DisplayName = "HitStop", ClampMin = 0.1))
+	float m_HitStopMotionSpeed;		/*ヒットストップ時のモーション速度*/
+	UPROPERTY()
+	float m_OriginalMotionSpeed;	/*通常時のモーション速度*/
 };
 
 #undef UE_API
