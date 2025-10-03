@@ -8,19 +8,12 @@
 #include "BattleSystem/IARAttackable.h"
 #include "BattleSystem/IARAttackerInterface.h"
 
+#include UE_INLINE_GENERATED_CPP_BY_NAME(ARGameplayAbility_Attack)
+
 UARGameplayAbility_Attack::UARGameplayAbility_Attack()
 {
   InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
 }
-
-#if WITH_EDITOR
-
-void UARGameplayAbility_Attack::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
-{
-  Super::PostEditChangeProperty(PropertyChangedEvent);
-}
-
-#endif
 
 void UARGameplayAbility_Attack::GANotify_ImpactResult(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const TArray<FGANotify_ImpactResult>& InImpactResults)
 {

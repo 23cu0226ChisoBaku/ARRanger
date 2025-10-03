@@ -8,12 +8,12 @@
 
 #include "RangeDetector/Core/PrimitiveDetectorData.h"
 
-#include "ConeCollisionDataAsset.generated.h"
+#include "ConeDetectorData.generated.h"
 
 #define UE_API ARRANGER_API
 
 UCLASS(Const)
-class UConeCollisionDataAsset : public UPrimitiveDetectorData
+class UConeDetectorData : public UPrimitiveDetectorData
 {
 	GENERATED_BODY()
 	
@@ -36,7 +36,7 @@ public:
   int32 NumSides = 24;
 
   /**Declaration of Visitor pattern */
-  DECLARE_PRIMITIVE_DETECTOR(UConeCollisionDataAsset);
+  DECLARE_PRIMITIVE_DETECTOR(UConeDetectorData);
 
 #if WITH_EDITOR
 

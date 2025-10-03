@@ -1,4 +1,7 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+/**
+ * @file SphereDetectorData.h
+ * @brief Sphere detector data
+ */
 
 #pragma once
 
@@ -9,7 +12,10 @@
 #define UE_API ARRANGER_API
 
 /**
- * 
+ * @brief Sphere shape detector data class
+ */
+/**
+ * @brief 球の形状の範囲データクラス
  */
 UCLASS()
 class USphereDetectorData : public UPrimitiveDetectorData
@@ -34,7 +40,6 @@ private:
 
 #endif // WITH_EDITOR
 
-	
 };
 
 #undef UE_API

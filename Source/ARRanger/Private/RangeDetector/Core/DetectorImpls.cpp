@@ -1,7 +1,7 @@
 ﻿#include "RangeDetector/Core/DetectorImpls.h"
 
 #include "RangeDetector/Core/PrimitiveDetectorData.h"
-#include "RangeDetector/DetectorDatas/ConeCollisionDataAsset.h"
+#include "RangeDetector/DetectorDatas/ConeDetectorData.h"
 #include "RangeDetector/DetectorDatas/CapsuleDetectorData.h"
 #include "RangeDetector/DetectorDatas/SphereDetectorData.h"
 
@@ -18,7 +18,7 @@ namespace Detector
     return 0;
   }
 
-  int32 DetectTargetsImpl(UWorld* World, AActor* OriginActor, const FVector& InOriginLocation, const FRotator& InOriginRotation, const FVector& InOriginScale3D, const UConeCollisionDataAsset& InData, TArray<AActor*>& OutResult)
+  int32 DetectTargetsImpl(UWorld* World, AActor* OriginActor, const FVector& InOriginLocation, const FRotator& InOriginRotation, const FVector& InOriginScale3D, const UConeDetectorData& InData, TArray<AActor*>& OutResult)
   {
     if (World == nullptr)
     {
@@ -152,6 +152,6 @@ namespace Detector
 
 } // namespace ARRanger
 
-DEFINE_PRIMITIVE_DETECTOR(UConeCollisionDataAsset)
+DEFINE_PRIMITIVE_DETECTOR(UConeDetectorData)
 DEFINE_PRIMITIVE_DETECTOR(UCapsuleDetectorData)
 DEFINE_PRIMITIVE_DETECTOR(USphereDetectorData)

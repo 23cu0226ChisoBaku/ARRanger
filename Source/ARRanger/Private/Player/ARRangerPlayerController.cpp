@@ -21,6 +21,8 @@
 
 #include <atomic>
 
+#include UE_INLINE_GENERATED_CPP_BY_NAME(ARRangerPlayerController)
+
 namespace
 {
   const FString DEFAULT_IMC_TAG_NAME = TEXT("InputState.Default");  
@@ -144,10 +146,7 @@ void AARRangerPlayerController::OnPossess(APawn* InPawn)
   }
 
   // Initialize Input Buffer
-  if (UARInputComponent* ARIC = ::Cast<UARInputComponent>(InputComponent))
-  {
-    InitializePlayerInputBuffer(ARIC);
-  }
+  InitializePlayerInputBuffer();
 }
 
 void AARRangerPlayerController::SetupInputComponent()
@@ -164,7 +163,7 @@ void AARRangerPlayerController::SetupInputComponent()
     SwitchNextIMC(defaultIMCTag);
   }
 
-  InitializePlayerInput();
+  Initialize();
 }
 
 void AARRangerPlayerController::OnGameplayAbilityActivate(const FGameplayTag& InNextIMCTag)
@@ -281,7 +280,6 @@ void AARRangerPlayerController::ClearHoldSpec(const FGA_HoldHandle& InHoldHandle
 
 void AARRangerPlayerController::SwitchNextIMC(const FGameplayTag& InNextIMCTag)
 {
-  check(InputMappingContext != nullptr);
   if (InputMappingContext == nullptr)
   {
     return;
@@ -297,17 +295,11 @@ void AARRangerPlayerController::SwitchNextIMC(const FGameplayTag& InNextIMCTag)
       Subsystem->AddMappingContext(nextIMC, 0);
   
       CurrentIMC = nextIMC;
-
-      // Clear input buffer
-      // if (InputBuffer != nullptr)
-      // {
-      //   InputBuffer->ClearAllInputs();
-      // }
     }
   }
 }
 
-void AARRangerPlayerController::InitializePlayerInput()
+void AARRangerPlayerController::Initialize()
 {
   if (InputConfig == nullptr)
   {
@@ -344,12 +336,11 @@ void AARRangerPlayerController::InitializePlayerInput()
   }
 }
 
-void AARRangerPlayerController::InitializePlayerInputBuffer(UARInputComponent* InInputComponent)
+void AARRangerPlayerController::InitializePlayerInputBuffer()
 {
-  check(InInputComponent != nullptr);
   check(InputBuffer != nullptr);
 
-  InputBuffer->Initialize(InInputComponent, this);
+  InputBuffer->Initialize(this);
 }
 
 void AARRangerPlayerController::AbilityInputTagPressed(FGameplayTag InInputTag, bool bOverrideInputState)
@@ -423,7 +414,22 @@ bool AARRangerPlayerController::IsInputBlocked(const FGameplayTag& InInputTag) c
   }
   
   return bInputBlocked;
+}
 
+void AARRangerPlayerController::OnAbilityInputTagPressedEvaluated(FGameplayTag InInputTag)
+{
+  if (UARAbilitySystemComponent* ARASC = GetARASC())
+  {
+    ARASC->AbilityInputTagPressed(InInputTag);
+  }
+}
+
+void AARRangerPlayerController::OnAbilityInputTagReleasedEvaluated(FGameplayTag InInputTag)
+{
+  if (UARAbilitySystemComponent* ARASC = GetARASC())
+  {
+    ARASC->AbilityInputTagReleased(InInputTag);
+  }
 }
 
 void AARRangerPlayerController::NativeInput_Move(const FInputActionValue& InputActionValue, /**PayLoad */ FGameplayTag InInputTag)

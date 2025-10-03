@@ -13,12 +13,11 @@
 
 UARPlayerInputBuffer::UARPlayerInputBuffer(const FObjectInitializer& ObjectInitializer)
   : Super(ObjectInitializer)
-  , InputComponent{nullptr}
   , PlayerController{nullptr}
   , m_inputStates{}
 { }
 
-void UARPlayerInputBuffer::Initialize(UARInputComponent* InInputComponent, AARRangerPlayerController* InPlayerController)
+void UARPlayerInputBuffer::Initialize(AARRangerPlayerController* InPlayerController)
 {
   if ((PlayerController != nullptr) && (PlayerController != InPlayerController))
   {
@@ -29,7 +28,6 @@ void UARPlayerInputBuffer::Initialize(UARInputComponent* InInputComponent, AARRa
     }
   }
   
-  InputComponent = InInputComponent;
   PlayerController = InPlayerController;
 
   if (PlayerController != nullptr)
@@ -88,7 +86,6 @@ void UARPlayerInputBuffer::ClearAllInputs()
 
 void UARPlayerInputBuffer::HandleInputTagPressed(const FGameplayTag& InInputTag, bool bOverrideInputState)
 {
-  // Refresh buffer during input pressed
   if (InputKeepTime > 0.0f)
   {
     bool bGenerateNew = true;
@@ -97,9 +94,10 @@ void UARPlayerInputBuffer::HandleInputTagPressed(const FGameplayTag& InInputTag,
       if (inputState.IsValid() && inputState->IsInputTagMatchesExact(InInputTag))
       {
         bGenerateNew = false;
+        // Refresh buffer during input pressed
         if (bOverrideInputState || inputState->IsPressedState())
         {
-          inputState->OnPressed();
+          inputState->MarkAsPressed();
           inputState->SetLifeTime(InputKeepTime);
           break;
         }
@@ -125,7 +123,7 @@ void UARPlayerInputBuffer::HandleInputTagReleased(const FGameplayTag& InInputTag
         bGenerateNew = false;
         if (bOverrideInputState || inputState->IsReleasedState())
         {
-          inputState->OnReleased();
+          inputState->MarkAsReleased();
           inputState->SetLifeTime(InputKeepTime);
           break;
         }
@@ -148,7 +146,7 @@ void UARPlayerInputBuffer::ConsumeBuffer(const FGameplayTag& InInputTag)
       continue;
     }
 
-    if (inputState->m_inputTag.MatchesTagExact(InInputTag))
+    if (inputState->IsInputTagMatchesExact(InInputTag))
     {
       inputState->SetLifeTime(0.0f);
     }
@@ -179,11 +177,5 @@ void UARPlayerInputBuffer::OnTryActivateAbilityHandled(UARAbilitySystemComponent
     // TODO Currently we only use the first tag of input
     const FGameplayTag inputTag = InAbilityAssetTags.GetByIndex(0);
     ConsumeBuffer(inputTag);
-
-    if (GEngine)
-    {
-      FString HandledMessage = FString::Printf(TEXT("On Try Activate Ability Handled. InputTag:[%s]"), *inputTag.ToString());
-      GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, HandledMessage);
-    }
   }
 }

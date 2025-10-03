@@ -1,16 +1,20 @@
 ﻿#include "RangeDetector/Core/RangeDetector.h"
 #include "RangeDetector/Core/PrimitiveDetectorData.h"
 
-namespace
-{
-  void FilterActorByClass(TArray<AActor*>& OutResult, TSubclassOf<AActor> ActorClass);
-  void FilterActorByInterface(TArray<AActor*>& OutResult, TSubclassOf<UInterface> InterfaceClass);
-}
+#include "Internal/RangeDetector/Core/RangeDetectorFilter.h"
+#include "Internal/ARLoggingHeader.h"
 
+int32 FRangeDetectorEvaluationResult::GetResultNum() const
+{
+  // TODO Currently we using DetectedActors ONLY.
+  // FIXME Change to HitResults to keep more information
+  return DetectedActors.Num();
+}
 
 void FRangeDetectorEvaluationResult::Reset()
 {
   DetectedActors.Reset();
+  HitResults.Reset();
 }
 
 bool FRangeDetectorFilterData::IsValid() const
@@ -24,61 +28,82 @@ namespace ARRanger
 
 namespace Detector
 {
-  FRangeDetector::FRangeDetector(UPrimitiveDetectorData* InData, int32 InPriority)
-    : m_constData(InData)
+  FRangeDetector::FRangeDetector(const UPrimitiveDetectorData& InData, int32 InPriority)
+    : m_constData(&InData)
     , m_priority(InPriority)
     , bIsActivated(false)
-  {
-    check(InData != nullptr);
-  }
+  { }
 
   FRangeDetector::~FRangeDetector() = default;
-  
-  void FRangeDetector::Enable()
-  {
-    if (IsActivate())
-    {
-      return;
-    }
 
-    bIsActivated = true;
+  void FRangeDetector::SetEnable(bool bEnable)
+  {
+    bIsActivated = bEnable;
   }
 
-  void FRangeDetector::Disable()
-  {
-    if (!IsActivate())
-    {
-      return;
-    }
-
-    bIsActivated = false;
-  }
-
-  void FRangeDetector::SetFilter(const FRangeDetectorFilterData& InFilterData)
+  void FRangeDetector::AddFilter(FRangeDetectorFilterData&& InFilterData)
   {
     if (!InFilterData.IsValid())
     {
       return;
     }
 
-    m_filter = InFilterData;
-  }
+    TSharedPtr<ARRanger::Detector::FRangeDetectorFilter> newFilter{};
 
-  void FRangeDetector::RemoveFilter()
-  {
-    m_filter = FRangeDetectorFilterData{};
-  }
-
-  FString FRangeDetector::GetDataTagName() const
-  {
-    return m_constData != nullptr ? m_constData->DataTag.GetTagName().ToString() : FString{};
-  }
-
-  int32 FRangeDetector::EvaluateDetector(const FRangeDetectorEvaluationParameter& EvaluationParam)
-  {
-    if (!IsActivate() || (m_constData == nullptr))
+    switch (InFilterData.FilterType)
     {
-      UE_LOG(LogTemp, Warning, TEXT("Detector is invalid."));
+      case ERangeDetectorFilterType::RDF_Actor:
+      {
+        newFilter = ARRanger::Detector::FRangeDetectorFilter::MakeInstance(InFilterData.FilterClass);
+      }
+      break;
+
+      case ERangeDetectorFilterType::RDF_Interface:
+      {
+        newFilter = ARRanger::Detector::FRangeDetectorFilter_Interface::MakeInstance(InFilterData.FilterClass);
+      }
+      break;
+    }
+
+    m_filters.Emplace(newFilter);
+  }
+
+  void FRangeDetector::RemoveFilter(UClass* InFilterClass)
+  {
+    int32 idx = 0;
+    while (idx < m_filters.Num())
+    {
+      const auto& filter = m_filters[idx];
+      if (filter.IsValid() && filter->IsFilterOf(InFilterClass))
+      {
+        m_filters.RemoveAt(idx);
+        continue;
+      }
+
+      ++idx;
+    }
+  }
+
+  void FRangeDetector::RemoveAllFilters()
+  {
+    m_filters.Reset();
+  }
+
+  FString FRangeDetector::GetDataTagString() const
+  {
+    return m_constData != nullptr ? m_constData->DataTag.ToString() : TEXT("Invalid");
+  }
+
+  int32 FRangeDetector::Evaluate(const FRangeDetectorEvaluationParameter& EvaluationParam)
+  {
+    if (!IsActivate())
+    {
+      UE_LOG(LogARRangeDetector, Warning, TEXT("Range detector is not activated"));
+      return 0;
+    }
+    else if (!m_constData.IsValid())
+    {
+      UE_LOG(LogARRangeDetector, Error, TEXT("Range detector is invalid.Remove it immediately"));
       return 0;
     }
 
@@ -86,27 +111,32 @@ namespace Detector
     
     if (EvaluationParam.OriginSceneComp != nullptr)
     {
+      TArray<AActor*> detectResults{};
+      const FVector originLocation = EvaluationParam.OriginSceneComp->GetComponentLocation();
+      const FRotator originRotation = EvaluationParam.OriginSceneComp->GetComponentRotation();
+      const FVector originScale3D = EvaluationParam.OriginSceneComp->GetComponentScale();
+
       (void)m_constData->DetectTargets(
                                         EvaluationParam.World, 
                                         EvaluationParam.OriginActor,  
-                                        EvaluationParam.OriginSceneComp->GetComponentLocation(),
-                                        EvaluationParam.OriginSceneComp->GetComponentRotation(),
-                                        EvaluationParam.OriginSceneComp->GetComponentScale(),
-                                        m_evaluatedResult.DetectedActors
+                                        originLocation,
+                                        originRotation,
+                                        originScale3D,
+                                        detectResults
                                       );
+      
+      m_evaluatedResult.DetectedActors.Append(detectResults);
     }
 
-
+    CheckFilterValidation();
     FilterResult();
 
-    return m_evaluatedResult.DetectedActors.Num();
+    return m_evaluatedResult.GetResultNum();
   }
-
-
   
   void FRangeDetector::DebugDrawRange(USceneComponent* InOriginSceneComp)
   {
-    #if WITH_EDITOR
+#if WITH_EDITOR
 
     if (InOriginSceneComp == nullptr)
     {
@@ -115,43 +145,45 @@ namespace Detector
     
     if (m_constData.IsValid())
     {
+      const FVector originLocation = InOriginSceneComp->GetComponentLocation();
+      const FRotator originRotation = InOriginSceneComp->GetComponentRotation();
+      const FVector originScale3D = InOriginSceneComp->GetComponentScale();
+
       m_constData->DebugDrawRange (
-                                  InOriginSceneComp, 
-                                  InOriginSceneComp->GetComponentLocation(),
-                                  InOriginSceneComp->GetComponentRotation(),
-                                  InOriginSceneComp->GetComponentScale()
+                                    InOriginSceneComp, 
+                                    originLocation,
+                                    originRotation,
+                                    originScale3D
                                   );
     }
     
-    #endif // WITH_EDITOR
+#endif // WITH_EDITOR
   }
       
-
   void FRangeDetector::FilterResult()
   {
-    if (m_filter.IsValid())
+    for (const auto& filter : m_filters)
     {
-      using enum ERangeDetectorFilterType;
-      switch (m_filter.FilterType)
+      if (filter.IsValid())
       {
-        case RDF_Actor:
-        {
-          FilterActorByClass(m_evaluatedResult.DetectedActors, m_filter.FilterClass);
-        }
-        break;
-        case RDF_Interface:
-        {
-          FilterActorByInterface(m_evaluatedResult.DetectedActors, m_filter.FilterClass);
-        }
-        break;
-
-        // Mark default as an exception
-        default:
-        {
-          check(false);
-        }
-        break;
+        filter->ApplyFilter(m_evaluatedResult);
       }
+    }
+  }
+
+  void FRangeDetector::CheckFilterValidation()
+  {
+    int32 idx = 0;
+    while (idx < m_filters.Num())
+    {
+      const auto& filter = m_filters[idx];
+      if (!filter.IsValid() || !filter->IsValid())
+      {
+        m_filters.RemoveAt(idx);
+        continue;
+      }
+
+      ++idx;
     }
   }
 
@@ -159,51 +191,4 @@ namespace Detector
 
 } // namespace ARRanger
 
-
-namespace
-{
-  void FilterActorByClass(TArray<AActor*>& OutResult, TSubclassOf<AActor> ActorClass)
-  {
-    if (ActorClass == nullptr)
-    {
-      return;
-    }
-
-    int32 idx = 0;
-    while (idx < OutResult.Num())
-    {
-      AActor* actor = OutResult[idx];
-      // Remove invalid actor or actor that is not implemented ActorClass
-      if ((actor == nullptr) || !actor->GetClass()->IsChildOf(ActorClass))
-      {
-        OutResult.RemoveAt(idx);
-        continue;
-      }
-
-      idx++;
-    }
-  }
-
-  void FilterActorByInterface(TArray<AActor*>& OutResult, TSubclassOf<UInterface> InterfaceClass)
-  {
-    if (InterfaceClass == nullptr)
-    {
-      return;
-    }
-
-    int32 idx = 0;
-    while (idx < OutResult.Num())
-    {
-      AActor* actor = OutResult[idx];
-      // Remove invalid actor or actor that is not implemented InterfaceClass
-      if ((actor == nullptr) || !actor->GetClass()->ImplementsInterface(InterfaceClass))
-      {
-        OutResult.RemoveAt(idx);
-        continue;
-      }
-
-      idx++;
-    }
-  }
-}
 

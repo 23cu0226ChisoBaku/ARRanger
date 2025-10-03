@@ -15,7 +15,6 @@
 /**Forward declaration */
 class AARRangerPlayerController;
 class UARAbilitySystemComponent;
-class UARInputComponent;
 
 namespace ARRanger
 {
@@ -42,10 +41,9 @@ public:
 
   /**
    * @brief Initialize input buffer
-   * @param InInputComponent UARInputComponent (using by ARRanger project)
    * @param InPlayerController PlayerController using by ARRanger project
    */
-  UE_API void Initialize(UARInputComponent* InInputComponent, AARRangerPlayerController* InPlayerController);
+  UE_API void Initialize(AARRangerPlayerController* InPlayerController);
 
   /**
    * @brief Uninitialize input buffer
@@ -108,9 +106,6 @@ private:
 
   UPROPERTY(EditDefaultsOnly, Category = "ARRanger|Input", meta = (AllowPrivateAccess = "true"))
   bool bEvaluateIfGamePaused = false;
-
-  UPROPERTY()
-  TObjectPtr<UARInputComponent> InputComponent;
 
   UPROPERTY()
   TObjectPtr<AARRangerPlayerController> PlayerController;

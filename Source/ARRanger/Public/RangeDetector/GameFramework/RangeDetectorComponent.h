@@ -1,11 +1,9 @@
-// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
 #include "Components/SceneComponent.h"
 
 #include "RangeDetectorComponent.generated.h"
-
 
 /**
  * Forward declaration
@@ -15,12 +13,12 @@ struct FRangeDetectorEvaluationResult;
 namespace ARRanger
 {
   
-  namespace Detector
-  {
-    class FRangeDetector;
-  }
-  
-}
+namespace Detector
+{
+  class FRangeDetector;
+} // namespace ARRanger::Detector
+
+} // namespace ARRanger
 
 class UPrimitiveDetectorData;
 

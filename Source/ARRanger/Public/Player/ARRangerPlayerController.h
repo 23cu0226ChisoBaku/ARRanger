@@ -104,6 +104,11 @@ public:
   
   UFUNCTION(BlueprintCallable, Category = "ARRanger|PlayerController")
   UE_API void OnGameplayAbilityEnded_Hold(FGameplayTag InEndedAbilityTag, FGABlueprintableHoldHandle InHandle, float TimeHeld);
+
+  UE_API virtual void OnAbilityInputTagPressedEvaluated(FGameplayTag InInputTag);
+
+  UE_API virtual void OnAbilityInputTagReleasedEvaluated(FGameplayTag InInputTag);
+
 protected:
   /**Start APlayerController Interface */
 	UE_API virtual void PostProcessInput(const float DeltaTime, const bool bGamePaused) override;
@@ -123,9 +128,9 @@ protected:
 private:
   void SwitchNextIMC(const FGameplayTag& InNextIMCTag);
 
-  void InitializePlayerInput();
+  void Initialize();
 
-  void InitializePlayerInputBuffer(UARInputComponent* InInputComponent);
+  void InitializePlayerInputBuffer();
 
   void AbilityInputTagPressed(FGameplayTag InInputTag, bool bOverrideInputState = true);
   void AbilityInputTagReleased(FGameplayTag InInputTag, bool bOverrideInputState = true);

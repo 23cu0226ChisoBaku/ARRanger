@@ -38,12 +38,10 @@ void FARPhysicsEngineProxy::OnInitialize(FARPhysicsEngine* OwningPhysicsEnginePt
 
 void FARPhysicsEngineProxy::OnSimulateAttraction(const FARPhysicsSimulationParam& SimulationParameter)
 {
-  // SimulationParameter.Target1.OnAttractionEvaluated();
-  // SimulationParameter.Target2.OnAttractionEvaluated();
+
 } 
 
 void FARPhysicsEngineProxy::OnSimulateRepulsion(const FARPhysicsSimulationParam& SimulationParameter)
 {
-  // SimulationParameter.Target1.OnRepulsionEvaluated();
-  // SimulationParameter.Target2.OnRepulsionEvaluated();
+
 }

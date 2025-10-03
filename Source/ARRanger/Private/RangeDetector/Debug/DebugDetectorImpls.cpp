@@ -1,7 +1,7 @@
 ﻿#include "RangeDetector/Core/DetectorImpls.h"
 
 #include "RangeDetector/Core/PrimitiveDetectorData.h"
-#include "RangeDetector/DetectorDatas/ConeCollisionDataAsset.h"
+#include "RangeDetector/DetectorDatas/ConeDetectorData.h"
 #include "RangeDetector/DetectorDatas/CapsuleDetectorData.h"
 #include "RangeDetector/DetectorDatas/SphereDetectorData.h"
 
@@ -28,7 +28,7 @@
     }
   }
 
-  void UConeCollisionDataAsset::DebugDrawRange(const UWorld* InWorld, const FVector& InOriginLocation, const FRotator& InOriginRotation, const FVector& InOriginScale3D) const
+  void UConeDetectorData::DebugDrawRange(const UWorld* InWorld, const FVector& InOriginLocation, const FRotator& InOriginRotation, const FVector& InOriginScale3D) const
   {
     /**Ensure the world is valid */
     check(InWorld != nullptr);
@@ -48,7 +48,7 @@
                     DebugLineColor.ToFColorSRGB());
   }
 
-  void UConeCollisionDataAsset::DebugDrawRange(FPrimitiveDrawInterface* PDI, const FVector& InOriginLocation, const FRotator& InOriginRotation, const FVector& InOriginScale3D) const
+  void UConeDetectorData::DebugDrawRange(FPrimitiveDrawInterface* PDI, const FVector& InOriginLocation, const FRotator& InOriginRotation, const FVector& InOriginScale3D) const
   {
       const double halfAngle = static_cast<double>(ConeAngle) / 2.0;
 
@@ -72,7 +72,7 @@
 
   }
   
-  void UConeCollisionDataAsset::DebugDrawRange(ULineBatchComponent* LineBatch, const FVector& InOriginLocation, const FRotator& InOriginRotation, const FVector& InOriginScale3D) const 
+  void UConeDetectorData::DebugDrawRange(ULineBatchComponent* LineBatch, const FVector& InOriginLocation, const FRotator& InOriginRotation, const FVector& InOriginScale3D) const 
   {
     if (LineBatch != nullptr)
     {

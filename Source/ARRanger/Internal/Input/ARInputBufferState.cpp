@@ -1,7 +1,6 @@
 ﻿#include "ARInputBufferState.h"
 
 #include "Player/ARRangerPlayerController.h"
-#include "ActionAbilities/ARAbilitySystemComponent.h"
 
 namespace ARRanger
 {
@@ -16,25 +15,15 @@ TPimplPtr<FARInputBufferState> FARInputBufferState::MakePressedState(const FGame
   newState->m_inputTag = InInputTag;
   newState->m_inputState = InternalState::Pressed;
 
-  if (GEngine)
-  {
-    GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Cyan, FString::Printf(TEXT("Pressed state created: InputTag:[%s]."), *InInputTag.ToString()));
-  }
-
   return newState;
 }
 
 TPimplPtr<FARInputBufferState> FARInputBufferState::MakeReleasedState(const FGameplayTag& InInputTag, float BufferLifeTime)
 {
   TPimplPtr<FARInputBufferState> newState = MakeInstanceInternal();
-  newState->m_inputTag = InInputTag;
   newState->m_bufferLifeTime = BufferLifeTime;
+  newState->m_inputTag = InInputTag;
   newState->m_inputState = InternalState::Released;
-
-  if (GEngine)
-  {
-    GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Cyan, FString::Printf(TEXT("Released state created: InputTag:[%s]."), *InInputTag.ToString()));
-  }
 
   return newState;
 }
@@ -53,10 +42,9 @@ FARInputBufferState::FARInputBufferState(PrivateToken)
 
 FARInputBufferState::~FARInputBufferState() = default;
 
-void FARInputBufferState::Evaluate(const AARRangerPlayerController* InPlayerController, float DeltaTime)
+void FARInputBufferState::Evaluate(AARRangerPlayerController* PlayerController, float DeltaTime)
 {
-  check(InPlayerController != nullptr);
-  if (InPlayerController == nullptr)
+  if (PlayerController == nullptr)
   {
     return;
   }
@@ -65,46 +53,33 @@ void FARInputBufferState::Evaluate(const AARRangerPlayerController* InPlayerCont
 
   CheckInputStateValidation();
 
-  UARAbilitySystemComponent* ARASC = InPlayerController->GetARASC();
-  if (ARASC != nullptr)
+  switch (m_inputState)
   {
-    FString StateStr = TEXT("Expired");
-    switch (m_inputState)
+    case Pressed:
     {
-      case InternalState::Pressed:
-      {
-        ARASC->AbilityInputTagPressed(m_inputTag);
-        StateStr = TEXT("Pressed");
-      }
-      break;
-
-      case InternalState::Released:
-      {
-        ARASC->AbilityInputTagReleased(m_inputTag);
-        StateStr = TEXT("Released");
-      }
+      PlayerController->OnAbilityInputTagPressedEvaluated(m_inputTag);
     }
+    break;
 
-    if (GEngine)
+    case Released:
     {
-      const FString EvaluateMessage = FString::Printf(TEXT("Input state evaluated. InputTag:[%s]. LifeTime:[%f]. State:[%s]"), *m_inputTag.ToString(), m_bufferLifeTime, *StateStr);
-      GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Emerald, EvaluateMessage);
+      PlayerController->OnAbilityInputTagReleasedEvaluated(m_inputTag);
     }
+    break;
   }
-
 }
 
 void FARInputBufferState::ExpireInputState()
 {
   switch (m_inputState)
   {
-    case InternalState::Pressed:
+    case Pressed:
     {
       m_inputState = InternalState::Released;
     }
     break;
 
-    case InternalState::Released:
+    case Released:
     {
       m_inputState = InternalState::Expired;
     }
@@ -124,7 +99,7 @@ void FARInputBufferState::SetLifeTime(float NewBufferLifeTime)
 
 bool FARInputBufferState::IsInputStateExpired() const
 {
-  return m_inputState == InternalState::Expired;
+  return m_inputState == Expired;
 }
 
 bool FARInputBufferState::IsInputTagMatchesExact(const FGameplayTag& InInputTag) const
@@ -132,25 +107,24 @@ bool FARInputBufferState::IsInputTagMatchesExact(const FGameplayTag& InInputTag)
   return m_inputTag.MatchesTagExact(InInputTag);
 }
 
-void FARInputBufferState::OnPressed()
+void FARInputBufferState::MarkAsPressed()
 {
-  m_inputState = InternalState::Pressed;
+  m_inputState = Pressed;
 }
 
-void FARInputBufferState::OnReleased()
+void FARInputBufferState::MarkAsReleased()
 {
-  m_inputState = InternalState::Released;
+  m_inputState = Released;
 }
 
 
 void FARInputBufferState::CheckInputStateValidation()
 {
-  if (m_bufferLifeTime <= 0.0f)
+  if (FMath::IsNearlyZero(GetLifeTime()))
   {
     ExpireInputState();
   }
 }
-
 
 } // namespace ARRanger::Input
 

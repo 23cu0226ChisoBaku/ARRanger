@@ -205,7 +205,7 @@ void AEnemy_Zako::EnemyDeadStarted(AActor* OwningActor)
     }
   };
 
-  GetWorld()->GetTimerManager().SetTimer(StartDeadTimer, deadFinishHandler, 3.0f, false);
+  GetWorldTimerManager().SetTimer(StartDeadTimer, deadFinishHandler, 3.0f, false);
 
   OnEnemyDeadStarted.Broadcast(OwningActor);
 }
@@ -232,10 +232,10 @@ void AEnemy_Zako::OnEnemyHealthChanged(UARHealthComponent* InHealthComponent, AA
 
 void AEnemy_Zako::PerformDeadStartEffect()
 {
-  const float hitStopEffectMultiplier = 0.3f;
+  const float hitStopEffectMultiplier = 0.1f;
   UGameplayStatics::SetGlobalTimeDilation(this, hitStopEffectMultiplier);
   
-  if (HitStopTimer.IsValid())
+  if (!HitStopTimer.IsValid())
   {
     GetWorldTimerManager().SetTimer(HitStopTimer, 
     [this]()

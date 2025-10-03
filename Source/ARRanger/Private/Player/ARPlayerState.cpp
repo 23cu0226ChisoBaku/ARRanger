@@ -2,10 +2,12 @@
 
 
 #include "Player/ARPlayerState.h"
+
 #include "ActionAbilities/ARAbilitySystemComponent.h"
-#include "Pawn/ARPawnInitComponent.h"
 #include "PlayerComponents/ARChargeAttackComponent.h"
 #include "Player/ARRangerPlayerController.h"
+
+#include UE_INLINE_GENERATED_CPP_BY_NAME(ARPlayerState)
 
 AARPlayerState::AARPlayerState(const FObjectInitializer& ObjectInitializer)
   : Super(ObjectInitializer)
