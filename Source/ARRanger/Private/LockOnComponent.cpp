@@ -119,7 +119,7 @@ void ULockOnComponent::SwitchTarget(bool bRight)
         return;
     }
 
-    // ワールドの敵を取得(To Do：一定範囲内の敵を取得するように修正)
+    // ワールドの敵を取得
     TArray<AActor*> Enemies;
     UGameplayStatics::GetAllActorsWithTag(GetWorld(), enemyTag, Enemies);
 

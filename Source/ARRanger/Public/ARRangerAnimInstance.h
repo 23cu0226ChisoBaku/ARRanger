@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "CoreMinimal.h"
 #include "Animation/AnimInstance.h"
@@ -11,19 +11,11 @@ class ARRANGER_API UARRangerAnimInstance : public UAnimInstance
 	GENERATED_BODY()
 
 public:
-    // ���̓N���C�����̏㉺�����̑��x
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Climb")
-    float ClimbUpSpeed;
-
-    // ���̓N���C�����̍��E�����̑��x
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Climb")
-    float ClimbRightSpeed;
-
-    // ���̓N���C�����t���O
+    // 引力クライム中フラグ
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Climb")
     bool IsClimbing = false;
 
-    // �퓬���t���O
+    // 戦闘中フラグ
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Battle")
     bool bIsBattled = false;
 

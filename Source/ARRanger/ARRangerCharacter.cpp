@@ -350,22 +350,6 @@ void AARRangerCharacter::DoMove(float Right, float Forward)
     AddMovementInput(ForwardDirection, Forward);
     AddMovementInput(RightDirection, Right);
   }
-  else
-  {
-    // 壁に触れていなければ処理しない
-    if (!currentClimbSurface)
-    {
-      UE_LOG(LogTemp, Warning, TEXT("currentClimbSurface is null!"));
-      return;
-    }
-
-    // 移動軸を変更する
-    if (UARRangerAnimInstance* MyAnim = Cast<UARRangerAnimInstance>(GetMesh()->GetAnimInstance()))
-    {
-      MyAnim->ClimbUpSpeed = Forward;
-      MyAnim->ClimbRightSpeed = Right;
-    }
-  }
 }
 
 void AARRangerCharacter::StartClimbing(AInsekiClimbingObject* ClimbActor)

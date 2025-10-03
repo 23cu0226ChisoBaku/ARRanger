@@ -10,7 +10,7 @@ UAttackBaseComponent::UAttackBaseComponent()
 {
 	PrimaryComponentTick.bCanEverTick = true;
 
-    // �v���C���[�Ƃ��̃R���g���[���[���擾
+    // プレイヤーとそのコントローラーを取得
     ownerPawn = Cast<AARRangerCharacter>(GetOwner());
     ownerController = ownerPawn ? Cast<APlayerController>(ownerPawn->GetController()) : nullptr;
 }
@@ -49,21 +49,21 @@ void UAttackBaseComponent::RotateOwnerToTarget()
 
 void UAttackBaseComponent::PlayAttackMontage(const FAttackData& Attack)
 {
-    // �v���C���[�����Ȃ����AMontage���ݒ肳��Ă��Ȃ���Ώ������Ȃ�
+    // プレイヤーがいなければ処理しない
     AARRangerCharacter* Char = Cast<AARRangerCharacter>(ownerPawn);
     if (!Char || !Attack.Montage_Normal)
     {
         return;
     }
 
-    // AnimInstance���Ȃ���Ώ������Ȃ�
+    // AnimInstanceがなければ処理しない
     UAnimInstance* Anim = Char->GetMesh()->GetAnimInstance();
     if (!Anim)
     {
         return;
     }
 
-    // ���ɓ��������^�[�W���Đ����Ȃ炱���ŉ������Ȃ�(�p���`��StartPunch���ʓ|������)
+    // アニメーション再生中は処理しない
     if (Anim->Montage_IsPlaying(Attack.Montage_Normal))
     {
         return;
