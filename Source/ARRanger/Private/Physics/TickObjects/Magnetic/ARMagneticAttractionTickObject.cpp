@@ -2,7 +2,7 @@
 
 #include "Physics/TickObjects/Magnetic/ARMagneticAttractionTickObject.h"
 
-#include "IARMagnetizableInterface.h"
+#include "Magnetic/IARMagnetizableInterface.h"
 #include "Physics/Core/ARPhysicsEngineProxy.h"
 
 #include "Internal/ARLoggingHeader.h"

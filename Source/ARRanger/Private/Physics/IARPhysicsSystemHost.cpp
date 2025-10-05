@@ -2,7 +2,7 @@
 
 #include "Physics/IARPhysicsSystemHost.h"
 
-#include "IARMagnetizableInterface.h"
+#include "Magnetic/IARMagnetizableInterface.h"
 #include "Physics/Core/ARPhysicsEngine.h"
 #include "Physics/Core/ARPhysicsTickProcessorActor.h"
 #include "Physics/Gameplay/ARPhysicsGlobal.h"

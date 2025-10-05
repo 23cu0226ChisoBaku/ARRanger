@@ -40,7 +40,6 @@ namespace GameplayTags
   UE_DEFINE_GAMEPLAY_TAG_COMMENT(InputState_Charge_Punch_Combo3, "InputState.Charge.Punch_Combo3", "Player punch (Combo 3) charge input state");
 
   UE_DEFINE_GAMEPLAY_TAG_COMMENT(NativeInput_Move, "NativeInput.Move", "Character movement input");
-  UE_DEFINE_GAMEPLAY_TAG_COMMENT(NativeInput_Look, "NativeInput.Look", "Character look input");
   UE_DEFINE_GAMEPLAY_TAG_COMMENT(NativeInput_LockOn, "NativeInput.LockOn", "Character lock on target input");
   UE_DEFINE_GAMEPLAY_TAG_COMMENT(NativeInput_SwitchTarget_Left, "NativeInput.SwitchTarget.Left", "Character switch lock on target(Left)");
   UE_DEFINE_GAMEPLAY_TAG_COMMENT(NativeInput_SwitchTarget_Right, "NativeInput.SwitchTarget.Right", "Character switch lock on target(Right)");

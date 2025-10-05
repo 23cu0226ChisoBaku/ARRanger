@@ -1,10 +1,7 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #include "BattleSystem/IBattleSystemInterface.h"
 
 #include "BattleSystem/IARAttackable.h"
 #include "BattleSystem/IARAttackerInterface.h"
-#include "BattleSystem/IARBattleNotifyHandler.h"
 #include "BattleSystem/IBattleSystemInterface.h"
 
 /**Internal use */
@@ -37,14 +34,6 @@ bool IARAttackable::AttackTarget(IARAttackerInterface* Attacker, FARAttackParame
   if (Attacker == nullptr)
   {
     AR_LOG(LogARBattle, Error, TEXT("Attacker is INVALID!!!"));
-  }
-  else
-  {
-    // TODO Should we notify here? 
-    if (IARBattleNotifyHandler* notifyHandler = Attacker->GetBattleNotifyHandler())
-    {
-      notifyHandler->NotifyBattleState(EARBattleState::StartBattle);
-    }
   }
 
   /**Preattack Phase */
@@ -86,7 +75,7 @@ bool IARAttackable::AttackTarget(IARAttackerInterface* Attacker, FARAttackParame
   task.OriginDamage = InAttackParams.Damage;
   battleSystem.HandleBattleTask(task, damageResult);
 
-  /**Handle damage */
+  // Handle damage
   damageResult.FinalLaunchDirection = InAttackParams.LaunchDirection;
   damageResult.Instigator = (Attacker != nullptr) ? Attacker->GetActor() : nullptr;
   damageResult.ImpactLocation = InAttackParams.ImpactLocation;
@@ -134,7 +123,6 @@ namespace ARRanger
 
 namespace Battle
 {
-
   IBattleSystemInterface& IBattleSystemInterface::Get()
   {
     return FARBattleSystem::Get();

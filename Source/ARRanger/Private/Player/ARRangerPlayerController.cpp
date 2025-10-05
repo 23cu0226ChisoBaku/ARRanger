@@ -14,7 +14,7 @@
 #include "PlayerComponents/ARChargeAttackComponent.h"
 #include "Pawn/ARPawnInitComponent.h"
 // TODO
-#include "ARRangerCharacter.h"
+#include "Character/ARRangerCharacter.h"
 
 #include "Internal/ARLoggingHeader.h"
 #include "ARGameplayTags.h"
@@ -211,7 +211,6 @@ FGABlueprintableHoldHandle AARRangerPlayerController::OnGameplayAbilityActivated
     return FGABlueprintableHoldHandle{newHoldSpec.Handle};
   }
 
-
   return FGABlueprintableHoldHandle{};
 
 }
@@ -226,11 +225,8 @@ void AARRangerPlayerController::OnGameplayAbilityTaskTicked_Holding(FGameplayTag
       const FGameplayTag attackTag = CAC->EvaluateCharge(HeldTime, InTaskOwnerAbilityTag);
       const float nextChargeAttackTimeThreshold = CAC->GetNextChargeTimeThresholdByAttackTag(attackTag);
       const float nextChargeAttackCost = CAC->GetNextChargeAttackCostByAttackTag(attackTag);
-
       const float chargeAttackTimeThreshold = CAC->GetChargeTimeThresholdByAttackTag(attackTag);
-      const float chargeAttackCost = CAC->GetChargeTimeThresholdByAttackTag(attackTag);
-
-      
+      const float chargeAttackCost = CAC->GetChargeTimeThresholdByAttackTag(attackTag);     
     }
   }
 }
@@ -308,7 +304,7 @@ void AARRangerPlayerController::Initialize()
   }
 
   UARInputComponent* ARIC = ::Cast<UARInputComponent>(InputComponent);
-  check(ARIC);
+  check(ARIC != nullptr);
   if (ARIC == nullptr)
   {
     UE_LOG(LogTemp, Error, TEXT("Unexpected input component class. Abilities will not be bound to their inputs.Use UARInputComponent or its subclass"));
@@ -320,7 +316,6 @@ void AARRangerPlayerController::Initialize()
 
   // Bind native input actions
   ARIC->BindNativeAction(InputConfig, ARRanger::GameplayTags::NativeInput_Move, ETriggerEvent::Triggered, this, &ThisClass::NativeInput_Move);
-  ARIC->BindNativeAction(InputConfig, ARRanger::GameplayTags::NativeInput_Look, ETriggerEvent::Triggered, this, &ThisClass::NativeInput_Look);
   ARIC->BindNativeAction(InputConfig, ARRanger::GameplayTags::NativeInput_LockOn, ETriggerEvent::Triggered, this, &ThisClass::NativeInput_ToggleLockOn);
   ARIC->BindNativeAction(InputConfig, ARRanger::GameplayTags::NativeInput_SwitchTarget_Left, ETriggerEvent::Triggered, this, &ThisClass::NativeInput_SwitchTarget_Left);
   ARIC->BindNativeAction(InputConfig, ARRanger::GameplayTags::NativeInput_SwitchTarget_Right, ETriggerEvent::Triggered, this, &ThisClass::NativeInput_SwitchTarget_Right);
@@ -443,47 +438,6 @@ void AARRangerPlayerController::NativeInput_Move(const FInputActionValue& InputA
   {
     const FVector2D moveInput = InputActionValue.Get<FVector2D>();
     OwningCharacter->DoMove(moveInput.X, moveInput.Y);
-  }
-  
-}
-
-void AARRangerPlayerController::NativeInput_JumpStart(const FInputActionValue& InputActionValue, /**PayLoad */ FGameplayTag InInputTag)
-{
-  if (IsInputBlocked(InInputTag))
-  {
-    return;
-  }
-
-  if (OwningCharacter != nullptr)
-  {
-    OwningCharacter->DoJumpStart();
-  }
-}
-
-void AARRangerPlayerController::NativeInput_JumpEnd(const FInputActionValue& InputActionValue, /**PayLoad */ FGameplayTag InInputTag)
-{
-  if (IsInputBlocked(InInputTag))
-  {
-    return;
-  }
-
-  if (OwningCharacter != nullptr)
-  {
-    OwningCharacter->DoJumpEnd();
-  }
-}
-
-void AARRangerPlayerController::NativeInput_Look(const FInputActionValue& InputActionValue, /**PayLoad */ FGameplayTag InInputTag)
-{
-  if (IsInputBlocked(InInputTag))
-  {
-    return;
-  }
-
-  if (OwningCharacter != nullptr)
-  {
-    const FVector2D lookAxisVector = InputActionValue.Get<FVector2D>();
-    OwningCharacter->DoLook(lookAxisVector.X, lookAxisVector.Y);
   }
 }
 

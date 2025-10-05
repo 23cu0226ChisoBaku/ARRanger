@@ -114,21 +114,16 @@ void UARAbilitySystemComponent::ProcessAbilityInputs(const FARAbilityInputProces
             continue;
           }
 
-          // FIXME Only use one Tag to check association
-          if (ARGA->IsAssociatedWithTag(conditionAbilitySpec.Ability->GetAssetTags().First()))
+          // FIXME Only use FIRST Tag to check activate condition
+          if (ARGA->HasActivateConditionTag(conditionAbilitySpec.Ability->GetAssetTags().First()))
           {            
             // TODO if this dont work, Use InstancedPerActor
             // FIXME Force to cancel all GA that even not implemented UARGameplayAbilityBase
             UGameplayAbility* conditionGAPrimaryInst = conditionAbilitySpec.GetPrimaryInstance();
             if ((conditionGAPrimaryInst != nullptr) && conditionGAPrimaryInst->CanBeCanceled())
             {
-              // TODO Cancel any ability
               CancelAbility(conditionAbilitySpec.Ability);
               bCanActivate = true;
-              if (GEngine)
-              {
-                GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, conditionAbilitySpec.Ability->GetName());
-              }
               break;
             }
           }       

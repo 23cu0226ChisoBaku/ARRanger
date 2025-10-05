@@ -1,7 +1,6 @@
 ﻿
 #include "Enemy/Enemy_Zako.h"
 #include "Enemy/EnemyAnimInstance.h"
-#include "InsekiGameMode.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Enemy/ZakoAIController.h"

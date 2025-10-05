@@ -5,7 +5,7 @@
 #include "Physics/Core/ARPhysicsEngine.h"
 #include "Physics/TickObjects/Magnetic/ARMagneticTickObject.h"
 #include "Physics/Core/ARPhysicsTickManagerInterface.h"
-#include "IARMagnetizableInterface.h"
+#include "Magnetic/IARMagnetizableInterface.h"
 
 #include "Physics/TickObjects/Magnetic/ARMagneticAttractionTickObject.h"
 #include "Physics/TickObjects/Magnetic/ARMagneticRepulsionTickObject.h"

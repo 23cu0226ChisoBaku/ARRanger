@@ -6,7 +6,6 @@
 #include "Pawn/ARPawnInitData.h"
 #include "ActionAbilities/ARAbilitySystemComponent.h"
 #include "ActionAbilities/ARGameplayAbilityBase.h"
-#include "ActionAbilities/Attributes/ARAttributeSet.h"
 
 #include "PlayerComponents/ARChargeAttackComponent.h"
 
@@ -110,20 +109,6 @@ void UARPawnInitComponent::InitializeAbilitySystem(UARAbilitySystemComponent* In
         FGameplayAbilitySpec newAbilitySpec{GA.LoadSynchronous(), abilityLevel, inputID++};
         FGameplayAbilitySpecHandle newAbilitySpecHandle = AbilitySystemComponent->GiveAbility(newAbilitySpec);
       }  
-    }
-
-    for (TSoftClassPtr<UARAttributeSet> AS : PawnInitData->AttributeSets)
-    {
-      // Add attribute set
-      if (AS != nullptr)
-      {
-        TSubclassOf<UARAttributeSet> ASType = AS.LoadSynchronous();
-        if (ASType != nullptr)
-        {
-          UARAttributeSet* newSet = NewObject<UARAttributeSet>(AbilitySystemComponent->GetOwner(), ASType);
-          AbilitySystemComponent->AddAttributeSetSubobject(newSet);
-        }
-      }
     }
   }
 }

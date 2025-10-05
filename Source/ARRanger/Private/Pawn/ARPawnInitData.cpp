@@ -7,7 +7,6 @@ UARPawnInitData::UARPawnInitData(const FObjectInitializer& ObjectInitializer)
   : Super(ObjectInitializer)
 {
   Abilities.Reset();
-  AttributeSets.Reset();
   ChargeBranchEntries.Reset();
 }
 

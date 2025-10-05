@@ -62,7 +62,6 @@ namespace GameplayTags
 
   /**Native Input Tag */
   UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(NativeInput_Move);
-  UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(NativeInput_Look);
   UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(NativeInput_LockOn);
   UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(NativeInput_SwitchTarget_Left);
   UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(NativeInput_SwitchTarget_Right);

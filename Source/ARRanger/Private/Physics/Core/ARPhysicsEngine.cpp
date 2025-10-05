@@ -2,7 +2,7 @@
 
 #include "Physics/Core/ARPhysicsEngine.h"
 
-#include "IARMagnetizableInterface.h"
+#include "Magnetic/IARMagnetizableInterface.h"
 #include "Internal/ARLoggingHeader.h"
 #include "Physics/Core/ARPhysicsEngineProxy.h"
 #include "Physics/Core/ARPhysicsTickProcessorActor.h"

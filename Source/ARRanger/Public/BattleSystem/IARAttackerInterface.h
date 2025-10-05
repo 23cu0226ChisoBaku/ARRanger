@@ -1,4 +1,7 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+/**
+ * @file IARAttackerInterface.h
+ * @brief Interface for attacker to receive attack result
+ */
 
 #pragma once
 
@@ -20,6 +23,9 @@ namespace Battle
   enum struct EARAttackResult : uint8;
 
   /**
+   * @brief Parameter structure of attack notify
+   */
+  /**
    * @brief 攻撃通知パラメータ
    */
   struct FARAttackNotifyParameter
@@ -32,14 +38,16 @@ namespace Battle
 
 } // namespace ARRanger
 
-
-// This class does not need to be modified.
 UINTERFACE(MinimalAPI)
 class UARAttackerInterface : public UInterface
 {
 	GENERATED_BODY()
 };
 
+/**
+ * @class IARAttackerInterface
+ * @brief Interface for attacker to receive attack result
+ */
 class IARAttackerInterface
 {
 	GENERATED_BODY()
@@ -52,6 +60,7 @@ public:
    */
   UE_API virtual AActor* GetActor() { return ::Cast<AActor>(_getUObject()); }
 
+  // TODO Not implemented
   /**
    * @brief  バトル通知ハンドラーを返す
    * @return IARBattleNotifyHandler (Maybe null)
@@ -67,10 +76,19 @@ public:
   
 protected:
 
-  /**攻撃が成功した時のコールバック */
+  /**
+   * @brief 攻撃が成功した時のコールバック
+   * 
+   * @param InNotifyParams @see ARRanger::Battle::FARAttackNotifyParameter
+   */
   UE_API virtual void OnNotifyAttackResult_Success(const ARRanger::Battle::FARAttackNotifyParameter& InNotifyParams) { };
 
-  /**攻撃が失敗した時のコールバック */
+  /**
+   * @brief 攻撃が失敗した時のコールバック
+   * 
+   * @param Reason          失敗の原因（戦闘結果列挙）
+   * @param InNotifyParams  @see ARRanger::Battle::FARAttackNotifyParameter
+   */
   UE_API virtual void OnNotifyAttackResult_Failed(ARRanger::Battle::EARAttackResult Reason, const ARRanger::Battle::FARAttackNotifyParameter& InNotifyParams) { };
 
 };

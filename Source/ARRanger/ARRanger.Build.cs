@@ -22,7 +22,6 @@ public class ARRanger : ModuleRules
       "StateTreeModule",
       "GameplayStateTreeModule",
       "UMG",
-      "MLibrary",
       "GameplayCameras",
       "NavigationSystem",
       "Niagara"
@@ -35,17 +34,9 @@ public class ARRanger : ModuleRules
 
     PublicIncludePaths.AddRange(new string[] {
       "ARRanger",
-      "ARRanger/Variant_Platforming",
-      "ARRanger/Variant_Combat",
-      "ARRanger/Variant_Combat/AI",
-      "ARRanger/Variant_SideScrolling",
-      "ARRanger/Variant_SideScrolling/Gameplay",
-      "ARRanger/Variant_SideScrolling/AI"
     });
 
     PrivateIncludePaths.AddRange(new string[] {
-      "ARRanger/Public/CameraWork",
-      "MLibrary/Public",
       "ARRanger/Internal"
     });
 

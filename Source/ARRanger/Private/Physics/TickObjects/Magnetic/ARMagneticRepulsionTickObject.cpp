@@ -3,7 +3,7 @@
 
 #include "Physics/TickObjects/Magnetic/ARMagneticRepulsionTickObject.h"
 
-#include "IARMagnetizableInterface.h"
+#include "Magnetic/IARMagnetizableInterface.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ARMagneticRepulsionTickObject)
 

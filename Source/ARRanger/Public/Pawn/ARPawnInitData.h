@@ -11,7 +11,6 @@
 #define UE_API ARRANGER_API
 
 class UARGameplayAbilityBase;
-class UARAttributeSet;
 
 USTRUCT(BlueprintType)
 struct FChargeAttackLeaf
@@ -54,9 +53,6 @@ public:
 
   UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "GameplayAbility")
   TSet< TSoftClassPtr< UARGameplayAbilityBase > > Abilities;
-
-  UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "GameplayAbility")
-  TSet< TSoftClassPtr<UARAttributeSet> > AttributeSets;
 
   UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "GameplayAbility", meta = (TitleProperty = "Charge Branch Tag: {BranchTag}."))
   TArray< FChargeAttackBranchEntry > ChargeBranchEntries;

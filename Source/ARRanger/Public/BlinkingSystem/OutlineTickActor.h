@@ -5,9 +5,9 @@
 #pragma once
 
 #include "GameFramework/Actor.h"
-#include "Public/IARMagnetizableInterface.h"
+#include "Magnetic/IARMagnetizableInterface.h"
+#include "Magnetic/MagnetizableActor.h"
 #include "Public/BlinkingSystem/BlinkDatas.h"
-#include "ARObject/MagnetizableActor.h"
 #include "OutlineTickActor.generated.h"
 
 // 前方宣言

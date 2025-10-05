@@ -4,7 +4,7 @@
 
 #include "Public/BlinkingSystem/BlinkOutlineFunctor.h"
 #include "Public/BlinkingSystem/BlinkDatas.h"
-#include "ARObject/MagnetizableActor.h"
+#include "Magnetic/MagnetizableActor.h"
 
 /*
 * Start BlinkOutlineFunctor Lifecycle Functions

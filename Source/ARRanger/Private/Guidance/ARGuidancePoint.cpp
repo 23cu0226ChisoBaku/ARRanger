@@ -6,7 +6,7 @@
 #include "Components/BoxComponent.h"
 
 // TODO
-#include "ARRangerCharacter.h"
+#include "Character/ARRangerCharacter.h"
 
 // Sets default values
 AARGuidancePoint::AARGuidancePoint()

@@ -1,5 +1,5 @@
 ﻿#include "Physics/Core/ARPhysicsEngineProxy.h"
-#include "IARMagnetizableInterface.h"
+#include "Magnetic/IARMagnetizableInterface.h"
 
 #include "Internal/ARLoggingHeader.h"
 
