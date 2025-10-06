@@ -22,6 +22,7 @@ void AEnemySpawner::SpawnEnemy(const FScriptDelegate& onDestroyedCallback)
 {
     if (m_SpawnEnemy == nullptr)
     {
+        UE_LOG(LogTemp, Warning, TEXT("No Enemy are set to be spawned by the EnemySpawner."));
         return;
     } 
 

@@ -160,6 +160,12 @@ void ABattleEventField::CollectSpawners()
         });
     }
 
+    /*一つもスポナーを取得できなかった*/
+    if(m_Spawners.IsEmpty())
+    {
+        UE_LOG(LogTemp, Warning, TEXT("BattleEventFiled failed to acquire any EnemySpawner instances."));
+    }
+
     /*スポナーの取得完了通知*/
     OnSpawnersCollected.Broadcast(this);
 }
@@ -299,9 +305,6 @@ void ABattleEventField::OnEnemyDestroyed()
     --m_RemainingEnemiesInField;
     --m_RemainingEnemiesInPhase;
 
-    /*妥協処理*/
-    EventEndingPhase(m_CurrentPhaseIndex);
-
     if (m_RemainingEnemiesInPhase <= 0)
     {
         /*次のフェーズがある*/
@@ -309,7 +312,7 @@ void ABattleEventField::OnEnemyDestroyed()
         {
             /*現在のフェーズ数を更新*/
             ++m_CurrentPhaseIndex;
-            /*スポーン開始*/
+            /*次のフェーズ開始*/
             StartNextPhase();
         }
         /*フィールド内の敵を全滅させた*/
