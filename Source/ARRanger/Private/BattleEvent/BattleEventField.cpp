@@ -21,7 +21,6 @@ ABattleEventField::ABattleEventField()
     , m_CurrentPhaseIndex(0)
     , m_IsActiveField(false)
     , m_EventTriggered(false)
-
 {
     PrimaryActorTick.bCanEverTick = true;
 }

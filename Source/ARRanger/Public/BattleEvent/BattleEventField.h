@@ -58,9 +58,6 @@ public:
 
     /*妥協処理*/
     UFUNCTION(BlueprintImplementableEvent)
-    void EventEndingPhase(int32 currentPhase);
-
-    UFUNCTION(BlueprintImplementableEvent)
     void EventStartingPhase(int32 currentPhase);   
     
     /*スポナー収集完了通知*/

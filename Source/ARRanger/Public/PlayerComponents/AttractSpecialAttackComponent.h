@@ -44,9 +44,9 @@ public:
   UFUNCTION(BlueprintCallable)
   void PerformSpecialAttract();
 
-  DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnSpecialAttractFinishedDelegate);
-  UPROPERTY(BlueprintAssignable)
-  FOnSpecialAttractFinishedDelegate OnSpecialAttractFinished;
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnSpecialAttractFinishedDelegate);
+	UPROPERTY(BlueprintAssignable)
+	FOnSpecialAttractFinishedDelegate OnSpecialAttractFinished;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	bool m_IsGenerateAttract;      		/*引力アクターを生成しているか*/
@@ -80,19 +80,19 @@ private:
 	 */
 	void ResetParameter();
 
-  UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AttractSpecialAttack|Player", meta = (AllowPrivateAccess = "true", DisplayName = "CustomCurveSpeed"))
-  UCurveFloat* m_KickCurveSpeed;        	/*フィニッシュキックのスピード*/
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AttractSpecialAttack|Player", meta = (AllowPrivateAccess = "true", DisplayName = "CustomCurveSpeed"))
+	UCurveFloat* m_KickCurveSpeed;        	/*フィニッシュキックのスピード*/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AttractSpecialAttack|AttractionActor", meta = (AllowPrivateAccess = "true"))
 	TSubclassOf<AActor> m_AttractActor;     /*対象オブジェクトを吸引オブジェクト*/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AttractSpecialAttack|Player", meta = (AllowPrivateAccess = "true"))
 	float m_AttractTimeInterval;            /*技発動からキックし始めるまでの時間*/
-  UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AttractSpecialAttack|Player", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AttractSpecialAttack|Player", meta = (AllowPrivateAccess = "true"))
 	float m_KickTimeInterval;               /*キックし始めから着地までの時間*/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AttractSpecialAttack|Player", meta = (AllowPrivateAccess = "true"))
 	float m_LandTimeInterval;               /*着地から動き始めるまでの時間*/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AttractSpecialAttack|Player", meta = (AllowPrivateAccess = "true"))
 	float m_KickMaxSpeed;                   /*最大キックスピード*/
-  UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AttractSpecialAttack|Player", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AttractSpecialAttack|Player", meta = (AllowPrivateAccess = "true"))
 	float m_KickBrakingForce;               /*キックの勢いを止める力*/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AttractSpecialAttack|AttractionActor", meta = (AllowPrivateAccess = "true"))
 	float m_GenerateDistance;               /*吸引オブジェクト生成する際のプレイヤーとの距離*/

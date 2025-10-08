@@ -33,12 +33,12 @@ void ASpecialAttackAttractActor::Tick(float DeltaTime)
 	/*プレイヤーを中心とした球体範囲内のアクターを取得*/ 
 	UKismetSystemLibrary::SphereOverlapActors(
 		GetWorld(),
-		GetActorLocation(),			/*中心座標*/
-		m_DetectionRadius,			/*検知範囲*/
-		m_ObjectTypes.Array(),		/*すべてのオブジェクトタイプを検知*/
-		nullptr,					/*すべてのクラスを検知*/
-		actorsToIgnore,				/*自分自身は無視*/
-		overlappedActors			/*検知したアクターの格納場所*/
+		GetActorLocation(),         /*中心座標*/
+		m_DetectionRadius,          /*検知範囲*/
+		m_ObjectTypes.Array(),      /*すべてのオブジェクトタイプを検知*/
+		nullptr,                    /*すべてのクラスを検知*/
+		actorsToIgnore,             /*自分自身は無視*/
+		overlappedActors            /*検知したアクターの格納場所*/
 	);
 
 	/*指定したクラスのアクターを抽出*/ 
@@ -151,7 +151,6 @@ void ASpecialAttackAttractActor::Destroyed()
 		UPrimitiveComponent* meshComp = actor->FindComponentByClass<UPrimitiveComponent>();
 		if(meshComp != nullptr)
 		{
-			//if(GEngine) GEngine->AddOnScreenDebugMessage(-1, 20.f, FColor::Red,FString::Printf(TEXT("Explosion Power : %s"), *(explosionDirection * m_ExplosionPower).ToString()));
 			meshComp->AddImpulse(explosionDirection * m_ExplosionPower);
 		}
 	}

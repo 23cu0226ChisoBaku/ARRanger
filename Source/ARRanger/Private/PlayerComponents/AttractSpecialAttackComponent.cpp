@@ -16,7 +16,6 @@ UAttractSpecialAttackComponent::UAttractSpecialAttackComponent()
 void UAttractSpecialAttackComponent::BeginPlay()
 {
 	Super::BeginPlay();	
-
 }
 void UAttractSpecialAttackComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
@@ -42,7 +41,7 @@ void UAttractSpecialAttackComponent::TickComponent(float DeltaTime, ELevelTick T
 }
 void UAttractSpecialAttackComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-  Super::EndPlay(EndPlayReason);
+  	Super::EndPlay(EndPlayReason);
 }
 
 /**
@@ -50,7 +49,7 @@ void UAttractSpecialAttackComponent::EndPlay(const EEndPlayReason::Type EndPlayR
  */
 void UAttractSpecialAttackComponent::StartSpecialAttract()
 {
-  m_IsGenerateAttract = true;
+  	m_IsGenerateAttract = true;
 
 	/*キックする方向を取得*/
 	m_kickDirection = FVector(GetPlayerCameraRotation().X, GetPlayerCameraRotation().Y, 0.0f).GetSafeNormal();
@@ -65,16 +64,16 @@ void UAttractSpecialAttackComponent::StartSpecialAttract()
 
 void UAttractSpecialAttackComponent::PerformSpecialAttract()
 {
-  if(m_GenerateArractActor!= nullptr)
-  {
-    if(ASpecialAttackAttractActor* attractActor = Cast<ASpecialAttackAttractActor>(m_GenerateArractActor))
-    {
-      m_InhaledActors = attractActor->GetDetectedActors();
-    }
+	if(m_GenerateArractActor!= nullptr)
+	{
+		if(ASpecialAttackAttractActor* attractActor = Cast<ASpecialAttackAttractActor>(m_GenerateArractActor))
+		{
+		m_InhaledActors = attractActor->GetDetectedActors();
+		}
 
-    m_IsGenerateAttract = true;
-    m_IsAttractKick = true;
-  }
+		m_IsGenerateAttract = true;
+		m_IsAttractKick = true;
+	}
 }
 
 /**
@@ -167,7 +166,7 @@ void UAttractSpecialAttackComponent::SpecialFinishKick(float deltaTime)
 
 		if(m_CurrentKickSpeed <= 0.0f)
 		{
-      OnSpecialAttractFinished.Broadcast();
+      		OnSpecialAttractFinished.Broadcast();
 
 			m_IsAttractKick = false;
 			m_IsLand = true;
