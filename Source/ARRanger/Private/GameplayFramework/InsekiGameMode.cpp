@@ -1,19 +1,14 @@
 #include "GameplayFramework/InsekiGameMode.h"
 
-#include "Blueprint/UserWidget.h"
-#include "GameFramework/Character.h"
-#include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Character/ARRangerCharacter.h"
 
 #include "AudioSystem/ARAudioSystem.h"
+#include "AudioSystem/ARSoundPlayLibrary.h"
 
 #include "PlayerObservation/PlayerNotifyHandler.h"
 #include "PlayerObservation/IObservableSubjectInterface.h"
 #include "PlayerObservation/ObserverListNode.h"
-
-#include "AudioSystem/ARSoundPlayLibrary.h"
-
 #include "PlayerObservation/IObserverRegistry.h"
 #include "PlayerObservation/Registry/SoundEffectRegistry.h"
 
@@ -46,7 +41,6 @@ namespace
   constexpr float ACTION_FRAME_LIMIT = 60.0f;
   TArray<Private::FARGameUserSettingsData> gSettingsDataStack;
 }
-
 
 AInsekiGameMode::AInsekiGameMode()
   : bGameResultHandled{false}
@@ -301,7 +295,8 @@ void AInsekiGameMode::ProcessGameResult(EGameResultState ResultState)
     }
   };
 
-  GetWorldTimerManager().SetTimer(GameResultTimerHandle, gameResultHandler, 8.0f, false);
+  // TODO 
+  GetWorldTimerManager().SetTimer(GameResultTimerHandle, gameResultHandler, 6.0f, false);
   bGameResultHandled = true;
 }
 

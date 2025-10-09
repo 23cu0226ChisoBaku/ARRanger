@@ -12,17 +12,18 @@ UAT_TickUntilInputRelease::UAT_TickUntilInputRelease(const FObjectInitializer& O
 void UAT_TickUntilInputRelease::Activate()
 {
   Super::Activate();
-
-  UE_LOG(LogTemp, Error, TEXT("TickUntilInputRelease::Activate"));
+  TotalTickTime = 0.0f;
 }
 
 void UAT_TickUntilInputRelease::TickTask(float DeltaTime)
 {
   Super::TickTask(DeltaTime);
 
+  TotalTickTime += DeltaTime;
+
   if (ShouldBroadcastAbilityTaskDelegates())
   {
-    OnTick.Broadcast(DeltaTime);
+    OnTick.Broadcast(DeltaTime, TotalTickTime);
   }
 }
 
@@ -30,5 +31,6 @@ UAT_TickUntilInputRelease* UAT_TickUntilInputRelease::TickUntilInputRelease(UGam
 {
   UAT_TickUntilInputRelease* task = NewAbilityTask<UAT_TickUntilInputRelease>(OwningAbility);
   task->bTickingTask = true;
+  task->TotalTickTime = 0.0f;
   return task;
 }

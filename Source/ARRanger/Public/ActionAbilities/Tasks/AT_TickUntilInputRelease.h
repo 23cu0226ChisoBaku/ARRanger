@@ -16,7 +16,7 @@ class UAT_TickUntilInputRelease : public UAbilityTask_WaitInputRelease
 {
 	GENERATED_BODY()
   
-  DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnAbilityTaskTicked, float, DeltaTime);
+  DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnAbilityTaskTicked, float, DeltaTime, float, TotalTime);
   
   /**Start UGameplayTask Interface */
   UE_API virtual void Activate() override;
@@ -31,6 +31,9 @@ public:
 
   UFUNCTION(BlueprintCallable, Category = "Ability|Tasks", meta = (HidePin = "OwningAbility", DefaultToSelf = "OwningAbility", BlueprintInternalUseOnly = "true"))
   static UE_API UAT_TickUntilInputRelease* TickUntilInputRelease(UGameplayAbility* OwningAbility);
+
+protected:
+  float TotalTickTime;
 
 };
 

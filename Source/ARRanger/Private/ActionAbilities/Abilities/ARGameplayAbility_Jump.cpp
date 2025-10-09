@@ -87,6 +87,5 @@ void UARGameplayAbility_Jump::OnCharacterLanded(const FHitResult& HitResult)
 {
   const bool bReplicateEndAbility = true;
   const bool bWasCanceled = false;
-  
   EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, bReplicateEndAbility, bWasCanceled);
 }

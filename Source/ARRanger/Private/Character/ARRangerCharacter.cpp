@@ -672,17 +672,13 @@ void AARRangerCharacter::OnDamaged(const ARRanger::Battle::FARDamageResult& InDa
     const float HPChangeValue = -InDamageResult.FinalDamage;
     HealthComponent->HandleHealthChange(InDamageResult.Instigator, HPChangeValue);
 
-    if (HealthComponent->GetHealth() <= 0.0f)
+    if (HealthComponent->GetHealth() > 0.0f)
     {
-      HealthComponent->HandleOutOfHealth(this);
-    }
-    else
-    {
+      const double knockbackForceScalar = 400.0;
       FVector knockbackDir = InDamageResult.FinalLaunchDirection;
       knockbackDir.Z = 0;
       knockbackDir.Normalize();
-
-      LaunchCharacter(knockbackDir * 400.0, false, true);
+      LaunchCharacter(knockbackDir * knockbackForceScalar, false, true);
     }
   }
 }

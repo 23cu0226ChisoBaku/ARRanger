@@ -40,7 +40,6 @@ void UARPlayerInputBuffer::Initialize(AARRangerPlayerController* InPlayerControl
   }
 }
 
-
 void UARPlayerInputBuffer::Uninitialize()
 {
   ClearAllInputs();

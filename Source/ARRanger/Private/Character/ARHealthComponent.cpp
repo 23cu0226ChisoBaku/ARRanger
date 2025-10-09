@@ -131,6 +131,11 @@ void UARHealthComponent::HandleHealthChange(AActor* Instigator, float ChangeValu
   {
     OnHealthChanged.Broadcast(this, Instigator, prevHealth, GetHealth());
   }
+
+  if (FMath::IsNearlyZero(GetHealth()))
+  {
+    HandleOutOfHealth(GetOwner());
+  }
 }
 
 void UARHealthComponent::HandleOutOfHealth(AActor* OwningActor)

@@ -122,6 +122,7 @@ void UARAbilitySystemComponent::ProcessAbilityInputs(const FARAbilityInputProces
             UGameplayAbility* conditionGAPrimaryInst = conditionAbilitySpec.GetPrimaryInstance();
             if ((conditionGAPrimaryInst != nullptr) && conditionGAPrimaryInst->CanBeCanceled())
             {
+              // Cancel previous ability
               CancelAbility(conditionAbilitySpec.Ability);
               bCanActivate = true;
               break;
