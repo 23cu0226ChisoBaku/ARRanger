@@ -1,7 +1,9 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
-
+/**
+ * @file ARRangerPlayerController.cpp
+ */
 
 #include "Player/ARRangerPlayerController.h"
+
 #include "EnhancedInputSubsystems.h"
 #include "Engine/LocalPlayer.h"
 #include "InputMappingContext.h"
@@ -13,7 +15,6 @@
 #include "Player/ARPlayerState.h"
 #include "PlayerComponents/ARChargeAttackComponent.h"
 #include "Pawn/ARPawnInitComponent.h"
-// TODO
 #include "Character/ARRangerCharacter.h"
 
 #include "Internal/ARLoggingHeader.h"
@@ -217,7 +218,7 @@ FGABlueprintableHoldHandle AARRangerPlayerController::OnGameplayAbilityActivated
 
 void AARRangerPlayerController::OnGameplayAbilityTaskTicked_Holding(FGameplayTag InTaskOwnerAbilityTag, float HeldTime, float DeltaTime)
 {
-  // TODO Try use UARChargeAttackComponent in ARRangerCharacter
+  // TODO Not implemented
   if (AARPlayerState* ARPS = GetPlayerState<AARPlayerState>())
   {
     if (UARChargeAttackComponent* CAC = ARPS->GetARChargeAttackComponent())

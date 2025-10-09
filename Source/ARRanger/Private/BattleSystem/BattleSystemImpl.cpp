@@ -20,8 +20,8 @@ class FARBattleSystem final : public ARRanger::Battle::IBattleSystemInterface
 
 FARAttackParameters::FARAttackParameters()
   : Instigator{nullptr}
-  , Damage{0.0f}
   , LaunchDirection{EForceInit::ForceInitToZero}
+  , Damage{0.0f}
   , bUseAttackerActor{true}
 { }
 

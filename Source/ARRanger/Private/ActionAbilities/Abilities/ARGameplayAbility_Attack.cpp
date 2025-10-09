@@ -125,8 +125,6 @@ void UARGameplayAbility_Attack::ActivateAbility(
 {
   Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
-  UE_LOG(LogTemp, Error, TEXT("Activate [%s]."), *GetAssetTags().ToString());
-
   OnAttackAbilityActivated();
 }
 

@@ -2,22 +2,16 @@
 
 #include "GameFramework/Character.h"
 #include "AbilitySystemInterface.h"
-#include "GameplayEffectTypes.h" 
 #include "Magnetic/IARMagnetizableInterface.h"
-#include "Logging/LogMacros.h"
-#include "NiagaraSystem.h"
 #include "Physics/IARPhysicsSystemHost.h"
 #include "PlayerObservation/IObservableSubjectInterface.h"
-#include "Sound/SoundBase.h"
 
 #include "BattleSystem/IARAttackerInterface.h"
 #include "BattleSystem/IARAttackable.h"
 
-
 #include "ARRangerCharacter.generated.h"
 
 class UAbilitySystemComponent;
-class UAnimMontage;
 class USkeletalMesh;
 class UAttractSpecialAttackComponent;
 class UARHealthComponent;
@@ -25,11 +19,19 @@ class UARAbilityCostComponent;
 class UForceFeedbackEffect;
 class ULockOnComponent;
 class AInsekiClimbingObject;
+class USoundBase;
+class UNiagaraSystem;
 struct FGameplayTag;
 
-DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);
-
 #define UE_API ARRANGER_API
+
+UENUM(BlueprintType)
+enum class ECameraRigType : uint8
+{
+  Default,    // 通常状態のカメラリグ
+  Dead,       // 死亡状態のカメラリグ
+  Reset,      // カメラ向きリセット専用カメラリグ
+};
 
 /**
  *  シンプルでプレイヤーが操作可能な三人称視点キャラクター
@@ -46,7 +48,7 @@ class AARRangerCharacter :  public ACharacter,
 {
   GENERATED_BODY()
   
-  protected:
+protected:
 
   UE_API virtual void BeginPlay() override;
   UE_API virtual void Tick(float DeltaTime) override;
@@ -107,6 +109,8 @@ private:
   // 引力クライムを開始する際に呼び出される
   void StartClimbing(AInsekiClimbingObject* ClimbActor);
 
+  void UpdateClimbing(float DeltaTime);
+
   // 引力クライムをやめる際に呼び出される
   void StopClimbing();
 
@@ -139,6 +143,13 @@ public:
   // 変身の際に呼び出される
   void Transform();
 
+  // TODO
+  void OnTransformed();
+
+private:
+  void TriggerMagnetismEvent(EARMagnetismType EventType);
+
+public:
   void ResetCamera();
 
   // AnimInstanceの戦闘中フラグを設定
@@ -247,11 +258,9 @@ public:
   // 麦
   bool bIsJumping = false;
 
+  // TODO 
   UFUNCTION()
-  void LandedToGround(const FHitResult& Hit)
-  {
-    bIsJumping = false;
-  }
+  virtual void LandedToGround(const FHitResult& Hit);
 
   // 麦
   UFUNCTION(BlueprintCallable, Category = "GameAbility|Callbacks")
@@ -288,7 +297,7 @@ private:
 
   // 必殺技コンポーネントを取得
   UPROPERTY()
-  UAttractSpecialAttackComponent* attractSpecialAttackComponent = nullptr;
+  TObjectPtr<UAttractSpecialAttackComponent> attractSpecialAttackComponent = nullptr;
 
   UPROPERTY(EditDefaultsOnly, Category = "Character|Parameters", meta = (AllowPrivateAccess = "true"))
   TObjectPtr<UARHealthComponent> HealthComponent;
@@ -297,7 +306,7 @@ private:
   TObjectPtr<UARAbilityCostComponent> AbilityCostComponent;
 
   UPROPERTY(BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
-  int32 CameraRigIndex;
+  ECameraRigType CameraRigType;
 
   /**Controler vibration */
   public:

@@ -134,9 +134,9 @@ namespace Detector
     return m_evaluatedResult.GetResultNum();
   }
   
+#if WITH_EDITOR
   void FRangeDetector::DebugDrawRange(USceneComponent* InOriginSceneComp)
   {
-#if WITH_EDITOR
 
     if (InOriginSceneComp == nullptr)
     {
@@ -156,9 +156,8 @@ namespace Detector
                                     originScale3D
                                   );
     }
-    
+  } 
 #endif // WITH_EDITOR
-  }
       
   void FRangeDetector::FilterResult()
   {

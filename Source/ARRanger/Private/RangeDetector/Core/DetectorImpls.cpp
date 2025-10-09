@@ -152,6 +152,7 @@ namespace Detector
 
 } // namespace ARRanger
 
+/**Visitor pattern definition */
 DEFINE_PRIMITIVE_DETECTOR(UConeDetectorData)
 DEFINE_PRIMITIVE_DETECTOR(UCapsuleDetectorData)
 DEFINE_PRIMITIVE_DETECTOR(USphereDetectorData)

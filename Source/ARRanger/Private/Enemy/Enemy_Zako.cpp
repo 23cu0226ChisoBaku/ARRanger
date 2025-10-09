@@ -46,6 +46,8 @@ void AEnemy_Zako::SetIsChasing(bool bChasing)
 
 void AEnemy_Zako::ReceiveDamage(AActor* InInstigator, float DamageAmount)
 {
+  if (IsBotControlled() )
+
   if (IsDead())
   {
     return;

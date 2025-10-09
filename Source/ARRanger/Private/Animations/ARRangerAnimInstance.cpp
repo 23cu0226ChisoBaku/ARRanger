@@ -9,4 +9,19 @@ void UARRangerAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
   {
     Montage_SetPlayRate(curtMontage, AnimModifiedSpeed);
   }
+
+  if (IsFalled)
+  {
+    InFallingTime += DeltaSeconds;
+  }
+}
+
+void UARRangerAnimInstance::NativePostEvaluateAnimation()
+{
+  Super::NativePostEvaluateAnimation();
+
+  if (!IsFalled)
+  {
+    InFallingTime = 0.0f;
+  }
 }

@@ -39,7 +39,7 @@ class UWorld;
   { \
     static_assert(std::is_base_of_v<UPrimitiveDetectorData, DetectorType>, "Invalid type, Use DERIVED class of UPrimitiveDetectorData"); \
     check(World != nullptr); \
-    return ARRanger::Detector::DetectTargetsImpl(World, OriginActor, InOriginLocation, InOriginRotation, InOriginScale3D, *this, OutResult); \
+    return ARRanger::Detector::DetectTargetsImpl( World, OriginActor, InOriginLocation, InOriginRotation, InOriginScale3D, *this, OutResult); \
   }
   
 /**

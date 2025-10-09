@@ -13,22 +13,20 @@ class UARRangerAnimInstance : public UAnimInstance
 	GENERATED_BODY()
 
 protected:
-  UE_API virtual void NativeUpdateAnimation(float DeltaSeconds);
+  UE_API virtual void NativeUpdateAnimation(float DeltaSeconds) override;
+  UE_API virtual void NativePostEvaluateAnimation() override;
 
 public:
-    // ���̓N���C�����̏㉺�����̑��x
+
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Climb")
     float ClimbUpSpeed;
 
-    // ���̓N���C�����̍��E�����̑��x
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Climb")
     float ClimbRightSpeed;
 
-    // ���̓N���C�����t���O
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Climb")
     bool IsClimbing = false;
 
-    // �퓬���t���O
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Battle")
     bool bIsBattled = false;
 

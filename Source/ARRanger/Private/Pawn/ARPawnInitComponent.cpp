@@ -1,12 +1,12 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
+/**
+ * @file ARPawnInitComponent.cpp
+ */
 
 #include "Pawn/ARPawnInitComponent.h"
 
 #include "Pawn/ARPawnInitData.h"
 #include "ActionAbilities/ARAbilitySystemComponent.h"
 #include "ActionAbilities/ARGameplayAbilityBase.h"
-
 #include "PlayerComponents/ARChargeAttackComponent.h"
 
 // Sets default values for this component's properties
@@ -15,11 +15,7 @@ UARPawnInitComponent::UARPawnInitComponent(const FObjectInitializer& ObjectIniti
   , AbilitySystemComponent{nullptr}
   , PawnInitData{nullptr}
 {
-  // Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
-  // off to improve performance if you don't need them.
-  PrimaryComponentTick.bCanEverTick = true;
-
-  // ...
+  PrimaryComponentTick.bCanEverTick = false;
 }
 
 UARPawnInitComponent* UARPawnInitComponent::FindPawnInitComponent(const AActor* InActor)
@@ -49,13 +45,6 @@ void UARPawnInitComponent::OnRegister()
   ensureAlwaysMsgf(pawnInitComponents.Num() == 1, TEXT("Can not add ARPawnInitComponent more than once on [%s]"), *GetNameSafe(GetOwner()));
 
 }
-
-// Called when the game starts
-void UARPawnInitComponent::BeginPlay()
-{
-  Super::BeginPlay();
-}
-
 
 void UARPawnInitComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
@@ -117,7 +106,6 @@ void UARPawnInitComponent::InitializeChargeAttack(UARChargeAttackComponent* InCA
 {
   check(InCAC != nullptr);
 
-  // TODO Use Pawn Init Data to add charge branch
   if (ChargeAttackComponent == InCAC)
   {
     return;
