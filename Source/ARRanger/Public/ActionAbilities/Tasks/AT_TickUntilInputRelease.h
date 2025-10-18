@@ -16,7 +16,7 @@ class UAT_TickUntilInputRelease : public UAbilityTask_WaitInputRelease
 {
 	GENERATED_BODY()
   
-  DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnAbilityTaskTicked, float, DeltaTime, float, TotalTime);
+  DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnAbilityTaskTicked, float, DeltaTime, float, TotalTime);
   
   /**Start UGameplayTask Interface */
   UE_API virtual void Activate() override;
