@@ -64,8 +64,6 @@ public:
    * @param InNotifyParams  通知パラメータ
    */
   UE_API void NotifyAttackResult(ARRanger::Battle::EARAttackResult InResult, const ARRanger::Battle::FARAttackNotifyParameter& InNotifyParams);
-
-
   
 protected:
 

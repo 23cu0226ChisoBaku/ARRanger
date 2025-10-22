@@ -63,8 +63,6 @@ void AEnemy_Zako::ReceiveDamage(AActor* InInstigator, float DamageAmount)
       HealthComponent->StartDead();
     }
   }
-
-  K2_ReceiveDamage(DamageAmount, IsDead());
 }
 
 void AEnemy_Zako::ReceiveLaunch(const FVector& LaunchDirection)
@@ -127,6 +125,8 @@ void AEnemy_Zako::OnDamaged(const ARRanger::Battle::FARDamageResult& InDamageRes
   ReceiveDamage(InDamageResult.Instigator, InDamageResult.FinalDamage);
 
   ReceiveLaunch(InDamageResult.FinalLaunchDirection);
+
+  K2_ReceiveAttack(InDamageResult.FinalDamage, InDamageResult.FinalLaunchDirection, InDamageResult.ImpactLocation, IsDead());
 }
 
 void AEnemy_Zako::OnPostAttacked(const FARAttackParameters& InAttackParams)

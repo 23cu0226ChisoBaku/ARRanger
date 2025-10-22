@@ -152,8 +152,16 @@ public:
   // 変身の際に呼び出される
   void Transform();
 
+  void ResetCamera();
+
   // AnimInstanceの戦闘中フラグを設定
   void SetIsBattledInAnimInstance(const bool IsBattled);
+
+  UFUNCTION(BlueprintImplementableEvent, Category = "ARRanger|Battle", meta = (DisplayName = "OnBattleStarted"))
+  void K2_OnBattleStarted();
+
+  UFUNCTION(BlueprintImplementableEvent, Category = "ARRanger|Battle", meta = (DisplayName = "OnBattleEnded"))
+  void K2_OnBattleEnded();
 
   void RotateCharacter_Charge(float Yaw);
 

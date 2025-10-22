@@ -46,6 +46,7 @@ namespace GameplayTags
   UE_DEFINE_GAMEPLAY_TAG_COMMENT(NativeInput_Transform, "NativeInput.Transform", "Character transform input");
   UE_DEFINE_GAMEPLAY_TAG_COMMENT(NativeInput_Charge_Rotate, "NativeInput.Charge.Rotate", "Character can rotate during charging");
   UE_DEFINE_GAMEPLAY_TAG_COMMENT(NativeInput_Target_Snap, "NativeInput.TargetSnap", "Character can snap to target in input direction");
+  UE_DEFINE_GAMEPLAY_TAG_COMMENT(NativeInput_ResetCamera, "NativeInput.ResetCamera", "Reset player camera to default location");
 
   FGameplayTag FindExactTagByString(const FString& TagString)
   {
