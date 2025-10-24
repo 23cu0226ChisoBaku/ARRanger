@@ -11,6 +11,7 @@
 
 #include "ARRangerCharacter.generated.h"
 
+class AARRangerCharacter;
 class UAbilitySystemComponent;
 class USkeletalMesh;
 class UAttractSpecialAttackComponent;
@@ -33,7 +34,8 @@ enum class ECameraRigType : uint8
   Reset,      // カメラ向きリセット専用カメラリグ
 };
 
-DECLARE_MULTICAST_DELEGATE_TwoParams(FRequestHealthChangeEvent, AActor*, float);
+DECLARE_MULTICAST_DELEGATE_TwoParams(FAcceptBattleResultEvent, AARRangerCharacter*, const ARRanger::Battle::FARDamageResult&);
+DECLARE_MULTICAST_DELEGATE_OneParam(FBattleStateChangeEvent, bool);
 
 /**
  *  シンプルでプレイヤーが操作可能な三人称視点キャラクター
@@ -195,6 +197,8 @@ public:
 
 public:
 
+  UE_API void LaunchCharacter_Ext(const FVector& InLaunchDirection, double InLaunchPower);
+
   UFUNCTION(BlueprintImplementableEvent, Category = "Character|HealthEffect")
   UE_API void OnVignetteEffectChanged(UARHealthComponent* InHealthComponent, AActor* InInstigator, float InOldHealthValue, float InNewHealthValue);
 
@@ -283,6 +287,19 @@ private:
 
   void DisableMovementAndCollision();
 
+// NOTE: Prepare for MVP pattern
+public:
+
+  FAcceptBattleResultEvent OnBattleResultAccepted;
+
+  FBattleStateChangeEvent OnBattleStateChanged;
+
+  void OnHealthChanged(AActor* InInstigator, float InChangeValue, bool bIsDead);
+
+protected:
+  UFUNCTION(BlueprintImplementableEvent, Category = "Character|Health")
+  void K2_OnHealthChanged(AActor* InInstigator, float InChangeValue, bool bIsDead);
+
 private:
 
   // 引き寄せ中フラグ
@@ -303,11 +320,6 @@ private:
 
   UPROPERTY(EditDefaultsOnly, Category = "Character|Parameters", meta = (AllowPrivateAccess = "true"))
   TObjectPtr<UARHealthComponent> HealthComponent;
-
-  UFUNCTION(BlueprintImplementableEvent, Category = "Character|Health")
-  void K2_OnHealthChanged(AActor* InInstigator, float InChangeValue, bool bIsDead);
-
-
 
   UPROPERTY(EditDefaultsOnly, Category = "Character|Parameters", meta = (AllowPrivateAccess = "true"))
   TObjectPtr<UARAbilityCostComponent> AbilityCostComponent;

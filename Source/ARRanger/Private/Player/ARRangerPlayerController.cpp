@@ -16,6 +16,7 @@
 #include "PlayerComponents/ARChargeAttackComponent.h"
 #include "Pawn/ARPawnInitComponent.h"
 #include "Character/ARRangerCharacter.h"
+#include "Presentation/ARPlayerPresenter.h"
 
 #include "Internal/ARLoggingHeader.h"
 #include "ARGameplayTags.h"
@@ -90,6 +91,14 @@ void AARRangerPlayerController::BeginPlay()
 {
   Super::BeginPlay();
 
+  if (PlayerPresenterClass == nullptr)
+  {
+    PlayerPresenterClass = UARPlayerPresenter::StaticClass();
+  }
+
+  PlayerPresenter = NewObject<UARPlayerPresenter>(this, PlayerPresenterClass);
+  check(PlayerPresenter != nullptr);
+
   if (AARPlayerState* ARPS = GetPlayerState<AARPlayerState>())
   {
     ARPS->OnPlayerStateInitialized(this);
@@ -98,6 +107,7 @@ void AARRangerPlayerController::BeginPlay()
   if (AARRangerCharacter* character = ::Cast<AARRangerCharacter>(GetPawn()))
   {
     OwningCharacter = character;
+    PlayerPresenter->Initialize(OwningCharacter);
   }
 }
 
@@ -109,6 +119,14 @@ void AARRangerPlayerController::EndPlay(const EEndPlayReason::Type EndReason)
   {
     InputBuffer->Uninitialize();
   }
+
+  if (PlayerPresenter != nullptr)
+  {
+    PlayerPresenter->Deinitialize();
+    PlayerPresenter->ConditionalBeginDestroy();
+    PlayerPresenter = nullptr;
+  }
+
 } 
 
 UARAbilitySystemComponent* AARRangerPlayerController::GetARASC() const

@@ -189,13 +189,8 @@ void AARRangerCharacter::OnClimbSurfaceOverlap(
 
 void AARRangerCharacter::DoMove(float Right, float Forward)
 {
-  // コントローラーがない、引き寄せ中または攻撃中なら処理しない
-  if (bIsAttracted)
-  {
-    return;
-  }
 
-  if (bIsClimbed)
+  if (bIsAttracted || bIsClimbed)
   {
     return;
   }
@@ -599,14 +594,13 @@ void AARRangerCharacter::SetIsBattledInAnimInstance(const bool IsBattled)
   if (UARRangerAnimInstance* MyAnim = Cast<UARRangerAnimInstance>(GetMesh()->GetAnimInstance()))
   {
     MyAnim->bIsBattled = IsBattled;
-
-    // TODO We should not let auto generation system in HealtComponent
-    if (HealthComponent != nullptr)
-    {
-      HealthComponent->SetAutoRegenerationEnable(!IsBattled);
-    }
-  
   }
+
+  if (OnBattleStateChanged.IsBound())
+  {
+    OnBattleStateChanged.Broadcast(IsBattled);
+  }
+
 
   // TODO
   if (IsBattled)
@@ -666,29 +660,10 @@ void AARRangerCharacter::OnPostAttacked(const FARAttackParameters& InAttackParam
 
 void AARRangerCharacter::OnDamaged(const ARRanger::Battle::FARDamageResult& InDamageResult)
 {
-  // Value of damage is positive. Make it negative
-  const float HPChangeValue = -InDamageResult.FinalDamage;
-  bool bIsDead = false;
-  
-  if (HealthComponent != nullptr)
+  if (OnBattleResultAccepted.IsBound())
   {
-    HealthComponent->HandleHealthChange(InDamageResult.Instigator, HPChangeValue);
-
-    if (HealthComponent->GetHealth() > 0.0f)
-    {
-      const double knockbackForceScalar = 400.0;
-      FVector knockbackDir = InDamageResult.FinalLaunchDirection;
-      knockbackDir.Z = 0;
-      knockbackDir.Normalize();
-      LaunchCharacter(knockbackDir * knockbackForceScalar, false, true);
-    }
-    else
-    {
-      bIsDead = true;
-    }
+    OnBattleResultAccepted.Broadcast(this, InDamageResult);
   }
-
-  K2_OnHealthChanged(InDamageResult.Instigator, HPChangeValue, bIsDead);
 }
 
 /**End IARAttackable implementation */
@@ -991,6 +966,11 @@ void AARRangerCharacter::DisableMovementAndCollision()
   moveComp->DisableMovement();
 }
 
+void AARRangerCharacter::OnHealthChanged(AActor* InInstigator, float InChangeValue, bool bIsDead)
+{
+  K2_OnHealthChanged(InInstigator, InChangeValue, bIsDead);
+}
+
 void AARRangerCharacter::OnAbilityCostHandled(UARAbilityCostComponent* InAbilityCostComponent, FGameplayTag AbilityCostTag, float InOldResourceValue, float InNewResourceValue, bool bAbilityCostHandled)
 {
   // TODO
@@ -1041,4 +1021,11 @@ void AARRangerCharacter::LandedToGround(const FHitResult& Hit)
       }
     }
   }
+}
+
+void AARRangerCharacter::LaunchCharacter_Ext(const FVector& InLaunchDirection, double InLaunchPower)
+{
+  LaunchCharacter(InLaunchDirection * InLaunchPower, false, true);
+
+  // TODO Add force feedback
 }

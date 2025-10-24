@@ -18,6 +18,7 @@ class UARAbilitySystemComponent;
 class UARPlayerInputBuffer;
 class UARInputConfig;
 class UARInputComponent;
+class UARPlayerPresenter;
 class AARRangerCharacter;
 struct FGameplayTag;
 struct FGameplayTagContainer;
@@ -199,6 +200,9 @@ private:
   UPROPERTY(EditDefaultsOnly, Category = "ARInput|InputConfig")
   TObjectPtr<const UARInputMappingContext> InputMappingContext;
 
+  UPROPERTY(EditDefaultsOnly, Category = "Presenter")
+  TSubclassOf<UARPlayerPresenter> PlayerPresenterClass;
+
   UPROPERTY(Transient)
   TObjectPtr<UARPlayerInputBuffer> InputBuffer;
 
@@ -207,6 +211,9 @@ private:
 
   UPROPERTY()
   TObjectPtr<AARRangerCharacter> OwningCharacter;
+
+  UPROPERTY()
+  TObjectPtr<UARPlayerPresenter> PlayerPresenter;
 
   TArray<FHoldSpec> m_holdSpecs;
   
