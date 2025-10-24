@@ -666,10 +666,12 @@ void AARRangerCharacter::OnPostAttacked(const FARAttackParameters& InAttackParam
 
 void AARRangerCharacter::OnDamaged(const ARRanger::Battle::FARDamageResult& InDamageResult)
 {
+  // Value of damage is positive. Make it negative
+  const float HPChangeValue = -InDamageResult.FinalDamage;
+  bool bIsDead = false;
+  
   if (HealthComponent != nullptr)
   {
-    // Value of damage is positive. Make it negative
-    const float HPChangeValue = -InDamageResult.FinalDamage;
     HealthComponent->HandleHealthChange(InDamageResult.Instigator, HPChangeValue);
 
     if (HealthComponent->GetHealth() > 0.0f)
@@ -680,7 +682,13 @@ void AARRangerCharacter::OnDamaged(const ARRanger::Battle::FARDamageResult& InDa
       knockbackDir.Normalize();
       LaunchCharacter(knockbackDir * knockbackForceScalar, false, true);
     }
+    else
+    {
+      bIsDead = true;
+    }
   }
+
+  K2_OnHealthChanged(InDamageResult.Instigator, HPChangeValue, bIsDead);
 }
 
 /**End IARAttackable implementation */

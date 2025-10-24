@@ -33,6 +33,8 @@ enum class ECameraRigType : uint8
   Reset,      // カメラ向きリセット専用カメラリグ
 };
 
+DECLARE_MULTICAST_DELEGATE_TwoParams(FRequestHealthChangeEvent, AActor*, float);
+
 /**
  *  シンプルでプレイヤーが操作可能な三人称視点キャラクター
  */
@@ -301,6 +303,11 @@ private:
 
   UPROPERTY(EditDefaultsOnly, Category = "Character|Parameters", meta = (AllowPrivateAccess = "true"))
   TObjectPtr<UARHealthComponent> HealthComponent;
+
+  UFUNCTION(BlueprintImplementableEvent, Category = "Character|Health")
+  void K2_OnHealthChanged(AActor* InInstigator, float InChangeValue, bool bIsDead);
+
+
 
   UPROPERTY(EditDefaultsOnly, Category = "Character|Parameters", meta = (AllowPrivateAccess = "true"))
   TObjectPtr<UARAbilityCostComponent> AbilityCostComponent;
