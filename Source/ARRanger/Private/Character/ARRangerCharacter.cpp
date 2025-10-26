@@ -20,13 +20,6 @@
 #include "Pawn/ARPawnInitComponent.h"
 #include "Character/ARHealthComponent.h"
 #include "Character/ARAbilityCostComponent.h"
-#include "GameFramework/ForceFeedbackEffect.h"
-
-namespace
-{
-  // Input max value(scalar)
-  constexpr float MAX_INPUT_VALUE = 1.0f;
-}
 
 AARRangerCharacter::AARRangerCharacter()
   : bIsClimbed{false}
@@ -90,8 +83,9 @@ void AARRangerCharacter::BeginPlay()
 
   attractSpecialAttackComponent = FindComponentByClass<UAttractSpecialAttackComponent>();
 
+  // Start with Repulsion
   SetMagnetismType(EARMagnetismType::Repulsion);
-  OnTransformed();
+  TransformInternal();
 }
 
 void AARRangerCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -187,55 +181,32 @@ void AARRangerCharacter::OnClimbSurfaceOverlap(
   }
 }
 
-void AARRangerCharacter::DoMove(float Right, float Forward)
+void AARRangerCharacter::DoMove(double InRight, double InForward)
 {
-
-  if (bIsAttracted || bIsClimbed)
+  if (bIsClimbed)
   {
     return;
-  }
-
-  // 入力値の絶対値をチェックしてデッドゾーン以下は0に
-  // Modified By MAI
-  const float radiusSquared = FMath::Square(Forward) + FMath::Square(Right);
-  const float moveDeadZoneSquared = FMath::Square(FMath::Max(0.0f, MoveDeadZone));
-
-  // デッドゾーン以下
-  if (radiusSquared <= moveDeadZoneSquared)
-  {
-    return;
-  }
-  
-  const float realMinInput = FMath::Min(MinInput, MAX_INPUT_VALUE);
-  // インプット閾値レベル
-  const TArray<float> inputThresholdLevel{ 
-                        realMinInput,       // LV1  : 最小入力値
-                        MAX_INPUT_VALUE,    // LVMax: 最大入力値
-                      };
-
-  for (int32 idx = 0; idx < inputThresholdLevel.Num(); ++idx)
-  {
-    // インプット閾値まで補正する
-    const float inputLevelValue = inputThresholdLevel[idx];
-    const float inputLevelValueSquared = FMath::Square(inputLevelValue);
-    if (radiusSquared < inputLevelValueSquared)
-    {
-      const float inputModifier = inputLevelValue / FMath::Sqrt(radiusSquared);
-      Forward *= inputModifier;
-      Right   *= inputModifier;
-
-      break;
-    }   
   }
 
   const FRotator Rotation = GetController()->GetControlRotation();
-  const FRotator YawRotation(0, Rotation.Yaw, 0);
+  const FRotator YawRotation{0.0, Rotation.Yaw, 0.0};
   const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
   const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 
-  AddMovementInput(ForwardDirection, Forward);
-  AddMovementInput(RightDirection, Right);
+  AddMovementInput(ForwardDirection, InForward);
+  AddMovementInput(RightDirection, InRight);
   
+}
+
+void AARRangerCharacter::DoRotate(double InYaw)
+{
+  if (FMath::IsNearlyZero(InYaw))
+  {
+    return;
+  }
+
+  const FRotator newCharacterRotator= GetActorRotation() + FRotator{0.0, InYaw, 0.0};
+  SetActorRotation(newCharacterRotator);
 }
 
 void AARRangerCharacter::StartClimbing(AInsekiClimbingObject* ClimbActor)
@@ -342,34 +313,6 @@ void AARRangerCharacter::StopClimbing()
   GetCharacterMovement()->SetMovementMode(MOVE_Falling);
 }
 
-void AARRangerCharacter::DoJumpStart()
-{
-  // 引き寄せ中は処理しない
-  if (bIsAttracted)
-  {
-    return;
-  }
-
-  // 引力クライムを解除
-  if (bIsClimbed)
-  {
-    StopClimbing();
-  }
-
-  // 麦
-  if (!bIsJumping)
-  {
-    TSharedRef<ARRanger::INotifyHandlerInterface> notifyHandler = GetNotifyHandlerRef();
-    notifyHandler->OnJump();
-    bIsJumping = true;
-  }
-}
-
-void AARRangerCharacter::DoJumpEnd()
-{
-  StopJumping();
-}
-
 void AARRangerCharacter::OnAttractionCompleted()
 {
   // 引き寄せ完了フラグを立てる
@@ -409,18 +352,19 @@ void AARRangerCharacter::OnAttackHitNotify()
 
 void AARRangerCharacter::Transform()
 {
-  // 引き寄せ中は処理しない
-  if (bIsAttracted)
-  {
-    return;
-  }
+  const EARMagnetismType newMagnetismType = (GetMagnetismType() == EARMagnetismType::Repulsion) ? EARMagnetismType::Attraction : EARMagnetismType::Repulsion;
+  SetMagnetismType(newMagnetismType); 
+  
+  TransformInternal();
+  
+  // Play all transform effects
+  PlayTransformEffect();
+}
 
-  // 現在と別のモードに変身
-  const EARMagnetismType newType = (GetMagnetismType() == EARMagnetismType::Repulsion) ? EARMagnetismType::Attraction : EARMagnetismType::Repulsion;
-  SetMagnetismType(newType);
-
+void AARRangerCharacter::PlayTransformEffect()
+{
   // 変身エフェクトを再生
-  if (TransformEffect)
+  if (TransformEffect != nullptr)
   {
     UNiagaraFunctionLibrary::SpawnSystemAtLocation(
       GetWorld(),
@@ -441,109 +385,27 @@ void AARRangerCharacter::Transform()
     1.0f,
     1.0f
   );
-
-  OnTransformed();
 }
 
-void AARRangerCharacter::OnTransformed()
+void AARRangerCharacter::TransformInternal()
 {
-  const EARMagnetismType curtType = GetMagnetismType();
-  // メッシュを別モードに変更
-  USkeletalMesh* NewMesh = (curtType == EARMagnetismType::Repulsion) ? RepulsionMesh : AttractionMesh;
 
-  if (NewMesh)
+  const EARMagnetismType curtType = GetMagnetismType();
+  if (OnTransformed.IsBound())
   {
-    GetMesh()->SetSkeletalMesh(NewMesh);
+    OnTransformed.Broadcast(curtType);
   }
 
   // Blueprint call
   {
-    K2_OnTransformed(NewMesh, curtType);
-  }
-
-  // Trigger event once if transform activated
-  TriggerMagnetismEvent(curtType);
-}
-
-void AARRangerCharacter::TriggerMagnetismEvent(EARMagnetismType EventType)
-{
-  switch (EventType)
-  {
-    case EARMagnetismType::Attraction:
-    {
-      // Try to climb
-      TArray<UPrimitiveComponent*> OverlappingComps{};
-      GetOverlappingComponents(OverlappingComps);
-
-      for (UPrimitiveComponent* Comp : OverlappingComps)
-      {
-        if (AInsekiClimbingObject* Surface = Cast<AInsekiClimbingObject>(Comp->GetOwner()))
-        {
-          // OnClimbSurfaceOverlap を手動で呼ぶ
-          StartClimbing(Surface);
-          break;
-        }
-      }
-    }
-    break;
-
-    // Try triggering physics event 
-    case EARMagnetismType::Repulsion:
-    {
-      const UWorld* world = GetWorld();
-      check(world != nullptr);
-      UCapsuleComponent* capsuleComp = GetCapsuleComponent();
-      check(capsuleComp != nullptr);
-      
-      // Use player character CapsuleComponent as collision shape.Make it a bit larger than origin shape
-      const float extendCapsuleRadius = 5.f;
-      const float extendCapsuleHalfHeight = 5.f;
-      const float shapeRadius = capsuleComp->GetScaledCapsuleRadius() + extendCapsuleRadius;
-      const float shapeHalfHeight = capsuleComp->GetScaledCapsuleHalfHeight() + extendCapsuleHalfHeight;
-      const FCollisionShape characterCapsuleShape = FCollisionShape::MakeCapsule(shapeRadius, shapeHalfHeight);
-      const FVector origin = capsuleComp->GetComponentLocation();
-      const FQuat originQuat = capsuleComp->GetComponentQuat();
-
-      FCollisionObjectQueryParams objQueryParams{};
-      objQueryParams.AddObjectTypesToQuery(ECC_WorldStatic);
-      objQueryParams.AddObjectTypesToQuery(ECC_WorldDynamic);
-      objQueryParams.AddObjectTypesToQuery(ECC_Pawn);
-      objQueryParams.AddObjectTypesToQuery(ECC_PhysicsBody);
-
-      FCollisionQueryParams queryParams{SCENE_QUERY_STAT(TriggerMagnetismEvent), false, this};
-      queryParams.bReturnPhysicalMaterial = true;
-
-      TArray<FHitResult> outHitResult{};
-
-      const bool bHit = world->SweepMultiByObjectType(
-                                                      outHitResult, 
-                                                      origin, 
-                                                      origin,
-                                                      originQuat,
-                                                      objQueryParams,
-                                                      characterCapsuleShape,
-                                                      queryParams);
-
-      if (bHit)
-      {
-        for (const FHitResult& hit : outHitResult)
-        {
-          AActor* hitActor = hit.GetActor();
-          if (IARMagnetizableInterface* magnetizableObj = Cast<IARMagnetizableInterface>(hitActor))
-          {
-            Physics_RegisterMagneticTask_Once(this, magnetizableObj);
-          }
-        }
-      }
-    }
-    break;
+    K2_OnTransformed(curtType);
   }
 }
 
 bool AARRangerCharacter::CanSpecialAttractAttack()
 {
   // 攻撃・強攻撃中、引き寄せ中、ジャンプ中、引力クライム中はfalseを返す
-  if (bIsAttracted || bIsJumping || bIsClimbed)
+  if (bIsClimbed)
   {
     return false;
   }
@@ -601,7 +463,6 @@ void AARRangerCharacter::SetIsBattledInAnimInstance(const bool IsBattled)
     OnBattleStateChanged.Broadcast(IsBattled);
   }
 
-
   // TODO
   if (IsBattled)
   {
@@ -639,7 +500,7 @@ void AARRangerCharacter::OnMagnetizedObjectHit(UPrimitiveComponent* HitComponent
 
 void AARRangerCharacter::OnRepulsionEvaluated(const FARMagneticForceResult& Result)
 {
-  LaunchCharacter(Result.FinalForce, true, false);
+  LaunchCharacter(Result.FinalForce, false, false);
 }
 
 /**Start IARAttackable implementation */
@@ -717,36 +578,6 @@ void AARRangerCharacter::OnPunchEnded()
   bReadyToTargetSnap = false;
   TargetSnapInput = FVector2D::ZeroVector;
   TargetToSnap = nullptr;
-}
-
-void AARRangerCharacter::RotateCharacter_Charge(float Yaw)
-{
-  if (!bIsHolding || FMath::IsNearlyZero(Yaw))
-  {
-    return;
-  }
-
-  const float RotateOffsetMax = 60.0f;
-  const FRotator curtPlayerDir_Rot = GetActorRotation();
-
-  FRotator nextPlayerDir_Rot = curtPlayerDir_Rot + FRotator{0.0, (double)Yaw, 0.0};
-  if (FVector::DotProduct(FaceDir_HoldStart, nextPlayerDir_Rot.Vector()) < FMath::Cos(FMath::DegreesToRadians(RotateOffsetMax)))
-  {
-    nextPlayerDir_Rot = FaceDir_HoldStart.Rotation() + FMath::Sign(Yaw) * FRotator{0.0, (double)RotateOffsetMax, 0.0}; 
-  }
-
-  SetActorRotation(nextPlayerDir_Rot);
-}
-
-void AARRangerCharacter::OnHoldStarted(const FGameplayTag& InActivatedAbilityTag)
-{
-  FaceDir_HoldStart = GetActorForwardVector();
-  bIsHolding = true;
-}
-
-void AARRangerCharacter::OnHoldEnded()
-{
-  bIsHolding = false;
 }
 
 void AARRangerCharacter::UpdateTargetSnap(const FVector2D& InputDir)
@@ -999,8 +830,6 @@ bool AARRangerCharacter::GetIsLockedOn() const
 
 void AARRangerCharacter::LandedToGround(const FHitResult& Hit)
 {
-  bIsJumping = false;
-
   if (UARRangerAnimInstance* animInst = ::Cast<UARRangerAnimInstance>(GetMesh()->GetAnimInstance()))
   {
     const float fallingTime = animInst->InFallingTime;
@@ -1009,7 +838,7 @@ void AARRangerCharacter::LandedToGround(const FHitResult& Hit)
     {
       if (APlayerController* PC = Cast<APlayerController>(GetController()))
       {
-        if (FFE_Landed)
+        if (FFE_Landed != nullptr)
         {
           FForceFeedbackParameters Params;
           Params.bLooping = false;
@@ -1028,4 +857,29 @@ void AARRangerCharacter::LaunchCharacter_Ext(const FVector& InLaunchDirection, d
   LaunchCharacter(InLaunchDirection * InLaunchPower, false, true);
 
   // TODO Add force feedback
+}
+
+void AARRangerCharacter::Jump()
+{
+  Super::Jump();
+
+  if (OnJumpedDelegate.IsBound())
+  {
+    OnJumpedDelegate.Broadcast();
+  }
+
+  // 引力クライムを解除
+  if (bIsClimbed)
+  {
+    StopClimbing();
+  }
+}
+void AARRangerCharacter::StopJumping()
+{
+  Super::StopJumping();
+
+  if (OnJumpStoppedDelegate.IsBound())
+  {
+    OnJumpStoppedDelegate.Broadcast();
+  }
 }

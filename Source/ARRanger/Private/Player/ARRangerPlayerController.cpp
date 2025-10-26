@@ -213,9 +213,10 @@ void AARRangerPlayerController::OnGameplayAbilityEnd(bool bWasCanceled)
 
 FGABlueprintableHoldHandle AARRangerPlayerController::OnGameplayAbilityActivated_Hold(FGameplayTag InActivatedAbilityTag, bool bBlockInputTag, FGameplayTagContainer InInputBlockIgnoreTags)
 {
-  if (OwningCharacter != nullptr)
+
+  if (PlayerPresenter != nullptr)
   {
-    OwningCharacter->OnHoldStarted(InActivatedAbilityTag);
+    PlayerPresenter->HandleChargeStart();
   }
   
   if (bBlockInputTag)
@@ -254,6 +255,7 @@ void AARRangerPlayerController::OnGameplayAbilityEnded_Hold(FGameplayTag InEnded
 {
   ClearHoldSpec(InHandle.Handle);
 
+  // FIXME This logic is weird
   if (OnGameAbilityHeld.IsBound())
   {
     FGameplayTag nextAbilityTag = OnGameAbilityHeld.Execute(TimeHeld, InEndedAbilityTag);
@@ -265,9 +267,9 @@ void AARRangerPlayerController::OnGameplayAbilityEnded_Hold(FGameplayTag InEnded
     }
   }
 
-  if (OwningCharacter != nullptr)
+  if (PlayerPresenter != nullptr)
   {
-    OwningCharacter->OnHoldEnded();
+    PlayerPresenter->HandleChargeEnd();
   }
 }
 
@@ -339,7 +341,6 @@ void AARRangerPlayerController::Initialize()
   ARIC->BindNativeAction(InputConfig, ARRanger::GameplayTags::NativeInput_SwitchTarget_Left, ETriggerEvent::Triggered, this, &ThisClass::NativeInput_SwitchTarget_Left);
   ARIC->BindNativeAction(InputConfig, ARRanger::GameplayTags::NativeInput_SwitchTarget_Right, ETriggerEvent::Triggered, this, &ThisClass::NativeInput_SwitchTarget_Right);
   ARIC->BindNativeAction(InputConfig, ARRanger::GameplayTags::NativeInput_Transform, ETriggerEvent::Triggered, this, &ThisClass::NativeInput_Transform);
-  ARIC->BindNativeAction(InputConfig, ARRanger::GameplayTags::NativeInput_Charge_Rotate, ETriggerEvent::Triggered, this, &ThisClass::NativeInput_ChargeRotate);
   ARIC->BindNativeAction(InputConfig, ARRanger::GameplayTags::NativeInput_Target_Snap, ETriggerEvent::Triggered, this, &ThisClass::NativeInput_TargetSnap);
   ARIC->BindNativeAction(InputConfig, ARRanger::GameplayTags::NativeInput_ResetCamera, ETriggerEvent::Started, this, &ThisClass::NativeInput_ResetCamera);
 
@@ -453,10 +454,10 @@ void AARRangerPlayerController::NativeInput_Move(const FInputActionValue& InputA
     return;
   }
 
-  if (OwningCharacter != nullptr)
+  if (PlayerPresenter != nullptr)
   {
     const FVector2D moveInput = InputActionValue.Get<FVector2D>();
-    OwningCharacter->DoMove(moveInput.X, moveInput.Y);
+    PlayerPresenter->Input_HandleLeftStick(moveInput.X, moveInput.Y, MoveDeadZone, MinInput);
   }
 }
 
@@ -507,25 +508,10 @@ void AARRangerPlayerController::NativeInput_Transform(const FInputActionValue& I
     return;
   }
 
-  if (OwningCharacter != nullptr)
+  if (PlayerPresenter != nullptr)
   {
-    OwningCharacter->Transform();
+    PlayerPresenter->Input_HandleTransform();
   }
-}
-
-void AARRangerPlayerController::NativeInput_ChargeRotate(const FInputActionValue& InputActionValue, /**PayLoad */ FGameplayTag InInputTag)
-{
-  if (IsInputBlocked(InInputTag))
-  {
-    return;
-  }
-
-  if (OwningCharacter != nullptr)
-  {
-    const float yawInput = InputActionValue.Get<float>();
-    OwningCharacter->RotateCharacter_Charge(yawInput);
-  }
-
 }
 
 void AARRangerPlayerController::NativeInput_TargetSnap(const FInputActionValue& InputActionValue, /**PayLoad */ FGameplayTag InInputTag)

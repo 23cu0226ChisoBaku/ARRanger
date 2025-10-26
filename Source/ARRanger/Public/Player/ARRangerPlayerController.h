@@ -203,6 +203,14 @@ private:
   UPROPERTY(EditDefaultsOnly, Category = "Presenter")
   TSubclassOf<UARPlayerPresenter> PlayerPresenterClass;
 
+  // 移動時のデッドゾーン(下回ると移動しない)
+  UPROPERTY(EditDefaultsOnly, Category = "Input|Movement")
+  float MoveDeadZone = 0.15f;
+
+  // 移動時インプットの最低値(デッドゾーンを上回っている際の最低値)
+  UPROPERTY(EditDefaultsOnly, Category = "Input|Movement")
+  float MinInput = 0.3f;
+
   UPROPERTY(Transient)
   TObjectPtr<UARPlayerInputBuffer> InputBuffer;
 

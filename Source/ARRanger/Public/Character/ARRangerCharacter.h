@@ -13,7 +13,6 @@
 
 class AARRangerCharacter;
 class UAbilitySystemComponent;
-class USkeletalMesh;
 class UAttractSpecialAttackComponent;
 class UARHealthComponent;
 class UARAbilityCostComponent;
@@ -36,6 +35,7 @@ enum class ECameraRigType : uint8
 
 DECLARE_MULTICAST_DELEGATE_TwoParams(FAcceptBattleResultEvent, AARRangerCharacter*, const ARRanger::Battle::FARDamageResult&);
 DECLARE_MULTICAST_DELEGATE_OneParam(FBattleStateChangeEvent, bool);
+DECLARE_MULTICAST_DELEGATE_OneParam(FTransformEvent, EARMagnetismType);
 
 /**
  *  シンプルでプレイヤーが操作可能な三人称視点キャラクター
@@ -80,6 +80,14 @@ public:
   // コンストラクタ
   AARRangerCharacter();
 
+  /**Start ACharacter Interface */
+  virtual void Jump() override;
+  virtual void StopJumping() override;
+  /**End ACharacter Interface */
+
+  FSimpleMulticastDelegate OnJumpedDelegate;
+  FSimpleMulticastDelegate OnJumpStoppedDelegate;
+
   // IAbilitySystemInterface の必須実装
   virtual UAbilitySystemComponent* GetAbilitySystemComponent() const;
 
@@ -110,6 +118,7 @@ private:
     bool bFromSweep,
     const FHitResult& SweepResult);
 
+public:
   // 引力クライムを開始する際に呼び出される
   void StartClimbing(AInsekiClimbingObject* ClimbActor);
 
@@ -122,15 +131,10 @@ public:
 
   // コントロールまたはUIインターフェースからの移動入力を処理する
   UFUNCTION(BlueprintCallable, Category = "Input")
-  virtual void DoMove(float Right, float Forward);
+  virtual void DoMove(double InRight, double InForward);
 
-  // コントロールまたはUIインターフェースのどちらからでも、押されたジャンプ入力を処理する
   UFUNCTION(BlueprintCallable, Category = "Input")
-  virtual void DoJumpStart();
-
-  // コントロールまたはUIインターフェースのどちらからでも、押されたジャンプ入力を処理する
-  UFUNCTION(BlueprintCallable, Category = "Input")
-  virtual void DoJumpEnd();
+  virtual void DoRotate(double InYaw);
 
   UFUNCTION(BlueprintCallable, Category = "InputCallback")
   void ToggleLockOn();
@@ -142,16 +146,15 @@ public:
   void SwitchTargetLeft();
 
   UFUNCTION(BlueprintImplementableEvent, Category = "ARRanger|Transform", meta = (DisplayName = "OnTransformed"))
-  void K2_OnTransformed(USkeletalMesh* NewTransformedMesh, EARMagnetismType NewType);
+  void K2_OnTransformed(EARMagnetismType NewType);
 
   // 変身の際に呼び出される
   void Transform();
 
-  // TODO
-  void OnTransformed();
+  void PlayTransformEffect();
+  void TransformInternal();
 
-private:
-  void TriggerMagnetismEvent(EARMagnetismType EventType);
+  FTransformEvent OnTransformed;
 
 public:
   void ResetCamera();
@@ -165,23 +168,9 @@ public:
   UFUNCTION(BlueprintImplementableEvent, Category = "ARRanger|Battle", meta = (DisplayName = "OnBattleEnded"))
   void K2_OnBattleEnded();
 
-  void RotateCharacter_Charge(float Yaw);
-
   void UpdateTargetSnap(const FVector2D& InputDir);
 
-  // Call if we start charge
-  void OnHoldStarted(const FGameplayTag& InActivatedAbilityTag);
-  void OnHoldEnded();
-
   UE_API bool TryApplyAbilityCost(const FGameplayTag& InAbilityCostTag, float InAbilictCostChangeNum);
-
-  // 引力用プレイヤーメッシュ
-  UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "PlayerMesh")
-  TObjectPtr<USkeletalMesh> AttractionMesh;
-
-  // 斥力用プレイヤーメッシュ
-  UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "PlayerMesh")
-  TObjectPtr<USkeletalMesh> RepulsionMesh;
 
   // ダッシュ中フラグ
   UPROPERTY(BlueprintReadWrite)
@@ -202,14 +191,6 @@ public:
   UFUNCTION(BlueprintImplementableEvent, Category = "Character|HealthEffect")
   UE_API void OnVignetteEffectChanged(UARHealthComponent* InHealthComponent, AActor* InInstigator, float InOldHealthValue, float InNewHealthValue);
 
-  // 移動時のデッドゾーン(下回ると移動しない)
-  UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Abilities")
-  float MoveDeadZone = 0.15f;
-
-  // 移動時インプットの最低値(デッドゾーンを上回っている際の最低値)
-  UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Abilities")
-  float MinInput = 0.3f;
-
   // 現在のプレイヤーのモードを取得
   UFUNCTION(BlueprintPure)
   EARMagnetismType GetCurrentARType() const;
@@ -220,12 +201,6 @@ public:
 
   // ロックオンフラグを取得
   bool GetIsLockedOn() const;
-
-  // 引き寄せ中フラグをセット
-  void SetIsAttracted(bool IsAttracted) { bIsAttracted = IsAttracted; }
-
-  // 引き寄せ中フラグを取得
-  bool GetIsAttracted() const { return bIsAttracted; }
 
   // 引き寄せ完了フラグをセット
   void SetIsApproachedEnemy(bool IsApproachedEnemy) { bIsApproachedEnemy = IsApproachedEnemy; }
@@ -260,9 +235,6 @@ public:
   // 必殺技時に呼び出される
   UFUNCTION(BlueprintCallable)
   void OnSpecialAttractAttack();
-
-  // 麦
-  bool bIsJumping = false;
 
   // TODO 
   UFUNCTION()
@@ -302,9 +274,6 @@ protected:
 
 private:
 
-  // 引き寄せ中フラグ
-  bool bIsAttracted = false;
-
   // 敵引き寄せ完了フラグ
   bool bIsApproachedEnemy = false;
 
@@ -340,14 +309,6 @@ private:
   // 着地時のフォースフィードバックエフェクトを設定
   UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Feedback")
   TObjectPtr<UForceFeedbackEffect> FFE_Landed;
-
-  // TODO Use to rotate when player is in charge state
-  FVector FaceDir_HoldStart;
-
-  bool bIsHolding;
-
-  float OffsetDegreeFromHoldStartDir;
-  // TODO End
 
   // TODO Use to snap target when player is in punch state
   FVector2D TargetSnapInput;

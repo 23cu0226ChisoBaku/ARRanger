@@ -5,65 +5,138 @@
 #include "Character/ARRangerCharacter.h"
 #include "Character/ARHealthComponent.h"
 #include "BattleSystem/IARAttackable.h"
+#include "Components/CapsuleComponent.h"
+
+#include "Magnetic/InsekiClimbingObject.h"
 
 namespace
 {
   // Input max value(scalar)
-  constexpr float MAX_INPUT_VALUE = 1.0f;
+  constexpr double MAX_INPUT_VALUE = 1.0;
+}
+
+FARPlayerModel::FARPlayerModel()
+  : HealthComponent{nullptr}
+  , ChargeStartFaceDir{EForceInit::ForceInitToZero}
+  , LaunchPower{400.0}
+  , bIsCharging{false}
+{
+  
+}
+
+void FARPlayerModel::Initialize(AARRangerCharacter* InViewCharacter)
+{
+  check(InViewCharacter != nullptr);
+
+  HealthComponent = static_cast<UARHealthComponent*>(InViewCharacter->GetComponentByClass(UARHealthComponent::StaticClass()));
+}
+
+void FARPlayerModel::Reset()
+{
+  HealthComponent = nullptr;
 }
 
 void UARPlayerPresenter::Initialize(AARRangerCharacter* InViewCharacter)
 {
   check(InViewCharacter != nullptr);
 
-  if (View == InViewCharacter)
+  if (ViewCharacter == InViewCharacter)
   {
     return;
   }
 
-  if (View != nullptr)
+  if (ViewCharacter != nullptr)
   {
     Deinitialize();
   }
 
-  View = InViewCharacter;
-  if (View != nullptr)
+  ViewCharacter = InViewCharacter;
+  if (ViewCharacter != nullptr)
   {
-    View->OnBattleResultAccepted.AddUObject(this, &ThisClass::HandleBattleResult);
-    View->OnBattleStateChanged.AddUObject(this, &ThisClass::HandleBattleStateChange);
-    Model.HealthComponent = static_cast<UARHealthComponent*>(View->GetComponentByClass(UARHealthComponent::StaticClass()));
+    ViewCharacter->OnBattleResultAccepted.AddUObject(this, &ThisClass::HandleBattleResult);
+    ViewCharacter->OnBattleStateChanged.AddUObject(this, &ThisClass::HandleBattleStateChange);
+    ViewCharacter->OnTransformed.AddUObject(this, &ThisClass::HandleTransformedEvent);
+    ViewCharacter->OnJumpedDelegate.AddUObject(this, &ThisClass::OnCharacterJumpStarted);
+    ViewCharacter->OnJumpStoppedDelegate.AddUObject(this, &ThisClass::OnCharacterJumpStopped);
+
+    // Bind to ACharacter delegate
+    ViewCharacter->LandedDelegate.AddDynamic(this, &ThisClass::OnGroundLanded);
+
+    Model.Initialize(ViewCharacter);
   }
 }
 
 void UARPlayerPresenter::Deinitialize()
 {
-  if (View == nullptr)
+  if (ViewCharacter == nullptr)
   {
     return;
   }
 
-  View->OnBattleResultAccepted.RemoveAll(this);
-  Model.HealthComponent = nullptr;
+  ViewCharacter->OnBattleResultAccepted.RemoveAll(this);
+  ViewCharacter->OnBattleStateChanged.RemoveAll(this);
+  ViewCharacter->OnTransformed.RemoveAll(this);
+  ViewCharacter->OnJumpedDelegate.RemoveAll(this);
+  ViewCharacter->OnJumpStoppedDelegate.RemoveAll(this);
+  // Unbind to ACharacter delegate
+  ViewCharacter->LandedDelegate.RemoveDynamic(this, &ThisClass::OnGroundLanded);
+  Model.Reset();
 }
 
-void UARPlayerPresenter::HandleMoveInput(double InRight, double InForward, double InDeadZone)
+void UARPlayerPresenter::Input_HandleLeftStick(double InX, double InY, double InDeadZone, double InMinInput)
 {
-  if (View == nullptr)
+  const bool bInputAllowed = (ViewCharacter != nullptr);
+  if (!bInputAllowed)
   {
     return;
   }
 
-  // TODO Switch to Move condition
-  const bool bCanMove = false;
-  if (!bCanMove)
+  if (Model.bIsCharging)
+  {
+    HandleCharacterChargeRotate(InX, InY);
+  }
+  else
+  {
+    HandleCharacterMove(InX, InY, InDeadZone, InMinInput);
+  }
+
+}
+
+void UARPlayerPresenter::Input_HandleTransform()
+{
+  if (ViewCharacter == nullptr)
   {
     return;
   }
 
+  const bool bCanTransform = true;
+  if (!bCanTransform)
+  {
+    return;
+  }
+
+  ViewCharacter->Transform();
+}
+
+void UARPlayerPresenter::HandleChargeStart()
+{
+  Model.bIsCharging = true;
+  if (ViewCharacter != nullptr)
+  {
+    Model.ChargeStartFaceDir = ViewCharacter->GetActorForwardVector();
+  }
+}
+
+void UARPlayerPresenter::HandleChargeEnd()
+{
+  Model.bIsCharging = false;
+}
+
+void UARPlayerPresenter::HandleCharacterMove(double InX, double InY, double InDeadZone, double InMinInput)
+{
   // 入力値の絶対値をチェックしてデッドゾーン以下は0に
-  // Modified By MAI
-  const float radiusSquared = FMath::Square(InForward) + FMath::Square(InRight);
-  const float moveDeadZoneSquared = FMath::Square(FMath::Max(0.0, InDeadZone));
+  const double radiusSquared = FMath::Square(InX) + FMath::Square(InY);
+  const double moveDeadZoneSquared = FMath::Square(FMath::Max(0.0, InDeadZone));
 
   // デッドゾーン以下
   if (radiusSquared <= moveDeadZoneSquared)
@@ -71,37 +144,65 @@ void UARPlayerPresenter::HandleMoveInput(double InRight, double InForward, doubl
     return;
   }
   
-  const float realMinInput = FMath::Min(MinInput, MAX_INPUT_VALUE);
+  const double realMinInput = FMath::Min(InMinInput, MAX_INPUT_VALUE);
   // インプット閾値レベル
-  const TArray<float> inputThresholdLevel{ 
+  const TArray<double> inputThresholdLevel{ 
                         realMinInput,       // LV1  : 最小入力値
                         MAX_INPUT_VALUE,    // LVMax: 最大入力値
                       };
 
+  double adjustedForward = InY;
+  double adjustedRight = InX;
   for (int32 idx = 0; idx < inputThresholdLevel.Num(); ++idx)
   {
     // インプット閾値まで補正する
-    const float inputLevelValue = inputThresholdLevel[idx];
-    const float inputLevelValueSquared = FMath::Square(inputLevelValue);
+    const double inputLevelValue = inputThresholdLevel[idx];
+    const double inputLevelValueSquared = FMath::Square(inputLevelValue);
     if (radiusSquared < inputLevelValueSquared)
     {
-      const float inputModifier = inputLevelValue / FMath::Sqrt(radiusSquared);
-      Forward *= inputModifier;
-      Right   *= inputModifier;
-
+      const double inputModifier = inputLevelValue / FMath::Sqrt(radiusSquared);
+      adjustedForward *= inputModifier;
+      adjustedRight   *= inputModifier;
       break;
     }   
   }
 
-  View->DoMove(InRight, InForward);
+  if (ViewCharacter != nullptr)
+  {
+    // Move character
+    ViewCharacter->DoMove(adjustedRight, adjustedForward);
+  }
+}
 
+void UARPlayerPresenter::HandleCharacterChargeRotate(double InX, double InY)
+{
+  // 使わない
+  (void)InY;
 
+  const bool bCanRotate = (ViewCharacter != nullptr) && !Model.bIsInAir && Model.bIsCharging;
+  if (!bCanRotate)
+  {
+    return;
+  }
+
+  const FRotator curtPlayerDir_Rot = ViewCharacter->GetActorRotation();
+  const double curtYawOffsetToChargeStart = curtPlayerDir_Rot.Yaw - Model.ChargeStartFaceDir.Rotation().Yaw;
+
+  double rotate_Yaw = InX;
+  if (FMath::Abs(curtYawOffsetToChargeStart + rotate_Yaw) > Model.ChargeRotateHalfRange)
+  {
+    rotate_Yaw = FMath::Sign(rotate_Yaw) * (Model.ChargeRotateHalfRange - FMath::Abs(curtYawOffsetToChargeStart));
+  }
+  
+  // Rotate Character
+  ViewCharacter->DoRotate(rotate_Yaw);
+  
 }
 
 void UARPlayerPresenter::HandleBattleResult(AARRangerCharacter* InAffectedCharacter, const ARRanger::Battle::FARDamageResult& InDamageResult)
 {
   // check AffectedCharacter is same as View character
-  check(InAffectedCharacter == View);
+  check(InAffectedCharacter == ViewCharacter);
 
   // Value of damage is positive. Make it negative
   const float HPChangeValue = -InDamageResult.FinalDamage;
@@ -118,10 +219,10 @@ void UARPlayerPresenter::HandleBattleResult(AARRangerCharacter* InAffectedCharac
       launchDirNorm.Normalize();
       const double launchPowerFactor = 1.0;
 
-      if (View != nullptr)
+      if (ViewCharacter != nullptr)
       {
         const double finalLaunchPower = Model.LaunchPower * launchPowerFactor;
-        View->LaunchCharacter_Ext(launchDirNorm, finalLaunchPower);
+        ViewCharacter->LaunchCharacter_Ext(launchDirNorm, finalLaunchPower);
       }
     }
     else
@@ -130,9 +231,9 @@ void UARPlayerPresenter::HandleBattleResult(AARRangerCharacter* InAffectedCharac
     }
   }
 
-  if (View != nullptr)
+  if (ViewCharacter != nullptr)
   {
-    View->OnHealthChanged(InDamageResult.Instigator, HPChangeValue, bIsDead);
+    ViewCharacter->OnHealthChanged(InDamageResult.Instigator, HPChangeValue, bIsDead);
   }
 
 }
@@ -144,4 +245,97 @@ void UARPlayerPresenter::HandleBattleStateChange(bool bIsInBattle)
   {
     Model.HealthComponent->SetAutoRegenerationEnable(!bIsInBattle);
   }
+}
+
+void UARPlayerPresenter::HandleTransformedEvent(EARMagnetismType InNewTransformation)
+{
+  if (ViewCharacter == nullptr)
+  {
+    return;
+  }
+
+  switch (InNewTransformation)
+  {
+    case EARMagnetismType::Attraction:
+    {
+      // Try to climb
+      TArray<UPrimitiveComponent*> OverlappingComps{};
+      ViewCharacter->GetOverlappingComponents(OverlappingComps);
+
+      for (UPrimitiveComponent* Comp : OverlappingComps)
+      {
+        if (AInsekiClimbingObject* Surface = Cast<AInsekiClimbingObject>(Comp->GetOwner()))
+        {
+          // OnClimbSurfaceOverlap を手動で呼ぶ
+          ViewCharacter->StartClimbing(Surface);
+          break;
+        }
+      }
+    }
+    break;
+
+    // Try triggering physics event 
+    case EARMagnetismType::Repulsion:
+    {
+      const UWorld* world = GetWorld();
+      UCapsuleComponent* capsuleComp = ViewCharacter->GetCapsuleComponent();
+      
+      // Use player character CapsuleComponent as collision shape.Make it a bit larger than origin shape
+      // TODO Maybe we can remove this magic number?
+      const float extendCapsuleRadius = 5.f;
+      const float extendCapsuleHalfHeight = 5.f;
+      const float shapeRadius = capsuleComp->GetScaledCapsuleRadius() + extendCapsuleRadius;
+      const float shapeHalfHeight = capsuleComp->GetScaledCapsuleHalfHeight() + extendCapsuleHalfHeight;
+      const FCollisionShape characterCapsuleShape = FCollisionShape::MakeCapsule(shapeRadius, shapeHalfHeight);
+      const FVector origin = capsuleComp->GetComponentLocation();
+      const FQuat originQuat = capsuleComp->GetComponentQuat();
+
+      FCollisionObjectQueryParams objQueryParams{};
+      objQueryParams.AddObjectTypesToQuery(ECC_WorldStatic);
+      objQueryParams.AddObjectTypesToQuery(ECC_WorldDynamic);
+      objQueryParams.AddObjectTypesToQuery(ECC_Pawn);
+      objQueryParams.AddObjectTypesToQuery(ECC_PhysicsBody);
+
+      FCollisionQueryParams queryParams{SCENE_QUERY_STAT(HandleTransformedEvent), false, ViewCharacter};
+      queryParams.bReturnPhysicalMaterial = true;
+
+      TArray<FHitResult> outHitResult{};
+      const bool bHit = world->SweepMultiByObjectType(
+                                                      outHitResult, 
+                                                      origin, 
+                                                      origin,
+                                                      originQuat,
+                                                      objQueryParams,
+                                                      characterCapsuleShape,
+                                                      queryParams);
+
+      if (bHit)
+      {
+        for (const FHitResult& hit : outHitResult)
+        {
+          AActor* hitActor = hit.GetActor();
+          if (IARMagnetizableInterface* magnetizableObj = Cast<IARMagnetizableInterface>(hitActor))
+          {
+            ViewCharacter->Physics_RegisterMagneticTask_Once(ViewCharacter, magnetizableObj);
+          }
+        }
+      }
+    }
+    break;
+  }
+}
+
+void UARPlayerPresenter::OnGroundLanded(const FHitResult& InHit)
+{
+  Model.bIsInAir = false;
+}
+
+void UARPlayerPresenter::OnCharacterJumpStarted()
+{
+  Model.bIsInAir = true;
+}
+
+void UARPlayerPresenter::OnCharacterJumpStopped()
+{
+  // TODO
 }
