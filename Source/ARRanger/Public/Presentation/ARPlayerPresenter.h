@@ -4,10 +4,13 @@
 
 #include "UObject/NoExportTypes.h"
 
+#include "Physics/IARPhysicsSystemHost.h"
+
 #include "ARPlayerPresenter.generated.h"
 
 class AARRangerCharacter;
 class UARHealthComponent;
+enum class ECameraRigType : uint8;
 enum class EARMagnetismType : uint8;
 
 namespace ARRanger
@@ -39,19 +42,25 @@ public:
 
   FVector ChargeStartFaceDir; 
 
+  FVector ClimbSurfaceNormal;
+
+  FVector2D TargetSnapInputDirection; 
+
   UPROPERTY(EditAnywhere, Category = "PlayerModel|Knockback")
-  double LaunchPower = 400.0;
+  double LaunchPower;
 
   UPROPERTY(EditAnywhere, Category = "PlayerModel|Charge")
-  double ChargeRotateHalfRange = 60.0;
+  double ChargeRotateHalfRange;
 
   uint8 bIsCharging : 1;
   uint8 bIsInAir : 1;
-
+  uint8 bIsClimbing : 1;
+  uint8 bIsInComboAction : 1;
 };
 
 UCLASS(Blueprintable, BlueprintType)
-class UARPlayerPresenter : public UObject
+class UARPlayerPresenter : public UObject,
+                           public IARPhysicsSystemHost
 {
 	GENERATED_BODY()
 
@@ -64,6 +73,8 @@ public:
   UE_API void Input_HandleLeftStick(double InX, double InY, /**TODO */double InDeadZone, /**TODO */double InMinInput);
 
   UE_API void Input_HandleTransform();
+
+  UE_API void Input_HandleCameraReset();
 
   UE_API void HandleChargeStart(); 
 
@@ -81,12 +92,38 @@ private:
 
   void HandleTransformedEvent(EARMagnetismType InNewTransformation);
 
+  void StartClimbing();
+
+  void StopClimbing();
+
+  void UpdateClimbing(float DeltaTime);
+
   UFUNCTION()
   void OnGroundLanded(const FHitResult& InHit);
+
+  UFUNCTION()
+  void OnClimbSurfaceOverlapBegan(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+  
+  UFUNCTION()
+  void OnClimbSurfaceOverlapEnded(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
+    UFUNCTION()
+  void OnMagneticForceFieldBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+  UFUNCTION()
+  void OnMagneticForceFieldEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
+  UFUNCTION()
+  void OnMagnetizedObjectHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+  
+  UFUNCTION()
+  void OnCameraRigChanged(ECameraRigType InType);
 
   void OnCharacterJumpStarted();
 
   void OnCharacterJumpStopped();
+
+  bool CanUpdateClimbingInternal() const;
 
 private:
 
@@ -95,6 +132,8 @@ private:
 	
   UPROPERTY(EditAnywhere)
   FARPlayerModel Model;
+
+  FDelegateHandle Handle_UpdateClimbing{};
 
 };
 

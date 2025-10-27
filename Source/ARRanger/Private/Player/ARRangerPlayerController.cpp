@@ -365,13 +365,10 @@ void AARRangerPlayerController::AbilityInputTagPressed(FGameplayTag InInputTag, 
     return;
   }
 
-  // If buffer is invalid then handle input,otherwise use input buffer to handle input 
+  // If buffer is invalid then handle input, otherwise use input buffer to handle input 
   if (InputBuffer == nullptr)
   {
-    if (UARAbilitySystemComponent* ARASC = UARAbilitySystemComponent::FindARAbilitySystemComponent(GetOwner()))
-    {
-      ARASC->AbilityInputTagPressed(InInputTag);
-    }
+    OnAbilityInputTagPressedEvaluated(InInputTag);
   }
   else
   {
@@ -390,10 +387,7 @@ void AARRangerPlayerController::AbilityInputTagReleased(FGameplayTag InInputTag,
   // If buffer is invalid then handle input,otherwise use input buffer to handle input 
   if (InputBuffer == nullptr)
   {
-    if (UARAbilitySystemComponent* ARASC = UARAbilitySystemComponent::FindARAbilitySystemComponent(GetOwner()))
-    {
-      ARASC->AbilityInputTagReleased(InInputTag);
-    }
+    OnAbilityInputTagReleasedEvaluated(InInputTag);
   }
   else
   {
@@ -526,6 +520,11 @@ void AARRangerPlayerController::NativeInput_TargetSnap(const FInputActionValue& 
     const FVector2D inputDir = InputActionValue.Get<FVector2D>();
     OwningCharacter->UpdateTargetSnap(inputDir);
   }
+
+  if (PlayerPresenter != nullptr)
+  {
+    // TODO
+  }
 }
 
 void AARRangerPlayerController::NativeInput_ResetCamera(const FInputActionValue& InputActionValue, /**PayLoad */ FGameplayTag InInputTag)
@@ -535,8 +534,8 @@ void AARRangerPlayerController::NativeInput_ResetCamera(const FInputActionValue&
     return;
   }
 
-  if (OwningCharacter != nullptr)
+  if (PlayerPresenter != nullptr)
   {
-    OwningCharacter->ResetCamera();
+    PlayerPresenter->Input_HandleCameraReset();
   }
 }

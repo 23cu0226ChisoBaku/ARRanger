@@ -3,14 +3,16 @@
 #include "GameFramework/Character.h"
 #include "AbilitySystemInterface.h"
 #include "Magnetic/IARMagnetizableInterface.h"
-#include "Physics/IARPhysicsSystemHost.h"
 #include "PlayerObservation/IObservableSubjectInterface.h"
 
 #include "BattleSystem/IARAttackerInterface.h"
 #include "BattleSystem/IARAttackable.h"
 
+#include "Player/CameraRigType.h"
+
 #include "ARRangerCharacter.generated.h"
 
+/**Forward declaration */
 class AARRangerCharacter;
 class UAbilitySystemComponent;
 class UAttractSpecialAttackComponent;
@@ -25,17 +27,11 @@ struct FGameplayTag;
 
 #define UE_API ARRANGER_API
 
-UENUM(BlueprintType)
-enum class ECameraRigType : uint8
-{
-  Default,    // 通常状態のカメラリグ
-  Dead,       // 死亡状態のカメラリグ
-  Reset,      // カメラ向きリセット専用カメラリグ
-};
-
 DECLARE_MULTICAST_DELEGATE_TwoParams(FAcceptBattleResultEvent, AARRangerCharacter*, const ARRanger::Battle::FARDamageResult&);
 DECLARE_MULTICAST_DELEGATE_OneParam(FBattleStateChangeEvent, bool);
 DECLARE_MULTICAST_DELEGATE_OneParam(FTransformEvent, EARMagnetismType);
+DECLARE_MULTICAST_DELEGATE_OneParam(FExtraTickTask, float);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnCameraRigChanged, ECameraRigType);
 
 /**
  *  シンプルでプレイヤーが操作可能な三人称視点キャラクター
@@ -45,7 +41,6 @@ UCLASS(MinimalAPI, Abstract)
 class AARRangerCharacter :  public ACharacter,
                             public IObservableSubjectInterface,
                             public IARMagnetizableInterface,
-                            public IARPhysicsSystemHost,
                             public IARAttackable,               // 攻撃を受けられるインターフェイス
                             public IARAttackerInterface,        // 攻撃できるインターフェイス
                             public IAbilitySystemInterface
@@ -54,13 +49,11 @@ class AARRangerCharacter :  public ACharacter,
   
 protected:
 
+  /**Start Actor Interface */
   UE_API virtual void BeginPlay() override;
   UE_API virtual void Tick(float DeltaTime) override;
   UE_API virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
-
-  // 引力クライムフラグ
-  UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-  bool bIsClimbed;
+  /**End Actor Interface */
 
   // 変身用エフェクトを設定
   UPROPERTY(EditAnywhere, Category = "Effects")
@@ -99,34 +92,14 @@ protected:
   UFUNCTION(BlueprintImplementableEvent, Category = "PlayerCharacter|DeadEvent", meta = (DisplayName = "OnPlayerDeadFinished"))
   UE_API void K2_OnPlayerDeadFinished();
 
-private:
-
-  // 現在歩いているオブジェクトの表面
-  UPROPERTY()
-  TObjectPtr<AInsekiClimbingObject> currentClimbSurface;
-
-  // 壁の法線を保存
-  FVector wallNormal;
-
-  // 引力クライムオブジェクトに触れた際に呼び出される
-  UFUNCTION()
-  void OnClimbSurfaceOverlap(
-    UPrimitiveComponent* OverlappedComp,
-    AActor* OtherActor,
-    UPrimitiveComponent* OtherComp,
-    int32 OtherBodyIndex,
-    bool bFromSweep,
-    const FHitResult& SweepResult);
-
 public:
-  // 引力クライムを開始する際に呼び出される
-  void StartClimbing(AInsekiClimbingObject* ClimbActor);
 
-  void UpdateClimbing(float DeltaTime);
+  virtual void OnClimbStarted();
+  virtual void OnClimbUpdated(const FVector& InClimbMovement);
+  virtual void OnClimbEnded();
 
-  // 引力クライムをやめる際に呼び出される
-  void StopClimbing();
-
+  FExtraTickTask TickTaskDelegate;
+  
 public:
 
   // コントロールまたはUIインターフェースからの移動入力を処理する
@@ -151,13 +124,7 @@ public:
   // 変身の際に呼び出される
   void Transform();
 
-  void PlayTransformEffect();
-  void TransformInternal();
-
   FTransformEvent OnTransformed;
-
-public:
-  void ResetCamera();
 
   // AnimInstanceの戦闘中フラグを設定
   void SetIsBattledInAnimInstance(const bool IsBattled);
@@ -172,10 +139,6 @@ public:
 
   UE_API bool TryApplyAbilityCost(const FGameplayTag& InAbilityCostTag, float InAbilictCostChangeNum);
 
-  // ダッシュ中フラグ
-  UPROPERTY(BlueprintReadWrite)
-  bool bIsDashed;
-
   // ロックオンコンポーネント
   UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
   TObjectPtr<ULockOnComponent> LockOnComponent;
@@ -183,8 +146,6 @@ public:
   // 変身時のサウンド
   UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sound")
   TObjectPtr<USoundBase> SE_Transform;
-
-public:
 
   UE_API void LaunchCharacter_Ext(const FVector& InLaunchDirection, double InLaunchPower);
 
@@ -226,9 +187,6 @@ public:
   // コンボカウントを取得
   int32 GetComboCount() const { return ComboCount; }
 
-  // 引力クライム中フラグを取得
-  bool GetIsClimbed() const { return bIsClimbed; }
-
   // AttackComponent内で使用するNotifyHandler用
   void OnAttackHitNotify();
 
@@ -236,9 +194,7 @@ public:
   UFUNCTION(BlueprintCallable)
   void OnSpecialAttractAttack();
 
-  // TODO 
-  UFUNCTION()
-  virtual void LandedToGround(const FHitResult& Hit);
+  virtual void OnLanded(const FHitResult& Hit);
 
   // 麦
   UFUNCTION(BlueprintCallable, Category = "GameAbility|Callbacks")
@@ -247,7 +203,24 @@ public:
   UFUNCTION(BlueprintCallable, Category = "GameAbility|Callbacks")
   void OnPunchEnded();
 
+  UFUNCTION(BlueprintCallable, Category = "GameAbility|Callbacks")
+  virtual void OnAttackAbilityStarted();
+
+  UFUNCTION(BlueprintCallable, Category = "GameAbility|Callbacks")
+  virtual void OnAttackAbilityEnded();
+ 
+  UFUNCTION(BlueprintCallable, Category = "Camera")
+  void SetCameraRig(ECameraRigType InType);
+
+  UFUNCTION(BlueprintPure, Category = "Camera")
+  ECameraRigType GetCameraRig() const;
+  
+  FOnCameraRigChanged CameraRigChangeEvent;
+
 private:
+  
+  ECameraRigType CameraRigType;
+  
   UFUNCTION()
   UE_API void OnPlayerDeadStarted(AActor* PlayerActor);
 
@@ -258,6 +231,9 @@ private:
   UE_API void OnAbilityCostHandled(UARAbilityCostComponent* InAbilityCostComponent, FGameplayTag AbilityCostTag, float InOldResourceValue, float InNewResourceValue, bool bAbilityCostHandled);
 
   void DisableMovementAndCollision();
+
+  void PlayTransformEffect();
+  void TransformInternal();
 
 // NOTE: Prepare for MVP pattern
 public:
@@ -292,9 +268,6 @@ private:
 
   UPROPERTY(EditDefaultsOnly, Category = "Character|Parameters", meta = (AllowPrivateAccess = "true"))
   TObjectPtr<UARAbilityCostComponent> AbilityCostComponent;
-
-  UPROPERTY(BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
-  ECameraRigType CameraRigType;
 
   /**Controler vibration */
   public:
@@ -343,15 +316,6 @@ private:
 
   // 必殺技を使用可能かを返す関数
   bool CanSpecialAttractAttack();
-
-  UFUNCTION()
-  void OnMagneticForceFieldBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
-
-  UFUNCTION()
-  void OnMagneticForceFieldEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
-
-  UFUNCTION()
-  void OnMagnetizedObjectHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
   /**Start IARMagnetizableInterface interface */
   UE_API virtual void OnRepulsionEvaluated(const FARMagneticForceResult& Result) override;

@@ -18,11 +18,15 @@ namespace
 FARPlayerModel::FARPlayerModel()
   : HealthComponent{nullptr}
   , ChargeStartFaceDir{EForceInit::ForceInitToZero}
+  , ClimbSurfaceNormal{EForceInit::ForceInitToZero}
+  , TargetSnapInputDirection{EForceInit::ForceInitToZero}
   , LaunchPower{400.0}
+  , ChargeRotateHalfRange{60.0}
   , bIsCharging{false}
-{
-  
-}
+  , bIsInAir{false}
+  , bIsClimbing{false}
+  , bIsInComboAction{false}
+{ }
 
 void FARPlayerModel::Initialize(AARRangerCharacter* InViewCharacter)
 {
@@ -62,6 +66,20 @@ void UARPlayerPresenter::Initialize(AARRangerCharacter* InViewCharacter)
     // Bind to ACharacter delegate
     ViewCharacter->LandedDelegate.AddDynamic(this, &ThisClass::OnGroundLanded);
 
+    ViewCharacter->CameraRigChangeEvent.AddUObject(this, &ThisClass::OnCameraRigChanged);
+
+    UCapsuleComponent* capsuleComp = ViewCharacter->GetCapsuleComponent();
+    if (capsuleComp != nullptr)
+    {
+      capsuleComp->OnComponentBeginOverlap.AddDynamic(this, &ThisClass::OnClimbSurfaceOverlapBegan);
+      capsuleComp->OnComponentEndOverlap.AddDynamic(this, &ThisClass::OnClimbSurfaceOverlapEnded);
+  
+      capsuleComp->OnComponentBeginOverlap.AddDynamic(this, &ThisClass::OnMagneticForceFieldBeginOverlap);
+      capsuleComp->OnComponentEndOverlap.AddDynamic(this, &ThisClass::OnMagneticForceFieldEndOverlap);
+      capsuleComp->OnComponentHit.AddDynamic(this, &ThisClass::OnMagnetizedObjectHit);
+  
+    }
+
     Model.Initialize(ViewCharacter);
   }
 }
@@ -80,12 +98,28 @@ void UARPlayerPresenter::Deinitialize()
   ViewCharacter->OnJumpStoppedDelegate.RemoveAll(this);
   // Unbind to ACharacter delegate
   ViewCharacter->LandedDelegate.RemoveDynamic(this, &ThisClass::OnGroundLanded);
+
+  ViewCharacter->CameraRigChangeEvent.RemoveAll(this);
+
+  UCapsuleComponent* capsuleComp = ViewCharacter->GetCapsuleComponent();
+  if (capsuleComp != nullptr)
+  {
+    capsuleComp->OnComponentBeginOverlap.RemoveDynamic(this, &ThisClass::OnClimbSurfaceOverlapBegan);
+    capsuleComp->OnComponentEndOverlap.RemoveDynamic(this, &ThisClass::OnClimbSurfaceOverlapEnded);
+
+    capsuleComp->OnComponentBeginOverlap.RemoveDynamic(this, &ThisClass::OnMagneticForceFieldBeginOverlap);
+    capsuleComp->OnComponentEndOverlap.RemoveDynamic(this, &ThisClass::OnMagneticForceFieldEndOverlap);
+    capsuleComp->OnComponentHit.RemoveDynamic(this, &ThisClass::OnMagnetizedObjectHit);
+  
+  }
+
   Model.Reset();
 }
 
 void UARPlayerPresenter::Input_HandleLeftStick(double InX, double InY, double InDeadZone, double InMinInput)
 {
-  const bool bInputAllowed = (ViewCharacter != nullptr);
+  const bool bInputAllowed = (ViewCharacter != nullptr) 
+                             && !Model.bIsClimbing;
   if (!bInputAllowed)
   {
     return;
@@ -116,6 +150,22 @@ void UARPlayerPresenter::Input_HandleTransform()
   }
 
   ViewCharacter->Transform();
+}
+
+void UARPlayerPresenter::Input_HandleCameraReset()
+{
+  if (ViewCharacter == nullptr)
+  {
+    return;
+  }
+
+  const bool bCanResetCamera = true;
+  if (!bCanResetCamera)
+  {
+    return;
+  }
+
+  ViewCharacter->SetCameraRig(ECameraRigType::Reset);
 }
 
 void UARPlayerPresenter::HandleChargeStart()
@@ -264,10 +314,9 @@ void UARPlayerPresenter::HandleTransformedEvent(EARMagnetismType InNewTransforma
 
       for (UPrimitiveComponent* Comp : OverlappingComps)
       {
-        if (AInsekiClimbingObject* Surface = Cast<AInsekiClimbingObject>(Comp->GetOwner()))
+        if (Comp->GetOwner()->IsA<AInsekiClimbingObject>())
         {
-          // OnClimbSurfaceOverlap を手動で呼ぶ
-          ViewCharacter->StartClimbing(Surface);
+          StartClimbing();
           break;
         }
       }
@@ -316,7 +365,7 @@ void UARPlayerPresenter::HandleTransformedEvent(EARMagnetismType InNewTransforma
           AActor* hitActor = hit.GetActor();
           if (IARMagnetizableInterface* magnetizableObj = Cast<IARMagnetizableInterface>(hitActor))
           {
-            ViewCharacter->Physics_RegisterMagneticTask_Once(ViewCharacter, magnetizableObj);
+            Physics_RegisterMagneticTask_Once(ViewCharacter, magnetizableObj);
           }
         }
       }
@@ -325,17 +374,184 @@ void UARPlayerPresenter::HandleTransformedEvent(EARMagnetismType InNewTransforma
   }
 }
 
+void UARPlayerPresenter::StartClimbing()
+{
+  const bool bCanStartClimb = !Model.bIsClimbing 
+                              && (ViewCharacter != nullptr)
+                              && (ViewCharacter->GetMagnetismType() == EARMagnetismType::Attraction);
+  if (!bCanStartClimb)
+  {
+    return;
+  }
+
+  Model.bIsClimbing = true;
+  ViewCharacter->OnClimbStarted();
+  Handle_UpdateClimbing = ViewCharacter->TickTaskDelegate.AddUObject(this, &ThisClass::UpdateClimbing);
+
+  // 壁があるかを判定
+  const FVector Start = ViewCharacter->GetActorLocation();
+  // FIXME Magic number is bad
+  const FVector End = Start + ViewCharacter->GetActorForwardVector() * 100.0f;
+
+  FHitResult HitResult{};
+  FCollisionQueryParams Params{};
+  Params.AddIgnoredActor(ViewCharacter);
+  const bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_Visibility, Params);
+  if (!bHit)
+  {
+    StopClimbing();
+    return;
+  }
+
+  // 壁の法線を保存
+  Model.ClimbSurfaceNormal = HitResult.ImpactNormal;
+}
+
+void UARPlayerPresenter::StopClimbing()
+{
+  if ((ViewCharacter == nullptr) || !Model.bIsClimbing)
+  {
+    return;
+  }
+
+  Model.bIsClimbing = false;
+  Model.ClimbSurfaceNormal = FVector::ZeroVector;
+
+  ViewCharacter->OnClimbEnded();
+  ViewCharacter->TickTaskDelegate.Remove(Handle_UpdateClimbing);
+  Handle_UpdateClimbing.Reset();
+}
+
+void UARPlayerPresenter::UpdateClimbing(float DeltaTime)
+{
+  if (!CanUpdateClimbingInternal())
+  {
+    StopClimbing();
+    return;
+  }
+
+  // NOTE Hard coding magic number is bad
+  const float climbSpeed = 2100.0f; // 上昇速度
+  const FVector climbMovement{0.0, 0.0, climbSpeed * DeltaTime};
+  ViewCharacter->OnClimbUpdated(climbMovement);
+}
+
 void UARPlayerPresenter::OnGroundLanded(const FHitResult& InHit)
 {
   Model.bIsInAir = false;
+
+  if (ViewCharacter != nullptr)
+  {
+    ViewCharacter->OnLanded(InHit);
+  }
+}
+
+void UARPlayerPresenter::OnClimbSurfaceOverlapBegan(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+  if (OtherActor == nullptr)
+  {
+    return;
+  }
+
+  if (OtherActor->IsA<AInsekiClimbingObject>())
+  {
+    StartClimbing();
+  }
+}
+
+void UARPlayerPresenter::OnClimbSurfaceOverlapEnded(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+  if (OtherActor == nullptr)
+  {
+    return;
+  }
+
+  if (OtherActor->IsA<AInsekiClimbingObject>())
+  {
+    StopClimbing();
+  }
+}
+
+
+void UARPlayerPresenter::OnMagneticForceFieldBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+  if (ViewCharacter != nullptr)
+  {
+    if (IARMagnetizableInterface* magnetizableObj = Cast<IARMagnetizableInterface>(OtherActor))
+    {
+      Physics_RegisterMagneticTask(ViewCharacter, magnetizableObj);
+    }
+  }
+}
+
+void UARPlayerPresenter::OnMagneticForceFieldEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+  if (ViewCharacter != nullptr)
+  {
+    if (IARMagnetizableInterface* magnetizableObj = Cast<IARMagnetizableInterface>(OtherActor))
+    {
+      Physics_UnregisterMagneticTask(ViewCharacter, magnetizableObj);
+    }
+  }
+}
+
+void UARPlayerPresenter::OnMagnetizedObjectHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
+{
+  if (ViewCharacter != nullptr)
+  {
+    if (IARMagnetizableInterface* magnetizableObj = Cast<IARMagnetizableInterface>(OtherActor))
+    {
+      Physics_RegisterMagneticTask_Once(ViewCharacter, magnetizableObj);
+    }
+  }
+}
+
+void UARPlayerPresenter::OnCameraRigChanged(ECameraRigType InType)
+{
+  // TODO Empty implementation
 }
 
 void UARPlayerPresenter::OnCharacterJumpStarted()
 {
+  if (Model.bIsClimbing)
+  {
+    StopClimbing();
+  }
+
   Model.bIsInAir = true;
+
 }
 
 void UARPlayerPresenter::OnCharacterJumpStopped()
 {
   // TODO
+}
+
+bool UARPlayerPresenter::CanUpdateClimbingInternal() const
+{
+  const bool bCanUpdateClimbing = Model.bIsClimbing
+                                && (ViewCharacter != nullptr);
+  if (!bCanUpdateClimbing)
+  {
+    return false;
+  }
+
+  // 壁回転処理
+  // 足元の位置（Capsuleの底の位置）
+  const UCapsuleComponent* capsuleComp = ViewCharacter->GetCapsuleComponent();
+  const float capsuleHalfHeight = capsuleComp->GetScaledCapsuleHalfHeight();
+  const FVector curtLocation = ViewCharacter->GetActorLocation();
+  // 壁に対して垂直な向きに少しめり込むようにして設定
+  // FIXME Remove magic number
+  const FVector Start = curtLocation - Model.ClimbSurfaceNormal * (capsuleHalfHeight - 5.0f);
+  const FVector End = Start - Model.ClimbSurfaceNormal * 7.0f;
+
+  FHitResult HitResult{};
+  FCollisionQueryParams Params{};
+  Params.AddIgnoredActor(ViewCharacter);
+
+  const bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_Visibility, Params);
+  const bool bCanKeepClimbingState = bHit && ViewCharacter->GetMagnetismType() == EARMagnetismType::Attraction;
+
+  return bCanKeepClimbingState;
 }

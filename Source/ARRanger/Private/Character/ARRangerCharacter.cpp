@@ -15,32 +15,36 @@
 #include "Player/ARPlayerState.h"
 #include "PlayerComponents/AttractSpecialAttackComponent.h"
 #include "Sound/SoundBase.h"
-#include "Magnetic/InsekiClimbingObject.h"
+#include "Player/CameraRigType.h"
 
 #include "Pawn/ARPawnInitComponent.h"
 #include "Character/ARHealthComponent.h"
 #include "Character/ARAbilityCostComponent.h"
 
 AARRangerCharacter::AARRangerCharacter()
-  : bIsClimbed{false}
-  , currentClimbSurface{nullptr}
 {
-  UCapsuleComponent* capsuleComp = GetCapsuleComponent();
-  capsuleComp->InitCapsuleSize(42.f, 96.0f);
-  
   bUseControllerRotationPitch = false;
   bUseControllerRotationYaw = false;
   bUseControllerRotationRoll = false;
+  
+  // カプセルコンポーネント初期化
+  {
+    UCapsuleComponent* capsuleComp = GetCapsuleComponent();
+    capsuleComp->InitCapsuleSize(42.f, 96.0f);
+  }
 
-  // プレイヤーの回転をオンに
-  GetCharacterMovement()->bOrientRotationToMovement = true;
-  GetCharacterMovement()->RotationRate = FRotator(0.0f, 500.0f, 0.0f);
-  GetCharacterMovement()->JumpZVelocity = 500.f;
-  GetCharacterMovement()->AirControl = 0.35f;
-  GetCharacterMovement()->MaxWalkSpeed = 500.f;
-  GetCharacterMovement()->MinAnalogWalkSpeed = 20.f;
-  GetCharacterMovement()->BrakingDecelerationWalking = 2000.f;
-  GetCharacterMovement()->BrakingDecelerationFalling = 1500.0f;
+  // ムーブコンポーネント初期化
+  {
+    UCharacterMovementComponent* moveComp = GetCharacterMovement();
+    moveComp->bOrientRotationToMovement = true;
+    moveComp->RotationRate = FRotator(0.0f, 500.0f, 0.0f);
+    moveComp->JumpZVelocity = 500.f;
+    moveComp->AirControl = 0.35f;
+    moveComp->MaxWalkSpeed = 500.f;
+    moveComp->MinAnalogWalkSpeed = 20.f;
+    moveComp->BrakingDecelerationWalking = 2000.f;
+    moveComp->BrakingDecelerationFalling = 1500.0f;
+  }
 
   LockOnComponent = CreateDefaultSubobject<ULockOnComponent>(TEXT("LockOnComponent"));
 
@@ -53,61 +57,23 @@ AARRangerCharacter::AARRangerCharacter()
   // アビリティコストコンポネント作成
   AbilityCostComponent = CreateDefaultSubobject<UARAbilityCostComponent>(TEXT("AbilityCostComponent"));
   AbilityCostComponent->OnAbilityCostApplied.AddDynamic(this, &ThisClass::OnAbilityCostHandled);
-
-  // カメラリグの初期化
-  CameraRigType = ECameraRigType::Default;
 }
 
 void AARRangerCharacter::BeginPlay()
 {
   Super::BeginPlay();
 
-  // ワールド内のInsekiClimbingObjectをすべて取得し、バインドする（デモ用）
-  TArray<AActor*> ClimbSurfaces;
-  UGameplayStatics::GetAllActorsOfClass(GetWorld(), AInsekiClimbingObject::StaticClass(), ClimbSurfaces);
-
-  for (AActor* Actor : ClimbSurfaces)
-  {
-    AInsekiClimbingObject* ClimbObjects = Cast<AInsekiClimbingObject>(Actor); 
-    if (ClimbObjects->ClimbTrigger)
-    {
-      ClimbObjects->ClimbTrigger->OnComponentBeginOverlap.AddDynamic(this, &ThisClass::OnClimbSurfaceOverlap);
-    }
-  }
-
-  LandedDelegate.AddDynamic(this, &ThisClass::LandedToGround);
-
-  GetCapsuleComponent()->OnComponentBeginOverlap.AddDynamic(this, &ThisClass::OnMagneticForceFieldBeginOverlap);
-  GetCapsuleComponent()->OnComponentEndOverlap.AddDynamic(this, &ThisClass::OnMagneticForceFieldEndOverlap);
-  GetCapsuleComponent()->OnComponentHit.AddDynamic(this, &ThisClass::OnMagnetizedObjectHit);
-
   attractSpecialAttackComponent = FindComponentByClass<UAttractSpecialAttackComponent>();
 
   // Start with Repulsion
   SetMagnetismType(EARMagnetismType::Repulsion);
   TransformInternal();
+
+  SetCameraRig(ECameraRigType::Default);
 }
 
 void AARRangerCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-  LandedDelegate.RemoveDynamic(this, &ThisClass::LandedToGround);
-
-  GetCapsuleComponent()->OnComponentBeginOverlap.RemoveDynamic(this, &ThisClass::OnMagneticForceFieldBeginOverlap);
-  GetCapsuleComponent()->OnComponentEndOverlap.RemoveDynamic(this, &ThisClass::OnMagneticForceFieldEndOverlap);
-  GetCapsuleComponent()->OnComponentHit.RemoveDynamic(this, &ThisClass::OnMagnetizedObjectHit);
-
-  TArray<AActor*> ClimbSurfaces;
-  UGameplayStatics::GetAllActorsOfClass(GetWorld(), AInsekiClimbingObject::StaticClass(), ClimbSurfaces);
-
-  for (AActor* Actor : ClimbSurfaces)
-  {
-    AInsekiClimbingObject* ClimbObjects = Cast<AInsekiClimbingObject>(Actor); 
-    if (ClimbObjects->ClimbTrigger)
-    {
-      ClimbObjects->ClimbTrigger->OnComponentBeginOverlap.RemoveDynamic(this, &ThisClass::OnClimbSurfaceOverlap);
-    }
-  }
-
   Super::EndPlay(EndPlayReason);
 }
 
@@ -124,6 +90,11 @@ UAbilitySystemComponent* AARRangerCharacter::GetAbilitySystemComponent() const
 void AARRangerCharacter::Tick(float DeltaTime)
 {
   Super::Tick(DeltaTime);
+
+  if (TickTaskDelegate.IsBound())
+  {
+    TickTaskDelegate.Broadcast(DeltaTime);
+  }
 
   // Snap 
   if (bCanTargetSnap)
@@ -156,34 +127,11 @@ void AARRangerCharacter::Tick(float DeltaTime)
   //   }
   // }
 
-  // 引力クライム中に処理
-  if (bIsClimbed)
-  {
-    UpdateClimbing(DeltaTime);
-  }
-}
-
-void AARRangerCharacter::OnClimbSurfaceOverlap(
-  UPrimitiveComponent* OverlappedComp,
-  AActor* OtherActor,
-  UPrimitiveComponent* OtherComp,
-  int32 OtherBodyIndex,
-  bool bFromSweep,
-  const FHitResult& SweepResult)
-{
-  if (OtherActor == this)
-  {
-    AInsekiClimbingObject* Surface = Cast<AInsekiClimbingObject>(OverlappedComp->GetOwner());
-    if (Surface)
-    {
-      StartClimbing(Surface);
-    }
-  }
 }
 
 void AARRangerCharacter::DoMove(double InRight, double InForward)
 {
-  if (bIsClimbed)
+  if (FMath::IsNearlyZero(InRight) && FMath::IsNearlyZero(InForward))
   {
     return;
   }
@@ -195,7 +143,6 @@ void AARRangerCharacter::DoMove(double InRight, double InForward)
 
   AddMovementInput(ForwardDirection, InForward);
   AddMovementInput(RightDirection, InRight);
-  
 }
 
 void AARRangerCharacter::DoRotate(double InYaw)
@@ -209,18 +156,9 @@ void AARRangerCharacter::DoRotate(double InYaw)
   SetActorRotation(newCharacterRotator);
 }
 
-void AARRangerCharacter::StartClimbing(AInsekiClimbingObject* ClimbActor)
+void AARRangerCharacter::OnClimbStarted()
 {
-  // クライム中でない、引力クライムオブジェクトに触れていない、または引力状態でないなら処理しない
-  if (bIsClimbed || (ClimbActor == nullptr) || GetMagnetismType() != EARMagnetismType::Attraction)
-  {
-    return;
-  }
-    
-  // 引力クライムフラグを上げる
-  bIsClimbed = true;
-  currentClimbSurface = ClimbActor;
-  // AnimInstance側のフラグも上げる
+  // AnimInstance側のフラグを上げる
   if (UARRangerAnimInstance* MyAnim = Cast<UARRangerAnimInstance>(GetMesh()->GetAnimInstance()))
   {
     MyAnim->IsClimbing = true;
@@ -228,79 +166,16 @@ void AARRangerCharacter::StartClimbing(AInsekiClimbingObject* ClimbActor)
 
   GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Flying);
   GetCharacterMovement()->bOrientRotationToMovement = false;
-
-  // 壁があるかを判定
-  FHitResult HitResult;
-  const FVector Start = GetActorLocation();
-  // NOTE Magic number is bad
-  const FVector End = Start + GetActorForwardVector() * 100.0f;
-
-  FCollisionQueryParams Params;
-  Params.AddIgnoredActor(this);
-
-  const bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_Visibility, Params);
-  
-  if (bHit)
-  {
-    // 壁の法線を保存
-    wallNormal = HitResult.ImpactNormal;
-  }
 }
 
-void AARRangerCharacter::UpdateClimbing(float DeltaTime)
+void AARRangerCharacter::OnClimbUpdated(const FVector& InClimbMovement)
 {
-  // NOTE Hard coding magic number is bad
-  const float ClimbSpeed = 2100.0f; // 上昇速度
-  AddActorWorldOffset(FVector(0, 0, ClimbSpeed * DeltaTime), false);
-
-  // 壁回転処理
-  // 足元の位置（Capsuleの底の位置）
-  UCapsuleComponent* Capsule = GetCapsuleComponent();
-  FVector ActorLocation = GetActorLocation();
-  float HalfHeight = Capsule->GetScaledCapsuleHalfHeight();
-  // 壁に対して垂直な向きに少しめり込むようにして設定
-  const FVector FootPosition = ActorLocation -wallNormal * (HalfHeight - 5.0f);
-
-  const FVector Start = FootPosition;
-  const FVector End = Start - wallNormal * 7.0f;
-
-  FHitResult HitResult;
-  FCollisionQueryParams Params;
-  Params.AddIgnoredActor(this);
-
-  const bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_Visibility, Params);
-
-  // ライントレースで壁を判定
-  // 壁がないか、または引力クライム中に斥力状態に変身したらクライムを解除
-  if (!bHit || (GetMagnetismType() != EARMagnetismType::Attraction))
-  {
-    // クライム解除＋ジャンプ処理
-    bIsClimbed = false;
-    GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Falling);
-    GetCharacterMovement()->bOrientRotationToMovement = true;
-    // AnimInstance側のフラグも下げる
-    UARRangerAnimInstance* MyAnim = Cast<UARRangerAnimInstance>(GetMesh()->GetAnimInstance());
-    if (MyAnim != nullptr)
-    {
-      MyAnim->IsClimbing = false;
-    }
-
-    // 少し上方向にジャンプさせる
-    LaunchCharacter(FVector(0.0f, 0.0f, 700.0f), true, true);
-  }
+  AddActorWorldOffset(InClimbMovement, false);
 }
 
-void AARRangerCharacter::StopClimbing()
+void AARRangerCharacter::OnClimbEnded()
 {
-  // 引力クライム中でないなら処理しない
-  if (!bIsClimbed)
-  {
-    return;
-  }
-    
-  // 引力クライムフラグを下げる
-  bIsClimbed = false;
-  currentClimbSurface = nullptr;
+  GetCharacterMovement()->SetMovementMode(MOVE_Falling);
   GetCharacterMovement()->bOrientRotationToMovement = true;
   // AnimInstance側のフラグも下げる
   if (UARRangerAnimInstance* MyAnim = Cast<UARRangerAnimInstance>(GetMesh()->GetAnimInstance()))
@@ -308,9 +183,8 @@ void AARRangerCharacter::StopClimbing()
     MyAnim->IsClimbing = false;
   }
 
-  // 回転を元に戻す
-  SetActorRotation(FRotator(0.f, GetActorRotation().Yaw, 0.f));
-  GetCharacterMovement()->SetMovementMode(MOVE_Falling);
+  // 少し上方向にジャンプさせる
+  LaunchCharacter(FVector{0.0, 0.0, 700.0}, true, true);
 }
 
 void AARRangerCharacter::OnAttractionCompleted()
@@ -404,11 +278,6 @@ void AARRangerCharacter::TransformInternal()
 
 bool AARRangerCharacter::CanSpecialAttractAttack()
 {
-  // 攻撃・強攻撃中、引き寄せ中、ジャンプ中、引力クライム中はfalseを返す
-  if (bIsClimbed)
-  {
-    return false;
-  }
 
   // To Do：引力フックショット時、必殺技ゲージ非満タン時、被ダメージ時にもfalseを返す
 
@@ -471,30 +340,6 @@ void AARRangerCharacter::SetIsBattledInAnimInstance(const bool IsBattled)
   else
   {
     K2_OnBattleEnded();
-  }
-}
-
-void AARRangerCharacter::OnMagneticForceFieldBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
-{
-  if (IARMagnetizableInterface* magnetizableObj = Cast<IARMagnetizableInterface>(OtherActor))
-  {
-    Physics_RegisterMagneticTask(this, magnetizableObj);
-  }
-}
-
-void AARRangerCharacter::OnMagneticForceFieldEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
-{
-  if (IARMagnetizableInterface* magnetizableObj = Cast<IARMagnetizableInterface>(OtherActor))
-  {
-    Physics_UnregisterMagneticTask(this, magnetizableObj);
-  }
-}
-
-void AARRangerCharacter::OnMagnetizedObjectHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
-{
-  if (IARMagnetizableInterface* magnetizableObj = Cast<IARMagnetizableInterface>(OtherActor))
-  {
-    Physics_RegisterMagneticTask_Once(this, magnetizableObj);
   }
 }
 
@@ -578,6 +423,27 @@ void AARRangerCharacter::OnPunchEnded()
   bReadyToTargetSnap = false;
   TargetSnapInput = FVector2D::ZeroVector;
   TargetToSnap = nullptr;
+}
+
+void AARRangerCharacter::OnAttackAbilityStarted()
+{
+
+}
+
+void AARRangerCharacter::OnAttackAbilityEnded()
+{
+
+}
+
+void AARRangerCharacter::SetCameraRig(ECameraRigType InType)
+{
+  CameraRigType = InType;
+  CameraRigChangeEvent.Broadcast(CameraRigType);
+}
+
+ECameraRigType AARRangerCharacter::GetCameraRig() const
+{
+  return CameraRigType;
 }
 
 void AARRangerCharacter::UpdateTargetSnap(const FVector2D& InputDir)
@@ -760,6 +626,7 @@ void AARRangerCharacter::OnPlayerDeadStarted(AActor* PlayerActor)
   {
     K2_OnPlayerDeadStarted();
   }
+
 }
 
 void AARRangerCharacter::OnPlayerDeadEnded(AActor* PlayerActor)
@@ -818,17 +685,12 @@ bool AARRangerCharacter::TryApplyAbilityCost(const FGameplayTag& InAbilityCostTa
   return bSuccess;
 }
 
-void AARRangerCharacter::ResetCamera()
-{
-  CameraRigType = ECameraRigType::Reset;
-}
-
 bool AARRangerCharacter::GetIsLockedOn() const
 { 
   return LockOnComponent->GetIsLockedOn(); 
 }
 
-void AARRangerCharacter::LandedToGround(const FHitResult& Hit)
+void AARRangerCharacter::OnLanded(const FHitResult& Hit)
 {
   if (UARRangerAnimInstance* animInst = ::Cast<UARRangerAnimInstance>(GetMesh()->GetAnimInstance()))
   {
@@ -868,11 +730,6 @@ void AARRangerCharacter::Jump()
     OnJumpedDelegate.Broadcast();
   }
 
-  // 引力クライムを解除
-  if (bIsClimbed)
-  {
-    StopClimbing();
-  }
 }
 void AARRangerCharacter::StopJumping()
 {
