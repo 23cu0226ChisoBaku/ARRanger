@@ -43,19 +43,37 @@ public:
   FVector ChargeStartFaceDir; 
 
   FVector ClimbSurfaceNormal;
+  
+  FVector SnapTargetImpactPoint;
+  
+  FVector SnapStartPosition;
+  
+  FRotator SnapStartRotation;
 
   FVector2D TargetSnapInputDirection; 
-
+  
   UPROPERTY(EditAnywhere, Category = "PlayerModel|Knockback")
   double LaunchPower;
 
   UPROPERTY(EditAnywhere, Category = "PlayerModel|Charge")
   double ChargeRotateHalfRange;
 
+  UPROPERTY(EditAnywhere, Category = "PlayerModel|TargetSnap")
+  double TargetSnapDetectMaxRange;
+
+  UPROPERTY(EditAnywhere, Category = "PlayerModel|TargetSnap")
+  float SnapTimeInterval;
+
+  float SnapTimeCounter;
+
+  TWeakObjectPtr<AActor> SnapTargetActor;
+
   uint8 bIsCharging : 1;
   uint8 bIsInAir : 1;
   uint8 bIsClimbing : 1;
   uint8 bIsInComboAction : 1;
+  uint8 bCanUpdateSnapMovement : 1;
+  uint8 bIsReadyToSearchSnapTarget : 1;
 };
 
 UCLASS(Blueprintable, BlueprintType)
@@ -84,6 +102,14 @@ private:
 
   void HandleCharacterMove(double InX, double InY, /**TODO */double InDeadZone, /**TODO */double InMinInput);
 
+  void HandleSnapTargetUpdate(double InX, double InY);
+
+  void RegisterSnapTargetTask();
+
+  void UpdateSnapTarget(float DeltaTime);
+
+  void UnregisterSnapTargetTask();
+  
   void HandleCharacterChargeRotate(double InX, double InY);
 
   void HandleBattleResult(AARRangerCharacter* InAffectedCharacter, const ARRanger::Battle::FARDamageResult& InDamageResult);
@@ -91,6 +117,10 @@ private:
   void HandleBattleStateChange(bool bIsInBattle);
 
   void HandleTransformedEvent(EARMagnetismType InNewTransformation);
+
+  void HandleAttackAbilityStarted();
+
+  void HandleAttackAbilityEnded();
 
   void StartClimbing();
 
@@ -125,6 +155,8 @@ private:
 
   bool CanUpdateClimbingInternal() const;
 
+  void StopSnapTargetInternal();
+
 private:
 
   UPROPERTY()
@@ -135,6 +167,7 @@ private:
 
   FDelegateHandle Handle_UpdateClimbing{};
 
+  FDelegateHandle Handle_UpdateSnapTarget{};
 };
 
 #undef UE_API

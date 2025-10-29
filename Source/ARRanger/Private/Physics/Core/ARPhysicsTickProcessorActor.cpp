@@ -290,11 +290,7 @@ FARMagneticTickObjectEntry* AARPhysicsTickProcessorActor::AllocateMagneticTickOb
 
 void AARPhysicsTickProcessorActor::Debug_LogTickObjectMessage()
 {
-  // if (GEngine && MagneticTickObjectEntries.Num() > 0)
-  // {
-  //   FString debugMsg = FString::Printf(TEXT("Tick object count: %d"), MagneticTickObjectEntries.Num());
-  //   GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, *debugMsg);
-  // }
+
 }
 
 #endif

@@ -135,8 +135,6 @@ public:
   UFUNCTION(BlueprintImplementableEvent, Category = "ARRanger|Battle", meta = (DisplayName = "OnBattleEnded"))
   void K2_OnBattleEnded();
 
-  void UpdateTargetSnap(const FVector2D& InputDir);
-
   UE_API bool TryApplyAbilityCost(const FGameplayTag& InAbilityCostTag, float InAbilictCostChangeNum);
 
   // ロックオンコンポーネント
@@ -196,19 +194,16 @@ public:
 
   virtual void OnLanded(const FHitResult& Hit);
 
-  // 麦
-  UFUNCTION(BlueprintCallable, Category = "GameAbility|Callbacks")
-  void OnPunchStarted();
-
-  UFUNCTION(BlueprintCallable, Category = "GameAbility|Callbacks")
-  void OnPunchEnded();
-
   UFUNCTION(BlueprintCallable, Category = "GameAbility|Callbacks")
   virtual void OnAttackAbilityStarted();
 
   UFUNCTION(BlueprintCallable, Category = "GameAbility|Callbacks")
   virtual void OnAttackAbilityEnded();
+
+  FSimpleMulticastDelegate AttackAbilityStartDelegate;
+  FSimpleMulticastDelegate AttackAbilityEndDelegate;
  
+/**Start Camera Rig */
   UFUNCTION(BlueprintCallable, Category = "Camera")
   void SetCameraRig(ECameraRigType InType);
 
@@ -218,9 +213,11 @@ public:
   FOnCameraRigChanged CameraRigChangeEvent;
 
 private:
-  
   ECameraRigType CameraRigType;
-  
+/**End Camera Rig */
+
+private:
+
   UFUNCTION()
   UE_API void OnPlayerDeadStarted(AActor* PlayerActor);
 
@@ -283,36 +280,7 @@ private:
   UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Feedback")
   TObjectPtr<UForceFeedbackEffect> FFE_Landed;
 
-  // TODO Use to snap target when player is in punch state
-  FVector2D TargetSnapInput;
-
-  bool bReadyToTargetSnap;
-
-  bool bCanTargetSnap;
-
-  UPROPERTY()
-  TObjectPtr<AActor> TargetToSnap;
-
-  UPROPERTY()
-  TObjectPtr<UPrimitiveComponent> TargetPrimitiveComp;
-
-  FVector TargetImpactPoint_Local;
-
-  UPROPERTY(EditAnywhere, Category = "ARRanger|TargetSnap")
-  float TargetSnapDetectLength;
-
-  UPROPERTY(EditAnywhere, Category = "ARRanger|TargetSnap")
-  float SnapTimeInterval = 0.2f;
-
-  float m_snapTimeCnt = 0.0f;
-
-  FVector m_startSnapPlayerLocation;
-  FRotator m_startSnapPlayerRotation;
-
-  void SearchTargetToSnap();
-
-  void SnapToTarget(float DeltaTime);
-  // TODO End
+  void OnTargetSnapped(const FVector& InNewPosition, const FRotator& InNewRotation);
 
   // 必殺技を使用可能かを返す関数
   bool CanSpecialAttractAttack();

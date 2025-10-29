@@ -46,6 +46,7 @@ AARRangerCharacter::AARRangerCharacter()
     moveComp->BrakingDecelerationFalling = 1500.0f;
   }
 
+  // ロックオンコンポーネント作成
   LockOnComponent = CreateDefaultSubobject<ULockOnComponent>(TEXT("LockOnComponent"));
 
   // HPコンポネント作成
@@ -67,9 +68,8 @@ void AARRangerCharacter::BeginPlay()
 
   // Start with Repulsion
   SetMagnetismType(EARMagnetismType::Repulsion);
-  TransformInternal();
-
   SetCameraRig(ECameraRigType::Default);
+  TransformInternal();
 }
 
 void AARRangerCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -94,12 +94,6 @@ void AARRangerCharacter::Tick(float DeltaTime)
   if (TickTaskDelegate.IsBound())
   {
     TickTaskDelegate.Broadcast(DeltaTime);
-  }
-
-  // Snap 
-  if (bCanTargetSnap)
-  {
-    SnapToTarget(DeltaTime);
   }
 
   // bool isLockedOn = LockOnComponent->GetIsLockedOn();
@@ -228,9 +222,7 @@ void AARRangerCharacter::Transform()
 {
   const EARMagnetismType newMagnetismType = (GetMagnetismType() == EARMagnetismType::Repulsion) ? EARMagnetismType::Attraction : EARMagnetismType::Repulsion;
   SetMagnetismType(newMagnetismType); 
-  
   TransformInternal();
-  
   // Play all transform effects
   PlayTransformEffect();
 }
@@ -263,7 +255,6 @@ void AARRangerCharacter::PlayTransformEffect()
 
 void AARRangerCharacter::TransformInternal()
 {
-
   const EARMagnetismType curtType = GetMagnetismType();
   if (OnTransformed.IsBound())
   {
@@ -405,34 +396,20 @@ void AARRangerCharacter::OnNotifyAttackResult_Success(const ARRanger::Battle::FA
 #pragma endregion IARAttackerInterface implementation
 /**End IARAttackerInterface implementation */
 
-// TODO Temporary blueprint callable function 
-void AARRangerCharacter::OnPunchStarted()
-{
-  // TODO
-  if (bReadyToTargetSnap && !TargetSnapInput.IsNearlyZero())
-  {
-    SearchTargetToSnap();
-  }
-
-  bReadyToTargetSnap = false;
-}
-
-void AARRangerCharacter::OnPunchEnded()
-{
-  m_snapTimeCnt = 0.0f;
-  bReadyToTargetSnap = false;
-  TargetSnapInput = FVector2D::ZeroVector;
-  TargetToSnap = nullptr;
-}
-
 void AARRangerCharacter::OnAttackAbilityStarted()
 {
-
+  if (AttackAbilityStartDelegate.IsBound())
+  {
+    AttackAbilityStartDelegate.Broadcast();
+  }
 }
 
 void AARRangerCharacter::OnAttackAbilityEnded()
 {
-
+  if (AttackAbilityEndDelegate.IsBound())
+  {
+    AttackAbilityEndDelegate.Broadcast();
+  }
 }
 
 void AARRangerCharacter::SetCameraRig(ECameraRigType InType)
@@ -446,176 +423,11 @@ ECameraRigType AARRangerCharacter::GetCameraRig() const
   return CameraRigType;
 }
 
-void AARRangerCharacter::UpdateTargetSnap(const FVector2D& InputDir)
+void AARRangerCharacter::OnTargetSnapped(const FVector& InNewPosition, const FRotator& InNewRotation)
 {
-  if (InputDir.IsNearlyZero())
-  {
-    TargetSnapInput = FVector2D::ZeroVector;
-    bReadyToTargetSnap = false;
-    return;
-  }
-
-  if (bCanTargetSnap)
-  {
-    return;
-  }
-
-  bReadyToTargetSnap = true;
-  bCanTargetSnap = false;
-  TargetSnapInput = InputDir;
-}
-
-void AARRangerCharacter::SearchTargetToSnap()
-{
-  TargetToSnap = nullptr;
-  TargetSnapInput.Normalize();
-
-  const FVector curtPlayerDir = GetActorForwardVector();
-
-  const FRotator curtCtrlRotation = GetController()->GetControlRotation();
-  const FRotator yawRotation{0.0, curtCtrlRotation.Yaw, 0.0};
-  const FVector forwardDirection = FRotationMatrix(yawRotation).GetUnitAxis(EAxis::X);
-  const FVector rightDirection = FRotationMatrix(yawRotation).GetUnitAxis(EAxis::Y);
-  const FVector targetPlayerDir = ((forwardDirection * TargetSnapInput.Y) + (rightDirection * TargetSnapInput.X)).GetSafeNormal();
-  const FVector startLoc = GetActorLocation();
-  const FVector endLoc = startLoc + targetPlayerDir * TargetSnapDetectLength;
-
-  // NOTE Magic number is bad
-  float radius = 200.f;
-  if (UCapsuleComponent* capsule = GetCapsuleComponent())
-  {
-    radius = capsule->GetScaledCapsuleHalfHeight();
-  }
-
   // TODO
-  TArray< TEnumAsByte<EObjectTypeQuery> > objTypes{}; 
-  objTypes.Add(UEngineTypes::ConvertToObjectType(ECC_WorldStatic));
-  objTypes.Add(UEngineTypes::ConvertToObjectType(ECC_WorldDynamic));
-  objTypes.Add(UEngineTypes::ConvertToObjectType(ECC_Pawn));
-  objTypes.Add(UEngineTypes::ConvertToObjectType(ECC_PhysicsBody));
-  TArray<AActor*> ignoreActors{};
-  ignoreActors.Add(this);
-
-  TArray<FHitResult> outResults{};
-
-  // TODO Range Detectorなど既存の機能を使う
-  const bool bHit = UKismetSystemLibrary::SphereTraceMultiForObjects(
-                                            this,
-                                            startLoc,
-                                            endLoc,
-                                            radius,
-                                            objTypes,
-                                            false,        // bTraceComplex
-                                            ignoreActors,
-                                            EDrawDebugTrace::Persistent,
-                                            outResults,
-                                            true          // bIgnoreSelf
-                                          ); 
-  
-  if (bHit)
-  {
-    const FVector playerLoc = startLoc;
-    for (const FHitResult& hitResult : outResults)
-    {
-      AActor* hitActor = hitResult.GetActor();
-      if (hitActor == nullptr)
-      {
-        continue;
-      }
-
-      // Ignore actors that hit by hemisphere behind player's face direction
-      const FVector dirToTarget = (hitActor->GetActorLocation() - GetActorLocation()).GetSafeNormal();
-      if (FVector::DotProduct(dirToTarget, targetPlayerDir) < 0.0f)
-      {
-        continue;
-      }
-
-      if (hitActor->GetClass()->ImplementsInterface(UARAttackable::StaticClass()))
-      {
-        IARAttackable* attackable = ::Cast<IARAttackable>(hitActor);
-        if (attackable == nullptr)
-        {
-          continue;
-        }
-
-        const float curtHitResultDistanceSquared = (playerLoc - hitResult.GetActor()->GetActorLocation()).SquaredLength();
-        if (TargetToSnap != nullptr)
-        {
-          // Find min distance to player
-          const float curtMinDistanceSquared = (playerLoc - TargetToSnap->GetActorLocation()).SquaredLength();
-          if (curtMinDistanceSquared > curtHitResultDistanceSquared)
-          {
-            TargetToSnap = hitResult.GetActor();
-            TargetPrimitiveComp = hitResult.GetComponent();
-            const FVector relativeImpactPoint = hitResult.ImpactPoint - TargetPrimitiveComp->GetComponentLocation();
-            // We do not use Z-component of impact point
-            TargetImpactPoint_Local = FVector{relativeImpactPoint.X, relativeImpactPoint.Y, 0.0};
-          }   
-        }
-        else
-        {
-          TargetToSnap = hitResult.GetActor();
-          TargetPrimitiveComp = hitResult.GetComponent();
-          const FVector relativeImpactPoint = hitResult.ImpactPoint - TargetPrimitiveComp->GetComponentLocation();
-          // We do not use Z-component of impact point
-          TargetImpactPoint_Local = FVector{relativeImpactPoint.X, relativeImpactPoint.Y, 0.0};
-        }
-
-        bCanTargetSnap = true;
-      }
-    }
-
-    if (bCanTargetSnap)
-    {
-      m_startSnapPlayerLocation = GetActorLocation();
-      m_startSnapPlayerRotation = GetActorRotation();
-    }
-  }
-}
-
-void AARRangerCharacter::SnapToTarget(float DeltaTime)
-{
-  FVector newLocation = GetActorLocation();
-  FRotator newRotation = GetActorRotation();
-
-  if ((TargetToSnap != nullptr) && 
-      !FMath::IsNearlyZero(SnapTimeInterval) && 
-      (m_snapTimeCnt < SnapTimeInterval)
-    )
-  {
-    const float alphaMin = 0.0f;
-    const float alphaMax = 1.0f;
-
-    m_snapTimeCnt += DeltaTime;
-
-    // Calculate new rotation
-    const float RotateInterpInterval = SnapTimeInterval / 2.0f;
-    FVector faceToTarget_XYAxis = (TargetToSnap->GetActorLocation() - GetActorLocation());
-    faceToTarget_XYAxis.Z = 0.0;
-    const FRotator faceToTargetRot = faceToTarget_XYAxis.Rotation();
-    const float rotLerpAlpha = FMath::Clamp((m_snapTimeCnt / RotateInterpInterval), alphaMin, alphaMax);
-    newRotation = FMath::InterpCircularOut(m_startSnapPlayerRotation, faceToTargetRot, rotLerpAlpha);
-    
-    // Calculate new location 
-    const FVector playerToTargetOffset = TargetImpactPoint_Local.GetSafeNormal() * GetCapsuleComponent()->GetScaledCapsuleRadius();
-    const FVector newTargetLocation = TargetToSnap->GetActorLocation() + TargetImpactPoint_Local + playerToTargetOffset;
-    const FVector newTargetLocation_UsePlayerZ = FVector{newTargetLocation.X, newTargetLocation.Y, GetActorLocation().Z};
-    const float locLerpAlpha = FMath::Clamp((m_snapTimeCnt / SnapTimeInterval), alphaMin, alphaMax);
-    newLocation = FMath::InterpCircularIn(m_startSnapPlayerLocation, newTargetLocation_UsePlayerZ, locLerpAlpha);
-  }
-  // Stop snapping
-  else
-  {
-    bCanTargetSnap = false;
-    m_snapTimeCnt = 0.0f;
-    TargetSnapInput = FVector2D::ZeroVector;
-    TargetToSnap = nullptr;
-  }
-
-  // Update Player
-  SetActorLocation(newLocation);
-  SetActorRotation(newRotation);
-
+  SetActorLocation(InNewPosition);
+  SetActorRotation(InNewRotation);
 }
 
 void AARRangerCharacter::OnPlayerDeadStarted(AActor* PlayerActor)

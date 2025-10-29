@@ -9,6 +9,8 @@
 
 #include "Magnetic/InsekiClimbingObject.h"
 
+#include "Kismet/KismetSystemLibrary.h"
+
 namespace
 {
   // Input max value(scalar)
@@ -22,10 +24,16 @@ FARPlayerModel::FARPlayerModel()
   , TargetSnapInputDirection{EForceInit::ForceInitToZero}
   , LaunchPower{400.0}
   , ChargeRotateHalfRange{60.0}
+  , TargetSnapDetectMaxRange{200.0}
+  , SnapTimeInterval{0.2f}
+  , SnapTimeCounter{0.0f}
+  , SnapTargetActor{nullptr}
   , bIsCharging{false}
   , bIsInAir{false}
   , bIsClimbing{false}
   , bIsInComboAction{false}
+  , bCanUpdateSnapMovement{false}
+  , bIsReadyToSearchSnapTarget{false}
 { }
 
 void FARPlayerModel::Initialize(AARRangerCharacter* InViewCharacter)
@@ -62,11 +70,12 @@ void UARPlayerPresenter::Initialize(AARRangerCharacter* InViewCharacter)
     ViewCharacter->OnTransformed.AddUObject(this, &ThisClass::HandleTransformedEvent);
     ViewCharacter->OnJumpedDelegate.AddUObject(this, &ThisClass::OnCharacterJumpStarted);
     ViewCharacter->OnJumpStoppedDelegate.AddUObject(this, &ThisClass::OnCharacterJumpStopped);
-
-    // Bind to ACharacter delegate
-    ViewCharacter->LandedDelegate.AddDynamic(this, &ThisClass::OnGroundLanded);
-
     ViewCharacter->CameraRigChangeEvent.AddUObject(this, &ThisClass::OnCameraRigChanged);
+    ViewCharacter->AttackAbilityStartDelegate.AddUObject(this, &ThisClass::HandleAttackAbilityStarted);
+    ViewCharacter->AttackAbilityEndDelegate.AddUObject(this, &ThisClass::HandleAttackAbilityEnded);
+
+    // ACharacter delegate
+    ViewCharacter->LandedDelegate.AddDynamic(this, &ThisClass::OnGroundLanded);
 
     UCapsuleComponent* capsuleComp = ViewCharacter->GetCapsuleComponent();
     if (capsuleComp != nullptr)
@@ -96,6 +105,8 @@ void UARPlayerPresenter::Deinitialize()
   ViewCharacter->OnTransformed.RemoveAll(this);
   ViewCharacter->OnJumpedDelegate.RemoveAll(this);
   ViewCharacter->OnJumpStoppedDelegate.RemoveAll(this);
+  ViewCharacter->AttackAbilityStartDelegate.RemoveAll(this);
+  ViewCharacter->AttackAbilityEndDelegate.RemoveAll(this);
   // Unbind to ACharacter delegate
   ViewCharacter->LandedDelegate.RemoveDynamic(this, &ThisClass::OnGroundLanded);
 
@@ -125,9 +136,14 @@ void UARPlayerPresenter::Input_HandleLeftStick(double InX, double InY, double In
     return;
   }
 
+  // TODO Maybe use state pattern here
   if (Model.bIsCharging)
   {
     HandleCharacterChargeRotate(InX, InY);
+  }
+  else if (Model.bIsInComboAction)
+  {
+    HandleSnapTargetUpdate(InX, InY);
   }
   else
   {
@@ -221,6 +237,201 @@ void UARPlayerPresenter::HandleCharacterMove(double InX, double InY, double InDe
   {
     // Move character
     ViewCharacter->DoMove(adjustedRight, adjustedForward);
+  }
+}
+
+void UARPlayerPresenter::HandleSnapTargetUpdate(double InX, double InY)
+{
+  const bool bIsInputValid = !FMath::IsNearlyZero(InX) && !FMath::IsNearlyZero(InY);
+  if (!bIsInputValid)
+  {
+    Model.TargetSnapInputDirection = FVector2D::ZeroVector;
+    Model.bIsReadyToSearchSnapTarget = false;
+    return;
+  }
+
+  if (Model.bCanUpdateSnapMovement)
+  {
+    return;
+  }
+
+  Model.bIsReadyToSearchSnapTarget = true;
+  Model.bCanUpdateSnapMovement = false;
+  Model.TargetSnapInputDirection.X = InX;
+  Model.TargetSnapInputDirection.Y = InY;
+}
+
+void UARPlayerPresenter::RegisterSnapTargetTask()
+{
+  if (ViewCharacter == nullptr)
+  {
+    return;
+  }
+
+  Model.SnapTargetActor.Reset();
+  Model.TargetSnapInputDirection.Normalize();
+
+  const FVector curtPlayerDir = ViewCharacter->GetActorForwardVector();
+  const FRotator curtCtrlRotation = ViewCharacter->GetController()->GetControlRotation();
+  const FRotator yawRotation{0.0, curtCtrlRotation.Yaw, 0.0};
+  const FVector forwardDirection = FRotationMatrix(yawRotation).GetUnitAxis(EAxis::X);
+  const FVector rightDirection = FRotationMatrix(yawRotation).GetUnitAxis(EAxis::Y);
+  const FVector targetPlayerDir = ((forwardDirection * Model.TargetSnapInputDirection.Y) + (rightDirection * Model.TargetSnapInputDirection.X)).GetSafeNormal();
+  const FVector startLoc = ViewCharacter->GetActorLocation();
+  const FVector endLoc = startLoc + targetPlayerDir * Model.TargetSnapDetectMaxRange;
+
+  // NOTE Magic number is bad
+  float radius = 200.f;
+  if (UCapsuleComponent* capsule = ViewCharacter->GetCapsuleComponent())
+  {
+    radius = capsule->GetScaledCapsuleHalfHeight();
+  }
+
+  // TODO
+  TArray< TEnumAsByte<EObjectTypeQuery> > objTypes{}; 
+  objTypes.Add(UEngineTypes::ConvertToObjectType(ECC_WorldStatic));
+  objTypes.Add(UEngineTypes::ConvertToObjectType(ECC_WorldDynamic));
+  objTypes.Add(UEngineTypes::ConvertToObjectType(ECC_Pawn));
+  objTypes.Add(UEngineTypes::ConvertToObjectType(ECC_PhysicsBody));
+  TArray<AActor*> ignoreActors{};
+  ignoreActors.Add(ViewCharacter);
+
+  TArray<FHitResult> outResults{};
+
+  // TODO Range Detectorなど既存の機能を使う
+  const bool bHit = UKismetSystemLibrary::SphereTraceMultiForObjects(
+                                            this,
+                                            startLoc,
+                                            endLoc,
+                                            radius,
+                                            objTypes,
+                                            false,        // bTraceComplex
+                                            ignoreActors,
+                                            EDrawDebugTrace::Persistent,
+                                            outResults,
+                                            true          // bIgnoreSelf
+                                          ); 
+  
+  if (bHit)
+  {
+    const FVector playerLoc = startLoc;
+    for (const FHitResult& hitResult : outResults)
+    {
+      AActor* hitActor = hitResult.GetActor();
+      if (hitActor == nullptr)
+      {
+        continue;
+      }
+
+      // Ignore actors that hit by hemisphere behind player's face direction
+      const FVector dirToTarget = (hitActor->GetActorLocation() - ViewCharacter->GetActorLocation()).GetSafeNormal();
+      if (FVector::DotProduct(dirToTarget, targetPlayerDir) < 0.0f)
+      {
+        continue;
+      }
+
+      if (hitActor->GetClass()->ImplementsInterface(UARAttackable::StaticClass()))
+      {
+        IARAttackable* attackable = ::Cast<IARAttackable>(hitActor);
+        if (attackable == nullptr)
+        {
+          continue;
+        }
+
+        const float curtHitResultDistanceSquared = (playerLoc - hitResult.GetActor()->GetActorLocation()).SquaredLength();
+        if (Model.SnapTargetActor.IsValid())
+        {
+          // Find min distance to player
+          const float curtMinDistanceSquared = (playerLoc - Model.SnapTargetActor->GetActorLocation()).SquaredLength();
+          if (curtMinDistanceSquared > curtHitResultDistanceSquared)
+          {
+            Model.SnapTargetActor = hitResult.GetActor();
+            UPrimitiveComponent* targetPrimitiveComp = hitResult.GetComponent();
+            const FVector relativeImpactPoint = hitResult.ImpactPoint - targetPrimitiveComp->GetComponentLocation();
+            // We do not use Z-component of impact point
+            Model.SnapTargetImpactPoint = FVector{relativeImpactPoint.X, relativeImpactPoint.Y, 0.0};
+          }   
+        }
+        else
+        {
+          Model.SnapTargetActor = hitResult.GetActor();
+          UPrimitiveComponent* targetPrimitiveComp = hitResult.GetComponent();
+          const FVector relativeImpactPoint = hitResult.ImpactPoint - targetPrimitiveComp->GetComponentLocation();
+          // We do not use Z-component of impact point
+          Model.SnapTargetImpactPoint = FVector{relativeImpactPoint.X, relativeImpactPoint.Y, 0.0};
+        }
+
+        Model.bCanUpdateSnapMovement = true;
+      }
+    }
+
+    if (Model.bCanUpdateSnapMovement)
+    {
+      Model.SnapStartPosition = ViewCharacter->GetActorLocation();
+      Model.SnapStartRotation = ViewCharacter->GetActorRotation();
+      Model.bIsReadyToSearchSnapTarget = false;
+
+      Handle_UpdateSnapTarget = ViewCharacter->TickTaskDelegate.AddUObject(this, &ThisClass::UpdateSnapTarget);
+    }
+  }
+}
+
+void UARPlayerPresenter::UpdateSnapTarget(float DeltaTime)
+{
+  if (ViewCharacter == nullptr)
+  {
+    return;
+  }
+
+  FVector newLocation = ViewCharacter->GetActorLocation();
+  FRotator newRotation = ViewCharacter->GetActorRotation();
+
+  if ((Model.SnapTargetActor.IsValid()) && 
+      !FMath::IsNearlyZero(Model.SnapTimeInterval) && 
+      (Model.SnapTimeCounter < Model.SnapTimeInterval)
+    )
+  {
+    const float alphaMin = 0.0f;
+    const float alphaMax = 1.0f;
+
+    Model.SnapTimeCounter += DeltaTime;
+
+    // Calculate new rotation
+    const float RotateInterpInterval = Model.SnapTimeInterval / 2.0f;
+    FVector faceToTarget_XYAxis = (Model.SnapTargetActor->GetActorLocation() - ViewCharacter->GetActorLocation());
+    faceToTarget_XYAxis.Z = 0.0;
+    const FRotator faceToTargetRot = faceToTarget_XYAxis.Rotation();
+    const float rotLerpAlpha = FMath::Clamp((Model.SnapTimeCounter / RotateInterpInterval), alphaMin, alphaMax);
+    newRotation = FMath::InterpCircularOut(Model.SnapStartRotation, faceToTargetRot, rotLerpAlpha);
+    
+    // Calculate new location 
+    const FVector playerToTargetOffset = Model.SnapTargetImpactPoint.GetSafeNormal() * ViewCharacter->GetCapsuleComponent()->GetScaledCapsuleRadius();
+    const FVector newTargetLocation = Model.SnapTargetActor->GetActorLocation() + Model.SnapTargetImpactPoint + playerToTargetOffset;
+    const FVector newTargetLocation_UsePlayerZ = FVector{newTargetLocation.X, newTargetLocation.Y, ViewCharacter->GetActorLocation().Z};
+    const float locLerpAlpha = FMath::Clamp((Model.SnapTimeCounter / Model.SnapTimeInterval), alphaMin, alphaMax);
+    newLocation = FMath::InterpCircularIn(Model.SnapStartPosition, newTargetLocation_UsePlayerZ, locLerpAlpha);
+  }
+  // Stop snapping
+  else
+  {
+    StopSnapTargetInternal();
+  }
+
+  ViewCharacter->OnTargetSnapped(newLocation, newRotation);
+
+}
+
+void UARPlayerPresenter::UnregisterSnapTargetTask()
+{
+  StopSnapTargetInternal();
+
+  // TODO
+  Model.bIsInComboAction = false;
+
+  if (ViewCharacter != nullptr)
+  {
+    ViewCharacter->TickTaskDelegate.Remove(Handle_UpdateSnapTarget);
+    Handle_UpdateSnapTarget.Reset();
   }
 }
 
@@ -372,6 +583,22 @@ void UARPlayerPresenter::HandleTransformedEvent(EARMagnetismType InNewTransforma
     }
     break;
   }
+}
+
+void UARPlayerPresenter::HandleAttackAbilityStarted()
+{
+  if (Model.bIsReadyToSearchSnapTarget && !Model.TargetSnapInputDirection.IsNearlyZero())
+  {
+    RegisterSnapTargetTask();
+  }
+
+  // TODO
+  Model.bIsInComboAction = true;
+}
+
+void UARPlayerPresenter::HandleAttackAbilityEnded()
+{
+  UnregisterSnapTargetTask();
 }
 
 void UARPlayerPresenter::StartClimbing()
@@ -554,4 +781,13 @@ bool UARPlayerPresenter::CanUpdateClimbingInternal() const
   const bool bCanKeepClimbingState = bHit && ViewCharacter->GetMagnetismType() == EARMagnetismType::Attraction;
 
   return bCanKeepClimbingState;
+}
+
+void UARPlayerPresenter::StopSnapTargetInternal()
+{
+  Model.bIsReadyToSearchSnapTarget = false;
+  Model.bCanUpdateSnapMovement = false;
+  Model.TargetSnapInputDirection = FVector2D::ZeroVector;
+  Model.SnapTimeCounter = 0.0f;
+  Model.SnapTargetActor.Reset();
 }

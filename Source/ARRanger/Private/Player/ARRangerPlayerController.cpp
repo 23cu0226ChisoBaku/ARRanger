@@ -341,7 +341,6 @@ void AARRangerPlayerController::Initialize()
   ARIC->BindNativeAction(InputConfig, ARRanger::GameplayTags::NativeInput_SwitchTarget_Left, ETriggerEvent::Triggered, this, &ThisClass::NativeInput_SwitchTarget_Left);
   ARIC->BindNativeAction(InputConfig, ARRanger::GameplayTags::NativeInput_SwitchTarget_Right, ETriggerEvent::Triggered, this, &ThisClass::NativeInput_SwitchTarget_Right);
   ARIC->BindNativeAction(InputConfig, ARRanger::GameplayTags::NativeInput_Transform, ETriggerEvent::Triggered, this, &ThisClass::NativeInput_Transform);
-  ARIC->BindNativeAction(InputConfig, ARRanger::GameplayTags::NativeInput_Target_Snap, ETriggerEvent::Triggered, this, &ThisClass::NativeInput_TargetSnap);
   ARIC->BindNativeAction(InputConfig, ARRanger::GameplayTags::NativeInput_ResetCamera, ETriggerEvent::Started, this, &ThisClass::NativeInput_ResetCamera);
 
   if (InputBufferClass != nullptr)
@@ -505,25 +504,6 @@ void AARRangerPlayerController::NativeInput_Transform(const FInputActionValue& I
   if (PlayerPresenter != nullptr)
   {
     PlayerPresenter->Input_HandleTransform();
-  }
-}
-
-void AARRangerPlayerController::NativeInput_TargetSnap(const FInputActionValue& InputActionValue, /**PayLoad */ FGameplayTag InInputTag)
-{
-  if (IsInputBlocked(InInputTag))
-  {
-    return;
-  }
-
-  if (OwningCharacter != nullptr)
-  {
-    const FVector2D inputDir = InputActionValue.Get<FVector2D>();
-    OwningCharacter->UpdateTargetSnap(inputDir);
-  }
-
-  if (PlayerPresenter != nullptr)
-  {
-    // TODO
   }
 }
 
