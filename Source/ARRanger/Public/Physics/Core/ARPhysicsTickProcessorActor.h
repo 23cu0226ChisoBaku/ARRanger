@@ -4,6 +4,7 @@
 
 #include "GameFramework/Actor.h"
 #include "UObject/WeakInterfacePtr.h"
+#include "Physics/Core/IPhysicsTaskRegistrar.h"
 
 #include "ARPhysicsTickProcessorActor.generated.h"
 
@@ -12,7 +13,7 @@ class IARMagnetizableInterface;
 class UARMagneticTickObject;
 
 enum class EPhysicsRegistryType;
-enum class EPhysicsExecuteFrequency;
+enum class EPhysicsExecuteFrequency : uint8;
 
 USTRUCT()
 struct FARMagneticTickObjectEntry
@@ -30,7 +31,7 @@ struct FARMagneticTickObjectEntry
 };
 
 UCLASS()
-class AARPhysicsTickProcessorActor : public AActor
+class AARPhysicsTickProcessorActor : public AActor , public IPhysicsTaskRegistrar
 {
 	GENERATED_BODY()
 
@@ -55,8 +56,8 @@ class AARPhysicsTickProcessorActor : public AActor
   public:
     void OnSpawnActor(FARPhysicsEngine* PhysicsEnginePtr) { OwningPhysicsEngine = PhysicsEnginePtr; }
     bool IsBelongTo(const FARPhysicsEngine* PhysicsEngine) const { return OwningPhysicsEngine == PhysicsEngine; }
-    ARRANGER_API void RegisterMagneticTask(IARMagnetizableInterface* InSource, IARMagnetizableInterface* InTarget, EPhysicsRegistryType InRequestType, EPhysicsExecuteFrequency InFrequency);
-    ARRANGER_API void UnregisterMagneticTask(IARMagnetizableInterface* InSource, IARMagnetizableInterface* InTarget);
+    ARRANGER_API void RegisterMagneticTask(IARMagnetizableInterface* InSource, IARMagnetizableInterface* InTarget, EPhysicsRegistryType InRequestType, EPhysicsExecuteFrequency InFrequency) override;
+    ARRANGER_API void UnregisterMagneticTask(IARMagnetizableInterface* InSource, IARMagnetizableInterface* InTarget) override;
 
   private:
     void RegisterMagneticTarget(IARMagnetizableInterface* InTarget, IARMagnetizableInterface* InAffectedObj, EPhysicsRegistryType InRequestType, EPhysicsExecuteFrequency InFrequency);

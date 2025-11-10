@@ -6,13 +6,16 @@
 #define _AR_PHYSICS_ENGINE_
 
 #include "Internal/CountLimiter.h"
+#include "Physics/Core/ARPhysicsTypes.h"
+#include "UObject/WeakInterfacePtr.h"
 
 /**前方宣言 */
 class IARMagnetizableInterface;
 class FARPhysicsEngineProxy;
 class AARPhysicsTickProcessorActor;
 class UWorld;
-class AARPhysicsTickProcessorActor;
+
+class IPhysicsTaskRegistrar;
 
 /**
  * @brief 物理タスク登録タイプ
@@ -34,16 +37,6 @@ enum class EPhysicsUnregistryType
 };
 
 /**
- * @brief 物理タスク実行頻度
- */
-enum class EPhysicsExecuteFrequency
-{
-  Never,        // 実行しない
-  Once,         // 一回だけ実行
-  Constantly,   // 常に実行
-};
-
-/**
  * @brief 物理タスク登録パラメータ
  */
 struct FARPhysicsRegistry
@@ -58,7 +51,7 @@ struct FARPhysicsRegistry
   EPhysicsRegistryType Type = EPhysicsRegistryType::None;
 
   /**実行頻度 */
-  EPhysicsExecuteFrequency Frequency = EPhysicsExecuteFrequency::Never;
+  EPhysicsExecuteFrequency Frequency = EPhysicsExecuteFrequency::Once;
 
   /**
    * @brief 物理タスク登録請求が磁力タイプか
@@ -122,6 +115,8 @@ class FARPhysicsEngine : private ARRanger::Private::FCountLimiter<FARPhysicsEngi
      */
     ARRANGER_API void InitializePhysicsEngine(const FARPhysicsEngineInitializationParameters& Parameters);
 
+    ARRANGER_API void InitializePhysicsEngine(IPhysicsTaskRegistrar* TaskRegistrar);
+
     /**
      * @brief 物理エンジンを解放する
      */
@@ -179,6 +174,10 @@ class FARPhysicsEngine : private ARRanger::Private::FCountLimiter<FARPhysicsEngi
 
     /**物理タスクTickアクター弱参照 */
     TWeakObjectPtr<AARPhysicsTickProcessorActor> m_tickProcessorActor;
+
+    TWeakInterfacePtr<IPhysicsTaskRegistrar> m_taskRegistrar;
+
+
 };
 
 

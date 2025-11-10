@@ -54,7 +54,7 @@ void UARPhysicsTickObject::Tick(const FARPhysicsTickParameters& TickParams)
     FARPhysicsEvaluationResult result{};
     OnTick(TickParams, result);
 
-    // TODO For blueprint usage
+    // For blueprint usage
     // Same as AActor::Tick
     if (GetClass()->HasAnyClassFlags(CLASS_CompiledFromBlueprint) || !GetClass()->HasAllClassFlags(CLASS_Native))
     {

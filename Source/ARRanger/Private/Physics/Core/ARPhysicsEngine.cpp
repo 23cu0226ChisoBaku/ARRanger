@@ -6,6 +6,7 @@
 #include "Internal/ARLoggingHeader.h"
 #include "Physics/Core/ARPhysicsEngineProxy.h"
 #include "Physics/Core/ARPhysicsTickProcessorActor.h"
+#include "Physics/Core/IPhysicsTaskRegistrar.h"
 
 
 /**インスタンス数制限クラス定義 */
@@ -14,6 +15,7 @@ DEFINE_COUNT_LIMITER_PROPERTY(FARPhysicsEngine)
 FARPhysicsEngine::FARPhysicsEngine()
   : m_proxy{nullptr}
   , m_tickProcessorActor{nullptr}
+  , m_taskRegistrar{nullptr}
 { }
 
 FARPhysicsEngine::~FARPhysicsEngine()
@@ -35,6 +37,12 @@ void FARPhysicsEngine::InitializePhysicsEngine(const FARPhysicsEngineInitializat
   }
 }
 
+void FARPhysicsEngine::InitializePhysicsEngine(IPhysicsTaskRegistrar* TaskRegistrar)
+{
+  check(TaskRegistrar != nullptr);
+  m_taskRegistrar = TaskRegistrar;
+}
+
 void FARPhysicsEngine::DeinitializePhysicsEngine()
 {
   if (m_tickProcessorActor.IsValid())
@@ -44,10 +52,17 @@ void FARPhysicsEngine::DeinitializePhysicsEngine()
   }
 
   m_proxy.Reset();
+
+  m_taskRegistrar.Reset();
 }
 
 void FARPhysicsEngine::RegisterPhysicsTask(const FARPhysicsRegistry& Registry)
 {
+  if (!m_taskRegistrar.IsValid())
+  {
+    return;
+  }
+  
   if ((Registry.Source == nullptr) || (Registry.Target == nullptr))
   {
     AR_LOG(LogARPhysics, Warning, TEXT("Invalid registry"));
@@ -63,12 +78,18 @@ void FARPhysicsEngine::RegisterPhysicsTask(const FARPhysicsRegistry& Registry)
   // 磁力タスク登録
   if (Registry.IsMagneticForceType())
   {
-    m_tickProcessorActor->RegisterMagneticTask(Registry.Source, Registry.Target, Registry.Type, Registry.Frequency);
+    // m_tickProcessorActor->RegisterMagneticTask(Registry.Source, Registry.Target, Registry.Type, Registry.Frequency);
+    m_taskRegistrar->RegisterMagneticTask(Registry.Source, Registry.Target, Registry.Type, Registry.Frequency);
   }
 }
 
 void FARPhysicsEngine::UnregisterPhysicsProcess(const FARPhysicsUnregistry& Unregistry)
 {
+  if (!m_taskRegistrar.IsValid())
+  {
+    return;
+  }
+
   if ((Unregistry.Source == nullptr) || (Unregistry.Target == nullptr))
   {
     AR_LOG(LogARPhysics, Warning, TEXT("Invalid unregistry"));
@@ -88,7 +109,7 @@ void FARPhysicsEngine::UnregisterPhysicsProcess(const FARPhysicsUnregistry& Unre
     {
       case UnregisterMagnetic:
       {
-        m_tickProcessorActor->UnregisterMagneticTask(Unregistry.Source, Unregistry.Target);
+        m_taskRegistrar->UnregisterMagneticTask(Unregistry.Source, Unregistry.Target);
       }
       break;
     }

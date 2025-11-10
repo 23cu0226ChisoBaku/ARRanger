@@ -6,6 +6,7 @@
 #include "Physics/Core/ARPhysicsEngine.h"
 #include "Physics/Core/ARPhysicsTickProcessorActor.h"
 #include "Physics/Gameplay/ARPhysicsGlobal.h"
+#include "Physics/Core/ARPhysicsTypes.h"
 
 // Log Header
 #include "Internal/ARLoggingHeader.h"
@@ -32,7 +33,7 @@ namespace ARRanger::Private
     check(World != nullptr);
     check(Subclass != nullptr);
 
-    FARPhysicsEngineInitializationParameters param;
+    FARPhysicsEngineInitializationParameters param{};
     param.World = World;
     param.SubclassOfPTPActor = Subclass;
 
@@ -49,12 +50,12 @@ using ARRanger::Private::GetEngine;
 
 void IARPhysicsSystemHost::Physics_RegisterMagneticTask(IARMagnetizableInterface* InSource, IARMagnetizableInterface* InTarget)
 {
-  Physics_RequestMagneticTaskImpl(InSource, InTarget, EMagneticTaskFrequency::Constantly);
+  Physics_RequestMagneticTaskImpl(InSource, InTarget, EPhysicsExecuteFrequency::Constantly);
 }
 
 void IARPhysicsSystemHost::Physics_RegisterMagneticTask_Once(IARMagnetizableInterface* InSource, IARMagnetizableInterface* InTarget)
 {
-  Physics_RequestMagneticTaskImpl(InSource, InTarget, EMagneticTaskFrequency::Once);
+  Physics_RequestMagneticTaskImpl(InSource, InTarget, EPhysicsExecuteFrequency::Once);
 }
 
 void IARPhysicsSystemHost::Physics_UnregisterMagneticTask(IARMagnetizableInterface* InSource, IARMagnetizableInterface* InTarget)
@@ -67,7 +68,7 @@ void IARPhysicsSystemHost::Physics_UnregisterMagneticTask(IARMagnetizableInterfa
   GetEngine().UnregisterPhysicsProcess(termination);
 }
 
-void IARPhysicsSystemHost::Physics_RequestMagneticTaskImpl(IARMagnetizableInterface* InSource, IARMagnetizableInterface* InTarget, EMagneticTaskFrequency Frequency)
+void IARPhysicsSystemHost::Physics_RequestMagneticTaskImpl(IARMagnetizableInterface* InSource, IARMagnetizableInterface* InTarget, EPhysicsExecuteFrequency Frequency)
 {
   if ((InSource == nullptr) || (InTarget == nullptr))
   {
@@ -75,7 +76,7 @@ void IARPhysicsSystemHost::Physics_RequestMagneticTaskImpl(IARMagnetizableInterf
     return;
   }
 
-  FARPhysicsRegistry request;
+  FARPhysicsRegistry request{};
   request.Source = InSource;
   request.Target = InTarget;
   
@@ -95,20 +96,7 @@ void IARPhysicsSystemHost::Physics_RequestMagneticTaskImpl(IARMagnetizableInterf
     return;
   }
 
-  // TODO 二種類のEnumを利用する手間を減らしたい
-  switch (Frequency)
-  {
-    case Once:
-    {
-      request.Frequency = EPhysicsExecuteFrequency::Once;
-    }
-    break;
-    case Constantly:
-    {
-      request.Frequency = EPhysicsExecuteFrequency::Constantly;
-    }
-    break;
-  }
+  request.Frequency = Frequency;
 
   GetEngine().RegisterPhysicsTask(request);
 }
