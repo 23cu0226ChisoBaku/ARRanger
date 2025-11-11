@@ -1,8 +1,15 @@
-﻿#pragma once
+﻿/**
+ * @file ARPhysicsTickTask.h
+ * @author MAI ZHICONG
+ * @brief Tick task for ARPhysicsEngine
+ */
+
+#pragma once
 
 #ifndef _AR_CORE_PHYSICS_TICK_TASK_
 #define _AR_CORE_PHYSICS_TICK_TASK_
 
+/**Forward declaration */
 struct FARPhysicsTickParameters;
 class FARPhysicsTickFunctionInterface;
 
@@ -11,6 +18,11 @@ namespace ARRanger
 
 namespace Physics
 {
+  /**
+   * @brief Base task for ARPhysicsTickManager
+   * Handle groups of tick function interface
+   * 
+   */
   class FARPhysicsTickTask
   {
     public:

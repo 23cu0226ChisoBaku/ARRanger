@@ -8,6 +8,7 @@
 #define UE_API ARRANGER_API
 
 class AOutlineTickActor;
+class AARPhysicsTickProcessorActor;
 
 namespace Private
 {
@@ -43,6 +44,7 @@ protected:
 private:
   void InitializeObserver();
   void InitializeEvents();
+  void InitializeARPhysics();
   void ProcessGameResult(EGameResultState ResultState);
   void OnResetCommandSent();
   void SetGameUserSettings(TArray<Private::FARGameUserSettingsData>& OutSettingsDataStack);
@@ -51,6 +53,7 @@ private:
   void InitializeOnMapEnemies();
   void UninitializeAliveEnemies();
   void UninitializeEvents();
+  void UninitializeARPhysics();
   void UnsetGameUserSettings(TArray<Private::FARGameUserSettingsData>& OutSettingsDataStack);
 
   UFUNCTION()
@@ -94,7 +97,10 @@ private:
 
   // TODO Temporary
   UPROPERTY(EditDefaultsOnly)
-  TSubclassOf<class AARPhysicsTickProcessorActor> ProcessorActorClass;
+  TSubclassOf<AARPhysicsTickProcessorActor> ProcessorActorClass;
+
+  UPROPERTY()
+  TObjectPtr<AARPhysicsTickProcessorActor> ProcessorActor;
 
 	TSharedPtr<ARRanger::INotifyHandlerInterface> NotifyHandler;
 	TArray< TWeakInterfacePtr< IObservableSubjectInterface > > Subjects;
@@ -105,10 +111,9 @@ private:
   UPROPERTY()
   TObjectPtr<AActor> BossPtr;
 
-  uint8 bGameResultHandled : 1;
-
   FTimerHandle GameResultTimerHandle;
-
+  
+  uint8 bGameResultHandled : 1;
 };
 
 #undef UE_API

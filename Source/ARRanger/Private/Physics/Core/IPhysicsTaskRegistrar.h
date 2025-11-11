@@ -7,6 +7,7 @@
 
 class IARMagnetizableInterface;
 enum class EPhysicsExecuteFrequency : uint8;
+enum class EPhysicsRegistryType : uint8;
 
 // This class does not need to be modified.
 UINTERFACE(MinimalAPI)

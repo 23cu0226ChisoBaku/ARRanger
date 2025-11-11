@@ -33,7 +33,7 @@ void FARPhysicsTickTask::ExecuteTask(const FARPhysicsTickParameters& TickParams)
     check(tickFunc != nullptr);
     tickFunc->ExecuteTick(TickParams);
 
-    if (tickFunc->Frequency == EARPhysicsTickFrequency::TF_Once)
+    if (tickFunc->Frequency == EPhysicsExecuteFrequency::Once)
     {
       removedTickFunctions.Emplace(tickFunc);
     }
@@ -87,6 +87,7 @@ bool FARPhysicsTickTask::HasTickFunction(const FARPhysicsTickFunctionInterface* 
 {
   return m_enabledTickFunctions.Contains(TickFunction) || m_disabledTickFunctions.Contains(TickFunction);
 }
+
 } // namespace ARRanger::Physics
 
 } // namespace ARRanger

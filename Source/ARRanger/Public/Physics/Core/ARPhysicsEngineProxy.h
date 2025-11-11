@@ -1,4 +1,10 @@
-﻿#pragma once
+﻿/**
+ * @file ARPhysicsEngineProxy.h
+ * @author MAI ZHICONG
+ * @brief Base proxy of ARPhysicsEngine
+ */
+
+#pragma once
 
 #ifndef _AR_PHYSICS_CORE_PHYSICS_ENGINE_PROXY_
 #define _AR_PHYSICS_CORE_PHYSICS_ENGINE_PROXY_

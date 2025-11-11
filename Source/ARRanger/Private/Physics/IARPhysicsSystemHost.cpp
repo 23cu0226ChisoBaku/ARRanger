@@ -7,6 +7,7 @@
 #include "Physics/Core/ARPhysicsTickProcessorActor.h"
 #include "Physics/Gameplay/ARPhysicsGlobal.h"
 #include "Physics/Core/ARPhysicsTypes.h"
+#include "Physics/Core/IPhysicsTaskRegistrar.h"
 
 // Log Header
 #include "Internal/ARLoggingHeader.h"
@@ -22,21 +23,12 @@ namespace ARRanger::Private
     return Engine;
   }
 
-  void FARPhysicsCore::InitializeARPhysicsInWorld(UWorld* World)
+  void FARPhysicsCore::InitializeARPhysics(IPhysicsTaskRegistrar* InTaskRegistrar)
   {
-    check(World != nullptr);
-    InitializeARPhysicsInWorldWithActorType(World, AARPhysicsTickProcessorActor::StaticClass());
-  }
-
-  void FARPhysicsCore::InitializeARPhysicsInWorldWithActorType(UWorld* World, TSubclassOf<class AARPhysicsTickProcessorActor> Subclass)
-  {
-    check(World != nullptr);
-    check(Subclass != nullptr);
-
+    check(InTaskRegistrar != nullptr);
     FARPhysicsEngineInitializationParameters param{};
-    param.World = World;
-    param.SubclassOfPTPActor = Subclass;
-
+    param.TaskRegistrar = InTaskRegistrar;
+    
     GetEngine().InitializePhysicsEngine(param);
   }
 

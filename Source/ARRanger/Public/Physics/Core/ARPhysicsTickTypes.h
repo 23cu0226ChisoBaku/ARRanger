@@ -1,9 +1,15 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+/**
+ * @file ARPhysicsTickTypes.h
+ * @author MAI ZHICONG
+ * @brief Definitions of specific TickFunction used by ARPhysicsTickObject
+ */
 
 #pragma once
 
 #ifndef _AR_CORE_PHYSICS_TICK_TYPES_
 #define _AR_CORE_PHYSICS_TICK_TYPES_
+
+#include "Physics/Core/ARPhysicsTypes.h"
 
 /**前方宣言 */
 struct FARPhysicsTickParameters;
@@ -17,30 +23,13 @@ namespace ARRanger::Physics
  */
 struct FARPhysicsTickParameters
 {
-  /**
-   * @brief DeltaTime
-   */
   float DeltaTime;
-  
-  /**
-   * @brief 合計シミュレーション時間
-   */
-  float TotalSimTime;
 };
 
 enum class EARPhysicsTickType : uint8
 {
   TT_Magnetic,
   TT_Gravity,
-};
-
-enum class EARPhysicsTickFrequency : uint8
-{
-  /**Tick every time until tick function is disabled */
-  TF_Default,
-
-  /**Only tick once */
-  TF_Once,
 };
 
 class FARPhysicsTickFunctionInterface
@@ -51,7 +40,7 @@ class FARPhysicsTickFunctionInterface
   public:
     EARPhysicsTickType PhysicsTickType;
 
-    EARPhysicsTickFrequency Frequency;
+    EPhysicsExecuteFrequency Frequency;
 
   private:
     enum ETickState_Internal

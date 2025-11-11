@@ -4,7 +4,7 @@
 
 using ARRanger::Physics::FARPhysicsTickTask;
 
-class FARPhysicsTickManager : public ARRanger::Physics::FARPhysicsTickManagerInterface
+class FARPhysicsTickManager : public ARRanger::Physics::IARPhysicsTickManagerInterface
 {
   public:
     ~FARPhysicsTickManager()
@@ -81,7 +81,7 @@ class FARPhysicsTickManager : public ARRanger::Physics::FARPhysicsTickManagerInt
 
 namespace ARRanger::Physics
 {
-  FARPhysicsTickManagerInterface& FARPhysicsTickManagerInterface::Get()
+  IARPhysicsTickManagerInterface& IARPhysicsTickManagerInterface::Get()
   {
     return FARPhysicsTickManager::Get();
   }

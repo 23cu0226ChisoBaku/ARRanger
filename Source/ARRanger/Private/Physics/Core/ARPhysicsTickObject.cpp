@@ -8,7 +8,6 @@
 UARPhysicsTickObject::UARPhysicsTickObject()
   : PreviousResult{}
   , EvaluatedResult{}
-  , m_internalData{::MakeUnique<FInternalData>()}
 { }
 
 void UARPhysicsTickObject::RegisterPhysicsTickFunction()
@@ -42,14 +41,13 @@ void UARPhysicsTickObject::SetFrequency(EARPhysicsTickFrequency InFrequency)
 void UARPhysicsTickObject::BeginTickObject()
 {
   PreviousResult = EvaluatedResult;
-  m_internalData->bIsEvaluateFinishedCurrentFrame = false;
+  bIsEvaluateFinishedCurrentFrame = false;
   OnBeginTickObject();  
 }
 
 void UARPhysicsTickObject::Tick(const FARPhysicsTickParameters& TickParams)
 {
-  check(m_internalData.IsValid());
-  if (!m_internalData->bIsEvaluateFinishedCurrentFrame)
+  if (!bIsEvaluateFinishedCurrentFrame)
   {
     FARPhysicsEvaluationResult result{};
     OnTick(TickParams, result);
@@ -58,19 +56,17 @@ void UARPhysicsTickObject::Tick(const FARPhysicsTickParameters& TickParams)
     // Same as AActor::Tick
     if (GetClass()->HasAnyClassFlags(CLASS_CompiledFromBlueprint) || !GetClass()->HasAllClassFlags(CLASS_Native))
     {
-      TickOnBlueprint(TickParams.DeltaTime, TickParams.TotalSimTime, result);
+      TickOnBlueprint(TickParams.DeltaTime, result);
     }
 
     EvaluatedResult = result;
-    m_internalData->bIsEvaluateFinishedCurrentFrame = true;
+    bIsEvaluateFinishedCurrentFrame = true;
   }
 }
 
 void UARPhysicsTickObject::EndTickObject()
 {
-  check(m_internalData.IsValid());
-
-  if (m_internalData->bIsEvaluateFinishedCurrentFrame)
+  if (bIsEvaluateFinishedCurrentFrame)
   {
     OnEndTickObject();
   }

@@ -1,4 +1,8 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+/**
+ * @file ARPhysicsTickProcessorActor.h
+ * @author MAI ZHICONG
+ * @brief Actor to tick PhysicsTickManager every frame in game world
+ */
 
 #pragma once
 
@@ -8,12 +12,13 @@
 
 #include "ARPhysicsTickProcessorActor.generated.h"
 
+/**前方宣言 */
 class FARPhysicsEngine;
 class IARMagnetizableInterface;
 class UARMagneticTickObject;
-
-enum class EPhysicsRegistryType;
+enum class EPhysicsRegistryType : uint8;
 enum class EPhysicsExecuteFrequency : uint8;
+
 
 USTRUCT()
 struct FARMagneticTickObjectEntry
@@ -26,7 +31,6 @@ struct FARMagneticTickObjectEntry
   TArray<TWeakInterfacePtr<IARMagnetizableInterface>> AffectedObjectInterfaces;
 
   void RegisterAffectedMagnetizedObject() const;
-
   ARRANGER_API friend bool operator==(const FARMagneticTickObjectEntry& Lhs, const FARMagneticTickObjectEntry& Rhs);
 };
 
@@ -36,30 +40,24 @@ class AARPhysicsTickProcessorActor : public AActor , public IPhysicsTaskRegistra
 	GENERATED_BODY()
 
   public:	
-    // Sets default values for this actor's properties
     ARRANGER_API AARPhysicsTickProcessorActor();
 
   protected:
-    // Called when the game starts or when spawned
-
     /**Start AActor interface */
-    ARRANGER_API virtual void BeginPlay() override;
-    ARRANGER_API virtual void AsyncPhysicsTickActor(float DeltaTime, float SimTime) override;
     ARRANGER_API virtual void Tick(float DeltaTime) override;
     /**End AActor interface */
 
-    // TODO May turn these to virtual
     ARRANGER_API void PreProcessARPhysicsTasks();
-    ARRANGER_API void ProcessARPhysicsTasks(float DeltaTime, float SimTime);
+    ARRANGER_API void ProcessARPhysicsTasks(float DeltaTime);
     ARRANGER_API void PostProcessARPhysicsTasks();
   
   public:
-    void OnSpawnActor(FARPhysicsEngine* PhysicsEnginePtr) { OwningPhysicsEngine = PhysicsEnginePtr; }
-    bool IsBelongTo(const FARPhysicsEngine* PhysicsEngine) const { return OwningPhysicsEngine == PhysicsEngine; }
+    /**Start IPhysicsTaskRegistrar Interface */
     ARRANGER_API void RegisterMagneticTask(IARMagnetizableInterface* InSource, IARMagnetizableInterface* InTarget, EPhysicsRegistryType InRequestType, EPhysicsExecuteFrequency InFrequency) override;
     ARRANGER_API void UnregisterMagneticTask(IARMagnetizableInterface* InSource, IARMagnetizableInterface* InTarget) override;
-
+    /**End IPhysicsTaskRegistrar Interface */
   private:
+
     void RegisterMagneticTarget(IARMagnetizableInterface* InTarget, IARMagnetizableInterface* InAffectedObj, EPhysicsRegistryType InRequestType, EPhysicsExecuteFrequency InFrequency);
     void UnregisterMagneticTarget(IARMagnetizableInterface* InSource, IARMagnetizableInterface* InTarget);
     void RegisterQueuedTickObject();
@@ -74,16 +72,10 @@ class AARPhysicsTickProcessorActor : public AActor , public IPhysicsTaskRegistra
     TSet<UARMagneticTickObject*> RegisterTickObjectQueue;
     TSet<UARMagneticTickObject*> UnregisterTickObjectQueue;
 
-    FARPhysicsEngine* OwningPhysicsEngine;
-
     UPROPERTY(EditDefaultsOnly, meta = (AllowPrivateAccess = "true"))
     TSubclassOf<UARMagneticTickObject> AttractionTickClass;
 
     UPROPERTY(EditDefaultsOnly, meta = (AllowPrivateAccess = "true"))
     TSubclassOf<UARMagneticTickObject> RepulsionTickClass;
-
-#if WITH_EDITOR
-    ARRANGER_API void Debug_LogTickObjectMessage();
-#endif
 
 };

@@ -1,4 +1,8 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+/**
+ * @file ARPhysicsTickObject.h
+ * @author MAI ZHICONG
+ * @brief Base class of ARPhysics tick object
+ */
 
 #pragma once
 
@@ -17,7 +21,7 @@ struct FARPhysicsEvaluationResult
   GENERATED_BODY()
   
   /**
-   * @brief 評価した力の結果
+   * @brief 評価した力(ベクトル3D)の結果
    */
   UPROPERTY(VisibleAnywhere)
   FVector ForceResult; 
@@ -32,37 +36,87 @@ class UARPhysicsTickObject : public UObject
 	GENERATED_BODY()
 
   protected:
+    /**Tick function to call TickPhysics */
     FARPhysicsTickFunction PrimaryPhysicsTick;
-
-  private:
-    /**
-     * @brief 内部データ
-     */
-    struct FInternalData
-    {
-      uint8 bIsEvaluateFinishedCurrentFrame : 1 = false;
-    };
 
   public:
     ARRANGER_API UARPhysicsTickObject();
 
+    /**
+     * @brief Register tick function to TickManager
+     */
     ARRANGER_API void RegisterPhysicsTickFunction();
-    ARRANGER_API void TickPhysics(const FARPhysicsTickParameters& TickParams);    
+
+    /**
+     * @brief Tick function called by FARPhysicsTickFunction
+     * @param TickParams 
+     */
+    ARRANGER_API void TickPhysics(const FARPhysicsTickParameters& TickParams);
+    
+    /**
+     * @brief Unregister tick function in TickManager if RegisterPhysicsTickFunction() called
+     * @see   RegisterPhysicsTickFunction
+     */
     ARRANGER_API void UnregisterPhysicsTickFunction();
 
+    /**
+     * @brief Set the tick frequency of tick function
+     * @param InFrequency 
+     */
     ARRANGER_API void SetFrequency(EARPhysicsTickFrequency InFrequency);
     
+    /**
+     * @brief Return result evaluated in last frame
+     * @return FARPhysicsEvaluationResult 
+     */
     FARPhysicsEvaluationResult GetLastFrameResult() const { return PreviousResult; }
+
+    /**
+     * @brief Return result evaluated in current frame.
+     * May have same value of PreviousResult
+     * @return FARPhysicsEvaluationResult 
+     */
     FARPhysicsEvaluationResult GetEvaluatedResult() const { return EvaluatedResult; }
-    bool IsCurrentFrameEvaluateFinished() const { return m_internalData.IsValid() && m_internalData->bIsEvaluateFinishedCurrentFrame; }
+
+    /**
+     * @brief Check if evaluation is finished in current frame
+     * @return bIsEvaluateFinishedCurrentFrame
+     */
+    bool IsCurrentFrameEvaluateFinished() const { return bIsEvaluateFinishedCurrentFrame; }
+
+    /**
+     * @brief Check if tick function is registered
+     * 
+     * @return true if tick function is registered, otherwise false
+     */
     bool IsTickFunctionRegistered() const { return PrimaryPhysicsTick.IsTickFunctionRegistered(); }
     
+    /**
+     * @brief Tick event for blueprint
+     */
     UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "Physics Tick"))
-    ARRANGER_API void TickOnBlueprint(float DeltaTime, float Total, FARPhysicsEvaluationResult& Result);
+    ARRANGER_API void TickOnBlueprint(float DeltaTime, FARPhysicsEvaluationResult& Result);
     
   private:
+
+    /**
+     * @brief Process before Tick call 
+     * Will call virtual function OnBeginTickObject 
+     */
     void BeginTickObject();
+
+    /**
+     * @brief Called every frame if ARPhysicsTask is registered
+     * Will call virtual function OnTick
+     * 
+     * @param TickParams 
+     */
     void Tick(const FARPhysicsTickParameters& TickParams);
+
+    /**
+     * @brief Called after Tick
+     * Will call virtual function OnEndTickObject
+     */
     void EndTickObject();
     
   protected:
@@ -81,5 +135,5 @@ class UARPhysicsTickObject : public UObject
     UPROPERTY(VisibleAnywhere)
     FARPhysicsEvaluationResult EvaluatedResult;
 
-    TUniquePtr<FInternalData> m_internalData;
+    uint8 bIsEvaluateFinishedCurrentFrame : 1 = false;
 };

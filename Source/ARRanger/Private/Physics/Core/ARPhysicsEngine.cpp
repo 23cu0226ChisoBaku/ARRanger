@@ -14,7 +14,6 @@ DEFINE_COUNT_LIMITER_PROPERTY(FARPhysicsEngine)
 
 FARPhysicsEngine::FARPhysicsEngine()
   : m_proxy{nullptr}
-  , m_tickProcessorActor{nullptr}
   , m_taskRegistrar{nullptr}
 { }
 
@@ -25,34 +24,21 @@ FARPhysicsEngine::~FARPhysicsEngine()
 
 void FARPhysicsEngine::InitializePhysicsEngine(const FARPhysicsEngineInitializationParameters& Parameters)
 {
-  if (!m_tickProcessorActor.IsValid())
-  {
-    InitializePhysicsTickProcessorActor(Parameters.World, Parameters.SubclassOfPTPActor); 
-  }
-
   m_proxy = MakePhysicsEngineProxy();
   if (m_proxy.IsValid())
   {
     m_proxy->Initialize(this);
   }
-}
 
-void FARPhysicsEngine::InitializePhysicsEngine(IPhysicsTaskRegistrar* TaskRegistrar)
-{
-  check(TaskRegistrar != nullptr);
-  m_taskRegistrar = TaskRegistrar;
+  if (Parameters.TaskRegistrar != nullptr)
+  {
+    m_taskRegistrar = Parameters.TaskRegistrar;
+  }
 }
 
 void FARPhysicsEngine::DeinitializePhysicsEngine()
 {
-  if (m_tickProcessorActor.IsValid())
-  {
-    m_tickProcessorActor->Destroy();
-    m_tickProcessorActor.Reset();
-  }
-
   m_proxy.Reset();
-
   m_taskRegistrar.Reset();
 }
 
@@ -121,17 +107,3 @@ TSharedPtr<FARPhysicsEngineProxy> FARPhysicsEngine::MakePhysicsEngineProxy() con
   return ::MakeShared<FARPhysicsEngineProxy>();
 }
 
-void FARPhysicsEngine::InitializePhysicsTickProcessorActor(UWorld* World, TSubclassOf<AARPhysicsTickProcessorActor> Subclass)
-{
-  check(World != nullptr);
-  check(Subclass != nullptr);
-
-  AARPhysicsTickProcessorActor* spawnedActor = World->SpawnActorDeferred<AARPhysicsTickProcessorActor>(Subclass, FTransform::Identity);
-  check(spawnedActor != nullptr);
-
-  // TickActor初期化
-  spawnedActor->OnSpawnActor(this);
-  spawnedActor->FinishSpawning(FTransform::Identity);
-
-  m_tickProcessorActor = spawnedActor;
-}

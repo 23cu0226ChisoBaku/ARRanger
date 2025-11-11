@@ -1,26 +1,28 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+/**
+ * @file ARPhysicsEngine.h
+ * @author MAI ZHICONG
+ * @brief Physics engine for Project:ARRanger
+ */
 
 #pragma once
 
 #ifndef _AR_PHYSICS_ENGINE_
 #define _AR_PHYSICS_ENGINE_
 
+#include "UObject/WeakInterfacePtr.h"
+
 #include "Internal/CountLimiter.h"
 #include "Physics/Core/ARPhysicsTypes.h"
-#include "UObject/WeakInterfacePtr.h"
 
 /**前方宣言 */
 class IARMagnetizableInterface;
-class FARPhysicsEngineProxy;
-class AARPhysicsTickProcessorActor;
-class UWorld;
-
 class IPhysicsTaskRegistrar;
+class FARPhysicsEngineProxy;
 
 /**
  * @brief 物理タスク登録タイプ
  */
-enum class EPhysicsRegistryType
+enum class EPhysicsRegistryType : uint8
 {
   None,               // タイプがない
   RequestAttraction,  // 引力タイプ
@@ -41,10 +43,10 @@ enum class EPhysicsUnregistryType
  */
 struct FARPhysicsRegistry
 {
-  /**磁力対象 */
+  /**磁力対象1 */
   IARMagnetizableInterface* Source = nullptr;
 
-  /**磁力対象 */
+  /**磁力対象2 */
   IARMagnetizableInterface* Target = nullptr;
 
   /**登録タイプ */
@@ -61,7 +63,7 @@ struct FARPhysicsRegistry
   __forceinline bool IsMagneticForceType() const
   {
     using enum EPhysicsRegistryType;
-    return Type == RequestAttraction || Type == RequestRepulsion;
+    return (Type == RequestAttraction) || (Type == RequestRepulsion);
   }
 };
 
@@ -70,10 +72,10 @@ struct FARPhysicsRegistry
  */
 struct FARPhysicsUnregistry
 {
-  /**磁力対象 */
+  /**磁力対象1 */
   IARMagnetizableInterface* Source = nullptr;
 
-  /**磁力対象 */
+  /**磁力対象2 */
   IARMagnetizableInterface* Target = nullptr;
 
   /**登録解除タイプ */
@@ -85,15 +87,12 @@ struct FARPhysicsUnregistry
  */
 struct FARPhysicsEngineInitializationParameters
 {
-  /**初期化するUWorld */
-  TObjectPtr<UWorld> World;
-
-  /**物理タスクTick実行Actorのクラス */
-  TSubclassOf<AARPhysicsTickProcessorActor> SubclassOfPTPActor;
+  IPhysicsTaskRegistrar* TaskRegistrar = nullptr;
 };
 
 /**
  * @brief AR物理エンジンクラス
+ * インスタンス最大数 : 1
  */
 class FARPhysicsEngine : private ARRanger::Private::FCountLimiter<FARPhysicsEngine, 1>
 {
@@ -114,8 +113,6 @@ class FARPhysicsEngine : private ARRanger::Private::FCountLimiter<FARPhysicsEngi
      * @see FARPhysicsEngineInitializationParameters
      */
     ARRANGER_API void InitializePhysicsEngine(const FARPhysicsEngineInitializationParameters& Parameters);
-
-    ARRANGER_API void InitializePhysicsEngine(IPhysicsTaskRegistrar* TaskRegistrar);
 
     /**
      * @brief 物理エンジンを解放する
@@ -145,39 +142,16 @@ class FARPhysicsEngine : private ARRanger::Private::FCountLimiter<FARPhysicsEngi
      */
     PhysicsEngineProxyPtr GetProxy() const { return m_proxy.Get(); }
 
-    /**
-     * // FIXME:Implement immediately
-     */
-    PhysicsEngineProxyPtr BuildProxy() const { return m_proxy.Get(); }
-
   protected:
     ARRANGER_API virtual TSharedPtr<FARPhysicsEngineProxy> MakePhysicsEngineProxy() const;
 
-  protected:
-    AARPhysicsTickProcessorActor* GetTickProcessorActorPrivate() { return m_tickProcessorActor.Get(); }
-
   private:
 
-    /**
-     * @brief 物理タスクTickアクターを初期化
-     * 
-     * @param World UWorldポインター
-     * @param Subclass 物理タスクTickアクターUClass
-     */
-    void InitializePhysicsTickProcessorActor(UWorld* World, TSubclassOf<AARPhysicsTickProcessorActor> Subclass);
-
-  private:
-
-    /**プロキシ */
-    // TODO ここで保存しないかも
+    /**強参照 */ /**プロキシ */
     TSharedPtr<FARPhysicsEngineProxy> m_proxy;
 
-    /**物理タスクTickアクター弱参照 */
-    TWeakObjectPtr<AARPhysicsTickProcessorActor> m_tickProcessorActor;
-
+    /**弱参照 */ /**物理タスクレジストラ */
     TWeakInterfacePtr<IPhysicsTaskRegistrar> m_taskRegistrar;
-
-
 };
 
 

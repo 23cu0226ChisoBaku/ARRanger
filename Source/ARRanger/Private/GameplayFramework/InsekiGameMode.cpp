@@ -88,12 +88,11 @@ void AInsekiGameMode::BeginPlay()
 		}
 	}
 
+  /**初期化 */
   InitializeObserver();
   InitializeEvents();
   InitializeOnMapEnemies();
-
-  // 物理システム初期化
-  ARRanger::Private::FARPhysicsCore::InitializeARPhysicsInWorldWithActorType(GetWorld(), ProcessorActorClass);
+  InitializeARPhysics();
 
   // Register debug key
   ARRanger::Global::RegisterDebugKey();
@@ -119,6 +118,7 @@ void AInsekiGameMode::EndPlay(const EEndPlayReason::Type EndPlayReason)
   UnregisterBattleEventDelegate();
   UninitializeAliveEnemies();
   UninitializeEvents();
+  UninitializeARPhysics();
 
   UnsetGameUserSettings(gSettingsDataStack);
 }
@@ -198,6 +198,16 @@ void AInsekiGameMode::InitializeObserver()
     NotifyHandler = playerHandler;
   }  
 
+}
+
+void AInsekiGameMode::InitializeARPhysics()
+{
+  check(ProcessorActorClass != nullptr);
+  AARPhysicsTickProcessorActor* spawnedActor = GetWorld()->SpawnActor<AARPhysicsTickProcessorActor>(ProcessorActorClass, FTransform::Identity);
+  ProcessorActor = spawnedActor;
+
+  // 物理システム初期化
+  ARRanger::Private::FARPhysicsCore::InitializeARPhysics(ProcessorActor);
 }
 
 void AInsekiGameMode::OnEnemyDead(AActor* InEnemy)
@@ -387,6 +397,16 @@ void AInsekiGameMode::UninitializeEvents()
   {
     AEnemySpawner* spawner = ::Cast<AEnemySpawner>(spawnerActor);
     spawner->GetSpawnedActorDelegate.RemoveAll(this);
+  }
+}
+
+void AInsekiGameMode::UninitializeARPhysics()
+{
+  ARRanger::Private::FARPhysicsCore::DeinitializeARPhysics();
+  if (ProcessorActor != nullptr)
+  {
+    ProcessorActor->Destroy();
+    ProcessorActor = nullptr;
   }
 }
 

@@ -1,5 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #include "Physics/Core/ARPhysicsTickProcessorActor.h"
 
 #include "Physics/Core/ARPhysicsEngine.h"
@@ -14,21 +12,19 @@
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ARPhysicsTickProcessorActor)
 
-using ARRanger::Physics::FARPhysicsTickManagerInterface;
+using ARRanger::Physics::IARPhysicsTickManagerInterface;
 
 void FARMagneticTickObjectEntry::RegisterAffectedMagnetizedObject() const
 {
-  if (TickObject == nullptr)
+  if (TickObject != nullptr)
   {
-    return;
-  }
-
-  for (const auto& affectedObjWeakPtr : AffectedObjectInterfaces)
-  {
-    if (affectedObjWeakPtr.IsValid())
+    for (const auto& affectedObjWeakPtr : AffectedObjectInterfaces)
     {
-      TickObject->RegisterAffectedMagnetizedObject(affectedObjWeakPtr.Get());
-    }
+      if (affectedObjWeakPtr.IsValid())
+      {
+        TickObject->RegisterAffectedMagnetizedObject(affectedObjWeakPtr.Get());
+      }
+    }  
   }
 }
 
@@ -39,7 +35,6 @@ bool operator==(const FARMagneticTickObjectEntry& Lhs, const FARMagneticTickObje
 
 // Sets default values
 AARPhysicsTickProcessorActor::AARPhysicsTickProcessorActor()
-  : OwningPhysicsEngine{nullptr}
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -50,21 +45,6 @@ AARPhysicsTickProcessorActor::AARPhysicsTickProcessorActor()
 
   AttractionTickClass = UARMagneticAttractionTickObject::StaticClass();
   RepulsionTickClass = UARMagneticRepulsionTickObject::StaticClass();
-}
-
-// Called when the game starts or when spawned
-void AARPhysicsTickProcessorActor::BeginPlay()
-{
-  // SpawnActorDeferredを使用して生成するように
-  ensureMsgf(OwningPhysicsEngine != nullptr, TEXT("Create this Actor by using SpawnActorDeferred"));
-
-	Super::BeginPlay();
-	
-}
-
-void AARPhysicsTickProcessorActor::AsyncPhysicsTickActor(float DeltaTime, float SimTime)
-{
-  Super::AsyncPhysicsTickActor(DeltaTime, SimTime);
 }
 
 void AARPhysicsTickProcessorActor::PreProcessARPhysicsTasks()
@@ -79,21 +59,20 @@ void AARPhysicsTickProcessorActor::PreProcessARPhysicsTasks()
   }
 }
 
-void AARPhysicsTickProcessorActor::ProcessARPhysicsTasks(float DeltaTime, float SimTime)
+void AARPhysicsTickProcessorActor::ProcessARPhysicsTasks(float DeltaTime)
 {
-  FARPhysicsTickManagerInterface& tickManager = FARPhysicsTickManagerInterface::Get();
+  IARPhysicsTickManagerInterface& tickManagerInterface = IARPhysicsTickManagerInterface::Get();
   FARPhysicsTickParameters params;
   params.DeltaTime = DeltaTime;
-  params.TotalSimTime = SimTime;
 
   // Process Magnetic
   {
-    tickManager.ExecuteARPhysicsTick(EARPhysicsTickType::TT_Magnetic, params);
+    tickManagerInterface.ExecuteARPhysicsTick(EARPhysicsTickType::TT_Magnetic, params);
   }
 
   // Process Gravity
   {
-    tickManager.ExecuteARPhysicsTick(EARPhysicsTickType::TT_Gravity, params);
+    tickManagerInterface.ExecuteARPhysicsTick(EARPhysicsTickType::TT_Gravity, params);
   }
 }
 
@@ -121,12 +100,12 @@ void AARPhysicsTickProcessorActor::Tick(float DeltaTime)
   // Trace profile
   TRACE_CPUPROFILER_EVENT_SCOPE(AARPhysicsTickProcessorActor::Tick);
 
-  PreProcessARPhysicsTasks();
-
-  // 物理演算タスクを実行する
-  ProcessARPhysicsTasks(DeltaTime, 0.0f);
-
-  PostProcessARPhysicsTasks();
+  {
+    PreProcessARPhysicsTasks();
+    // 物理演算タスクを実行する
+    ProcessARPhysicsTasks(DeltaTime);
+    PostProcessARPhysicsTasks();
+  }
 
 }
 
@@ -213,30 +192,7 @@ void AARPhysicsTickProcessorActor::RegisterMagneticTarget(IARMagnetizableInterfa
 
   check(foundEntry != nullptr);
   foundEntry->AffectedObjectInterfaces.AddUnique(InAffectedObj);
-
-  switch (InFrequency)
-  {
-    case EPhysicsExecuteFrequency::Once:
-    {
-      foundEntry->TickObject->SetFrequency(EARPhysicsTickFrequency::TF_Once);
-    }
-    break;
-
-    case EPhysicsExecuteFrequency::Constantly:
-    {
-      foundEntry->TickObject->SetFrequency(EARPhysicsTickFrequency::TF_Default);
-    }
-    break;
-
-    // Not allowed Frequency that is not implemented
-    default:
-    {
-      check(false);
-    } 
-    break;
-  }
-
-  
+  foundEntry->TickObject->SetFrequency(InFrequency); 
 }
 
 void AARPhysicsTickProcessorActor::UnregisterMagneticTarget(IARMagnetizableInterface* InSource, IARMagnetizableInterface* InTarget)
@@ -273,7 +229,6 @@ FARMagneticTickObjectEntry* AARPhysicsTickProcessorActor::AllocateMagneticTickOb
   check(newTickObject != nullptr);
 
   newTickObject->SetTargetObject(Target);
-  newTickObject->SetPhysicsEngineProxy(OwningPhysicsEngine->GetProxy());
 
   RegisterTickObjectQueue.Emplace(newTickObject);
 
@@ -284,13 +239,3 @@ FARMagneticTickObjectEntry* AARPhysicsTickProcessorActor::AllocateMagneticTickOb
   // TODO Mayby dangerous
   return &MagneticTickObjectEntries[index];
 }
-
-
-#if WITH_EDITOR
-
-void AARPhysicsTickProcessorActor::Debug_LogTickObjectMessage()
-{
-
-}
-
-#endif
