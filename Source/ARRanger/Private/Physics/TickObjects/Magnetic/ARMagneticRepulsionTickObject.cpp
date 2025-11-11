@@ -12,13 +12,14 @@ namespace
   constexpr float TOP_DETECTED_COMPONENT_NORM_Z_THRESHOLD = 0.7f;
 }
 
-UARMagneticRepulsionTickObject::UARMagneticRepulsionTickObject()
-{
-}
-
+// TODO Should remove all magic number
 void UARMagneticRepulsionTickObject::OnTick(const FARPhysicsTickParameters& TickParams, FARPhysicsEvaluationResult& Result)
 {
-  check(Target != nullptr);
+  if (Target == nullptr)
+  {
+    return;
+  }
+
   const AActor* targetActor = Target->GetActor();
   if (targetActor == nullptr)
   {
@@ -67,7 +68,7 @@ void UARMagneticRepulsionTickObject::OnEndTickObject()
     return;
   }
 
-  FARMagneticForceResult result;
+  FARMagneticForceResult result{};
   result.FinalForce = GetEvaluatedResult().ForceResult;
   
   Target->OnRepulsionEvaluated(result);

@@ -10,10 +10,7 @@ UCLASS(Blueprintable, BlueprintType)
 class UARMagneticAttractionTickObject : public UARMagneticTickObject
 {
 	GENERATED_BODY()
-
-  public:
-    ARRANGER_API UARMagneticAttractionTickObject();
-
+  
   protected:     
     /**Start UARPhysicsTickObject interface */ 
     ARRANGER_API virtual void OnTick(const FARPhysicsTickParameters& TickParams, FARPhysicsEvaluationResult& Result) override;

@@ -6,14 +6,10 @@
 
 #include "ARMagneticRepulsionTickObject.generated.h"
 
-
 UCLASS(Blueprintable, BlueprintType)
 class UARMagneticRepulsionTickObject : public UARMagneticTickObject
 {
 	GENERATED_BODY()
-	
-  public:
-    ARRANGER_API UARMagneticRepulsionTickObject();
 
   protected:
     /**Start UARPhysicsTickObject interface */

@@ -33,7 +33,7 @@ void UARPhysicsTickObject::UnregisterPhysicsTickFunction()
   PrimaryPhysicsTick.UnregisterPhysicsTickFunction();
 }
 
-void UARPhysicsTickObject::SetFrequency(EARPhysicsTickFrequency InFrequency)
+void UARPhysicsTickObject::SetFrequency(EPhysicsExecuteFrequency InFrequency)
 {
   PrimaryPhysicsTick.Frequency = InFrequency;
 }

@@ -78,10 +78,6 @@ void AARPhysicsTickProcessorActor::ProcessARPhysicsTasks(float DeltaTime)
 
 void AARPhysicsTickProcessorActor::PostProcessARPhysicsTasks()
 {
-  #if WITH_EDITOR
-    Debug_LogTickObjectMessage();
-  #endif
-
   // FIXME 一時的なコード、後ほど別のところで一回しか実行しないTickObjectの管理をする
   for (const auto& entry : MagneticTickObjectEntries)
   {

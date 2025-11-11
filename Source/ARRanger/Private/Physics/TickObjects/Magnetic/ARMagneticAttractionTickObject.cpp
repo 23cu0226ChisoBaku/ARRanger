@@ -19,12 +19,13 @@ namespace
   constexpr float MAGNETIC_VALUE = 60.0f;
 }
 
-UARMagneticAttractionTickObject::UARMagneticAttractionTickObject()
-{
-}
-
 void UARMagneticAttractionTickObject::OnTick(const FARPhysicsTickParameters& TickParams, FARPhysicsEvaluationResult& Result)
 {
+  if (Target == nullptr)
+  {
+    return;
+  }
+
   const AActor* targetActor = Target->GetActor();
   if (targetActor == nullptr)
   {
@@ -47,7 +48,6 @@ void UARMagneticAttractionTickObject::OnTick(const FARPhysicsTickParameters& Tic
       const FVector pushForce = directionTo.GetUnsafeNormal() * PROPORTIONALITY_CONSTANT * MAGNETIC_VALUE * MAGNETIC_VALUE / directionTo.SizeSquared() * 0.0001f;
       
       Result.ForceResult += pushForce;
-
     }
   }
 }
@@ -59,7 +59,7 @@ void UARMagneticAttractionTickObject::OnEndTickObject()
     return;
   }
 
-  FARMagneticForceResult result;
+  FARMagneticForceResult result{};
   result.FinalForce = GetEvaluatedResult().ForceResult;
 
   Target->OnAttractionEvaluated(result);

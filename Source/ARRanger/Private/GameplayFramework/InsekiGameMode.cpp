@@ -43,8 +43,8 @@ namespace
 }
 
 AInsekiGameMode::AInsekiGameMode()
-  : bGameResultHandled{false}
-  , GameResultTimerHandle{}
+  : GameResultTimerHandle{}
+  , bGameResultHandled{false}
 {
   ProcessorActorClass = AARPhysicsTickProcessorActor::StaticClass();
   DefaultPawnClass = AARRangerCharacter::StaticClass();

@@ -1,7 +1,7 @@
 ﻿/**
  * @file ARPhysicsEngineProxy.h
  * @author MAI ZHICONG
- * @brief Base proxy of ARPhysicsEngine
+ * @brief Base proxy of ARPhysicsEngine.
  */
 
 #pragma once
@@ -26,6 +26,7 @@ struct FARPhysicsCancellationParam
   const IARMagnetizableInterface* Target2 = nullptr;
 };
 
+// TODO Currently unused
 class FARPhysicsEngineProxy
 {
   public:

@@ -91,7 +91,7 @@ namespace ARRanger::Physics
 #pragma region FARPhysicsTickFunctionInterface implementation
 FARPhysicsTickFunctionInterface::FARPhysicsTickFunctionInterface()
   : PhysicsTickType{EARPhysicsTickType::TT_Magnetic}
-  , Frequency{EARPhysicsTickFrequency::TF_Default}
+  , Frequency{EPhysicsExecuteFrequency::Constantly}
   , m_internalData{::MakeUnique<FInternalData>()}
 { }
 

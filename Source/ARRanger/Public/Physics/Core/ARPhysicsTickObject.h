@@ -63,7 +63,7 @@ class UARPhysicsTickObject : public UObject
      * @brief Set the tick frequency of tick function
      * @param InFrequency 
      */
-    ARRANGER_API void SetFrequency(EARPhysicsTickFrequency InFrequency);
+    ARRANGER_API void SetFrequency(EPhysicsExecuteFrequency InFrequency);
     
     /**
      * @brief Return result evaluated in last frame
