@@ -1,12 +1,7 @@
 /**
  * @file ARPhysicsTickManagerInterface.h
  * @author your name (you@domain.com)
- * @brief 
- * @version 0.1
- * @date 2025-11-11
- * 
- * @copyright Copyright (c) 2025
- * 
+ * @brief 物理制御TickManagerのインターフェイス
  */
 #pragma once
 
@@ -15,6 +10,7 @@
 
 #include "Physics/Core/ARPhysicsTickTypes.h"
 
+/**前方宣言 */
 struct FARPhysicsTickParameters;
 
 namespace ARRanger::Physics
@@ -25,24 +21,28 @@ namespace ARRanger::Physics
   class IARPhysicsTickManagerInterface
   {
     public:
+      /**
+       * @brief TickManagerインターフェイスを取得（シングルトン）
+       * @return IARPhysicsTickManagerInterface& 
+       */
       static ARRANGER_API IARPhysicsTickManagerInterface& Get();
 
       ARRANGER_API virtual ~IARPhysicsTickManagerInterface() = default;
     
       /**
-       * @brief Execute tick function by tick type
+       * @brief 特定TickタイプのTickタスクを実行する
        * @param TickType 
-       * @param Params Parameters for physics tick
+       * @param Params Tickパラメータ構造体
        */
       ARRANGER_API virtual void ExecuteARPhysicsTick(EARPhysicsTickType TickType, const FARPhysicsTickParameters& Params) = 0;
 
       /**
-       * @brief Deinitialize all tick tasks
-       * This will stop all ARRanger physics tasks
+       * @brief Tickタスクを全て解読する
+       * 全てのTickタスクが止まる
        */
       ARRANGER_API virtual void DeinitializeTickTasks() = 0; 
   };
-}
+} // namespace ARRanger::Physics
 
 
 #endif // _AR_CORE_PHYSICS_TICK_MANAGER_INTERFACE_

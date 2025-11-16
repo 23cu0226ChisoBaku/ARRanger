@@ -23,28 +23,35 @@ FARPhysicsTickTask::~FARPhysicsTickTask()
   {
     tickFunc->m_internalData->bIsRegistered = false;
   }
+
+  m_enabledTickFunctions.Reset();
+  m_disabledTickFunctions.Reset();
 }
 
 void FARPhysicsTickTask::ExecuteTask(const FARPhysicsTickParameters& TickParams)
 {
-  TArray<FARPhysicsTickFunctionInterface*> removedTickFunctions{};
+  static TArray<FARPhysicsTickFunctionInterface*> s_removedTickFunctions{};
+
   for (const auto& tickFunc : m_enabledTickFunctions)
   {
     check(tickFunc != nullptr);
     tickFunc->ExecuteTick(TickParams);
 
+    // 一回しか実行しないTickFunctionは実行後解読
     if (tickFunc->Frequency == EPhysicsExecuteFrequency::Once)
     {
-      removedTickFunctions.Emplace(tickFunc);
+      s_removedTickFunctions.Emplace(tickFunc);
     }
   }
 
-  for (const auto& tickFunc : removedTickFunctions)
+  // 無効になったTickFunctionを解読
+  for (const auto& tickFunc : s_removedTickFunctions)
   {
     tickFunc->m_internalData->bIsRegistered = false;
     RemoveTickFunction(tickFunc);
   }
   
+  s_removedTickFunctions.Reset();
 }
 
 void FARPhysicsTickTask::AddTickFunction(FARPhysicsTickFunctionInterface* TickFunction)
@@ -69,15 +76,15 @@ void FARPhysicsTickTask::RemoveTickFunction(FARPhysicsTickFunctionInterface* Tic
   {
     case Enabled:
     {
-      const int32 RemovedNum = m_enabledTickFunctions.Remove(TickFunction);
-      check(RemovedNum == 1);
+      const int32 removedNum = m_enabledTickFunctions.Remove(TickFunction);
+      check(removedNum == 1);
     }
     break;
 
     case Disabled:
     {
-      const int32 RemovedNum = m_enabledTickFunctions.Remove(TickFunction);
-      check(RemovedNum == 1);
+      const int32 removedNum = m_enabledTickFunctions.Remove(TickFunction);
+      check(removedNum == 1);
     }
     break;
   }

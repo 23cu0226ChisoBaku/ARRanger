@@ -39,6 +39,8 @@ public:
 protected:
 
   /**Start UGameplayAbility Interface */
+
+  /**OnAttackAbilityActivatedを呼び出す */
   UE_API virtual void ActivateAbility(
                           const FGameplayAbilitySpecHandle Handle,
                           const FGameplayAbilityActorInfo* ActorInfo,
@@ -46,6 +48,7 @@ protected:
                           const FGameplayEventData* TriggerEventData
                       ) override;
 
+  /**OnAttackAbilityEndedを呼び出す */
   UE_API virtual void EndAbility(
                           const FGameplayAbilitySpecHandle Handle,
                           const FGameplayAbilityActorInfo* ActorInfo,
@@ -55,19 +58,26 @@ protected:
   /**End UGameplayAbility Interface */
 
 private:
+
   /**
    * @brief Process after ActivateAbility called
+   * 
+   * ActivateAbilityで呼び出される
    */
   void OnAttackAbilityActivated();
 
   /**
    * @brief Process after EndAbility called
    * @param bWasCancelled Is ability canceled
+   * 
+   * EndAbilityで呼び出される
    */
   void OnAttackAbilityEnded(bool bWasCancelled);
 
   /**
    * @brief Function to bind to delegate OnMontageEnded in AnimInstance
+   * 
+   * OnMontageEndedにバインドする関数
    */
   UFUNCTION()
   void OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted);
@@ -75,6 +85,8 @@ private:
   /**
    * @brief Find AnimInstance in avatar actor
    * @return Valid AnimInstance if avatar actor has one, otherwise nullptr
+   * 
+   * アバターActorからAnimInstanceを探す
    */
   UAnimInstance* FindAnimInstanceOnAvatar() const;
 
@@ -84,7 +96,6 @@ private:
   UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ability|Attack", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UAnimMontage> AttackMontage;
 
-  // TODO Instead put damage in ability, Maybe it can be put in another structure(GameplayEffect or something else)
   /**Attack damage */
   UPROPERTY(EditDefaultsOnly, Category = "Ability|Attack", meta = (AllowPrivateAccess = "true"))
   float AttackDamage;

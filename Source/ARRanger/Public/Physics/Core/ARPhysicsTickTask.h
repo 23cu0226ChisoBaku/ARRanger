@@ -9,9 +9,11 @@
 #ifndef _AR_CORE_PHYSICS_TICK_TASK_
 #define _AR_CORE_PHYSICS_TICK_TASK_
 
-/**Forward declaration */
+/**前方宣言 */
 struct FARPhysicsTickParameters;
 class FARPhysicsTickFunctionInterface;
+
+#define ARPHYSICS_API ARRANGER_API
 
 namespace ARRanger
 {
@@ -26,12 +28,33 @@ namespace Physics
   class FARPhysicsTickTask
   {
     public:
-      ARRANGER_API FARPhysicsTickTask();
-      ARRANGER_API ~FARPhysicsTickTask();
-      ARRANGER_API void ExecuteTask(const FARPhysicsTickParameters& TickParams);
-      ARRANGER_API void AddTickFunction(FARPhysicsTickFunctionInterface* TickFunction);
-      ARRANGER_API void RemoveTickFunction(FARPhysicsTickFunctionInterface* TickFunction);
-      ARRANGER_API bool HasTickFunction(const FARPhysicsTickFunctionInterface* TickFunction);
+      ARPHYSICS_API FARPhysicsTickTask();
+      ARPHYSICS_API ~FARPhysicsTickTask();
+
+      /**
+       * @brief タスクを実行する
+       * @param TickParams Tickパラメータ構造体
+       */
+      ARPHYSICS_API void ExecuteTask(const FARPhysicsTickParameters& TickParams);
+
+      /**
+       * @brief タスクにTickFunctionを登録する
+       * @param TickFunction 
+       */
+      ARPHYSICS_API void AddTickFunction(FARPhysicsTickFunctionInterface* TickFunction);
+
+      /**
+       * @brief タスクにTickFunctionを解読する
+       * @param TickFunction 
+       */
+      ARPHYSICS_API void RemoveTickFunction(FARPhysicsTickFunctionInterface* TickFunction);
+
+      /**
+       * @brief 特定のTickFunctionがTaskに存在するかを確認する
+       * @param TickFunction 
+       * @return TickFunctionが有効かつ存在すると true、それ以外 false
+       */
+      ARPHYSICS_API bool HasTickFunction(const FARPhysicsTickFunctionInterface* TickFunction);
 
     private:
       TSet<FARPhysicsTickFunctionInterface*> m_enabledTickFunctions;
@@ -41,5 +64,7 @@ namespace Physics
 } // namespace ARRanger::Physics
 
 } // namespace ARRanger
+
+#undef ARPHYSICS_API
 
 #endif // _AR_CORE_PHYSICS_TICK_TASK_

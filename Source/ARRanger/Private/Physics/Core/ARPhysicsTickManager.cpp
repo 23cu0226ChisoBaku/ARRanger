@@ -2,10 +2,20 @@
 #include "Physics/Core/ARPhysicsTickTypes.h"
 #include "Physics/Core/ARPhysicsTickTask.h"
 
+#include "Internal/CountLimiter.h"
+
 using ARRanger::Physics::FARPhysicsTickTask;
 
-class FARPhysicsTickManager : public ARRanger::Physics::IARPhysicsTickManagerInterface
+/**
+ * @brief 実際の物理TickManager
+ * 
+ */
+class FARPhysicsTickManager final : public ARRanger::Physics::IARPhysicsTickManagerInterface
+                                  , private ARRanger::Private::FCountLimiter<FARPhysicsTickManager, 1>
 {
+
+  DECLARE_COUNT_LIMITER_PROPERTY(FARPhysicsTickManager, 1)
+
   public:
     ~FARPhysicsTickManager()
     {
@@ -21,7 +31,6 @@ class FARPhysicsTickManager : public ARRanger::Physics::IARPhysicsTickManagerInt
     void AddARPhysicsTickFunction(FARPhysicsTickFunctionInterface* TickFunction)
     {
       check(TickFunction != nullptr)
-
       FARPhysicsTickTask* task = GetValidTickTask(TickFunction->PhysicsTickType);
       task->AddTickFunction(TickFunction);  
     }
@@ -29,7 +38,6 @@ class FARPhysicsTickManager : public ARRanger::Physics::IARPhysicsTickManagerInt
     void RemoveARPhysicsTickFunction(FARPhysicsTickFunctionInterface* TickFunction)
     {
       check(TickFunction != nullptr)
-
       FARPhysicsTickTask* task = GetValidTickTask(TickFunction->PhysicsTickType);
       task->RemoveTickFunction(TickFunction); 
     }
@@ -78,6 +86,8 @@ class FARPhysicsTickManager : public ARRanger::Physics::IARPhysicsTickManagerInt
   private:
     TMap<EARPhysicsTickType, FARPhysicsTickTask*> m_tickTasks;
 };
+
+DEFINE_COUNT_LIMITER_PROPERTY(FARPhysicsTickManager);
 
 namespace ARRanger::Physics
 {

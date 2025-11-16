@@ -18,6 +18,8 @@ namespace ARRanger::Physics
   class FARPhysicsTickTask;
 }
 
+#define ARPHYSICS_API ARRANGER_API
+
 /**
  * @brief AR物理Tick専用パラメータ構造体
  */
@@ -32,12 +34,16 @@ enum class EARPhysicsTickType : uint8
   TT_Gravity,
 };
 
+/**
+ * @brief TickFunctionの基底クラス
+ */
 class FARPhysicsTickFunctionInterface
 {
   friend class FARPhysicsTickManager;
   friend class ARRanger::Physics::FARPhysicsTickTask;
 
   public:
+
     EARPhysicsTickType PhysicsTickType;
 
     EPhysicsExecuteFrequency Frequency;
@@ -59,30 +65,52 @@ class FARPhysicsTickFunctionInterface
     };
 
   public:
-    ARRANGER_API FARPhysicsTickFunctionInterface();
-    ARRANGER_API virtual ~FARPhysicsTickFunctionInterface();
+    ARPHYSICS_API FARPhysicsTickFunctionInterface();
+    ARPHYSICS_API virtual ~FARPhysicsTickFunctionInterface();
 
-    ARRANGER_API void RegisterPhysicsTickFunction();
-    ARRANGER_API void UnregisterPhysicsTickFunction();
-    ARRANGER_API void SetEnable(bool bEnabled);
+    /**
+     * @brief TickFunctionをTickManagerに登録する
+     */
+    ARPHYSICS_API void RegisterPhysicsTickFunction();
+
+    /**
+     * @brief TickFunctionを解読する
+     */
+    ARPHYSICS_API void UnregisterPhysicsTickFunction();
+
+    /**
+     * @brief TickFunctionの有効化を設定する
+     */
+    ARPHYSICS_API void SetEnable(bool bEnabled);
+
     bool IsEnabled() const { return m_internalData.IsValid() && m_internalData->TickState == Enabled; }
     bool IsTickFunctionRegistered() const { return m_internalData.IsValid() && m_internalData->bIsRegistered; }
 
-    ARRANGER_API virtual void ExecuteTick(const FARPhysicsTickParameters& Params) = 0;
+    /**
+     * @brief TickFunctionを実行する
+     * @param Params Tickパラメータ構造体
+     */
+    ARPHYSICS_API virtual void ExecuteTick(const FARPhysicsTickParameters& Params) = 0;
 
   private:
     TUniquePtr<FInternalData> m_internalData;
 };
 
+/**
+ * @brief 物理タスクTickFunction
+ * 
+ */
 class FARPhysicsTickFunction : public FARPhysicsTickFunctionInterface
 {
 
 public:
+  /**物理TickObject */
   class UARPhysicsTickObject* TargetObject;
 
 protected:
-  ARRANGER_API virtual void ExecuteTick(const FARPhysicsTickParameters& Params) override;
-
+  ARPHYSICS_API virtual void ExecuteTick(const FARPhysicsTickParameters& Params) override;
 };
+
+#undef ARPHYSICS_API
 
 #endif // _AR_CORE_PHYSICS_TICK_TYPES_

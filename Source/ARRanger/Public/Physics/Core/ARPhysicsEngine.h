@@ -17,7 +17,6 @@
 /**前方宣言 */
 class IARMagnetizableInterface;
 class IPhysicsTaskRegistrar;
-class FARPhysicsEngineProxy;
 
 /**
  * @brief 物理タスク登録タイプ
@@ -90,6 +89,8 @@ struct FARPhysicsEngineInitializationParameters
   IPhysicsTaskRegistrar* TaskRegistrar = nullptr;
 };
 
+#define ARPHYSICS_API ARRANGER_API
+
 /**
  * @brief AR物理エンジンクラス
  * インスタンス最大数 : 1
@@ -103,8 +104,8 @@ class FARPhysicsEngine : private ARRanger::Private::FCountLimiter<FARPhysicsEngi
   DECLARE_COUNT_LIMITER_PROPERTY(FARPhysicsEngine, 1)
 
   public:
-    ARRANGER_API FARPhysicsEngine();
-    ARRANGER_API virtual ~FARPhysicsEngine();
+    ARPHYSICS_API FARPhysicsEngine();
+    ARPHYSICS_API virtual ~FARPhysicsEngine();
 
     /**
      * @brief 物理エンジンを初期化する
@@ -112,12 +113,12 @@ class FARPhysicsEngine : private ARRanger::Private::FCountLimiter<FARPhysicsEngi
      * @param Parameters 初期化する専用パラメータ
      * @see FARPhysicsEngineInitializationParameters
      */
-    ARRANGER_API void InitializePhysicsEngine(const FARPhysicsEngineInitializationParameters& Parameters);
+    ARPHYSICS_API void InitializePhysicsEngine(const FARPhysicsEngineInitializationParameters& Parameters);
 
     /**
      * @brief 物理エンジンを解放する
      */
-    ARRANGER_API void DeinitializePhysicsEngine();
+    ARPHYSICS_API void DeinitializePhysicsEngine();
 
     /**
      * @brief 物理タスクを登録する
@@ -125,7 +126,7 @@ class FARPhysicsEngine : private ARRanger::Private::FCountLimiter<FARPhysicsEngi
      * @param Registry 登録パラメータ
      * @see FARPhysicsRegistry
      */
-    ARRANGER_API void RegisterPhysicsTask(const FARPhysicsRegistry& Registry);
+    ARPHYSICS_API void RegisterPhysicsTask(const FARPhysicsRegistry& Registry);
 
     /**
      * @brief 物理タスクの登録状態を解除する
@@ -133,26 +134,14 @@ class FARPhysicsEngine : private ARRanger::Private::FCountLimiter<FARPhysicsEngi
      * @param Unregistry 登録解除パラメータ
      * @see FARPhysicsUnregistry
      */
-    ARRANGER_API void UnregisterPhysicsProcess(const FARPhysicsUnregistry& Unregistry);
-
-    /**
-     * @brief 物理エンジンプロキシ（代理）を取得
-     * 
-     * @return 初期化できたらプロキシを返す、それ以外はnullptr
-     */
-    PhysicsEngineProxyPtr GetProxy() const { return m_proxy.Get(); }
-
-  protected:
-    ARRANGER_API virtual TSharedPtr<FARPhysicsEngineProxy> MakePhysicsEngineProxy() const;
+    ARPHYSICS_API void UnregisterPhysicsProcess(const FARPhysicsUnregistry& Unregistry);
 
   private:
-
-    /**強参照 */ /**プロキシ */
-    TSharedPtr<FARPhysicsEngineProxy> m_proxy;
 
     /**弱参照 */ /**物理タスクレジストラ */
     TWeakInterfacePtr<IPhysicsTaskRegistrar> m_taskRegistrar;
 };
 
+#undef ARPHYSICS_API
 
 #endif // _AR_PHYSICS_ENGINE_

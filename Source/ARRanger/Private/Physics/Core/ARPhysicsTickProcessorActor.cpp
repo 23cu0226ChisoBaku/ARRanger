@@ -33,10 +33,9 @@ bool operator==(const FARMagneticTickObjectEntry& Lhs, const FARMagneticTickObje
   return Lhs.TickObject == Rhs.TickObject;
 }
 
-// Sets default values
 AARPhysicsTickProcessorActor::AARPhysicsTickProcessorActor()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+
 	PrimaryActorTick.bCanEverTick = true;
 
   // エンジンの物理演算を行う前に処理する
@@ -62,7 +61,7 @@ void AARPhysicsTickProcessorActor::PreProcessARPhysicsTasks()
 void AARPhysicsTickProcessorActor::ProcessARPhysicsTasks(float DeltaTime)
 {
   IARPhysicsTickManagerInterface& tickManagerInterface = IARPhysicsTickManagerInterface::Get();
-  FARPhysicsTickParameters params;
+  FARPhysicsTickParameters params{};
   params.DeltaTime = DeltaTime;
 
   // Process Magnetic
@@ -78,7 +77,6 @@ void AARPhysicsTickProcessorActor::ProcessARPhysicsTasks(float DeltaTime)
 
 void AARPhysicsTickProcessorActor::PostProcessARPhysicsTasks()
 {
-  // FIXME 一時的なコード、後ほど別のところで一回しか実行しないTickObjectの管理をする
   for (const auto& entry : MagneticTickObjectEntries)
   {
     if (entry.TickObject != nullptr)
@@ -105,17 +103,18 @@ void AARPhysicsTickProcessorActor::Tick(float DeltaTime)
 
 }
 
-
-void AARPhysicsTickProcessorActor::RegisterMagneticTask(IARMagnetizableInterface* InSource, IARMagnetizableInterface* InTarget, EPhysicsRegistryType InRequestType, EPhysicsExecuteFrequency InFrequency)
+void AARPhysicsTickProcessorActor::RegisterMagneticTask(IARMagnetizableInterface* InTarget, IARMagnetizableInterface* InAffectedObj, EPhysicsRegistryType InRequestType, EPhysicsExecuteFrequency InFrequency)
 {
-  RegisterMagneticTarget(InSource, InTarget, InRequestType, InFrequency);
-  RegisterMagneticTarget(InTarget, InSource, InRequestType, InFrequency);
+  /**お互いに影響を及ぼすため、両方を登録する */
+  RegisterMagneticTarget(InTarget, InAffectedObj, InRequestType, InFrequency);
+  RegisterMagneticTarget(InAffectedObj, InTarget, InRequestType, InFrequency);
 }
 
-void AARPhysicsTickProcessorActor::UnregisterMagneticTask(IARMagnetizableInterface* InSource, IARMagnetizableInterface* InTarget)
+void AARPhysicsTickProcessorActor::UnregisterMagneticTask(IARMagnetizableInterface* InTarget, IARMagnetizableInterface* InAffectedObj)
 {
-  UnregisterMagneticTarget(InSource, InTarget);
-  UnregisterMagneticTarget(InTarget, InSource);
+  /**お互いに影響を及ぼすため、両方を解読する */
+  UnregisterMagneticTarget(InTarget, InAffectedObj);
+  UnregisterMagneticTarget(InAffectedObj, InTarget);
 }
 
 void AARPhysicsTickProcessorActor::RegisterQueuedTickObject()
@@ -124,6 +123,7 @@ void AARPhysicsTickProcessorActor::RegisterQueuedTickObject()
   {
     if (queuedTickObj != nullptr)
     {
+      // TickFunction登録
       queuedTickObj->RegisterPhysicsTickFunction();
     }
   }
@@ -137,15 +137,13 @@ void AARPhysicsTickProcessorActor::UnregisterQueuedTickObject()
   {
     if (queuedTickObj != nullptr)
     {
+      // TickFunction解読
       queuedTickObj->UnregisterPhysicsTickFunction();
-      auto searchFunctor = [&queuedTickObj](const FARMagneticTickObjectEntry& Entry)
-      {
-        return Entry.TickObject == queuedTickObj;
-      };
 
-      FARMagneticTickObjectEntry* foundEntry = MagneticTickObjectEntries.FindByPredicate(searchFunctor);
+      FARMagneticTickObjectEntry* foundEntry = GetMagneticTickObjectEntry(queuedTickObj->GetTarget());
       if (foundEntry != nullptr)
       {
+        // TickObjectを解放する
         foundEntry->TickObject->ConditionalBeginDestroy();
         MagneticTickObjectEntries.RemoveSingle(*foundEntry);
       }
@@ -167,7 +165,6 @@ void AARPhysicsTickProcessorActor::RegisterMagneticTarget(IARMagnetizableInterfa
   if (foundEntry == nullptr)
   {
     TSubclassOf<UARMagneticTickObject> allocateClass = nullptr;
-    // TODO
     using enum EPhysicsRegistryType;
     switch (InRequestType)
     {
@@ -191,15 +188,17 @@ void AARPhysicsTickProcessorActor::RegisterMagneticTarget(IARMagnetizableInterfa
   foundEntry->TickObject->SetFrequency(InFrequency); 
 }
 
-void AARPhysicsTickProcessorActor::UnregisterMagneticTarget(IARMagnetizableInterface* InSource, IARMagnetizableInterface* InTarget)
+void AARPhysicsTickProcessorActor::UnregisterMagneticTarget(IARMagnetizableInterface* InTarget, IARMagnetizableInterface* InAffectedObj)
 {
-  check(InSource != nullptr);
   check(InTarget != nullptr);
+  check(InAffectedObj != nullptr);
 
-  FARMagneticTickObjectEntry* foundEntry = GetMagneticTickObjectEntry(InSource);
+  FARMagneticTickObjectEntry* foundEntry = GetMagneticTickObjectEntry(InTarget);
   if (foundEntry != nullptr)
   {
-    foundEntry->AffectedObjectInterfaces.RemoveSingle(InTarget);
+    foundEntry->AffectedObjectInterfaces.RemoveSingle(InAffectedObj);
+
+    // ターゲットが影響を与えるオブジェクトがなくなったらターゲットのTickObjectを解読キューに入れる
     if (foundEntry->AffectedObjectInterfaces.Num() < 1)
     {
       UnregisterTickObjectQueue.Emplace(foundEntry->TickObject);
@@ -225,13 +224,11 @@ FARMagneticTickObjectEntry* AARPhysicsTickProcessorActor::AllocateMagneticTickOb
   check(newTickObject != nullptr);
 
   newTickObject->SetTargetObject(Target);
-
   RegisterTickObjectQueue.Emplace(newTickObject);
 
-  FARMagneticTickObjectEntry newEntry;
+  FARMagneticTickObjectEntry newEntry{};
   newEntry.TickObject = newTickObject;
-  int32 index = MagneticTickObjectEntries.Emplace(newEntry);
+  const int32 index = MagneticTickObjectEntries.Emplace(newEntry);
 
-  // TODO Mayby dangerous
   return &MagneticTickObjectEntries[index];
 }

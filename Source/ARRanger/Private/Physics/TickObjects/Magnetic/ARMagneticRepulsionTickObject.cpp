@@ -1,15 +1,15 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "Physics/TickObjects/Magnetic/ARMagneticRepulsionTickObject.h"
 
 #include "Magnetic/IARMagnetizableInterface.h"
+
+#include "Internal/ARLoggingHeader.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ARMagneticRepulsionTickObject)
 
 namespace
 {
-  constexpr float TOP_DETECTED_COMPONENT_NORM_Z_THRESHOLD = 0.7f;
+  /**斥力上方向特殊判定閾値 */
+  constexpr double TOP_DETECTED_COMPONENT_NORM_Z_THRESHOLD = 0.7f;
 }
 
 // TODO Should remove all magic number
@@ -17,15 +17,18 @@ void UARMagneticRepulsionTickObject::OnTick(const FARPhysicsTickParameters& Tick
 {
   if (Target == nullptr)
   {
+    AR_LOG(LogARPhysics, Error, TEXT("Target is nullptr. Magnetic repulsion task denied"));
     return;
   }
 
   const AActor* targetActor = Target->GetActor();
   if (targetActor == nullptr)
   {
+    AR_LOG(LogARPhysics, Error, TEXT("Target actor is nullptr.Do you override IARMagnetizableInterface::GetActor()? "));
     return;
   }
 
+  // 斥力計算
   for (const auto& magnetizedObject : AffectedMagnetizedObjects)
   {
     if ((magnetizedObject == nullptr) || (magnetizedObject->GetActor() == nullptr))
@@ -36,42 +39,43 @@ void UARMagneticRepulsionTickObject::OnTick(const FARPhysicsTickParameters& Tick
     AActor* magnetizedObjectActor = magnetizedObject->GetActor();
     const FVector impactDir = (targetActor->GetActorLocation() - magnetizedObjectActor->GetActorLocation()).GetUnsafeNormal();
 
+    // ターゲットが磁力オブジェクトの上にいる時斥力が発生する場合
+    // ターゲットの移動速度の方向へ押し出す
     if (impactDir.Z > TOP_DETECTED_COMPONENT_NORM_Z_THRESHOLD)
     {
-      const FVector targetVelo = targetActor->GetVelocity();
-      if (targetVelo.SizeSquared() > DOUBLE_KINDA_SMALL_NUMBER)
-      {
-        const FVector forwardDir = targetVelo.GetUnsafeNormal();
-        const FVector launchVelo = forwardDir * 1500.0 + FVector{0.0, 0.0, 1200.0};
-        Result.ForceResult += launchVelo;
-      }
-      else
-      {
-        const FVector launchVelo = FVector{0.0, 0.0, 1400.0f};
-        Result.ForceResult += launchVelo;
-      }
+      // TODO 移動速度方向へ押し出す力の大きさ
+      const double velocityPushPower = 1500.0;
+      const FVector pushUpForce{0.0, 0.0, 1200.0};
+
+      const FVector targetVeloNorm = targetActor->GetVelocity().GetSafeNormal();
+      const FVector launchVelo = targetVeloNorm * velocityPushPower + pushUpForce;
+      Result.ForceResult += launchVelo;
     }
+    // 上じゃない場合は主に水平方向へ押し出し
     else
     {
-      const FVector horizontalDir = FVector{impactDir.X, impactDir.Y, 0.0}.GetUnsafeNormal();
-      const FVector knockBackVelo = horizontalDir * 800.0f + FVector{0.0, 0.0, 200.0};
+      // TODO 水平へ押し出す力の大きさ
+      const double pushPower = 800.0;
+      const FVector pushUpForce{0.0, 0.0, 200.0};
+
+      const FVector horizontalDir = FVector{impactDir.X, impactDir.Y, 0.0}.GetSafeNormal();
+      const FVector knockBackVelo = horizontalDir * pushPower + pushUpForce;
       Result.ForceResult += knockBackVelo;
     }
   }
 
 }
 
-void UARMagneticRepulsionTickObject::OnEndTickObject()
+void UARMagneticRepulsionTickObject::OnPostTickObject()
 {
-  if (Target == nullptr)
+  // 斥力結果をターゲットに送る
+  if (Target != nullptr)
   {
-    return;
+    FARMagneticForceResult result{};
+    result.FinalForce = GetEvaluatedResult().ForceResult;
+    Target->OnRepulsionEvaluated(result);
   }
 
-  FARMagneticForceResult result{};
-  result.FinalForce = GetEvaluatedResult().ForceResult;
-  
-  Target->OnRepulsionEvaluated(result);
 
-  Super::OnEndTickObject();
+  Super::OnPostTickObject();
 }

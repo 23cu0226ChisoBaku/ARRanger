@@ -1,9 +1,6 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #include "Physics/TickObjects/Magnetic/ARMagneticAttractionTickObject.h"
 
 #include "Magnetic/IARMagnetizableInterface.h"
-#include "Physics/Core/ARPhysicsEngineProxy.h"
 
 #include "Internal/ARLoggingHeader.h"
 
@@ -15,14 +12,16 @@ namespace
   // URL: https://hegtel.com/ac-coulomb-magnet.html
   // URL: https://hegtel.com/jikai-tsuyosa.html
   // URL: https://rikeilabo.com/magnetic-field-and-magnetic-flux-density
-  constexpr float PROPORTIONALITY_CONSTANT = 6.33e4f;
-  constexpr float MAGNETIC_VALUE = 60.0f;
+  constexpr double PROPORTIONALITY_CONSTANT = 6.33e4;
+  constexpr double MAGNETIC_VALUE = 60.0;
+  constexpr double ADJUSTMENT_COEFFICIENT = 0.0001;
 }
 
 void UARMagneticAttractionTickObject::OnTick(const FARPhysicsTickParameters& TickParams, FARPhysicsEvaluationResult& Result)
 {
   if (Target == nullptr)
   {
+    AR_LOG(LogARPhysics, Error, TEXT("Target is nullptr. Magnetic attraction task denied"));
     return;
   }
 
@@ -33,7 +32,7 @@ void UARMagneticAttractionTickObject::OnTick(const FARPhysicsTickParameters& Tic
     return;
   }
   
-  // 斥力計算
+  // 引力計算
   for (const auto& magnetizedObject : AffectedMagnetizedObjects)
   {
     if ((magnetizedObject == nullptr) || (magnetizedObject->GetActor() == nullptr))
@@ -41,28 +40,32 @@ void UARMagneticAttractionTickObject::OnTick(const FARPhysicsTickParameters& Tic
       continue;
     }
 
-    // TODO Maybe should merge this things into EngineProxy?
+    // クーロンの法則に基づいて引力を計算する
+    // F = (k * m1 * m2) / (r^2)
     {
       const AActor* magnetizedActor = magnetizedObject->GetActor();
       const FVector directionTo = magnetizedActor->GetActorLocation() - targetActor->GetActorLocation();
-      const FVector pushForce = directionTo.GetUnsafeNormal() * PROPORTIONALITY_CONSTANT * MAGNETIC_VALUE * MAGNETIC_VALUE / directionTo.SizeSquared() * 0.0001f;
+      const FVector pushForce = directionTo.GetSafeNormal() 
+                                * /**比例定数ｋ */PROPORTIONALITY_CONSTANT 
+                                * /**m1 */MAGNETIC_VALUE * /**m2 */MAGNETIC_VALUE 
+                                / /**(r^2) */directionTo.SizeSquared() 
+                                * /**調整係数 */ADJUSTMENT_COEFFICIENT;
       
+      // 引力を重ねる
       Result.ForceResult += pushForce;
     }
   }
 }
 
-void UARMagneticAttractionTickObject::OnEndTickObject()
+void UARMagneticAttractionTickObject::OnPostTickObject()
 {
-  if (Target == nullptr)
+  // 引力結果をターゲットに送る
+  if (Target != nullptr)
   {
-    return;
+    FARMagneticForceResult result{};
+    result.FinalForce = GetEvaluatedResult().ForceResult;
+    Target->OnAttractionEvaluated(result);
   }
 
-  FARMagneticForceResult result{};
-  result.FinalForce = GetEvaluatedResult().ForceResult;
-
-  Target->OnAttractionEvaluated(result);
-
-  Super::OnEndTickObject();
+  Super::OnPostTickObject();
 }

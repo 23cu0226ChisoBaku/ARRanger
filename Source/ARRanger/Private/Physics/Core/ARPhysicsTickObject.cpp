@@ -1,8 +1,6 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "Physics/Core/ARPhysicsTickObject.h"
 #include "Physics/Core/ARPhysicsTickManagerInterface.h"
+
 #include "Internal/ARLoggingHeader.h"
 
 UARPhysicsTickObject::UARPhysicsTickObject()
@@ -13,7 +11,6 @@ UARPhysicsTickObject::UARPhysicsTickObject()
 void UARPhysicsTickObject::RegisterPhysicsTickFunction()
 {
   check(!PrimaryPhysicsTick.IsTickFunctionRegistered());
-
   PrimaryPhysicsTick.TargetObject = this;
   PrimaryPhysicsTick.SetEnable(true);
   PrimaryPhysicsTick.RegisterPhysicsTickFunction();
@@ -21,11 +18,9 @@ void UARPhysicsTickObject::RegisterPhysicsTickFunction()
 
 void UARPhysicsTickObject::TickPhysics(const FARPhysicsTickParameters& TickParams)
 {
-  BeginTickObject();
-
+  PreTickObject();
   Tick(TickParams);
-
-  EndTickObject();
+  PostTickObject();
 }
 
 void UARPhysicsTickObject::UnregisterPhysicsTickFunction()
@@ -38,11 +33,11 @@ void UARPhysicsTickObject::SetFrequency(EPhysicsExecuteFrequency InFrequency)
   PrimaryPhysicsTick.Frequency = InFrequency;
 }
 
-void UARPhysicsTickObject::BeginTickObject()
+void UARPhysicsTickObject::PreTickObject()
 {
   PreviousResult = EvaluatedResult;
   bIsEvaluateFinishedCurrentFrame = false;
-  OnBeginTickObject();  
+  OnPreTickObject();  
 }
 
 void UARPhysicsTickObject::Tick(const FARPhysicsTickParameters& TickParams)
@@ -64,15 +59,13 @@ void UARPhysicsTickObject::Tick(const FARPhysicsTickParameters& TickParams)
   }
 }
 
-void UARPhysicsTickObject::EndTickObject()
+void UARPhysicsTickObject::PostTickObject()
 {
   if (bIsEvaluateFinishedCurrentFrame)
   {
-    OnEndTickObject();
+    OnPostTickObject();
   }
 }
-
-
 
 void UARPhysicsTickObject::BeginDestroy()
 {

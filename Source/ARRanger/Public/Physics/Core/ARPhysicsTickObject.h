@@ -2,6 +2,8 @@
  * @file ARPhysicsTickObject.h
  * @author MAI ZHICONG
  * @brief Base class of ARPhysics tick object
+ * 
+ * Tickオブジェクトの基底クラス
  */
 
 #pragma once
@@ -11,6 +13,8 @@
 #include "Physics/Core/ARPhysicsTickTypes.h"
 
 #include "ARPhysicsTickObject.generated.h"
+
+#define ARPHYSIC_API ARRANGER_API
 
 /**
  * @brief AR物理評価結果構造体
@@ -40,93 +44,89 @@ class UARPhysicsTickObject : public UObject
     FARPhysicsTickFunction PrimaryPhysicsTick;
 
   public:
-    ARRANGER_API UARPhysicsTickObject();
+    ARPHYSIC_API UARPhysicsTickObject();
 
     /**
-     * @brief Register tick function to TickManager
+     * @brief TickFunctionオブジェクトをマネージャーに登録する
      */
-    ARRANGER_API void RegisterPhysicsTickFunction();
+    ARPHYSIC_API void RegisterPhysicsTickFunction();
 
     /**
-     * @brief Tick function called by FARPhysicsTickFunction
-     * @param TickParams 
+     * @brief 物理タスクTick関数。FARPhysicsTickFunctionに呼ばれる
+     * @param TickParams Tickパラメータ構造体
      */
-    ARRANGER_API void TickPhysics(const FARPhysicsTickParameters& TickParams);
+    ARPHYSIC_API void TickPhysics(const FARPhysicsTickParameters& TickParams);
     
     /**
-     * @brief Unregister tick function in TickManager if RegisterPhysicsTickFunction() called
+     * @brief 登録したTickを解読する
      * @see   RegisterPhysicsTickFunction
      */
-    ARRANGER_API void UnregisterPhysicsTickFunction();
+    ARPHYSIC_API void UnregisterPhysicsTickFunction();
 
     /**
-     * @brief Set the tick frequency of tick function
+     * @brief Tickの更新頻度を設定する
      * @param InFrequency 
      */
-    ARRANGER_API void SetFrequency(EPhysicsExecuteFrequency InFrequency);
+    ARPHYSIC_API void SetFrequency(EPhysicsExecuteFrequency InFrequency);
     
     /**
-     * @brief Return result evaluated in last frame
+     * @brief 前のフレームに評価された結果を返す
      * @return FARPhysicsEvaluationResult 
      */
     FARPhysicsEvaluationResult GetLastFrameResult() const { return PreviousResult; }
 
     /**
-     * @brief Return result evaluated in current frame.
-     * May have same value of PreviousResult
+     * @brief 今のフレームに評価された結果を返す
+     * ※評価の途中で呼ばれたら前のフレームの結果が返される
      * @return FARPhysicsEvaluationResult 
      */
     FARPhysicsEvaluationResult GetEvaluatedResult() const { return EvaluatedResult; }
 
     /**
-     * @brief Check if evaluation is finished in current frame
-     * @return bIsEvaluateFinishedCurrentFrame
+     * @brief 今のフレーム評価が完了したかを確認する
+     * @return 評価が完了したら true,それ以外は false
      */
     bool IsCurrentFrameEvaluateFinished() const { return bIsEvaluateFinishedCurrentFrame; }
 
-    /**
-     * @brief Check if tick function is registered
-     * 
-     * @return true if tick function is registered, otherwise false
-     */
     bool IsTickFunctionRegistered() const { return PrimaryPhysicsTick.IsTickFunctionRegistered(); }
     
     /**
-     * @brief Tick event for blueprint
+     * @brief Tickのブループリント部分実装
      */
     UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "Physics Tick"))
-    ARRANGER_API void TickOnBlueprint(float DeltaTime, FARPhysicsEvaluationResult& Result);
+    ARPHYSIC_API void TickOnBlueprint(float DeltaTime, FARPhysicsEvaluationResult& Result);
     
   private:
 
     /**
-     * @brief Process before Tick call 
-     * Will call virtual function OnBeginTickObject 
+     * @brief Tickが呼ばれる前に実行する 
+     * OnPreTickObjectを呼び出す 
+     * 
      */
-    void BeginTickObject();
+    void PreTickObject();
 
     /**
-     * @brief Called every frame if ARPhysicsTask is registered
-     * Will call virtual function OnTick
+     * @brief TickFunctionが登録されたら毎フレーム呼び出される
+     * OnTickが呼ばれる
      * 
-     * @param TickParams 
+     * @param TickParams Tickパラメータ構造体
      */
     void Tick(const FARPhysicsTickParameters& TickParams);
 
     /**
-     * @brief Called after Tick
-     * Will call virtual function OnEndTickObject
+     * @brief Tickが呼ばれた後に実行する
+     * OnPostTickObjectを呼び出す
      */
-    void EndTickObject();
+    void PostTickObject();
     
   protected:
     /**Start UObject interface */
-    ARRANGER_API virtual void BeginDestroy() override;
+    ARPHYSIC_API virtual void BeginDestroy() override;
     /**End UObject interface */
     
-    ARRANGER_API virtual void OnBeginTickObject() { }
-    ARRANGER_API virtual void OnTick(const FARPhysicsTickParameters& TickParams, FARPhysicsEvaluationResult& Result) { }
-    ARRANGER_API virtual void OnEndTickObject() { }
+    ARPHYSIC_API virtual void OnPreTickObject() { }
+    ARPHYSIC_API virtual void OnTick(const FARPhysicsTickParameters& TickParams, FARPhysicsEvaluationResult& Result) { }
+    ARPHYSIC_API virtual void OnPostTickObject() { }
     
   private:
     UPROPERTY(VisibleAnywhere)
@@ -137,3 +137,5 @@ class UARPhysicsTickObject : public UObject
 
     uint8 bIsEvaluateFinishedCurrentFrame : 1 = false;
 };
+
+#undef ARPHYSIC_API

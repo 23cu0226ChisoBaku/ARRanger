@@ -52,7 +52,7 @@ void IARPhysicsSystemHost::Physics_RegisterMagneticTask_Once(IARMagnetizableInte
 
 void IARPhysicsSystemHost::Physics_UnregisterMagneticTask(IARMagnetizableInterface* InSource, IARMagnetizableInterface* InTarget)
 {
-  FARPhysicsUnregistry termination;
+  FARPhysicsUnregistry termination{};
   termination.Source = InSource;
   termination.Target = InTarget;
   termination.Type = EPhysicsUnregistryType::UnregisterMagnetic;
