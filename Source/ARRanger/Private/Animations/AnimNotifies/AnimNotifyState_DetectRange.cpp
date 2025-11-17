@@ -11,6 +11,8 @@
 #include "ActionAbilities/ARAbilitySystemComponent.h"
 #include "ActionAbilities/Abilities/IARGameplayAbilityNotifyInterface.h"
 
+#include "BattleSystem/IARAttackable.h"
+
 #if WITH_EDITOR
 #include "Components/LineBatchComponent.h"
 #endif
@@ -53,11 +55,12 @@ void UAnimNotifyState_DetectRange::NotifyBegin(USkeletalMeshComponent * MeshComp
       // TODO
       FDetectorAssetEntry DAE{};
       DAE.DetectorData = RangeData;
-      DAE.Target.TargetType = EDetectorTargetType::Actor;
-      DAE.Target.TargetActor = AActor::StaticClass();
+      DAE.Target.TargetType = EDetectorTargetType::Interface;
+      DAE.Target.TargetInterface = UARAttackable::StaticClass();
       DAE.Priority = 0;
       
       URangeDetectorComponent* RDC = URangeDetectorHelper::AttachRangeDetector(DAE, MeshComp, SocketName, LocationOffset, RotationOffset, FVector::OneVector, EAttachLocation::KeepRelativeOffset, true);
+
 
       if (!m_detectTickObject.IsValid() && DetectionType == EANS_DetectRange_NotifyDetectionType::NotifyDuringHit)
       {

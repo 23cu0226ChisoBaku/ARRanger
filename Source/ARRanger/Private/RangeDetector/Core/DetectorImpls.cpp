@@ -8,6 +8,17 @@
 #include "RangeDetector/Utils/CollisionTraceFunctionLibrary.h"
 #include "Kismet/KismetSystemLibrary.h"
 
+namespace
+{
+  const TArray<TEnumAsByte<EObjectTypeQuery>> g_objTypes
+  {
+    UEngineTypes::ConvertToObjectType(ECC_WorldStatic),
+    UEngineTypes::ConvertToObjectType(ECC_WorldDynamic),
+    UEngineTypes::ConvertToObjectType(ECC_Pawn),
+    UEngineTypes::ConvertToObjectType(ECC_PhysicsBody)
+  };
+}
+
 namespace ARRanger
 {
 
@@ -78,18 +89,12 @@ namespace Detector
     const FVector startLoc = InOriginLocation + InData.CenterPositionOffset;
     const float scale = InOriginScale3D.GetMax();
 
-    TArray<TEnumAsByte<EObjectTypeQuery>> objTypes{};
-    objTypes.Add(UEngineTypes::ConvertToObjectType(ECC_WorldStatic));
-    objTypes.Add(UEngineTypes::ConvertToObjectType(ECC_WorldDynamic));
-    objTypes.Add(UEngineTypes::ConvertToObjectType(ECC_Pawn));
-    objTypes.Add(UEngineTypes::ConvertToObjectType(ECC_PhysicsBody));
-
     const bool bHit = UKismetSystemLibrary::CapsuleOverlapActors(
                         OriginActor,
                         startLoc,
                         InData.CapsuleRadius * scale,
                         InData.CapsuleHalfHeight * scale,
-                        objTypes,
+                        g_objTypes,
                         nullptr,
                         ignoreActors,
                         hitActors
@@ -115,6 +120,7 @@ namespace Detector
     }
 
     OutResult.Reset();
+
     TArray<AActor*> hitActors{};
     // Ignore origin actor
     TArray<TObjectPtr<AActor>> ignoreActors{};
@@ -123,17 +129,11 @@ namespace Detector
     const FVector originLoc = InOriginLocation + InData.CenterPositionOffset;
     const float scale = InOriginScale3D.GetMax();
 
-    TArray<TEnumAsByte<EObjectTypeQuery>> objTypes{};
-    objTypes.Add(UEngineTypes::ConvertToObjectType(ECC_WorldStatic));
-    objTypes.Add(UEngineTypes::ConvertToObjectType(ECC_WorldDynamic));
-    objTypes.Add(UEngineTypes::ConvertToObjectType(ECC_Pawn));
-    objTypes.Add(UEngineTypes::ConvertToObjectType(ECC_PhysicsBody));
-
     const bool bHit = UKismetSystemLibrary::SphereOverlapActors(
                         OriginActor,
                         InOriginLocation,
                         InData.SphereRadius * scale,
-                        objTypes,
+                        g_objTypes,
                         nullptr,
                         ignoreActors,
                         hitActors
