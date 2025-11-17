@@ -287,7 +287,7 @@ void UARPlayerPresenter::RegisterSnapTargetTask()
     radius = capsule->GetScaledCapsuleHalfHeight();
   }
 
-  // TODO
+  // TODO use RangeDetector
   TArray< TEnumAsByte<EObjectTypeQuery> > objTypes{}; 
   objTypes.Add(UEngineTypes::ConvertToObjectType(ECC_WorldStatic));
   objTypes.Add(UEngineTypes::ConvertToObjectType(ECC_WorldDynamic));

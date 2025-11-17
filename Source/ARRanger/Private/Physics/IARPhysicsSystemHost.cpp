@@ -3,8 +3,7 @@
 #include "Physics/IARPhysicsSystemHost.h"
 
 #include "Magnetic/IARMagnetizableInterface.h"
-#include "Physics/Core/ARPhysicsEngine.h"
-#include "Physics/Core/ARPhysicsTickProcessorActor.h"
+#include "Physics/Core/ARPhysicsSystem.h"
 #include "Physics/Gameplay/ARPhysicsGlobal.h"
 #include "Physics/Core/ARPhysicsTypes.h"
 #include "Physics/Core/IPhysicsTaskRegistrar.h"
@@ -15,30 +14,30 @@
 namespace ARRanger::Private
 {
   /**
-   * @brief AR物理エンジンを取得
+   * @brief AR物理システムを取得
    */
-  inline static FARPhysicsEngine& GetEngine()
+  inline static FARPhysicsSystem& GetPhysicsSystem()
   {
-    static FARPhysicsEngine Engine;
-    return Engine;
+    static FARPhysicsSystem System;
+    return System;
   }
 
   void FARPhysicsCore::InitializeARPhysics(IPhysicsTaskRegistrar* InTaskRegistrar)
   {
     check(InTaskRegistrar != nullptr);
-    FARPhysicsEngineInitializationParameters param{};
+    FARPhysicsSystemInitializationParameters param{};
     param.TaskRegistrar = InTaskRegistrar;
     
-    GetEngine().InitializePhysicsEngine(param);
+    GetPhysicsSystem().InitializePhysicsSystem(param);
   }
 
   void FARPhysicsCore::DeinitializeARPhysics()
   {
-    GetEngine().DeinitializePhysicsEngine();
+    GetPhysicsSystem().DeinitializePhysicsSystem();
   }
 } // namespace ARRanger::Private
 
-using ARRanger::Private::GetEngine;
+using ARRanger::Private::GetPhysicsSystem;
 
 void IARPhysicsSystemHost::Physics_RegisterMagneticTask(IARMagnetizableInterface* InSource, IARMagnetizableInterface* InTarget)
 {
@@ -57,7 +56,7 @@ void IARPhysicsSystemHost::Physics_UnregisterMagneticTask(IARMagnetizableInterfa
   termination.Target = InTarget;
   termination.Type = EPhysicsUnregistryType::UnregisterMagnetic;
 
-  GetEngine().UnregisterPhysicsProcess(termination);
+  GetPhysicsSystem().UnregisterPhysicsProcess(termination);
 }
 
 void IARPhysicsSystemHost::Physics_RequestMagneticTaskImpl(IARMagnetizableInterface* InSource, IARMagnetizableInterface* InTarget, EPhysicsExecuteFrequency Frequency)
@@ -73,23 +72,25 @@ void IARPhysicsSystemHost::Physics_RequestMagneticTaskImpl(IARMagnetizableInterf
   request.Target = InTarget;
   
   using enum EARMagnetismType;
-  if ((InSource->GetMagnetismType() == Attraction) && (InTarget->GetMagnetismType() == Attraction))
+  // 同じタイプの磁力オブジェクトかつNoneじゃないタイプだとリクエストを拒否する
+  if (InSource->GetMagnetismType() != InTarget->GetMagnetismType() || (InSource->GetMagnetismType() == None))
+  {
+    AR_LOG(LogARPhysics, Warning, TEXT("MagnetismType is not same or one of the type is None.Request denied."));
+    return;
+  }
+
+  // 磁力リクエストタイプ設定
+  if (InSource->GetMagnetismType() == Attraction)
   {
     request.Type = EPhysicsRegistryType::RequestAttraction;
   }
-  else if ((InSource->GetMagnetismType() == Repulsion) && (InTarget->GetMagnetismType() == Repulsion))
+  else if (InSource->GetMagnetismType() == Repulsion)
   {
     request.Type = EPhysicsRegistryType::RequestRepulsion;
-  }
-  else
-  {
-    AR_LOG(LogARPhysics, Warning, TEXT("Request type is NONE."));
-    request.Type = EPhysicsRegistryType::None;
-    return;
   }
 
   request.Frequency = Frequency;
 
-  GetEngine().RegisterPhysicsTask(request);
+  GetPhysicsSystem().RegisterPhysicsTask(request);
 }
 

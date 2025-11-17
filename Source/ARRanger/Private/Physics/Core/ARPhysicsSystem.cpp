@@ -1,4 +1,4 @@
-#include "Physics/Core/ARPhysicsEngine.h"
+#include "Physics/Core/ARPhysicsSystem.h"
 
 #include "Magnetic/IARMagnetizableInterface.h"
 #include "Internal/ARLoggingHeader.h"
@@ -6,18 +6,18 @@
 #include "Physics/Core/IPhysicsTaskRegistrar.h"
 
 /**インスタンス数制限クラス定義 */
-DEFINE_COUNT_LIMITER_PROPERTY(FARPhysicsEngine)
+DEFINE_COUNT_LIMITER_PROPERTY(FARPhysicsSystem)
 
-FARPhysicsEngine::FARPhysicsEngine()
+FARPhysicsSystem::FARPhysicsSystem()
   : m_taskRegistrar{nullptr}
 { }
 
-FARPhysicsEngine::~FARPhysicsEngine()
+FARPhysicsSystem::~FARPhysicsSystem()
 {
-  DeinitializePhysicsEngine();
+  DeinitializePhysicsSystem();
 }
 
-void FARPhysicsEngine::InitializePhysicsEngine(const FARPhysicsEngineInitializationParameters& Parameters)
+void FARPhysicsSystem::InitializePhysicsSystem(const FARPhysicsSystemInitializationParameters& Parameters)
 {
   if (Parameters.TaskRegistrar != nullptr)
   {
@@ -25,12 +25,12 @@ void FARPhysicsEngine::InitializePhysicsEngine(const FARPhysicsEngineInitializat
   }
 }
 
-void FARPhysicsEngine::DeinitializePhysicsEngine()
+void FARPhysicsSystem::DeinitializePhysicsSystem()
 {
   m_taskRegistrar.Reset();
 }
 
-void FARPhysicsEngine::RegisterPhysicsTask(const FARPhysicsRegistry& Registry)
+void FARPhysicsSystem::RegisterPhysicsTask(const FARPhysicsRegistry& Registry)
 {
   if (!m_taskRegistrar.IsValid())
   {
@@ -50,7 +50,7 @@ void FARPhysicsEngine::RegisterPhysicsTask(const FARPhysicsRegistry& Registry)
   }
 }
 
-void FARPhysicsEngine::UnregisterPhysicsProcess(const FARPhysicsUnregistry& Unregistry)
+void FARPhysicsSystem::UnregisterPhysicsProcess(const FARPhysicsUnregistry& Unregistry)
 {
   if (!m_taskRegistrar.IsValid())
   {

@@ -1,13 +1,13 @@
 /**
  * @file ARPhysicsEngine.h
  * @author MAI ZHICONG
- * @brief Physics engine for Project:ARRanger
+ * @brief Physics system for Project:ARRanger
  */
 
 #pragma once
 
-#ifndef _AR_PHYSICS_ENGINE_
-#define _AR_PHYSICS_ENGINE_
+#ifndef _AR_PHYSICS_SYSTEM_
+#define _AR_PHYSICS_SYSTEM_
 
 #include "UObject/WeakInterfacePtr.h"
 
@@ -82,9 +82,9 @@ struct FARPhysicsUnregistry
 };
 
 /**
- * @brief AR物理エンジン初期化パラメータ
+ * @brief AR物理システム初期化パラメータ
  */
-struct FARPhysicsEngineInitializationParameters
+struct FARPhysicsSystemInitializationParameters
 {
   IPhysicsTaskRegistrar* TaskRegistrar = nullptr;
 };
@@ -92,33 +92,30 @@ struct FARPhysicsEngineInitializationParameters
 #define ARPHYSICS_API ARRANGER_API
 
 /**
- * @brief AR物理エンジンクラス
+ * @brief AR物理システムクラス
  * インスタンス最大数 : 1
  */
-class FARPhysicsEngine : private ARRanger::Private::FCountLimiter<FARPhysicsEngine, 1>
+class FARPhysicsSystem : private ARRanger::Private::FCountLimiter<FARPhysicsSystem, 1>
 {
-  friend class FARPhysicsEngineProxy;
-  using PhysicsEngineProxyPtr = FARPhysicsEngineProxy*;
-
   /**インスタンス数制限クラス宣言 */
-  DECLARE_COUNT_LIMITER_PROPERTY(FARPhysicsEngine, 1)
+  DECLARE_COUNT_LIMITER_PROPERTY(FARPhysicsSystem, 1)
 
   public:
-    ARPHYSICS_API FARPhysicsEngine();
-    ARPHYSICS_API virtual ~FARPhysicsEngine();
+    ARPHYSICS_API FARPhysicsSystem();
+    ARPHYSICS_API virtual ~FARPhysicsSystem();
 
     /**
      * @brief 物理エンジンを初期化する
      * 
      * @param Parameters 初期化する専用パラメータ
-     * @see FARPhysicsEngineInitializationParameters
+     * @see FARPhysicsSystemInitializationParameters
      */
-    ARPHYSICS_API void InitializePhysicsEngine(const FARPhysicsEngineInitializationParameters& Parameters);
+    ARPHYSICS_API void InitializePhysicsSystem(const FARPhysicsSystemInitializationParameters& Parameters);
 
     /**
-     * @brief 物理エンジンを解放する
+     * @brief 物理システムを解放する
      */
-    ARPHYSICS_API void DeinitializePhysicsEngine();
+    ARPHYSICS_API void DeinitializePhysicsSystem();
 
     /**
      * @brief 物理タスクを登録する
@@ -144,4 +141,4 @@ class FARPhysicsEngine : private ARRanger::Private::FCountLimiter<FARPhysicsEngi
 
 #undef ARPHYSICS_API
 
-#endif // _AR_PHYSICS_ENGINE_
+#endif // _AR_PHYSICS_SYSTEM_
