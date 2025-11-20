@@ -1,8 +1,4 @@
-/**
- * @file ARPlayerPresenter.h
- * @author MAI ZHICONG
- * @brief プレイヤーのデータとビューを制御するプレゼンター（MVP）
- */
+// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
@@ -12,7 +8,6 @@
 
 #include "ARPlayerPresenter.generated.h"
 
-/**前方宣言 */
 class AARRangerCharacter;
 class UARHealthComponent;
 enum class ECameraRigType : uint8;
@@ -38,15 +33,8 @@ struct FARPlayerModel
 public:
   FARPlayerModel();
 
-  /**
-   * @brief プレイヤーモデルを初期化する
-   * @param InViewCharacter プレイヤーキャラクター
-   */
   void Initialize(AARRangerCharacter* InViewCharacter);
 
-  /**
-   * @brief プレイヤーモデルを更新
-   */
   void Reset();
 
   UPROPERTY()
@@ -96,148 +84,50 @@ class UARPlayerPresenter : public UObject,
 
 public:
 
-  /**
-   * @brief プレゼンターを初期化する
-   * @param InViewCharacter プレイヤーキャラクター
-   */
   UE_API void Initialize(AARRangerCharacter* InViewCharacter);
 
-  /**
-   * @brief プレゼンターを解放する
-   */
   UE_API void Deinitialize();
 
-  /**
-   * @brief 左スティック入力を処理する
-   * @param InX X方向入力
-   * @param InY Y方向入力
-   * @param InDeadZone 入力デッドゾーン(Scalar)
-   * @param InMinInput デッドゾーンを超えた入力の最小値（Scalar）
-   */
   UE_API void Input_HandleLeftStick(double InX, double InY, /**TODO */double InDeadZone, /**TODO */double InMinInput);
 
-  /**
-   * @brief 変身入力を処理する
-   */
   UE_API void Input_HandleTransform();
 
-  /**
-   * @brief カメラリセット入力を処理する
-   */
   UE_API void Input_HandleCameraReset();
 
-  /**
-   * @brief 溜め攻撃開始通知
-   */
-  UE_API void OnChargeStartHandled(); 
+  UE_API void HandleChargeStart(); 
 
-  /**
-   * @brief 溜め攻撃終了通知
-   */
-  UE_API void OnChargeEndHandled();
+  UE_API void HandleChargeEnd();
 
 private:
 
-  /**
-   * @brief プレイヤー移動入力を処理する
-   * @param InX　　　　　X軸入力値(Scalar, X-Axis)
-   * @param InY         Y軸入力値(Scalar, Y-Axis)
-   * @param InDeadZone  デッドゾーン(Scalar)
-   * @param InMinInput　デッドゾーンを超えた入力の最小値（Scalar）
-   */
   void HandleCharacterMove(double InX, double InY, /**TODO */double InDeadZone, /**TODO */double InMinInput);
 
-  /**
-   * @brief プレイヤー吸着攻撃ターゲット更新を処理する
-   * @param InX　　　　　X軸入力値(Scalar, X-Axis)
-   * @param InY         Y軸入力値(Scalar, Y-Axis)
-   */
   void HandleSnapTargetUpdate(double InX, double InY);
-    
-  /**
-   * @brief プレイヤーチャージ時の回転処理をする
-   * 
-   * @param InX　　　　　X軸入力値(Scalar, X-Axis)
-   * @param InY         Y軸入力値(Scalar, Y-Axis)
-   */
-  void HandleCharacterChargeRotate(double InX, double InY);
 
-  /**
-   * @brief 吸着処理タスク(Tick)を登録する
-   * @see UpdateSnapTarget
-   */
   void RegisterSnapTargetTask();
 
-  /**
-   * @brief ターゲットに吸着する処理(Tick)
-   * @param DeltaTime 
-   */
   void UpdateSnapTarget(float DeltaTime);
 
-  /**
-   * @brief 吸着処理タスク(Tick)を解読する
-   */
   void UnregisterSnapTargetTask();
+  
+  void HandleCharacterChargeRotate(double InX, double InY);
 
-  /**
-   * @brief 戦闘結果を処理する
-   * 
-   * @param InAffectedCharacter プレイヤーキャラクター 
-   * @param InDamageResult      戦闘ダメージ結果構造体
-   */
   void HandleBattleResult(AARRangerCharacter* InAffectedCharacter, const ARRanger::Battle::FARDamageResult& InDamageResult);
 
-  /**
-   * @brief バトルステート変更を処理する
-   * @param bIsInBattle 
-   */
   void HandleBattleStateChange(bool bIsInBattle);
 
-  /**
-   * @brief 変身イベントを処理する
-   * 
-   * @param InNewTransformation 新しい変身状態
-   */
   void HandleTransformedEvent(EARMagnetismType InNewTransformation);
 
-  /**
-   * @brief プレイヤー攻撃開始時の処理をする
-   * 
-   */
   void HandleAttackAbilityStarted();
 
-  /**
-   * @brief プレイヤー攻撃終了時の処理をする
-   */
   void HandleAttackAbilityEnded();
 
-  /**
-   * @brief プレイヤーが登るのを始める処理
-   */
   void StartClimbing();
 
-  /**
-   * @brief プレイヤーが登るのを止める処理
-   */
   void StopClimbing();
 
-  /**
-   * @brief プレイヤーが登っているときの更新処理
-   * @param DeltaTime 
-   */
   void UpdateClimbing(float DeltaTime);
 
-  /**
-   * @brief 吸着ターゲットの吸着先の座標を更新する
-   * 
-   * @param InOverlappedComp 探知した吸着ターゲットコンポーネント
-   * @param InImpactPoint    当たり判定で当たった座標
-   */
-  void UpdateSnapTargetImpactPoint(const USceneComponent* InOverlappedComp, const FVector InImpactPoint);
-
-  /**
-   * @brief プレイヤーが着地した時呼び出されるコールバック
-   */
   UFUNCTION()
   void OnGroundLanded(const FHitResult& InHit);
 
@@ -247,7 +137,7 @@ private:
   UFUNCTION()
   void OnClimbSurfaceOverlapEnded(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
-  UFUNCTION()
+    UFUNCTION()
   void OnMagneticForceFieldBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
   UFUNCTION()
@@ -260,25 +150,24 @@ private:
   void OnCameraRigChanged(ECameraRigType InType);
 
   void OnCharacterJumpStarted();
+
   void OnCharacterJumpStopped();
+
   bool CanUpdateClimbingInternal() const;
+
   void StopSnapTargetInternal();
 
 private:
-  /**プレイヤーキャラクター */
+
   UPROPERTY()
   TObjectPtr<AARRangerCharacter> ViewCharacter;
 	
-  /**プレイヤーモデル */
   UPROPERTY(EditAnywhere)
   FARPlayerModel Model;
 
-  /**登る処理デリゲートハンドル */
   FDelegateHandle Handle_UpdateClimbing{};
 
-  /**吸着処理デリゲートハンドル */
   FDelegateHandle Handle_UpdateSnapTarget{};
-
 };
 
 #undef UE_API

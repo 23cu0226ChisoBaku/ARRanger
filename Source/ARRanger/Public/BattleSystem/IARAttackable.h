@@ -136,14 +136,6 @@ class IARAttackable
 public:
 
   /**
-   * @brief アクターが攻撃できるかを確認する
-   * 
-   * @param InActor アクター
-   * @return アクターがIARAttackableを継承していればtrue, それ以外 false
-   */
-  static UE_API bool IsActorAttackable(const AActor* InActor);
-
-  /**
    * @brief                 物を攻撃する
    * @param Attacker        攻撃者
    * @param InAttackParams  攻撃パラメータ

@@ -1,6 +1,6 @@
 #include "Physics/Core/ARPhysicsTickProcessorActor.h"
 
-#include "Physics/Core/ARPhysicsSystem.h"
+#include "Physics/Core/ARPhysicsEngine.h"
 #include "Physics/TickObjects/Magnetic/ARMagneticTickObject.h"
 #include "Physics/Core/ARPhysicsTickManagerInterface.h"
 #include "Magnetic/IARMagnetizableInterface.h"
@@ -35,6 +35,7 @@ bool operator==(const FARMagneticTickObjectEntry& Lhs, const FARMagneticTickObje
 
 AARPhysicsTickProcessorActor::AARPhysicsTickProcessorActor()
 {
+
 	PrimaryActorTick.bCanEverTick = true;
 
   // エンジンの物理演算を行う前に処理する
@@ -63,19 +64,14 @@ void AARPhysicsTickProcessorActor::ProcessARPhysicsTasks(float DeltaTime)
   FARPhysicsTickParameters params{};
   params.DeltaTime = DeltaTime;
 
-  // 物理タスクを処理
-  // 順番：(TT_Magnetic -> TT_Gravity)
+  // Process Magnetic
   {
-    using enum EARPhysicsTickType;
-    // Process Magnetic
-    {
-      tickManagerInterface.ExecuteARPhysicsTick(TT_Magnetic, params);
-    }
-  
-    // Process Gravity
-    {
-      tickManagerInterface.ExecuteARPhysicsTick(TT_Gravity, params);
-    }
+    tickManagerInterface.ExecuteARPhysicsTick(EARPhysicsTickType::TT_Magnetic, params);
+  }
+
+  // Process Gravity
+  {
+    tickManagerInterface.ExecuteARPhysicsTick(EARPhysicsTickType::TT_Gravity, params);
   }
 }
 

@@ -95,6 +95,32 @@ void AARRangerCharacter::Tick(float DeltaTime)
   {
     TickTaskDelegate.Broadcast(DeltaTime);
   }
+
+  // bool isLockedOn = LockOnComponent->GetIsLockedOn();
+  // AActor* Target = LockOnComponent->GetLockedOnTarget();
+
+  // // ロックオン中に処理
+  // if (isLockedOn && Target)
+  // {
+  //   FVector ToTarget = Target->GetActorLocation() - GetActorLocation();
+  //   FRotator TargetRotation = FRotationMatrix::MakeFromX(ToTarget).Rotator();
+  //   TargetRotation.Pitch = 0.f;
+  //   TargetRotation.Roll = 0.f;
+
+  //   // ターゲットに向けて回転
+  //   SetActorRotation(TargetRotation);
+
+  //   // コントローラーも回転する
+  //   if (Controller)
+  //   {
+  //     FRotator CurrentControlRot = Controller->GetControlRotation();
+
+  //     // 補間も入れて滑らかに回転させる
+  //     FRotator NewControlRot = FMath::RInterpTo(CurrentControlRot, TargetRotation, DeltaTime, 5.0f);
+  //     Controller->SetControlRotation(NewControlRot);
+  //   }
+  // }
+
 }
 
 void AARRangerCharacter::DoMove(double InRight, double InForward)
@@ -336,6 +362,7 @@ void AARRangerCharacter::OnDamaged(const ARRanger::Battle::FARDamageResult& InDa
     OnBattleResultAccepted.Broadcast(this, InDamageResult);
   }
 }
+
 /**End IARAttackable implementation */
 
 /**Start IARAttackerInterface implementation */
@@ -398,6 +425,7 @@ ECameraRigType AARRangerCharacter::GetCameraRig() const
 
 void AARRangerCharacter::OnTargetSnapped(const FVector& InNewPosition, const FRotator& InNewRotation)
 {
+  // TODO
   SetActorLocation(InNewPosition);
   SetActorRotation(InNewRotation);
 }
@@ -407,7 +435,10 @@ void AARRangerCharacter::OnPlayerDeadStarted(AActor* PlayerActor)
   DisableMovementAndCollision();
 
   // Blueprint call
-  K2_OnPlayerDeadStarted();
+  {
+    K2_OnPlayerDeadStarted();
+  }
+
 }
 
 void AARRangerCharacter::OnPlayerDeadEnded(AActor* PlayerActor)
@@ -424,8 +455,9 @@ void AARRangerCharacter::OnPlayerDeadEnded(AActor* PlayerActor)
   }
 
   // Blueprint call
-  K2_OnPlayerDeadFinished();
-
+  {
+    K2_OnPlayerDeadFinished();
+  }
 }
 
 void AARRangerCharacter::DisableMovementAndCollision()

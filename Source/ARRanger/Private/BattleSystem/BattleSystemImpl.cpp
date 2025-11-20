@@ -27,22 +27,9 @@ FARAttackParameters::FARAttackParameters()
 
 const FARAttackParameters FARAttackParameters::BlankAttackParams = FARAttackParameters{};
 
-bool IARAttackable::IsActorAttackable(const AActor* InActor)
-{
-  if (InActor == nullptr)
-  {
-    // TODO Add error log
-    return false;
-  }
-
-  return InActor->GetClass()->ImplementsInterface(UARAttackable::StaticClass());
-}
-
 // Add default functionality here for any IIARAttackable functions that are not pure virtual.
 bool IARAttackable::AttackTarget(IARAttackerInterface* Attacker, FARAttackParameters InAttackParams)
 {
-  using namespace ARRanger::Battle;
-
   // Attackerが存在しないため、Attackerへの通知を送らない
   if (Attacker == nullptr)
   {
@@ -57,13 +44,14 @@ bool IARAttackable::AttackTarget(IARAttackerInterface* Attacker, FARAttackParame
     InAttackParams.Instigator = Attacker != nullptr ? Attacker->GetActor() : nullptr;
   }
 
-  FARAttackResult outAttackResult{};
+  // Check attack result
+  ARRanger::Battle::FARAttackResult outAttackResult{};
   OnPreAttacked(InAttackParams, outAttackResult);
 
-  /**攻撃者に攻撃結果を通知する */
+  /**Notify attack state to attacker */
   if (Attacker != nullptr)
   {
-    FARAttackNotifyParameter notifyParams{};
+    ARRanger::Battle::FARAttackNotifyParameter notifyParams{};
     notifyParams.WeakAttackableObject = _getUObject();
     Attacker->NotifyAttackResult(outAttackResult.Result, notifyParams);
   }
@@ -72,22 +60,22 @@ bool IARAttackable::AttackTarget(IARAttackerInterface* Attacker, FARAttackParame
   OnPostAttacked(InAttackParams);
   
   /**Handle battle task */
-  // 攻撃が失敗したらバトルタスクを処理しない
-  if (outAttackResult.Result != EARAttackResult::Success)
+  // Do not handle battle task if attack is not success
+  if (outAttackResult.Result != ARRanger::Battle::EARAttackResult::Success)
   {
     return false;
   }
 
-  // バトルタスクを処理する
-  FARBattleTask task{};
+  // Finally we handle battle task
+  ARRanger::Battle::IBattleSystemInterface& battleSystem = ARRanger::Battle::IBattleSystemInterface::Get();
+  ARRanger::Battle::FARBattleTask task{};
+  ARRanger::Battle::FARDamageResult damageResult{};
   task.Instigator = InAttackParams.Instigator;
   task.Target = this->Attackable_GetActor();
   task.OriginDamage = InAttackParams.Damage;
+  battleSystem.HandleBattleTask(task, damageResult);
 
-  FARDamageResult damageResult{};
-  IBattleSystemInterface::Get().HandleBattleTask(task, damageResult);
-
-  // ダメージ通知
+  // Handle damage
   damageResult.FinalLaunchDirection = InAttackParams.LaunchDirection;
   damageResult.Instigator = (Attacker != nullptr) ? Attacker->GetActor() : nullptr;
   damageResult.ImpactLocation = InAttackParams.ImpactLocation;
