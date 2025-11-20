@@ -11,12 +11,6 @@
 
 #include "Kismet/KismetSystemLibrary.h"
 
-namespace
-{
-  // Input max value(scalar)
-  constexpr double MAX_INPUT_VALUE = 1.0;
-}
-
 FARPlayerModel::FARPlayerModel()
   : HealthComponent{nullptr}
   , ChargeStartFaceDir{EForceInit::ForceInitToZero}
@@ -184,7 +178,7 @@ void UARPlayerPresenter::Input_HandleCameraReset()
   ViewCharacter->SetCameraRig(ECameraRigType::Reset);
 }
 
-void UARPlayerPresenter::HandleChargeStart()
+void UARPlayerPresenter::OnChargeStartHandled()
 {
   Model.bIsCharging = true;
   if (ViewCharacter != nullptr)
@@ -193,7 +187,7 @@ void UARPlayerPresenter::HandleChargeStart()
   }
 }
 
-void UARPlayerPresenter::HandleChargeEnd()
+void UARPlayerPresenter::OnChargeEndHandled()
 {
   Model.bIsCharging = false;
 }
@@ -204,11 +198,14 @@ void UARPlayerPresenter::HandleCharacterMove(double InX, double InY, double InDe
   const double radiusSquared = FMath::Square(InX) + FMath::Square(InY);
   const double moveDeadZoneSquared = FMath::Square(FMath::Max(0.0, InDeadZone));
 
-  // デッドゾーン以下
-  if (radiusSquared <= moveDeadZoneSquared)
+  // デッドゾーン以下の入力を受け付けない
+  if ((radiusSquared <= moveDeadZoneSquared) || FMath::IsNearlyZero(radiusSquared))
   {
     return;
   }
+
+  // Input max value(scalar)
+  constexpr double MAX_INPUT_VALUE = 1.0;
   
   const double realMinInput = FMath::Min(InMinInput, MAX_INPUT_VALUE);
   // インプット閾値レベル
@@ -235,7 +232,6 @@ void UARPlayerPresenter::HandleCharacterMove(double InX, double InY, double InDe
 
   if (ViewCharacter != nullptr)
   {
-    // Move character
     ViewCharacter->DoMove(adjustedRight, adjustedForward);
   }
 }
@@ -279,15 +275,9 @@ void UARPlayerPresenter::RegisterSnapTargetTask()
   const FVector targetPlayerDir = ((forwardDirection * Model.TargetSnapInputDirection.Y) + (rightDirection * Model.TargetSnapInputDirection.X)).GetSafeNormal();
   const FVector startLoc = ViewCharacter->GetActorLocation();
   const FVector endLoc = startLoc + targetPlayerDir * Model.TargetSnapDetectMaxRange;
+  const float radius = ViewCharacter->GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
 
-  // NOTE Magic number is bad
-  float radius = 200.f;
-  if (UCapsuleComponent* capsule = ViewCharacter->GetCapsuleComponent())
-  {
-    radius = capsule->GetScaledCapsuleHalfHeight();
-  }
-
-  // TODO use RangeDetector
+  // TODO Range Detectorなど既存の機能を使う
   TArray< TEnumAsByte<EObjectTypeQuery> > objTypes{}; 
   objTypes.Add(UEngineTypes::ConvertToObjectType(ECC_WorldStatic));
   objTypes.Add(UEngineTypes::ConvertToObjectType(ECC_WorldDynamic));
@@ -295,12 +285,10 @@ void UARPlayerPresenter::RegisterSnapTargetTask()
   objTypes.Add(UEngineTypes::ConvertToObjectType(ECC_PhysicsBody));
   TArray<AActor*> ignoreActors{};
   ignoreActors.Add(ViewCharacter);
-
   TArray<FHitResult> outResults{};
 
-  // TODO Range Detectorなど既存の機能を使う
   const bool bHit = UKismetSystemLibrary::SphereTraceMultiForObjects(
-                                            this,
+                                            ViewCharacter,
                                             startLoc,
                                             endLoc,
                                             radius,
@@ -323,42 +311,29 @@ void UARPlayerPresenter::RegisterSnapTargetTask()
         continue;
       }
 
-      // Ignore actors that hit by hemisphere behind player's face direction
+      // プレイヤーを始点とした検索範囲のうち、プレイヤーの後ろの半円に入っているターゲットを無視する
       const FVector dirToTarget = (hitActor->GetActorLocation() - ViewCharacter->GetActorLocation()).GetSafeNormal();
       if (FVector::DotProduct(dirToTarget, targetPlayerDir) < 0.0f)
       {
         continue;
       }
 
-      if (hitActor->GetClass()->ImplementsInterface(UARAttackable::StaticClass()))
+      // 攻撃できないターゲットに吸着しない
+      if (IARAttackable::IsActorAttackable(hitActor))
       {
-        IARAttackable* attackable = ::Cast<IARAttackable>(hitActor);
-        if (attackable == nullptr)
-        {
-          continue;
-        }
-
         const float curtHitResultDistanceSquared = (playerLoc - hitResult.GetActor()->GetActorLocation()).SquaredLength();
         if (Model.SnapTargetActor.IsValid())
         {
-          // Find min distance to player
           const float curtMinDistanceSquared = (playerLoc - Model.SnapTargetActor->GetActorLocation()).SquaredLength();
+          // 前の吸着対象より近い対象に更新
           if (curtMinDistanceSquared > curtHitResultDistanceSquared)
           {
-            Model.SnapTargetActor = hitResult.GetActor();
-            UPrimitiveComponent* targetPrimitiveComp = hitResult.GetComponent();
-            const FVector relativeImpactPoint = hitResult.ImpactPoint - targetPrimitiveComp->GetComponentLocation();
-            // We do not use Z-component of impact point
-            Model.SnapTargetImpactPoint = FVector{relativeImpactPoint.X, relativeImpactPoint.Y, 0.0};
+            UpdateSnapTargetImpactPoint(hitResult.GetComponent(), hitResult.ImpactPoint);
           }   
         }
         else
         {
-          Model.SnapTargetActor = hitResult.GetActor();
-          UPrimitiveComponent* targetPrimitiveComp = hitResult.GetComponent();
-          const FVector relativeImpactPoint = hitResult.ImpactPoint - targetPrimitiveComp->GetComponentLocation();
-          // We do not use Z-component of impact point
-          Model.SnapTargetImpactPoint = FVector{relativeImpactPoint.X, relativeImpactPoint.Y, 0.0};
+          UpdateSnapTargetImpactPoint(hitResult.GetComponent(), hitResult.ImpactPoint);
         }
 
         Model.bCanUpdateSnapMovement = true;
@@ -396,36 +371,38 @@ void UARPlayerPresenter::UpdateSnapTarget(float DeltaTime)
 
     Model.SnapTimeCounter += DeltaTime;
 
-    // Calculate new rotation
-    const float RotateInterpInterval = Model.SnapTimeInterval / 2.0f;
-    FVector faceToTarget_XYAxis = (Model.SnapTargetActor->GetActorLocation() - ViewCharacter->GetActorLocation());
-    faceToTarget_XYAxis.Z = 0.0;
-    const FRotator faceToTargetRot = faceToTarget_XYAxis.Rotation();
-    const float rotLerpAlpha = FMath::Clamp((Model.SnapTimeCounter / RotateInterpInterval), alphaMin, alphaMax);
-    newRotation = FMath::InterpCircularOut(Model.SnapStartRotation, faceToTargetRot, rotLerpAlpha);
+    // 吸着先に向ける回転を計算する
+    {
+      const float RotateInterpInterval = Model.SnapTimeInterval / 2.0f;
+      FVector faceToTarget_XYAxis = (Model.SnapTargetActor->GetActorLocation() - ViewCharacter->GetActorLocation());
+      faceToTarget_XYAxis.Z = 0.0;
+      const FRotator faceToTargetRot = faceToTarget_XYAxis.Rotation();
+      const float rotLerpAlpha = FMath::Clamp((Model.SnapTimeCounter / RotateInterpInterval), alphaMin, alphaMax);
+      newRotation = FMath::InterpCircularOut(Model.SnapStartRotation, faceToTargetRot, rotLerpAlpha);
+    }
     
-    // Calculate new location 
-    const FVector playerToTargetOffset = Model.SnapTargetImpactPoint.GetSafeNormal() * ViewCharacter->GetCapsuleComponent()->GetScaledCapsuleRadius();
-    const FVector newTargetLocation = Model.SnapTargetActor->GetActorLocation() + Model.SnapTargetImpactPoint + playerToTargetOffset;
-    const FVector newTargetLocation_UsePlayerZ = FVector{newTargetLocation.X, newTargetLocation.Y, ViewCharacter->GetActorLocation().Z};
-    const float locLerpAlpha = FMath::Clamp((Model.SnapTimeCounter / Model.SnapTimeInterval), alphaMin, alphaMax);
-    newLocation = FMath::InterpCircularIn(Model.SnapStartPosition, newTargetLocation_UsePlayerZ, locLerpAlpha);
+    // 吸着先に向ける座標を計算する
+    {
+      const FVector playerToTargetOffset = Model.SnapTargetImpactPoint.GetSafeNormal() * ViewCharacter->GetCapsuleComponent()->GetScaledCapsuleRadius();
+      const FVector newTargetLocation = Model.SnapTargetActor->GetActorLocation() + Model.SnapTargetImpactPoint + playerToTargetOffset;
+      const FVector newTargetLocation_UsePlayerZ = FVector{newTargetLocation.X, newTargetLocation.Y, ViewCharacter->GetActorLocation().Z};
+      const float locLerpAlpha = FMath::Clamp((Model.SnapTimeCounter / Model.SnapTimeInterval), alphaMin, alphaMax);
+      newLocation = FMath::InterpCircularIn(Model.SnapStartPosition, newTargetLocation_UsePlayerZ, locLerpAlpha);
+    }
   }
-  // Stop snapping
+  // 吸着処理を止める
   else
   {
     StopSnapTargetInternal();
   }
 
   ViewCharacter->OnTargetSnapped(newLocation, newRotation);
-
 }
 
 void UARPlayerPresenter::UnregisterSnapTargetTask()
 {
   StopSnapTargetInternal();
 
-  // TODO
   Model.bIsInComboAction = false;
 
   if (ViewCharacter != nullptr)
@@ -446,40 +423,37 @@ void UARPlayerPresenter::HandleCharacterChargeRotate(double InX, double InY)
     return;
   }
 
+  // 回転範囲を絞る
   const FRotator curtPlayerDir_Rot = ViewCharacter->GetActorRotation();
   const double curtYawOffsetToChargeStart = curtPlayerDir_Rot.Yaw - Model.ChargeStartFaceDir.Rotation().Yaw;
-
   double rotate_Yaw = InX;
   if (FMath::Abs(curtYawOffsetToChargeStart + rotate_Yaw) > Model.ChargeRotateHalfRange)
   {
     rotate_Yaw = FMath::Sign(rotate_Yaw) * (Model.ChargeRotateHalfRange - FMath::Abs(curtYawOffsetToChargeStart));
   }
   
-  // Rotate Character
   ViewCharacter->DoRotate(rotate_Yaw);
-  
 }
 
 void UARPlayerPresenter::HandleBattleResult(AARRangerCharacter* InAffectedCharacter, const ARRanger::Battle::FARDamageResult& InDamageResult)
 {
-  // check AffectedCharacter is same as View character
   check(InAffectedCharacter == ViewCharacter);
 
-  // Value of damage is positive. Make it negative
+  // ダメージが正の数なので、HPの変化量を負の数にする
   const float HPChangeValue = -InDamageResult.FinalDamage;
   bool bIsDead = false;
-
   if (Model.HealthComponent != nullptr)
   {
     Model.HealthComponent->HandleHealthChange(InDamageResult.Instigator, HPChangeValue);
 
+    // ノックバック処理
     if (Model.HealthComponent->GetHealth() > 0.0f)
     {
+      constexpr double launchPowerFactor = 1.0;
+
       FVector launchDirNorm = InDamageResult.FinalLaunchDirection;
       launchDirNorm.Z = 0.0;
       launchDirNorm.Normalize();
-      const double launchPowerFactor = 1.0;
-
       if (ViewCharacter != nullptr)
       {
         const double finalLaunchPower = Model.LaunchPower * launchPowerFactor;
@@ -501,7 +475,7 @@ void UARPlayerPresenter::HandleBattleResult(AARRangerCharacter* InAffectedCharac
 
 void UARPlayerPresenter::HandleBattleStateChange(bool bIsInBattle)
 {
-  // TODO We should not let auto generation system in HealthComponent
+  // 戦闘中だと自動回復を止める
   if (Model.HealthComponent != nullptr)
   {
     Model.HealthComponent->SetAutoRegenerationEnable(!bIsInBattle);
@@ -515,8 +489,10 @@ void UARPlayerPresenter::HandleTransformedEvent(EARMagnetismType InNewTransforma
     return;
   }
 
+  // 変身した瞬間、一回だけ周りに磁力オブジェクトあるかを確認する、あったらタスクを登録する
   switch (InNewTransformation)
   {
+    // 引力状態に変身
     case EARMagnetismType::Attraction:
     {
       // Try to climb
@@ -534,14 +510,13 @@ void UARPlayerPresenter::HandleTransformedEvent(EARMagnetismType InNewTransforma
     }
     break;
 
-    // Try triggering physics event 
+    // 斥力状態に変身 
     case EARMagnetismType::Repulsion:
     {
       const UWorld* world = GetWorld();
       UCapsuleComponent* capsuleComp = ViewCharacter->GetCapsuleComponent();
       
       // Use player character CapsuleComponent as collision shape.Make it a bit larger than origin shape
-      // TODO Maybe we can remove this magic number?
       const float extendCapsuleRadius = 5.f;
       const float extendCapsuleHalfHeight = 5.f;
       const float shapeRadius = capsuleComp->GetScaledCapsuleRadius() + extendCapsuleRadius;
@@ -550,6 +525,7 @@ void UARPlayerPresenter::HandleTransformedEvent(EARMagnetismType InNewTransforma
       const FVector origin = capsuleComp->GetComponentLocation();
       const FQuat originQuat = capsuleComp->GetComponentQuat();
 
+      // TODO Use RangeDetector
       FCollisionObjectQueryParams objQueryParams{};
       objQueryParams.AddObjectTypesToQuery(ECC_WorldStatic);
       objQueryParams.AddObjectTypesToQuery(ECC_WorldDynamic);
@@ -592,7 +568,6 @@ void UARPlayerPresenter::HandleAttackAbilityStarted()
     RegisterSnapTargetTask();
   }
 
-  // TODO
   Model.bIsInComboAction = true;
 }
 
@@ -616,9 +591,9 @@ void UARPlayerPresenter::StartClimbing()
   Handle_UpdateClimbing = ViewCharacter->TickTaskDelegate.AddUObject(this, &ThisClass::UpdateClimbing);
 
   // 壁があるかを判定
+  constexpr float wallCheckRayLength = 100.0f;
   const FVector Start = ViewCharacter->GetActorLocation();
-  // FIXME Magic number is bad
-  const FVector End = Start + ViewCharacter->GetActorForwardVector() * 100.0f;
+  const FVector End = Start + ViewCharacter->GetActorForwardVector() * wallCheckRayLength;
 
   FHitResult HitResult{};
   FCollisionQueryParams Params{};
@@ -656,11 +631,20 @@ void UARPlayerPresenter::UpdateClimbing(float DeltaTime)
     StopClimbing();
     return;
   }
-
-  // NOTE Hard coding magic number is bad
-  const float climbSpeed = 2100.0f; // 上昇速度
+  
+  constexpr float climbSpeed = 2100.0f; // 上昇速度
   const FVector climbMovement{0.0, 0.0, climbSpeed * DeltaTime};
   ViewCharacter->OnClimbUpdated(climbMovement);
+}
+
+void UARPlayerPresenter::UpdateSnapTargetImpactPoint(const USceneComponent* InOverlappedComp, const FVector InImpactPoint)
+{
+  check(InOverlappedComp != nullptr);
+
+  Model.SnapTargetActor = InOverlappedComp->GetOwner();
+  const FVector relativeImpactPoint = InImpactPoint - InOverlappedComp->GetComponentLocation();
+  // We do not use Z-component of impact point
+  Model.SnapTargetImpactPoint = FVector{relativeImpactPoint.X, relativeImpactPoint.Y, 0.0};
 }
 
 void UARPlayerPresenter::OnGroundLanded(const FHitResult& InHit)
