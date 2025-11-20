@@ -213,10 +213,9 @@ void AARRangerPlayerController::OnGameplayAbilityEnd(bool bWasCanceled)
 
 FGABlueprintableHoldHandle AARRangerPlayerController::OnGameplayAbilityActivated_Hold(FGameplayTag InActivatedAbilityTag, bool bBlockInputTag, FGameplayTagContainer InInputBlockIgnoreTags)
 {
-
   if (PlayerPresenter != nullptr)
   {
-    PlayerPresenter->HandleChargeStart();
+    PlayerPresenter->OnChargeStartHandled();
   }
   
   if (bBlockInputTag)
@@ -253,12 +252,17 @@ void AARRangerPlayerController::OnGameplayAbilityTaskTicked_Holding(FGameplayTag
 
 void AARRangerPlayerController::OnGameplayAbilityEnded_Hold(FGameplayTag InEndedAbilityTag, FGABlueprintableHoldHandle InHandle, float TimeHeld)
 {
+  if (PlayerPresenter != nullptr)
+  {
+    PlayerPresenter->OnChargeEndHandled();
+  }
+
   ClearHoldSpec(InHandle.Handle);
 
-  // FIXME This logic is weird
+  // FIXME Do not call pressed here.
   if (OnGameAbilityHeld.IsBound())
   {
-    FGameplayTag nextAbilityTag = OnGameAbilityHeld.Execute(TimeHeld, InEndedAbilityTag);
+    const FGameplayTag nextAbilityTag = OnGameAbilityHeld.Execute(TimeHeld, InEndedAbilityTag);
     if (nextAbilityTag.IsValid())
     {
       // TODO Input buffer issue
@@ -267,10 +271,7 @@ void AARRangerPlayerController::OnGameplayAbilityEnded_Hold(FGameplayTag InEnded
     }
   }
 
-  if (PlayerPresenter != nullptr)
-  {
-    PlayerPresenter->HandleChargeEnd();
-  }
+
 }
 
 AARRangerPlayerController::FHoldSpec* AARRangerPlayerController::FindHoldSpecFromHandle(const FGA_HoldHandle& InHoldHandle) const

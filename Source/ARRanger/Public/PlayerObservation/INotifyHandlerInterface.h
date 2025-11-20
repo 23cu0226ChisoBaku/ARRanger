@@ -24,6 +24,16 @@ namespace ARRanger
      */
     virtual void OnAttack() = 0;
   };
+
 }
+
+struct FNullNotifyHandler final : public ARRanger::INotifyHandlerInterface
+{
+  ~FNullNotifyHandler() = default;
+
+  void OnDash() override final { }
+  void OnJump() override final { }
+  void OnAttack() override final { }
+};
 
 #endif // _AR_NOTIFY_HANDLER_INTERFACE_
