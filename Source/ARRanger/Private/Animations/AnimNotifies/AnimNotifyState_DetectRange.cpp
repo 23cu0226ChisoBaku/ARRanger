@@ -24,10 +24,10 @@ public:
   FDetectTickObject_FrameBase(int32 InStartFrame, int32 InFrameInterval);
   void TickDetection(USkeletalMeshComponent * MeshComp, UAnimSequenceBase * Animation, float FrameDeltaTime) override;
 
+private:
   const int32 FrameInterval;
 
   int32 CurrentFrame = 0;
-
   int32 FrameCnt = 0;
 };
 
@@ -38,8 +38,8 @@ public:
   FDetectTickObject_TimeBase(float InTimeInterval);
   void TickDetection(USkeletalMeshComponent * MeshComp, UAnimSequenceBase * Animation, float FrameDeltaTime) override;
 
+private:
   const float TimeInterval;
-
   float TimeCnt;
 
 };
@@ -197,7 +197,6 @@ FString UAnimNotifyState_DetectRange::GetNotifyName_Implementation() const
 bool UAnimNotifyState_DetectRange::ValidateParameters(USkeletalMeshComponent* MeshComp) const
 {
   bool bValid = true;
-
   if (RangeData == nullptr)
   {
     bValid = false;
@@ -284,10 +283,10 @@ void UAnimNotifyState_DetectRange::DrawDebugRange(USceneComponent* RootComponent
 {
   if (RootComponent != nullptr)
   {
-    const UWorld* world = RootComponent->GetWorld();
-    if (world != nullptr)
+    if (bDrawDebugDuringActivation)
     {
-      if (bDrawDebugDuringActivation)
+      const UWorld* world = RootComponent->GetWorld();
+      if (world != nullptr)
       {
         ULineBatchComponent* lineBatch = world->GetLineBatcher(UWorld::ELineBatcherType::WorldPersistent);
 
