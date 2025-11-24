@@ -1,4 +1,10 @@
-﻿#pragma once
+﻿/**
+ * @file ARInputBufferState.h
+ * @author MAI ZHICONG
+ * @brief 入力バッファ状態クラス
+ */
+
+#pragma once
 
 #ifndef _INTERNAL_AR_INPUT_BUFFER_STATE_
 #define _INTERNAL_AR_INPUT_BUFFER_STATE_
@@ -7,7 +13,7 @@
 
 #include "GameplayTagContainer.h"
 
-/**Forward declaration */
+/**前方宣言 */
 class AARRangerPlayerController;
 
 namespace ARRanger
@@ -17,89 +23,80 @@ namespace Input
 {
 
 /**
- * @brief Input buffer state class for ARRanger project
+ * @brief 入力ステートステート
  */
 class FARInputBufferState final
 {
-  enum InternalState
+  // 内部ステート
+  // 
+  enum StateType
   {
     Pressed,  // 押された
     Released, // 離された
     Expired   // 有効切れ
   };
 
-  // Private token to avoid access from outside.
-  struct PrivateToken{ };
+  // プライベートトークン（外部が直接FARInputBufferStateインスタンス作成できないかつMakeShared/MakePimplなどに渡す）
+  enum class PrivateToken{ };
 
 public:
 
   /**
-   * @brief Factory method to create a pressed input state
-   * @param InInputTag Input signature tag
-   * @param BufferLifeTime Input state life time
+   * @brief 押された入力ステートを作成するファクトリー
+   * @param InInputTag 入力Tag
+   * @param BufferLifeTime 入力ステート有効時間
    * 
-   * @return Created pressed input state 
+   * @return 作成した押された入力ステート 
    */
   static UE_API TPimplPtr<FARInputBufferState> MakePressedState(const FGameplayTag& InInputTag, float BufferLifeTime);
   
   /**
-   * @brief Factory method to create a released input state
-   * @param InInputTag Input signature tag
-   * @param BufferLifeTime Input state life time
+   * @brief 離れた入力ステートを作成するファクトリー
+   * @param InInputTag 入力Tag
+   * @param BufferLifeTime 入力ステート有効時間
    * 
-   * @return Created released input state 
+   * @return 作成した離れた入力ステート 
    */ 
   static UE_API TPimplPtr<FARInputBufferState> MakeReleasedState(const FGameplayTag& InInputTag, float BufferLifeTime);
 
-  /**
-   * @brief Default constructor
-   * @param PrivateToken Token to avoid access from outside
-   */
   UE_API FARInputBufferState(PrivateToken);
-  
-  /**
-   * @brief Destructor
-   */
   UE_API ~FARInputBufferState();
 
+  // TODO maybe Evaluate should only use DeltaTime?
   /**
-   * @brief Evaluate input state
-   * @param InPlayerController
+   * @brief 入力ステートを評価する
+   * @param InPlayerController プレイヤーコントローラー
    * @param DeltaTime
    */
   UE_API void Evaluate(AARRangerPlayerController* InPlayerController, float DeltaTime);
 
   /**
-   * @brief Expire this input state.
+   * @brief 入力ステートを次の状態に進行する
+   * (Pressed->Released, Released->Expired, Expired->Expired)
    */
-  UE_API void ExpireInputState();
+  UE_API void AdvanceInputState();
 
   /**
-   * @brief Get input state life time
-   * @return Life time(Always greater equals than 0.0f)
+   * @brief ステート残り有効時間を返す
+   * @return 残り有効時間(常に0.0f以上)
    */
   UE_API float GetLifeTime() const;
 
   /**
-   * @brief Set input state life time
+   * @brief ステート残り有効時間を設定する
    * @param NewBufferLifeTime
    */
   UE_API void SetLifeTime(float NewBufferLifeTime);
 
-  /**
-   * @brief Check this input state is expired
-   * 
-   * @return True if expired, otherwise false
-   */
-  UE_API bool IsInputStateExpired() const;
 
   /**
-   * @brief Check input tag of this input state matches
+   * @brief 入力ステートのTagと全く一緒かを確認する
    * @param InInputTag
-   * @return True if input tag of this input state matches exactly to InInputTag,otherwise false.
+   * @return 全く一緒だったらtrue、それ以外false
    */
   UE_API bool IsInputTagMatchesExact(const FGameplayTag& InInputTag) const;
 
+  // TODO
   /**
    * @brief Check if this is pressed input state
    * @return True if input state is Pressed, otherwise false.
@@ -111,41 +108,39 @@ public:
    * @return True if input state is Released, otherwise false.
    */
   bool IsReleasedState() const { return m_inputState == Released; } 
-
-  /**
-   * @brief Mark this input state as pressed input state
-   */
-  UE_API void MarkAsPressed();
-
   
   /**
-   * @brief Mark this input state as released input state
+   * @brief ステートが破棄されたかを確認する
+   * 
+   * @return 破棄されたらtrue、それ以外false
+   */
+  bool IsExpiredState() const { return m_inputState == Expired; }
+
+
+  /**
+   * @brief この入力ステートを押された入力ステートにマークする
+   */
+  UE_API void MarkAsPressed();
+  /**
+   * @brief この入力ステートを離れた入力ステートにマークする
    */
   UE_API void MarkAsReleased();
 
 private:
 
-  /**
-   * @brief Factory to create an instance of input state
-   * @return Instance created
-   */
   static TPimplPtr<FARInputBufferState> MakeInstanceInternal();
-
-  /**
-   * @brief Check input state.It may change state
-   */
   void CheckInputStateValidation();
 
 private:
 
-  /**Buffer life time */
+  /**バッファ残り有効時間 */
   float m_bufferLifeTime;
 
-  /**Input tag */
+  /**入力タグ */
   FGameplayTag m_inputTag;
 
-  /**Internal state */
-  InternalState m_inputState;
+  /**（内部）入力ステート種類 */
+  StateType m_inputState;
 
 };
 

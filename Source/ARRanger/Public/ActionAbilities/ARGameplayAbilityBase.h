@@ -1,6 +1,6 @@
 /**
  * @file ARGameplayAbilityBase.h
- * @brief Base class of GameplayAbility for ARRanger project
+ * @brief ARRanger専用アビリティのベースクラス
  */
 
 #pragma once
@@ -11,12 +11,12 @@
 
 #define UE_API ARRANGER_API
 
-/**Forward declaration */
+/**前方宣言 */
 class AController;
 
 /**
  * @class UARGameplayAbilityBase
- * @brief Base class of GameplayAbility for ARRanger project
+ * @brief ARRanger専用アビリティのベースクラス
  */
 UCLASS(Abstract)
 class UARGameplayAbilityBase : public UGameplayAbility
@@ -24,51 +24,42 @@ class UARGameplayAbilityBase : public UGameplayAbility
 	GENERATED_BODY()
 
 public:
-  /**
-   * @brief Default constructor
-   */
+
   UE_API UARGameplayAbilityBase();
 
   /**
-   * @brief Set the GameplayAbility to cancelable state
+   * @brief アビリティがキャンセルできるように設定する
    */
   UE_API void SetAbilityCancelable();
 
   /**
-   * @brief Set the GameplayAbility to block cancel state
+   * @brief アビリティキャンセル請求をブロックするように設定する
    */
   UE_API void SetAbilityBlock();
 
-  /**
-   * @brief Check whether GameplayAbility is cancelable
-   * 
-   * @return True if cancelable, otherwise false 
-   */
   UE_API bool IsAbilityCancelable() const;
 
   /**
-   * @brief Check whether GameplayAbility has activate condition
+   * @brief アビリティが発動条件Tagを持っているか
    * 
-   * @param InTag Tag of GameplayAbility that try to activate
-   * @return True if condition tag matches exact. otherwise false
+   * @param InTag 発動しようとするアビリティのTag
+   * @return 条件Tagと一致すればtrue、それ以外はfalse
    */
   UE_API bool HasActivateConditionTag(const FGameplayTag& InTag) const;
 
   /**
-   * @brief Check whether GameplayAbility can be canceled by tag
+   * @brief アビリティが特定のTagでキャンセルされることができるか
    * 
-   * @param InTag Tag to cancel this GameplayAbility
-   * @return True if InTag is inside CancleableConditionTags, otherwise false
+   * @param InTag キャンセルTag
+   * @return CancleableConditionTagsにあればtrue、それ以外はfalse
    */
   UE_API bool CanCancelByAnyTag(const FGameplayTag& InTag) const;
 
-  #if WITH_EDITOR
-  
+#if WITH_EDITOR
   /**Start UObject Interface */
   UE_API virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
   /**End UObject Interface */
-  
-  #endif
+#endif
   
   /**Start UGameplayAbility Interface */
   UE_API virtual bool CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags = nullptr, const FGameplayTagContainer* TargetTags = nullptr, OUT FGameplayTagContainer* OptionalRelevantTags = nullptr) const override;
@@ -83,15 +74,14 @@ public:
   UE_API void K2_InputReleased();
 
   /**
-   * @brief Get asset tags in blueprint
-   * @return Result of GetAssetTags()
+   * @brief GetAssetTagsのブループリントバージョン
+   * @return GetAssetTags()
    */
   UFUNCTION(BlueprintPure, Category = "GameplayAbilityBase", meta = (DisplayName = "Get Default Tags"))
   FGameplayTagContainer K2_GetAssetTags() const;
 
   /**
-   * @brief Get AController of avatar actor
-   * @return Valid controller if avatar has one.Maybe nullptr if avatar actor is not pawn or pawn has no valid controller
+   * @brief アバターActorのコントローラーを取得する
    */
   UFUNCTION(BlueprintPure, Category = "GameplayAbilityBase", meta = (DisplayName = "Get Controller"))
   AController* GetController() const;

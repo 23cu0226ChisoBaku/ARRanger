@@ -1,3 +1,9 @@
+/**
+ * @file ARRangerCharacter.h
+ * @author MAI ZHICONG
+ * @brief キャラクターベースクラス
+ */
+
 #pragma once
 
 #include "GameFramework/Character.h"
@@ -12,7 +18,7 @@
 
 #include "ARRangerCharacter.generated.h"
 
-/**Forward declaration */
+/**前方宣言 */
 class AARRangerCharacter;
 class UAbilitySystemComponent;
 class UAttractSpecialAttackComponent;
@@ -34,9 +40,9 @@ DECLARE_MULTICAST_DELEGATE_OneParam(FExtraTickTask, float);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnCameraRigChanged, ECameraRigType);
 
 /**
- *  シンプルでプレイヤーが操作可能な三人称視点キャラクター
+ *  @brief シンプルでプレイヤーが操作可能な三人称視点キャラクター
  */
-// TODO Maybe we should reduce interface
+// TODO インターフェイスを減らすべき？
 UCLASS(MinimalAPI, Abstract)
 class AARRangerCharacter :  public ACharacter,
                             public IObservableSubjectInterface,

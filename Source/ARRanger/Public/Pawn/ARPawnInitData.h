@@ -1,6 +1,6 @@
 /**
  * @file ARPawnInitData.h
- * @brief Asset to initialize pawn in ARPawnInitComponent
+ * @brief ポーン初期化アセット
  */
 
 #pragma once
@@ -13,7 +13,7 @@
 
 #define UE_API ARRANGER_API
 
-/**Forward declaration */
+/**前方宣言 */
 class UARGameplayAbilityBase;
 
 /**
@@ -66,9 +66,6 @@ class UARPawnInitData : public UDataAsset
 	GENERATED_BODY()
 	
 public:
-  /**
-   * @brief Default constructor
-   */
   UE_API UARPawnInitData(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
   /**GameplayAbilities to initialize */

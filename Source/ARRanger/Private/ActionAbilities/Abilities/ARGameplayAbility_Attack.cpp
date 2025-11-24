@@ -142,8 +142,8 @@ void UARGameplayAbility_Attack::EndAbility(
 
 void UARGameplayAbility_Attack::OnAttackAbilityActivated()
 {
-  UAnimInstance* animInst = FindAnimInstanceOnAvatar();
-  if (animInst != nullptr)
+  // 攻撃モンタージュ再生
+  if (UAnimInstance* animInst = FindAnimInstanceOnAvatar())
   {
     animInst->Montage_Play(AttackMontage);
     animInst->OnMontageEnded.AddUniqueDynamic(this, &UARGameplayAbility_Attack::OnAttackMontageEnded);
@@ -152,12 +152,11 @@ void UARGameplayAbility_Attack::OnAttackAbilityActivated()
 
 void UARGameplayAbility_Attack::OnAttackAbilityEnded(bool bWasCancelled)
 {
-  UAnimInstance* animInst = FindAnimInstanceOnAvatar();
-  if (animInst != nullptr)
+  if (UAnimInstance* animInst = FindAnimInstanceOnAvatar())
   {
+    // アビリティがキャンセルされていないと攻撃モンタージュ再生停止
     if (!bWasCancelled)
     {
-      // TODO 
       animInst->Montage_Stop(0.0f, AttackMontage);
     }
     animInst->OnMontageEnded.RemoveDynamic(this, &UARGameplayAbility_Attack::OnAttackMontageEnded);
@@ -166,6 +165,7 @@ void UARGameplayAbility_Attack::OnAttackAbilityEnded(bool bWasCancelled)
 
 void UARGameplayAbility_Attack::OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted)
 {
+  // この攻撃アビリティのモンタージュが終わったらアビリティを止める
   if (AttackMontage == Montage)
   {
     EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, bInterrupted);
@@ -174,8 +174,7 @@ void UARGameplayAbility_Attack::OnAttackMontageEnded(UAnimMontage* Montage, bool
 
 UAnimInstance* UARGameplayAbility_Attack::FindAnimInstanceOnAvatar() const
 {
-  ACharacter* avatarCharacter = ::Cast<ACharacter>(GetAvatarActorFromActorInfo());
-  if ((avatarCharacter != nullptr) && (AttackMontage != nullptr))
+  if (ACharacter* avatarCharacter = ::Cast<ACharacter>(GetAvatarActorFromActorInfo()))
   {
     if (avatarCharacter->GetMesh() != nullptr)
     {

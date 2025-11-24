@@ -1,7 +1,3 @@
-/**
- * @file ARPawnInitData.cpp
- */
-
 #include "Pawn/ARPawnInitData.h"
 
 UARPawnInitData::UARPawnInitData(const FObjectInitializer& ObjectInitializer)

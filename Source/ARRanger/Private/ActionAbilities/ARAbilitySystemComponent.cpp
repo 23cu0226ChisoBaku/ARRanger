@@ -1,6 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "ActionAbilities/ARAbilitySystemComponent.h"
 
 #include "ActionAbilities/ARGameplayAbilityBase.h"
@@ -10,7 +7,7 @@
 #include "GameFramework/PlayerController.h"
 #include "GameFramework/PlayerState.h"
 
-namespace
+namespace ARRanger::Private
 {
   UAbilitySystemComponent* GetASCByInterface_ActorImpl(const AActor* InActor);
   UAbilitySystemComponent* GetASCByInterface_ActorComp(const AActor* InActor);
@@ -64,7 +61,7 @@ void UARAbilitySystemComponent::ProcessAbilityInputs(const FARAbilityInputProces
   static TArray<FGameplayAbilitySpecHandle> s_abilitiesToActivate{};
   s_abilitiesToActivate.Reset();
 
-  // Process held input ability
+  // 押されているアビリティ入力を発動バッファに入れる
   for (const FGameplayAbilitySpecHandle& heldSpecHandle : m_inputHeldSpecHandles)
   {
     const FGameplayAbilitySpec* abilitySpec = FindAbilitySpecFromHandle(heldSpecHandle);
@@ -77,7 +74,7 @@ void UARAbilitySystemComponent::ProcessAbilityInputs(const FARAbilityInputProces
     }
   }
 
-  // Process abilities that input pressed this frame
+  // 今のフレームに押されたアビリティ入力を発動バッファに入れる
   for (const FGameplayAbilitySpecHandle& pressedHandle : m_inputPressedSpecHandles)
   {
     FGameplayAbilitySpec* abilitySpec = FindAbilitySpecFromHandle(pressedHandle);
@@ -93,17 +90,20 @@ void UARAbilitySystemComponent::ProcessAbilityInputs(const FARAbilityInputProces
     }
   }
 
-  // Activate abilities from held and pressed
+  // バッファにあるアビリティの発動を試みる
   for (const FGameplayAbilitySpecHandle& abilitySpecHandleToActivate : s_abilitiesToActivate)
   {
     FGameplayAbilitySpec* abilitySpec = FindAbilitySpecFromHandle(abilitySpecHandleToActivate);
-    // Check Activation Condition
     if (UARGameplayAbilityBase* ARGA = ::Cast<UARGameplayAbilityBase>(abilitySpec->Ability))
     {
+      // 発動条件を確認する
       if (ARGA->bNeedActivateCondition)
       {
         bool bCanActivate = false;
         const TArray<FGameplayAbilitySpec>& activatableAbilities = GetActivatableAbilities();
+
+        // TODO ここのループが重いかも
+        // TODO 発動したアビリティのTagを保存する方法でも？
         for (const FGameplayAbilitySpec& conditionAbilitySpec : activatableAbilities)
         {
           if ((conditionAbilitySpec.Ability == nullptr) || 
@@ -114,15 +114,14 @@ void UARAbilitySystemComponent::ProcessAbilityInputs(const FARAbilityInputProces
             continue;
           }
 
-          // FIXME Only use FIRST Tag to check activate condition
+          // TODO Only use FIRST Tag to check activate condition
           if (ARGA->HasActivateConditionTag(conditionAbilitySpec.Ability->GetAssetTags().First()))
           {            
-            // TODO if this dont work, Use InstancedPerActor
-            // FIXME Force to cancel all GA that even not implemented UARGameplayAbilityBase
+            // NOTE ここが動かない場合は、GAのInstancingPolicyをInstancedPerActorに設定する
             UGameplayAbility* conditionGAPrimaryInst = conditionAbilitySpec.GetPrimaryInstance();
             if ((conditionGAPrimaryInst != nullptr) && conditionGAPrimaryInst->CanBeCanceled())
             {
-              // Cancel previous ability
+              // 発動前提条件のアビリティをキャンセルする
               CancelAbility(conditionAbilitySpec.Ability);
               bCanActivate = true;
               break;
@@ -137,18 +136,14 @@ void UARAbilitySystemComponent::ProcessAbilityInputs(const FARAbilityInputProces
       }
     }
 
-    // Finally we activate requested abilities
     const bool bResult = TryActivateAbility(abilitySpecHandleToActivate);
 
-    // Notify result
     if (NotifyActivateAbilityResult.IsBound())
     {
       FGameplayTagContainer abilityTags = abilitySpec->Ability->GetAssetTags(); 
       NotifyActivateAbilityResult.Broadcast(this, abilityTags, bResult);
     }
     
-    // Try to trigger InputPressed
-    // Only trigger once
     if ((abilitySpec != nullptr) && (abilitySpec->IsActive()) && (!abilitySpec->InputPressed))
     {
       AbilityLocalInputPressed(abilitySpec->InputID);
@@ -156,7 +151,7 @@ void UARAbilitySystemComponent::ProcessAbilityInputs(const FARAbilityInputProces
     
   }
 
-  // Process abilities that input released this frame
+  // アビリティ入力が離れたアビリティに入力が離れたメッセージを送る
   for (const FGameplayAbilitySpecHandle& releasedHandle : m_inputReleasedSpecHandles)
   {
     FGameplayAbilitySpec* abilitySpec = FindAbilitySpecFromHandle(releasedHandle);
@@ -226,6 +221,8 @@ UARAbilitySystemComponent* UARAbilitySystemComponent::FindARAbilitySystemCompone
 
 UAbilitySystemComponent* UARAbilitySystemComponent::FindAbilitySystemComponentImpl(AActor* InActor)
 {
+  using namespace ARRanger::Private;
+
   if (InActor == nullptr)
   {
     return nullptr;
@@ -291,7 +288,7 @@ void UARAbilitySystemComponent::CancleAbilitiesWithCancelableTag(const FGameplay
   }
 }
 
-namespace
+namespace ARRanger::Private
 {
   UAbilitySystemComponent* GetASCByInterface_ActorImpl(const AActor* InActor)
   {

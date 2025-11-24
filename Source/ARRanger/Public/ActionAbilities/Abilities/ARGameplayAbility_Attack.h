@@ -1,6 +1,6 @@
 /**
  * @file ARGameplayAbility_Attack.h
- * @brief Attack base class of ARRanger project
+ * @brief 攻撃アビリティベースクラス
  */
 
 #pragma once
@@ -18,7 +18,7 @@ class UAnimInstance;
 
 /**
  * @class UARGameplayAbility_Attack
- * @brief Attack base class of ARRanger project
+ * @brief 攻撃アビリティベースクラス
  */
 UCLASS(Abstract)
 class UARGameplayAbility_Attack : public UARGameplayAbilityBase,
@@ -27,9 +27,7 @@ class UARGameplayAbility_Attack : public UARGameplayAbilityBase,
 	GENERATED_BODY()
 
 public:
-  /**
-   * @brief Default constructor
-   */
+
   UE_API UARGameplayAbility_Attack();
   
   /**Start IARGameplayAbilityNotifyInterface Interface*/
@@ -39,16 +37,12 @@ public:
 protected:
 
   /**Start UGameplayAbility Interface */
-
-  /**OnAttackAbilityActivatedを呼び出す */
   UE_API virtual void ActivateAbility(
                           const FGameplayAbilitySpecHandle Handle,
                           const FGameplayAbilityActorInfo* ActorInfo,
                           const FGameplayAbilityActivationInfo ActivationInfo,
                           const FGameplayEventData* TriggerEventData
                       ) override;
-
-  /**OnAttackAbilityEndedを呼び出す */
   UE_API virtual void EndAbility(
                           const FGameplayAbilitySpecHandle Handle,
                           const FGameplayAbilityActorInfo* ActorInfo,
@@ -68,7 +62,7 @@ private:
 
   /**
    * @brief Process after EndAbility called
-   * @param bWasCancelled Is ability canceled
+   * @param bWasCancelled
    * 
    * EndAbilityで呼び出される
    */
@@ -77,7 +71,7 @@ private:
   /**
    * @brief Function to bind to delegate OnMontageEnded in AnimInstance
    * 
-   * OnMontageEndedにバインドする関数
+   * AttackMontageのOnMontageEndedにバインドする関数
    */
   UFUNCTION()
   void OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted);

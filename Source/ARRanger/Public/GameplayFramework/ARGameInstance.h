@@ -1,15 +1,15 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 
 #include "Engine/GameInstance.h"
 
 #include "ARGameInstance.generated.h"
 
+/**前方宣言 */
 class UMagneticParametersList;
 
 #define UE_API ARRANGER_API
 
+/**デモ用ビルドマクロ定義 */
 #if !WITH_EDITOR
 #define AR_DEMO_BUILD 1
 #endif
@@ -24,43 +24,45 @@ class UARGameInstance : public UGameInstance
 	GENERATED_BODY()
 
 public:
+
   DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnColorBlindModeEnabledDelegate, bool, bEnable);
   UPROPERTY(BlueprintAssignable)
   FOnColorBlindModeEnabledDelegate OnColorBlindModeEnabled;
 
-  public:
-    UE_API void SetColorBlindMode(bool bEnabled);
-    UE_API bool IsColorBlindMode() const;
-    UE_API void ResetGame();
-    UE_API void ResetBattleTestStage();
-    UE_API void ProcessGameClear();
-    UE_API void ProcessGameOver();
+  UE_API void SetColorBlindMode(bool bEnabled);
+  UE_API bool IsColorBlindMode() const;
+  UE_API void ResetGame();
+  UE_API void ResetBattleTestStage();
 
-  public:
-    UPROPERTY(EditDefaultsOnly)
-    TSoftObjectPtr<UMagneticParametersList> MagneticParamsAsset;
+  // TODO ここで処理するか？
+  UE_API void ProcessGameClear();
+  UE_API void ProcessGameOver();
 
-    UPROPERTY(EditDefaultsOnly)
-    FName ResetGameLevelName;
+public:
+  UPROPERTY(EditDefaultsOnly)
+  TSoftObjectPtr<UMagneticParametersList> MagneticParamsAsset;
 
-    UPROPERTY(EditDefaultsOnly)
-    FName ResetBattleTestStageLevelName;
+  UPROPERTY(EditDefaultsOnly)
+  FName ResetGameLevelName;
 
-    UPROPERTY(EditDefaultsOnly)
-    FName GameClearLevelName;
+  UPROPERTY(EditDefaultsOnly)
+  FName ResetBattleTestStageLevelName;
 
-    UPROPERTY(EditDefaultsOnly)
-    FName GameOverLevelName;
+  UPROPERTY(EditDefaultsOnly)
+  FName GameClearLevelName;
 
-    // For debug purpose
-    FSimpleMulticastDelegate OnReset;
+  UPROPERTY(EditDefaultsOnly)
+  FName GameOverLevelName;
 
-    // コンボカウントを保存
-    UPROPERTY(EditAnywhere, BlueprintReadWrite)
-    int ComboCount = 0;
+  // For debug purpose
+  FSimpleMulticastDelegate OnReset;
 
-  private:
-    uint8 bColorBlindModeOn : 1 = false;
+  // コンボカウントを保存
+  UPROPERTY(EditAnywhere, BlueprintReadWrite)
+  int ComboCount = 0;
+
+private:
+  uint8 bColorBlindModeOn : 1 = false;
 };
 
 #undef UE_API

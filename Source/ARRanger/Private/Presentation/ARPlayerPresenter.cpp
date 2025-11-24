@@ -1,5 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #include "Presentation/ARPlayerPresenter.h"
 
 #include "Character/ARRangerCharacter.h"
@@ -68,7 +66,6 @@ void UARPlayerPresenter::Initialize(AARRangerCharacter* InViewCharacter)
     ViewCharacter->AttackAbilityStartDelegate.AddUObject(this, &ThisClass::HandleAttackAbilityStarted);
     ViewCharacter->AttackAbilityEndDelegate.AddUObject(this, &ThisClass::HandleAttackAbilityEnded);
 
-    // ACharacter delegate
     ViewCharacter->LandedDelegate.AddDynamic(this, &ThisClass::OnGroundLanded);
 
     UCapsuleComponent* capsuleComp = ViewCharacter->GetCapsuleComponent();
@@ -76,11 +73,9 @@ void UARPlayerPresenter::Initialize(AARRangerCharacter* InViewCharacter)
     {
       capsuleComp->OnComponentBeginOverlap.AddDynamic(this, &ThisClass::OnClimbSurfaceOverlapBegan);
       capsuleComp->OnComponentEndOverlap.AddDynamic(this, &ThisClass::OnClimbSurfaceOverlapEnded);
-  
       capsuleComp->OnComponentBeginOverlap.AddDynamic(this, &ThisClass::OnMagneticForceFieldBeginOverlap);
       capsuleComp->OnComponentEndOverlap.AddDynamic(this, &ThisClass::OnMagneticForceFieldEndOverlap);
-      capsuleComp->OnComponentHit.AddDynamic(this, &ThisClass::OnMagnetizedObjectHit);
-  
+      capsuleComp->OnComponentHit.AddDynamic(this, &ThisClass::OnMagnetizedObjectHit); 
     }
 
     Model.Initialize(ViewCharacter);
@@ -101,7 +96,7 @@ void UARPlayerPresenter::Deinitialize()
   ViewCharacter->OnJumpStoppedDelegate.RemoveAll(this);
   ViewCharacter->AttackAbilityStartDelegate.RemoveAll(this);
   ViewCharacter->AttackAbilityEndDelegate.RemoveAll(this);
-  // Unbind to ACharacter delegate
+
   ViewCharacter->LandedDelegate.RemoveDynamic(this, &ThisClass::OnGroundLanded);
 
   ViewCharacter->CameraRigChangeEvent.RemoveAll(this);
@@ -111,7 +106,6 @@ void UARPlayerPresenter::Deinitialize()
   {
     capsuleComp->OnComponentBeginOverlap.RemoveDynamic(this, &ThisClass::OnClimbSurfaceOverlapBegan);
     capsuleComp->OnComponentEndOverlap.RemoveDynamic(this, &ThisClass::OnClimbSurfaceOverlapEnded);
-
     capsuleComp->OnComponentBeginOverlap.RemoveDynamic(this, &ThisClass::OnMagneticForceFieldBeginOverlap);
     capsuleComp->OnComponentEndOverlap.RemoveDynamic(this, &ThisClass::OnMagneticForceFieldEndOverlap);
     capsuleComp->OnComponentHit.RemoveDynamic(this, &ThisClass::OnMagnetizedObjectHit);
@@ -130,7 +124,6 @@ void UARPlayerPresenter::Input_HandleLeftStick(double InX, double InY, double In
     return;
   }
 
-  // TODO Maybe use state pattern here
   if (Model.bIsCharging)
   {
     HandleCharacterChargeRotate(InX, InY);

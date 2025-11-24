@@ -1,33 +1,38 @@
+/**
+ * @file InsekiGameMode.h
+ * @author MAI ZHICONG
+ * @brief メインゲームモード
+ */
+
 #pragma once
 
-#include "CoreMinimal.h"
 #include "GameFramework/GameModeBase.h"
 
 #include "InsekiGameMode.generated.h"
 
 #define UE_API ARRANGER_API
 
+/**前方宣言 */
 class AOutlineTickActor;
 class AARPhysicsTickProcessorActor;
-
+class IObservableSubjectInterface;
 namespace Private
 {
   struct FARGameUserSettingsData;
 }
-
-// 麦
 namespace ARRanger
 {
   struct INotifyHandlerInterface;
 }
-
-class IObservableSubjectInterface;
 
 UCLASS()
 class AInsekiGameMode : public AGameModeBase
 {
 	GENERATED_BODY()
 
+/**
+ * @brief ゲーム結果ステート列挙（内部）
+ */
 enum EGameResultState
 {
   GameClear,
@@ -38,31 +43,54 @@ public:
 	UE_API AInsekiGameMode();
 
 protected:
+  /**Start AActor Interface */
 	UE_API virtual void BeginPlay() override;
   UE_API virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+  /**End AActor Interface */
 
 private:
+
+  /**オブサーバーを初期化 */
   void InitializeObserver();
+
+  /**イベントを初期化 */
   void InitializeEvents();
+
+  /**AR物理システムを初期化 */
   void InitializeARPhysics();
+
+  /**
+   * @brief ゲームリザルトメッセージを処理する
+   * 
+   * @param ResultState リザルトメッセージ
+   */
   void ProcessGameResult(EGameResultState ResultState);
+
+  /**リセットコマンド送ったコールバック */
   void OnResetCommandSent();
+
+  /**ゲームユーザーセッティングを設定する */
   void SetGameUserSettings(TArray<Private::FARGameUserSettingsData>& OutSettingsDataStack);
-
-  // Enemy Initialization
+  
+  /**ゲームユーザーセッティングをリセットする */
+  void ResetGameUserSettings(TArray<Private::FARGameUserSettingsData>& OutSettingsDataStack);
+  /**マップにいる敵を初期化する */
   void InitializeOnMapEnemies();
+
+  /**生きている敵の初期化を解除する */
   void UninitializeAliveEnemies();
+
+  /**イベント初期化を解除する */
   void UninitializeEvents();
+
+  /**AR物理システム初期化を解除する */
   void UninitializeARPhysics();
-  void UnsetGameUserSettings(TArray<Private::FARGameUserSettingsData>& OutSettingsDataStack);
 
   UFUNCTION()
-  void ARGameOver();
-
-public:
+  void HandleGameOver();
 
   UFUNCTION()
-	UE_API void OnEnemyDead(AActor* InEnemy);
+	void OnEnemyDead(AActor* InEnemy);
 
 private:
 	UPROPERTY(EditAnywhere, Category = "Game")
@@ -70,11 +98,9 @@ private:
 
 public:
 
-	// 麦
 	UPROPERTY(EditDefaultsOnly, Category = "AR|Test|SoundData", meta = (RequiredAssetDataTags = "RowStructure=/Script/ARRanger.ARSoundMetaData"))
 	TObjectPtr<UDataTable> SoundEffectData;
 
-	// 麦
 private:
 
 	/**
@@ -95,7 +121,6 @@ private:
 
   void OnEnemySpawned(AActor* InSpawnedEnemy);
 
-  // TODO Temporary
   UPROPERTY(EditDefaultsOnly)
   TSubclassOf<AARPhysicsTickProcessorActor> ProcessorActorClass;
 

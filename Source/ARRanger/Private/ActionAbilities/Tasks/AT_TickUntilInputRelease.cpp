@@ -1,6 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "ActionAbilities/Tasks/AT_TickUntilInputRelease.h"
 
 UAT_TickUntilInputRelease::UAT_TickUntilInputRelease(const FObjectInitializer& ObjectInitializer)

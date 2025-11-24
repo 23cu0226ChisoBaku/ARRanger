@@ -1,10 +1,8 @@
 /**
  * @file IARAttackable.h
- * @brief Interface for object that can be attacked in ARRanger project 
+ * @brief 攻撃を受けることができるオブジェクト用のインターフェイス(ARRanger) 
  */
-/**
- * @brief 攻撃を受けることができるオブジェクト用のインターフェイス
- */
+
 
 #pragma once
 
@@ -19,12 +17,7 @@ namespace ARRanger
 
 namespace Battle
 {
-  /**
-   * @brief Type of attack result
-   * ※ Success: Attack succeeded
-   *    Inmune : Attack does not work
-   *    Rebound: Attack rebounds
-   */
+
   /**
    * @brief 攻撃結果列挙型
    * ※ Success: 攻撃成功
@@ -39,9 +32,6 @@ namespace Battle
   };
 
   /**
-   * @brief Parameter structure of attack result 
-   */
-  /**
    * @brief 攻撃結果構造体
    */
   struct FARAttackResult
@@ -49,9 +39,6 @@ namespace Battle
     EARAttackResult Result = EARAttackResult::Inmune;
   };
   
-  /**
-   * @brief Parameter structure of damage result
-   */
   /**
    * @brief ダメージ結果構造体
    */
@@ -74,9 +61,6 @@ namespace Battle
 } // namespace ARRanger
 
 
-/**
- * @brief Parameter structure of attack behaviour
- */
 /**
  * @brief 攻撃パラメータ構造体
  */
@@ -115,7 +99,7 @@ struct FARAttackParameters
   static FARAttackParameters GetBlank() { return BlankAttackParams; }
 };
 
-/**Forward declaration */
+/**前方宣言 */
 class IARAttackerInterface;
 
 // This class does not need to be modified.
@@ -125,10 +109,6 @@ class UARAttackable : public UInterface
 	GENERATED_BODY()
 };
 
-/**
- * @class IARAttackable
- * @brief Interface for object that can be attacked in ARRanger project 
- */
 class IARAttackable
 {
 	GENERATED_BODY()

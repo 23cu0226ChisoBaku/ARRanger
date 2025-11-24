@@ -1,4 +1,10 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+/**
+ * @file IARBattleNotifyHandler.h
+ * @author MAI ZHICONG
+ * @brief 戦闘通知を受け取るインターフェイス
+ */
+
+// TODO まだ使っていない
 
 #pragma once
 

@@ -32,7 +32,6 @@ void FRangeDetectorFilter::ApplyFilter(FRangeDetectorEvaluationResult& OutResult
   while (idx < outResultArray.Num())
   {
     AActor* actor = outResultArray[idx];
-    // Remove invalid actor or actor that is not implemented ActorClass
     if ((actor == nullptr) || !actor->GetClass()->IsChildOf(FilterClass))
     {
       outResultArray.RemoveAt(idx);
@@ -45,6 +44,7 @@ void FRangeDetectorFilter::ApplyFilter(FRangeDetectorEvaluationResult& OutResult
 
 TSharedPtr<FRangeDetectorFilter_Interface> FRangeDetectorFilter_Interface::MakeInstance(UClass* InFilterClass)
 {
+  ensureMsgf((InFilterClass != nullptr) && InFilterClass->IsChildOf<UInterface>(), TEXT("Filter class is not an UInterface. Use FRangeDetectorFilter::MakeInstance"));
   return ::MakeShared<ARRanger::Detector::FRangeDetectorFilter_Interface>(ProtectedToken{}, InFilterClass);
 }
 
@@ -65,7 +65,6 @@ void FRangeDetectorFilter_Interface::ApplyFilter(FRangeDetectorEvaluationResult&
   while (idx < outResultArray.Num())
   {
     AActor* actor = outResultArray[idx];
-    // Remove invalid actor or actor that is not implemented ActorClass
     if ((actor == nullptr) || !actor->GetClass()->ImplementsInterface(FilterClass))
     {
       outResultArray.RemoveAt(idx);

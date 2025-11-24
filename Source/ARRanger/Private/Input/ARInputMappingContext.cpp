@@ -1,7 +1,3 @@
-/**
- * ARInputMappingContext.cpp
- */
-
 #include "Input/ARInputMappingContext.h"
 
 #include "InputMappingContext.h"

@@ -1,5 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 
 #include "Abilities/Tasks/AbilityTask_WaitInputRelease.h"
@@ -8,9 +6,6 @@
 
 #define UE_API ARRANGER_API
 
-/**
- * 
- */
 UCLASS()
 class UAT_TickUntilInputRelease : public UAbilityTask_WaitInputRelease
 {

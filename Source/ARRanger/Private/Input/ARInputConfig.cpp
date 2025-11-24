@@ -1,7 +1,3 @@
-/**
- * ARInputConfig.cpp
- */
-
 #include "Input/ARInputConfig.h"
 
 #include "Internal/ARLoggingHeader.h"
@@ -26,11 +22,8 @@ const UInputAction* UARInputConfig::FindAbilityInputAction(const FGameplayTag& I
   }
   
 #if WITH_EDITOR
-
   UE_LOG(LogARInput, Error, TEXT("InputAction with Tag: [%s] is not found."), *InInputTag.ToString());
-
 #endif
-
   return nullptr;
 }
 
@@ -48,10 +41,7 @@ const UInputAction* UARInputConfig::FindNativeInputAction(const FGameplayTag& In
   }
 
 #if WITH_EDITOR
-
   UE_LOG(LogARInput, Error, TEXT("InputAction with Tag: [%s] is not found."), *InInputTag.ToString());
-
 #endif
-
   return nullptr;
 }

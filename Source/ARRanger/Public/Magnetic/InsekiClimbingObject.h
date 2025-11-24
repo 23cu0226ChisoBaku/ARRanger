@@ -13,13 +13,11 @@ class ARRANGER_API AInsekiClimbingObject : public AActor
 public:	
 	AInsekiClimbingObject();
 
-    // クライム判定用コリジョン
-    UPROPERTY(VisibleAnywhere)
-    class UBoxComponent* ClimbTrigger;
+  UPROPERTY(VisibleAnywhere)
+  class UBoxComponent* ClimbTrigger;
 
-    // クライム面の法線（上下方向を定義）
-    UFUNCTION(BlueprintCallable)
-    FVector GetClimbNormal();
+  UFUNCTION(BlueprintCallable)
+  FVector GetClimbNormal();
 
 protected:
 	virtual void BeginPlay() override;

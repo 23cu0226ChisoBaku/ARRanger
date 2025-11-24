@@ -1,6 +1,6 @@
 /**
  * @file IBattleSystemInterface.h
- * @brief Interface of battle system
+ * @brief バトルシステムインターフェイス
  */
 
 #pragma once
@@ -15,12 +15,9 @@ namespace ARRanger
 
 namespace Battle
 {
-  /**Forward declaration */
+  /**前方宣言 */
   struct FARDamageResult;
 
-  /**
-   * @brief Paramater structure of ARRanger battle task
-   */
   /**
    * @brief ARRangerプロジェクト戦闘タスク構造体
    */
@@ -36,9 +33,6 @@ namespace Battle
     float OriginDamage = 0.0f;
   };
 
-  /**
-   * @brief Interface of battle system
-   */
   class IBattleSystemInterface
   {
     public:

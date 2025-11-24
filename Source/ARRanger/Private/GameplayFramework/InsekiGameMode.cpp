@@ -5,27 +5,21 @@
 
 #include "AudioSystem/ARAudioSystem.h"
 #include "AudioSystem/ARSoundPlayLibrary.h"
-
 #include "PlayerObservation/PlayerNotifyHandler.h"
 #include "PlayerObservation/IObservableSubjectInterface.h"
 #include "PlayerObservation/ObserverListNode.h"
 #include "PlayerObservation/IObserverRegistry.h"
 #include "PlayerObservation/Registry/SoundEffectRegistry.h"
-
 #include "Physics/Gameplay/ARPhysicsGlobal.h"
 #include "Physics/Core/ARPhysicsTickProcessorActor.h"
-#include "Public/BlinkingSystem/BlinkingOutlineWorldSubsystem.h"
+#include "BlinkingSystem/BlinkingOutlineWorldSubsystem.h"
 #include "BlinkingSystem/DetectorMagnetizableComponent.h"
-
 #include "ARRangerGlobals.h"
 #include "GameplayFramework/ARGameInstance.h"
 #include "Enemy/Enemy_MiddleBoss.h"
 #include "BattleEvent/BattleEventManager.h"
 #include "BattleEvent/EnemySpawner.h"
 #include "GameFramework/GameUserSettings.h"
-
-// TODO May move initialize function to another file
-#include "Physics/IARPhysicsSystemHost.h"
 
 namespace Private
 {
@@ -50,13 +44,12 @@ AInsekiGameMode::AInsekiGameMode()
   DefaultPawnClass = AARRangerCharacter::StaticClass();
 }
 
-
 void AInsekiGameMode::BeginPlay()
 {
 	Super::BeginPlay();
 
   GameResultTimerHandle.Invalidate();
-  // Register GameInstance OnReset
+
   if (UARGameInstance* ARGI = ::Cast<UARGameInstance>(GetGameInstance()))
   {
     ARGI->OnReset.AddUObject(this, &ThisClass::OnResetCommandSent);
@@ -73,7 +66,7 @@ void AInsekiGameMode::BeginPlay()
     }
   }
 
-    // BlinkingOutlineWorldSubsystem を取得
+  // BlinkingOutlineWorldSubsystem を取得
 	UBlinkingOutlineWorldSubsystem* WorldSubsystem = GetWorld()->GetSubsystem<UBlinkingOutlineWorldSubsystem>();
 	if (WorldSubsystem != nullptr)
 	{
@@ -93,20 +86,21 @@ void AInsekiGameMode::BeginPlay()
   InitializeEvents();
   InitializeOnMapEnemies();
   InitializeARPhysics();
+  SetGameUserSettings(gSettingsDataStack);
 
-  // Register debug key
+  // デバッグキーを登録
   ARRanger::Global::RegisterDebugKey();
 
   /*Event Manager デリゲートバインド*/
   RegisterBattleEventDelegate();
 
-  SetGameUserSettings(gSettingsDataStack);
 }
 
 void AInsekiGameMode::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
   Super::EndPlay(EndPlayReason);
 
+  // デバッグキーを解読
   ARRanger::Global::UnregisterDebugKey();
 
   // Remove GameInstance OnReset
@@ -115,12 +109,12 @@ void AInsekiGameMode::EndPlay(const EEndPlayReason::Type EndPlayReason)
     ARGI->OnReset.RemoveAll(this);
   }
   
+  // 初期化解除
   UnregisterBattleEventDelegate();
   UninitializeAliveEnemies();
   UninitializeEvents();
   UninitializeARPhysics();
-
-  UnsetGameUserSettings(gSettingsDataStack);
+  ResetGameUserSettings(gSettingsDataStack);
 }
 
 void AInsekiGameMode::InitializeObserver()
@@ -213,9 +207,10 @@ void AInsekiGameMode::InitializeARPhysics()
 void AInsekiGameMode::OnEnemyDead(AActor* InEnemy)
 {
 	(void)EnemyCount--;
-
   if (BossPtr != nullptr)
   {
+    // ボスが死んだらゲームクリア
+    // TODO
     if (InEnemy == BossPtr)
     {
       ProcessGameResult(GameClear);
@@ -251,7 +246,7 @@ void AInsekiGameMode::OnEndBattleEvent()
 
 void AInsekiGameMode::InitializeEvents()
 {
-  // Find boss
+  // ボスを探す
   AActor* boss = UGameplayStatics::GetActorOfClass(this, AEnemy_MiddleBoss::StaticClass());
   if (boss != nullptr)
   {
@@ -260,6 +255,7 @@ void AInsekiGameMode::InitializeEvents()
 
   bGameResultHandled = false;
 
+  // 敵スポナーにイベントをバインド
   TArray<AActor*> allSpawners{};
   UGameplayStatics::GetAllActorsOfClass(this, AEnemySpawner::StaticClass(), allSpawners);
   for (AActor* spawnerActor : allSpawners)
@@ -268,10 +264,11 @@ void AInsekiGameMode::InitializeEvents()
     spawner->GetSpawnedActorDelegate.AddUObject(this, &ThisClass::OnEnemySpawned);
   }
 
-  // Register Player Dead Event
+  // プレイヤー死亡イベントをバインド
+  // TODO Change this class to Base class to all character in ARRanger project
   if (AARRangerCharacter* player = ::Cast<AARRangerCharacter>(UGameplayStatics::GetActorOfClass(this, AARRangerCharacter::StaticClass())))
   {
-    player->OnPlayerDead.AddUniqueDynamic(this, &ThisClass::ARGameOver);
+    player->OnPlayerDead.AddUniqueDynamic(this, &ThisClass::HandleGameOver);
   }
 
 }
@@ -283,9 +280,9 @@ void AInsekiGameMode::ProcessGameResult(EGameResultState ResultState)
     return;
   }
 
-  // Set clear timer
   auto gameResultHandler = [this, ResultState]()
   {
+    // TODO ゲームリザルトを一括処理するクラスを作成する予定
     if (UARGameInstance* gameInst = this->GetGameInstance<UARGameInstance>())
     {
       switch (ResultState)
@@ -305,8 +302,8 @@ void AInsekiGameMode::ProcessGameResult(EGameResultState ResultState)
     }
   };
 
-  // TODO 
-  GetWorldTimerManager().SetTimer(GameResultTimerHandle, gameResultHandler, 6.0f, false);
+  constexpr float handlerTriggerDelay = 6.0f;
+  GetWorldTimerManager().SetTimer(GameResultTimerHandle, gameResultHandler, handlerTriggerDelay, false);
   bGameResultHandled = true;
 }
 
@@ -410,7 +407,7 @@ void AInsekiGameMode::UninitializeARPhysics()
   }
 }
 
-void AInsekiGameMode::ARGameOver()
+void AInsekiGameMode::HandleGameOver()
 {
   ProcessGameResult(GameOver);
 }
@@ -430,7 +427,7 @@ void AInsekiGameMode::SetGameUserSettings(TArray<Private::FARGameUserSettingsDat
   }
 }
 
-void AInsekiGameMode::UnsetGameUserSettings(TArray<Private::FARGameUserSettingsData>& OutSettingsDataStack)
+void AInsekiGameMode::ResetGameUserSettings(TArray<Private::FARGameUserSettingsData>& OutSettingsDataStack)
 {
   if (UGameUserSettings* GUS = UGameUserSettings::GetGameUserSettings())
   {

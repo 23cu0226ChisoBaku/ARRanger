@@ -1,6 +1,6 @@
 /**
  *  ARInputComponent.h
- *  Input component for ARRanger project use
+ *  (ARRanger)インプットコンポーネント
  */
 
 #pragma once
@@ -14,7 +14,7 @@
 #define UE_API ARRANGER_API
 
 /**
- * @brief Input component for binding specific input event with ARInputConfig
+ * @brief ARInputConfigを使ってインプットをバインドする
  */
 UCLASS(Config = Input)
 class UARInputComponent : public UEnhancedInputComponent
@@ -23,38 +23,35 @@ class UARInputComponent : public UEnhancedInputComponent
 	
 public:
 
-  /**
-   * @brief Default constructor of UE
-   */
   UE_API UARInputComponent(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
   /**
-   * @brief Remove input bindings with handles
+   * @brief 入力イベントにバインドした関数を全部消す
    * 
-   * @param OutBoundHandles Handles from BindAction
+   * @param OutBoundHandles BindActionで返されたハンドル
    */
   UE_API void RemoveBindings(TArray<uint32>& OutBoundHandles);
 
   /**
-   * @brief Bind ability actions to InputAction in UARInputConfig
+   * @brief アビリティアクションを入力イベントにバインド
    * 
-   * @param InInputConfig Input config used by ARRanger project
-   * @tparam UserObject   User(class instance) pointer for PressedFuncType and ReleasedFuncType call
-   * @tparam PressedFunc  Function to call with input state ETriggerEvent::Triggered
-   * @tparam ReleasedFunc Function to call with input state ETriggerEvent::Completed
-   * @param OutHandles    Handles of bound event
+   * @param InInputConfig インプットコンフィグ
+   * @tparam UserObject   PressedFuncとReleasedFuncを呼び出すためのオブジェクトポインター
+   * @tparam PressedFunc  ETriggerEvent::Triggeredの時呼び出される関数ポインター
+   * @tparam ReleasedFunc ETriggerEvent::Completedの時呼び出される関数ポインター
+   * @param OutHandles    入力イベントハンドル
    */
   template<typename UserClass, typename PressedFuncType, typename ReleasedFuncType>
   void BindAbilityActions(const UARInputConfig* InInputConfig, UserClass* UserObject, PressedFuncType PressedFunc, ReleasedFuncType ReleasedFunc, TArray<uint32>& OutHandles);
 
   /**
-   * @brief Bind native actions to InputAction
+   * @brief ネイティブアクションを入力イベントにバインド
    * 
-   * @param InInputConfig   Input config used by ARRanger project
-   * @param InInputTag      Signature tag of native input
-   * @param InTriggerEvent  Native input trigger state
-   * @tparam UserObject     User(class instance) pointer for TriggeredFunc call
-   * @tparam TriggeredFunc  Function to call with input state InTriggerEvent
+   * @param InInputConfig インプットコンフィグ
+   * @param InInputTag      ネイティブ入力Tag
+   * @param InTriggerEvent  ネイティブ入力イベントトリガーイベントタイプ
+   * @tparam UserObject     TriggeredFuncを呼び出すためのオブジェクトポインター
+   * @tparam TriggeredFunc  InTriggerEventの時呼び出される関数ポインタ
    */
   template<typename UserClass, typename TriggeredFuncType>
   void BindNativeAction(const UARInputConfig* InInputConfig, const FGameplayTag& InInputTag, ETriggerEvent InTriggerEvent, UserClass* UserObject, TriggeredFuncType TriggeredFunc);

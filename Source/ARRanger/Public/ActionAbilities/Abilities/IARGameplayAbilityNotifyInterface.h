@@ -1,5 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 
 #include "UObject/Interface.h"
@@ -9,7 +7,7 @@
 #define UE_API ARRANGER_API
 
 /**
- * 
+ * @brief IARGameplayAbilityNotifyInterface::GANotify_ImpactResultに通知を送る構造体
  */
 struct FGANotify_ImpactResult
 {
@@ -19,16 +17,12 @@ struct FGANotify_ImpactResult
   FVector ImpactLocation;
 };
 
-// This class does not need to be modified.
 UINTERFACE(MinimalAPI)
 class UARGameplayAbilityNotifyInterface : public UInterface
 {
 	GENERATED_BODY()
 };
 
-/**
- * 
- */
 class IARGameplayAbilityNotifyInterface
 {
 	GENERATED_BODY()

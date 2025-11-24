@@ -1,9 +1,5 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "Input/ARPlayerInputBuffer.h"
 
-#include "Input/ARInputComponent.h"
 #include "Player/ARRangerPlayerController.h"
 #include "ActionAbilities/ARAbilitySystemComponent.h"
 
@@ -13,6 +9,8 @@
 
 UARPlayerInputBuffer::UARPlayerInputBuffer(const FObjectInitializer& ObjectInitializer)
   : Super(ObjectInitializer)
+  , InputKeepTime{0.0f}
+  , bEvaluateIfGamePaused{false}
   , PlayerController{nullptr}
   , m_inputStates{}
 { }
@@ -43,7 +41,6 @@ void UARPlayerInputBuffer::Initialize(AARRangerPlayerController* InPlayerControl
 void UARPlayerInputBuffer::Uninitialize()
 {
   ClearAllInputs();
-
   if (PlayerController != nullptr)
   {
     UARAbilitySystemComponent* ARASC = PlayerController->GetARASC();
@@ -52,11 +49,12 @@ void UARPlayerInputBuffer::Uninitialize()
       ARASC->NotifyActivateAbilityResult.RemoveDynamic(this, &ThisClass::OnTryActivateAbilityHandled);
     }
   }
+
+  PlayerController = nullptr;
 }
 
 void UARPlayerInputBuffer::EvaluateBuffer(const float DeltaTime, const bool bGamePaused)
 {
-  // Skip evaluation if bEvaluateIfGamePaused is false and bGamePaused is true
   if (!bEvaluateIfGamePaused && bGamePaused)
   {
     return;
@@ -70,7 +68,8 @@ void UARPlayerInputBuffer::EvaluateBuffer(const float DeltaTime, const bool bGam
     }
   }
 
-  RemoveInputBufferInternal();
+  // 無効になった入力ステートを削除
+  RemoveExpiredInputState();
 }
 
 void UARPlayerInputBuffer::ClearAllInputs()
@@ -88,12 +87,14 @@ void UARPlayerInputBuffer::HandleInputTagPressed(const FGameplayTag& InInputTag,
   if (InputKeepTime > 0.0f)
   {
     bool bGenerateNew = true;
+ 
     for (const TPimplPtr<ARRanger::Input::FARInputBufferState>& inputState : m_inputStates)
     {
       if (inputState.IsValid() && inputState->IsInputTagMatchesExact(InInputTag))
       {
         bGenerateNew = false;
-        // Refresh buffer during input pressed
+
+        // 既存の入力ステートを更新
         if (bOverrideInputState || inputState->IsPressedState())
         {
           inputState->MarkAsPressed();
@@ -115,11 +116,14 @@ void UARPlayerInputBuffer::HandleInputTagReleased(const FGameplayTag& InInputTag
   if (InputKeepTime > 0.0f)
   {
     bool bGenerateNew = true;
+
     for (const TPimplPtr<ARRanger::Input::FARInputBufferState>& inputState : m_inputStates)
     {
       if (inputState.IsValid() && inputState->IsInputTagMatchesExact(InInputTag))
       {
         bGenerateNew = false;
+
+        // 既存の入力ステートを更新
         if (bOverrideInputState || inputState->IsReleasedState())
         {
           inputState->MarkAsReleased();
@@ -152,13 +156,12 @@ void UARPlayerInputBuffer::ConsumeBuffer(const FGameplayTag& InInputTag)
   }
 }
 
-void UARPlayerInputBuffer::RemoveInputBufferInternal()
+void UARPlayerInputBuffer::RemoveExpiredInputState()
 {
   int32 idx = 0;
   while (idx < m_inputStates.Num())
   {
     const TPimplPtr<ARRanger::Input::FARInputBufferState>& inputState = m_inputStates[idx];
-    // Remove expired buffer
     if (!inputState.IsValid() || inputState->IsInputStateExpired())
     {
       m_inputStates.RemoveAt(idx);
@@ -171,9 +174,10 @@ void UARPlayerInputBuffer::RemoveInputBufferInternal()
 
 void UARPlayerInputBuffer::OnTryActivateAbilityHandled(UARAbilitySystemComponent* InAbilitySystemComponent, FGameplayTagContainer InAbilityAssetTags, bool bActivateSuccess)
 {
+  // 成功したら入力バッファを消耗する
   if (bActivateSuccess)
   {
-    // TODO Currently we only use the first tag of input
+    // 最初のタグしか使わない
     const FGameplayTag inputTag = InAbilityAssetTags.GetByIndex(0);
     ConsumeBuffer(inputTag);
   }

@@ -1,6 +1,6 @@
 /**
  * @file IARAttackerInterface.h
- * @brief Interface for attacker to receive attack result
+ * @brief 攻撃者インターフェイス（攻撃結果を受け取る）
  */
 
 #pragma once
@@ -11,7 +11,7 @@
 
 #define UE_API ARRANGER_API
 
-/**Forwar declaration */
+/**前方宣言 */
 class IARBattleNotifyHandler;
 
 namespace ARRanger
@@ -19,12 +19,9 @@ namespace ARRanger
 
 namespace Battle
 {
-  /**Forward declaration */
+  /**前方宣言 */
   enum struct EARAttackResult : uint8;
 
-  /**
-   * @brief Parameter structure of attack notify
-   */
   /**
    * @brief 攻撃通知パラメータ
    */
@@ -44,10 +41,6 @@ class UARAttackerInterface : public UInterface
 	GENERATED_BODY()
 };
 
-/**
- * @class IARAttackerInterface
- * @brief Interface for attacker to receive attack result
- */
 class IARAttackerInterface
 {
 	GENERATED_BODY()
@@ -60,7 +53,7 @@ public:
    */
   UE_API virtual AActor* GetActor() { return ::Cast<AActor>(_getUObject()); }
 
-  // TODO Not implemented
+  // TODO まだ実装されていない
   /**
    * @brief  バトル通知ハンドラーを返す
    * @return IARBattleNotifyHandler (Maybe null)

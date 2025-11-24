@@ -1,7 +1,3 @@
-/**
- * @file ARPawnInitComponent.cpp
- */
-
 #include "Pawn/ARPawnInitComponent.h"
 
 #include "Pawn/ARPawnInitData.h"
@@ -43,7 +39,6 @@ void UARPawnInitComponent::OnRegister()
   TArray<UActorComponent*> pawnInitComponents;
   ownerPawn->GetComponents(UARPawnInitComponent::StaticClass(), pawnInitComponents);
   ensureAlwaysMsgf(pawnInitComponents.Num() == 1, TEXT("Can not add ARPawnInitComponent more than once on [%s]"), *GetNameSafe(GetOwner()));
-
 }
 
 void UARPawnInitComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -87,16 +82,15 @@ void UARPawnInitComponent::InitializeAbilitySystem(UARAbilitySystemComponent* In
 
   if (PawnInitData != nullptr)
   {
-    // TODO Make inputID and abilityLevel hard coding temporary
+    // アビリティ初期化
     int32 inputID = 0;
     const int32 abilityLevel = 1;
     for (TSoftClassPtr<UARGameplayAbilityBase> GA : PawnInitData->Abilities)
     {
-      // Initialize Abilities
       if (GA != nullptr)
       { 
         FGameplayAbilitySpec newAbilitySpec{GA.LoadSynchronous(), abilityLevel, inputID++};
-        FGameplayAbilitySpecHandle newAbilitySpecHandle = AbilitySystemComponent->GiveAbility(newAbilitySpec);
+        (void)AbilitySystemComponent->GiveAbility(newAbilitySpec);
       }  
     }
   }
@@ -145,11 +139,8 @@ void UARPawnInitComponent::UninitializeAbilitySystem()
   AbilitySystemComponent->CancelAbilities();
   AbilitySystemComponent->ClearAbilityInputStates();
   AbilitySystemComponent->RemoveAllGameplayCues();
-
   AbilitySystemComponent->ClearActorInfo();
-
   AbilitySystemComponent = nullptr;
-
 }
 
 void UARPawnInitComponent::UninitializeChargeAttack()

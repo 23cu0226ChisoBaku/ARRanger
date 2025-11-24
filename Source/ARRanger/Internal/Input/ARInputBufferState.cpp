@@ -13,7 +13,7 @@ TPimplPtr<FARInputBufferState> FARInputBufferState::MakePressedState(const FGame
   TPimplPtr<FARInputBufferState> newState = MakeInstanceInternal();
   newState->m_bufferLifeTime = BufferLifeTime;
   newState->m_inputTag = InInputTag;
-  newState->m_inputState = InternalState::Pressed;
+  newState->m_inputState = StateType::Pressed;
 
   return newState;
 }
@@ -23,7 +23,7 @@ TPimplPtr<FARInputBufferState> FARInputBufferState::MakeReleasedState(const FGam
   TPimplPtr<FARInputBufferState> newState = MakeInstanceInternal();
   newState->m_bufferLifeTime = BufferLifeTime;
   newState->m_inputTag = InInputTag;
-  newState->m_inputState = InternalState::Released;
+  newState->m_inputState = StateType::Released;
 
   return newState;
 }
@@ -37,7 +37,7 @@ TPimplPtr<FARInputBufferState> FARInputBufferState::MakeInstanceInternal()
 FARInputBufferState::FARInputBufferState(PrivateToken)
   : m_bufferLifeTime{0.0f}
   , m_inputTag{FGameplayTag::EmptyTag}
-  , m_inputState{InternalState::Expired}
+  , m_inputState{StateType::Expired}
 { }
 
 FARInputBufferState::~FARInputBufferState() = default;
@@ -69,19 +69,19 @@ void FARInputBufferState::Evaluate(AARRangerPlayerController* PlayerController, 
   }
 }
 
-void FARInputBufferState::ExpireInputState()
+void FARInputBufferState::AdvanceInputState()
 {
   switch (m_inputState)
   {
     case Pressed:
     {
-      m_inputState = InternalState::Released;
+      m_inputState = StateType::Released;
     }
     break;
 
     case Released:
     {
-      m_inputState = InternalState::Expired;
+      m_inputState = StateType::Expired;
     }
     break;
   }
@@ -95,11 +95,6 @@ float FARInputBufferState::GetLifeTime() const
 void FARInputBufferState::SetLifeTime(float NewBufferLifeTime)
 {
   m_bufferLifeTime = NewBufferLifeTime;
-}
-
-bool FARInputBufferState::IsInputStateExpired() const
-{
-  return m_inputState == Expired;
 }
 
 bool FARInputBufferState::IsInputTagMatchesExact(const FGameplayTag& InInputTag) const
@@ -117,12 +112,11 @@ void FARInputBufferState::MarkAsReleased()
   m_inputState = Released;
 }
 
-
 void FARInputBufferState::CheckInputStateValidation()
 {
   if (FMath::IsNearlyZero(GetLifeTime()))
   {
-    ExpireInputState();
+    AdvanceInputState();
   }
 }
 

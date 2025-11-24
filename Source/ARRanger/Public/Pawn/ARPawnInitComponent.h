@@ -1,6 +1,6 @@
 /**
  * @file ARPawnInitComponent.h
- * @brief Initialize component of ARRanger project 
+ * @brief ポーン初期化コンポーネント
  */
 
 #pragma once
@@ -12,7 +12,7 @@
 
 #include "ARPawnInitComponent.generated.h"
 
-/**Forward declaration */
+/**前方宣言 */
 class APlayerState;
 class UARAbilitySystemComponent;
 class UARPawnInitData;
@@ -20,18 +20,12 @@ class UARChargeAttackComponent;
 
 #define UE_API ARRANGER_API
 
-/**
- * @class UARPawnInitComponent
- */
 UCLASS( ClassGroup=(ARRanger), meta=(BlueprintSpawnableComponent) )
 class UARPawnInitComponent : public UActorComponent, public IAbilitySystemInterface
 {
 	GENERATED_BODY()
 
 public:	
-	/**
-	 * @brief Default constructor
-	 */
 	UE_API UARPawnInitComponent(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
   template<typename PawnType>
@@ -46,17 +40,9 @@ public:
   template<typename ControllerType>
   UE_API ControllerType* GetController();
 
-  /**
-   * @brief Find component in given actor.Return nullptr if not found.
-   * @param InActor
-   */
   UFUNCTION(BlueprintPure, Category = "ARRanger|Initialization")
   static UE_API UARPawnInitComponent* FindPawnInitComponent(const AActor* InActor);
 
-  /**
-   * @brief Get AbilitySystemComponent of ARRanger project 
-   * @return UARAbilitySystemComponent*
-   */
   UFUNCTION(BlueprintPure, Category = "GameplayAbility")
   UARAbilitySystemComponent* GetARAbilitySystemComponent() const { return AbilitySystemComponent; };
 
@@ -64,33 +50,28 @@ public:
   UE_API virtual UAbilitySystemComponent* GetAbilitySystemComponent() const;
   /**End IAbilitySystemInterface Interface */
 
-  /**
-   * @brief Get the Pawn Data object
-   * 
-   * @return const UARPawnInitData* 
-   */
   const UARPawnInitData* GetPawnData() const { return PawnInitData; }
 
   /**
-   * @brief Initialize AbilitySystemComponent
-   * @param InASC         AbilitySystemComponent of ARRanger project
-   * @param InOwnerActor  Owner actor
+   * @brief アビリティシステムコンポーネントを初期化
+   * @param InASC         
+   * @param InOwnerActor  
    */
   UE_API void InitializeAbilitySystem(UARAbilitySystemComponent* InASC, AActor* InOwnerActor);
 
   /**
-   * @brief Initialize ARChargeAttackComponent
-   * @param InCAC  ChargeAttackComponent
+   * @brief 溜め攻撃コンポーネントを初期化
+   * @param InCAC 
    */
   UE_API void InitializeChargeAttack(UARChargeAttackComponent* InCAC);
 
   /**
-   * @brief Uninitialize AbilitySystemComponent
+   * @brief アビリティシステムコンポーネント初期化を解除
    */
   UE_API void UninitializeAbilitySystem();
 
   /**
-   * @brief Uninitialize ChargeAttackComponent
+   * @brief 溜め攻撃コンポーネント初期化を解除
    */
   UE_API void UninitializeChargeAttack();
 
@@ -109,7 +90,7 @@ private:
   UPROPERTY(VisibleAnywhere, Category = "PawnInit")
   TObjectPtr<UARChargeAttackComponent> ChargeAttackComponent;
 
-  /**Asset to initialize pawn */
+  /**ポーン初期化アセット */
   UPROPERTY(EditDefaultsOnly, Category = "PawnInit", meta = (AllowPrivateAccess = "true"))
   TObjectPtr<const UARPawnInitData> PawnInitData;
 };
