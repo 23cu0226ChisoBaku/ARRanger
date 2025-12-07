@@ -36,7 +36,6 @@ void UARGameplayAbility_Attack::GANotify_ImpactResult(USkeletalMeshComponent* Me
     FARAttackParameters attackParam{};
     // TODO Use Avatar location to knockback Target Temporary
     FVector knockbackDir = result.HitActor->GetActorLocation() - result.ImpactLocation;
-    // Make it Z to zero so we can only use Direction on XY-Plane to determine knockback Direction
 
     attackParam.Instigator = result.SourceActor;
     // TODO Stock damage in GA maybe not a great idea
@@ -61,9 +60,9 @@ void UARGameplayAbility_Attack::GANotify_ImpactResult(USkeletalMeshComponent* Me
     }
 
     FVector knockbackDirNorm = knockbackDir.GetSafeNormal();
-    // Use KnockbackRange to calculate final launch direction
     if (bClampKnockbackAngle)
     {
+      // 撃退する方向に制限をかける
       // Calculate LaunchDir's projection vector on Plane that attacker's up vector is normal vector
       FVector norm{ForceInitToZero};
       FVector attackerFwdDir{ForceInitToZero};
@@ -94,13 +93,11 @@ void UARGameplayAbility_Attack::GANotify_ImpactResult(USkeletalMeshComponent* Me
       norm.Normalize();
       attackerFwdDir.Normalize();
   
+      // 撃退する方向を再計算する
       const float projectionAngleCos = FVector::DotProduct(norm, knockbackDirNorm); 
       const FVector projectionVec = knockbackDir - (projectionAngleCos * knockbackDir.Length()) * norm;
       const float curtKnockbackRangeCos = FVector::DotProduct(attackerFwdDir, projectionVec.GetSafeNormal());
-      float curtKnockbackRangeAngleDeg = FMath::RadiansToDegrees(FMath::Acos(curtKnockbackRangeCos));
-      // Clamp current radian
-      curtKnockbackRangeAngleDeg = FMath::Clamp(curtKnockbackRangeAngleDeg, 0.0f, KnockbackAngleHalfRange);
-      // Change knockbackDirNorm
+      const float curtKnockbackRangeAngleDeg = FMath::Clamp(FMath::RadiansToDegrees(FMath::Acos(curtKnockbackRangeCos)), 0.0f, KnockbackAngleHalfRange);
       if (!FMath::IsNearlyEqual(FMath::Cos(curtKnockbackRangeAngleDeg), curtKnockbackRangeCos))
       {
         const float rotateAngleSign = FVector::DotProduct(FVector::CrossProduct(attackerFwdDir, projectionVec).GetSafeNormal(), norm);
@@ -108,7 +105,6 @@ void UARGameplayAbility_Attack::GANotify_ImpactResult(USkeletalMeshComponent* Me
       }
     }
 
-    // Finally we put knockbackDirNorm to attackParam
     attackParam.LaunchDirection = knockbackDirNorm;
     
     // Apply Attack

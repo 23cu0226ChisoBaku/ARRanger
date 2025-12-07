@@ -292,6 +292,7 @@ private:
   bool CanSpecialAttractAttack();
 
   /**Start IARMagnetizableInterface interface */
+  UE_API virtual void OnAttractionEvaluated(const FARMagneticForceResult& Result) override;
   UE_API virtual void OnRepulsionEvaluated(const FARMagneticForceResult& Result) override;
   UE_API virtual AActor* GetActor() override { return this; }
   /**End IARMagnetizableInterface interface */

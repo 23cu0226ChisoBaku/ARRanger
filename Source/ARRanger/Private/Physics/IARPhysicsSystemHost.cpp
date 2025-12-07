@@ -73,7 +73,7 @@ void IARPhysicsSystemHost::Physics_RequestMagneticTaskImpl(IARMagnetizableInterf
   
   using enum EARMagnetismType;
   // 同じタイプの磁力オブジェクトかつNoneじゃないタイプだとリクエストを拒否する
-  if (InSource->GetMagnetismType() != InTarget->GetMagnetismType() || (InSource->GetMagnetismType() == None))
+  if ((InSource->GetMagnetismType() != InTarget->GetMagnetismType()) || (InSource->GetMagnetismType() == None))
   {
     AR_LOG(LogARPhysics, Warning, TEXT("MagnetismType is not same or one of the type is None.Request denied."));
     return;

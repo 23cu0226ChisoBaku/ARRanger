@@ -308,6 +308,16 @@ void AARRangerCharacter::SetIsBattledInAnimInstance(const bool IsBattled)
   }
 }
 
+void AARRangerCharacter::OnAttractionEvaluated(const FARMagneticForceResult& Result)
+{
+  if (GEngine)
+  {
+    GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Cyan, Result.FinalForce.ToString());
+  }
+  
+  SetActorLocation(GetActorLocation() + Result.FinalForce);
+}
+
 void AARRangerCharacter::OnRepulsionEvaluated(const FARMagneticForceResult& Result)
 {
   LaunchCharacter(Result.FinalForce, false, false);

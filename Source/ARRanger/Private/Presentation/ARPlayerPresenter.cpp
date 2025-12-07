@@ -703,6 +703,12 @@ void UARPlayerPresenter::OnMagnetizedObjectHit(UPrimitiveComponent* HitComponent
 {
   if (ViewCharacter != nullptr)
   {
+    // 斥力状態だけHit判定する
+    if (ViewCharacter->GetMagnetismType() != EARMagnetismType::Repulsion)
+    {
+      return;
+    }
+
     if (IARMagnetizableInterface* magnetizableObj = Cast<IARMagnetizableInterface>(OtherActor))
     {
       Physics_RegisterMagneticTask_Once(ViewCharacter, magnetizableObj);

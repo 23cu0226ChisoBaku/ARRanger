@@ -14,7 +14,9 @@ namespace
   // URL: https://rikeilabo.com/magnetic-field-and-magnetic-flux-density
   constexpr double PROPORTIONALITY_CONSTANT = 6.33e4;
   constexpr double MAGNETIC_VALUE = 60.0;
-  constexpr double ADJUSTMENT_COEFFICIENT = 0.0001;
+  constexpr double ADJUSTMENT_COEFFICIENT = 0.0005;
+
+  constexpr double ATTRACTION_POWER_THRESHOLD = 10000.0f;
 }
 
 void UARMagneticAttractionTickObject::OnTick(const FARPhysicsTickParameters& TickParams, FARPhysicsEvaluationResult& Result)
@@ -42,19 +44,25 @@ void UARMagneticAttractionTickObject::OnTick(const FARPhysicsTickParameters& Tic
 
     // クーロンの法則に基づいて引力を計算する
     // F = (k * m1 * m2) / (r^2)
+    const AActor* magnetizedActor = magnetizedObject->GetActor();
+    const FVector directionTo = magnetizedActor->GetActorLocation() - targetActor->GetActorLocation();
+    // TODO 距離が近すぎると力を無限大になる状況を防ぐ
+    const FVector pushForce = directionTo.GetSafeNormal() 
+                              * /**比例定数ｋ */PROPORTIONALITY_CONSTANT 
+                              * /**m1 */MAGNETIC_VALUE * /**m2 */MAGNETIC_VALUE 
+                              / /**(r^2) */directionTo.SizeSquared() 
+                              * /**調整係数 */ADJUSTMENT_COEFFICIENT;
+    
+    if (pushForce.SizeSquared() >= ATTRACTION_POWER_THRESHOLD)
     {
-      const AActor* magnetizedActor = magnetizedObject->GetActor();
-      const FVector directionTo = magnetizedActor->GetActorLocation() - targetActor->GetActorLocation();
-      const FVector pushForce = directionTo.GetSafeNormal() 
-                                * /**比例定数ｋ */PROPORTIONALITY_CONSTANT 
-                                * /**m1 */MAGNETIC_VALUE * /**m2 */MAGNETIC_VALUE 
-                                / /**(r^2) */directionTo.SizeSquared() 
-                                * /**調整係数 */ADJUSTMENT_COEFFICIENT;
-      
-      // 引力を重ねる
-      Result.ForceResult += pushForce;
+      continue;
     }
+    
+    // 引力を重ねる
+    Result.ForceResult += pushForce;
+    
   }
+
 }
 
 void UARMagneticAttractionTickObject::OnPostTickObject()
