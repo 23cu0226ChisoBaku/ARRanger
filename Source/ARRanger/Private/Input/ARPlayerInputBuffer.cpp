@@ -162,7 +162,7 @@ void UARPlayerInputBuffer::RemoveExpiredInputState()
   while (idx < m_inputStates.Num())
   {
     const TPimplPtr<ARRanger::Input::FARInputBufferState>& inputState = m_inputStates[idx];
-    if (!inputState.IsValid() || inputState->IsInputStateExpired())
+    if (!inputState.IsValid() || inputState->IsExpiredState())
     {
       m_inputStates.RemoveAt(idx);
       continue;
