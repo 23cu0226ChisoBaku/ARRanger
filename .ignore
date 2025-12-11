@@ -1,6 +1,8 @@
 /.git
 /.vscode
 /Content
+/DEPRECATED_Scripts
+/DerivedDataCache
 /Intermediate
 /Saved
 /Plugins/MotionDiff/Content

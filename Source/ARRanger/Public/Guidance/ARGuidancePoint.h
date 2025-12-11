@@ -6,7 +6,6 @@
 
 #include "ARGuidancePoint.generated.h"
 
-
 #define UE_API ARRANGER_API
 
 /**Forward declaration */
@@ -36,7 +35,7 @@ public:
   UE_API void SetChildPoint(AARGuidancePoint* InChild);
 
   UFUNCTION(BlueprintCallable, Category = "Guidance|Visibility")
-  UE_API virtual void OnMagnetismTypeChanged(EARMagnetismType Type);
+  UE_API void OnMagnetismTypeChanged(EARMagnetismType Type);
 
   UFUNCTION(BlueprintImplementableEvent, Category = "Guidance|Visibility", meta = (DisplayName = "OnAttractionChanged"))
   UE_API void K2_OnAttractionChanged();

@@ -1,4 +1,9 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+/**
+ * @file ARMagneticTickObject.h
+ * @author MAI ZHICONG
+ * @brief Base class of Magnetism tick object
+ * 磁力Tickオブジェクトの基底クラス
+ */
 
 #pragma once
 
@@ -6,36 +11,43 @@
 
 #include "ARMagneticTickObject.generated.h"
 
+/**前方宣言 */
 class IARMagnetizableInterface;
-class FARPhysicsEngineProxy;
 
-/**
- * 
- */
+#define ARPHYSICS_API ARRANGER_API
+
 UCLASS(MinimalAPI, Abstract)
 class UARMagneticTickObject : public UARPhysicsTickObject
 {
 	GENERATED_BODY()
 
   public:
-    ARRANGER_API UARMagneticTickObject();
-    ARRANGER_API void SetTargetObject(IARMagnetizableInterface* InTarget);
-    ARRANGER_API void SetPhysicsEngineProxy(FARPhysicsEngineProxy* InPhysicsEngineProxy);
-    ARRANGER_API void RegisterAffectedMagnetizedObject(IARMagnetizableInterface* MagnetizedObject);
+    ARPHYSICS_API UARMagneticTickObject();
+
+    /**
+     * @brief 磁力影響を与えるオブジェクトを登録する
+     * @param InMagnetizedObject 
+     */
+    ARPHYSICS_API void RegisterAffectedMagnetizedObject(IARMagnetizableInterface* InMagnetizedObject);
+
+    void SetTargetObject(IARMagnetizableInterface* InTarget) { Target = InTarget;}
     bool IsSameTarget(const IARMagnetizableInterface* InTarget) const { return Target == InTarget; }
     bool IsTargetValid() const { return Target != nullptr; } 
+    IARMagnetizableInterface* GetTarget() const { return Target; }
 
   protected:
     /**Start UARPhysicsTickObject interface */
-    ARRANGER_API virtual void OnEndTickObject() override;
+    ARPHYSICS_API virtual void OnPostTickObject() override;
     /**End UARPhysicsTickObject interface */
 
   protected:
-    IARMagnetizableInterface* Target;
-    TArray<IARMagnetizableInterface*> AffectedMagnetizedObjects;
-    FARPhysicsEngineProxy* PhysicsEngineProxy;
 
-  private:
+    /**磁力を受けるターゲット */
+    IARMagnetizableInterface* Target;
+
+    /**ターゲットに影響を与えるオブジェクト群 */
+    TArray<IARMagnetizableInterface*> AffectedMagnetizedObjects;
 
 };
 
+#undef ARPHYSICS_API

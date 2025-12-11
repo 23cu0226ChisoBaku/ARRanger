@@ -1,6 +1,5 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-
 #include "Physics/TickObjects/Magnetic/ARMagneticTickObject.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ARMagneticTickObject)
@@ -8,35 +7,22 @@
 UARMagneticTickObject::UARMagneticTickObject()
   : Target{nullptr}
   , AffectedMagnetizedObjects{}
-  , PhysicsEngineProxy{nullptr}
 {
-  PrimaryPhysicsTick.Frequency = EARPhysicsTickFrequency::TF_Default;
-}
-
-void UARMagneticTickObject::SetTargetObject(IARMagnetizableInterface* InTarget)
-{
-  Target = InTarget;
-}
-
-void UARMagneticTickObject::SetPhysicsEngineProxy(FARPhysicsEngineProxy* InPhysicsEngineProxy)
-{
-  PhysicsEngineProxy = InPhysicsEngineProxy;
+  PrimaryPhysicsTick.Frequency = EPhysicsExecuteFrequency::Constantly;
 }
 
 void UARMagneticTickObject::RegisterAffectedMagnetizedObject(IARMagnetizableInterface* MagnetizedObject)
 {
-  if (MagnetizedObject == nullptr)
+  if (MagnetizedObject != nullptr)
   {
-    return;
+    AffectedMagnetizedObjects.AddUnique(MagnetizedObject);
   }
-
-  AffectedMagnetizedObjects.AddUnique(MagnetizedObject);
-
 }
 
-void UARMagneticTickObject::OnEndTickObject()
+void UARMagneticTickObject::OnPostTickObject()
 {
-  Super::OnEndTickObject();
+  Super::OnPostTickObject();
 
+  // フレーム単位で影響するため、終了するとき影響を与えるオブジェクト全部解読する
   AffectedMagnetizedObjects.Reset();
 }

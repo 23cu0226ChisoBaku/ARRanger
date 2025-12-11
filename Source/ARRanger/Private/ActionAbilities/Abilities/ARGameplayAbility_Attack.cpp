@@ -8,19 +8,12 @@
 #include "BattleSystem/IARAttackable.h"
 #include "BattleSystem/IARAttackerInterface.h"
 
+#include UE_INLINE_GENERATED_CPP_BY_NAME(ARGameplayAbility_Attack)
+
 UARGameplayAbility_Attack::UARGameplayAbility_Attack()
 {
   InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
 }
-
-#if WITH_EDITOR
-
-void UARGameplayAbility_Attack::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
-{
-  Super::PostEditChangeProperty(PropertyChangedEvent);
-}
-
-#endif
 
 void UARGameplayAbility_Attack::GANotify_ImpactResult(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const TArray<FGANotify_ImpactResult>& InImpactResults)
 {
@@ -43,7 +36,6 @@ void UARGameplayAbility_Attack::GANotify_ImpactResult(USkeletalMeshComponent* Me
     FARAttackParameters attackParam{};
     // TODO Use Avatar location to knockback Target Temporary
     FVector knockbackDir = result.HitActor->GetActorLocation() - result.ImpactLocation;
-    // Make it Z to zero so we can only use Direction on XY-Plane to determine knockback Direction
 
     attackParam.Instigator = result.SourceActor;
     // TODO Stock damage in GA maybe not a great idea
@@ -68,9 +60,9 @@ void UARGameplayAbility_Attack::GANotify_ImpactResult(USkeletalMeshComponent* Me
     }
 
     FVector knockbackDirNorm = knockbackDir.GetSafeNormal();
-    // Use KnockbackRange to calculate final launch direction
     if (bClampKnockbackAngle)
     {
+      // 撃退する方向に制限をかける
       // Calculate LaunchDir's projection vector on Plane that attacker's up vector is normal vector
       FVector norm{ForceInitToZero};
       FVector attackerFwdDir{ForceInitToZero};
@@ -101,13 +93,11 @@ void UARGameplayAbility_Attack::GANotify_ImpactResult(USkeletalMeshComponent* Me
       norm.Normalize();
       attackerFwdDir.Normalize();
   
+      // 撃退する方向を再計算する
       const float projectionAngleCos = FVector::DotProduct(norm, knockbackDirNorm); 
       const FVector projectionVec = knockbackDir - (projectionAngleCos * knockbackDir.Length()) * norm;
       const float curtKnockbackRangeCos = FVector::DotProduct(attackerFwdDir, projectionVec.GetSafeNormal());
-      float curtKnockbackRangeAngleDeg = FMath::RadiansToDegrees(FMath::Acos(curtKnockbackRangeCos));
-      // Clamp current radian
-      curtKnockbackRangeAngleDeg = FMath::Clamp(curtKnockbackRangeAngleDeg, 0.0f, KnockbackAngleHalfRange);
-      // Change knockbackDirNorm
+      const float curtKnockbackRangeAngleDeg = FMath::Clamp(FMath::RadiansToDegrees(FMath::Acos(curtKnockbackRangeCos)), 0.0f, KnockbackAngleHalfRange);
       if (!FMath::IsNearlyEqual(FMath::Cos(curtKnockbackRangeAngleDeg), curtKnockbackRangeCos))
       {
         const float rotateAngleSign = FVector::DotProduct(FVector::CrossProduct(attackerFwdDir, projectionVec).GetSafeNormal(), norm);
@@ -115,7 +105,6 @@ void UARGameplayAbility_Attack::GANotify_ImpactResult(USkeletalMeshComponent* Me
       }
     }
 
-    // Finally we put knockbackDirNorm to attackParam
     attackParam.LaunchDirection = knockbackDirNorm;
     
     // Apply Attack
@@ -131,8 +120,6 @@ void UARGameplayAbility_Attack::ActivateAbility(
 )
 {
   Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
-
-  UE_LOG(LogTemp, Error, TEXT("Activate [%s]."), *GetAssetTags().ToString());
 
   OnAttackAbilityActivated();
 }
@@ -151,8 +138,8 @@ void UARGameplayAbility_Attack::EndAbility(
 
 void UARGameplayAbility_Attack::OnAttackAbilityActivated()
 {
-  UAnimInstance* animInst = FindAnimInstanceOnAvatar();
-  if (animInst != nullptr)
+  // 攻撃モンタージュ再生
+  if (UAnimInstance* animInst = FindAnimInstanceOnAvatar())
   {
     animInst->Montage_Play(AttackMontage);
     animInst->OnMontageEnded.AddUniqueDynamic(this, &UARGameplayAbility_Attack::OnAttackMontageEnded);
@@ -161,12 +148,11 @@ void UARGameplayAbility_Attack::OnAttackAbilityActivated()
 
 void UARGameplayAbility_Attack::OnAttackAbilityEnded(bool bWasCancelled)
 {
-  UAnimInstance* animInst = FindAnimInstanceOnAvatar();
-  if (animInst != nullptr)
+  if (UAnimInstance* animInst = FindAnimInstanceOnAvatar())
   {
+    // アビリティがキャンセルされていないと攻撃モンタージュ再生停止
     if (!bWasCancelled)
     {
-      // TODO 
       animInst->Montage_Stop(0.0f, AttackMontage);
     }
     animInst->OnMontageEnded.RemoveDynamic(this, &UARGameplayAbility_Attack::OnAttackMontageEnded);
@@ -175,6 +161,7 @@ void UARGameplayAbility_Attack::OnAttackAbilityEnded(bool bWasCancelled)
 
 void UARGameplayAbility_Attack::OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted)
 {
+  // この攻撃アビリティのモンタージュが終わったらアビリティを止める
   if (AttackMontage == Montage)
   {
     EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, bInterrupted);
@@ -183,8 +170,7 @@ void UARGameplayAbility_Attack::OnAttackMontageEnded(UAnimMontage* Montage, bool
 
 UAnimInstance* UARGameplayAbility_Attack::FindAnimInstanceOnAvatar() const
 {
-  ACharacter* avatarCharacter = ::Cast<ACharacter>(GetAvatarActorFromActorInfo());
-  if ((avatarCharacter != nullptr) && (AttackMontage != nullptr))
+  if (ACharacter* avatarCharacter = ::Cast<ACharacter>(GetAvatarActorFromActorInfo()))
   {
     if (avatarCharacter->GetMesh() != nullptr)
     {

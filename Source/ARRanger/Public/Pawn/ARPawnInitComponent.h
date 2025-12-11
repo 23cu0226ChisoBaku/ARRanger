@@ -1,15 +1,18 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+/**
+ * @file ARPawnInitComponent.h
+ * @brief ポーン初期化コンポーネント
+ */
 
 #pragma once
 
 #include "Components/ActorComponent.h"
 #include "GameFramework/Pawn.h"
 #include "AbilitySystemInterface.h"
-
 #include <type_traits>
 
 #include "ARPawnInitComponent.generated.h"
 
+/**前方宣言 */
 class APlayerState;
 class UARAbilitySystemComponent;
 class UARPawnInitData;
@@ -23,7 +26,6 @@ class UARPawnInitComponent : public UActorComponent, public IAbilitySystemInterf
 	GENERATED_BODY()
 
 public:	
-	// Sets default values for this component's properties
 	UE_API UARPawnInitComponent(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
   template<typename PawnType>
@@ -44,23 +46,39 @@ public:
   UFUNCTION(BlueprintPure, Category = "GameplayAbility")
   UARAbilitySystemComponent* GetARAbilitySystemComponent() const { return AbilitySystemComponent; };
 
+  /**Start IAbilitySystemInterface Interface */
   UE_API virtual UAbilitySystemComponent* GetAbilitySystemComponent() const;
+  /**End IAbilitySystemInterface Interface */
 
   const UARPawnInitData* GetPawnData() const { return PawnInitData; }
 
+  /**
+   * @brief アビリティシステムコンポーネントを初期化
+   * @param InASC         
+   * @param InOwnerActor  
+   */
   UE_API void InitializeAbilitySystem(UARAbilitySystemComponent* InASC, AActor* InOwnerActor);
 
+  /**
+   * @brief 溜め攻撃コンポーネントを初期化
+   * @param InCAC 
+   */
   UE_API void InitializeChargeAttack(UARChargeAttackComponent* InCAC);
 
+  /**
+   * @brief アビリティシステムコンポーネント初期化を解除
+   */
   UE_API void UninitializeAbilitySystem();
 
+  /**
+   * @brief 溜め攻撃コンポーネント初期化を解除
+   */
   UE_API void UninitializeChargeAttack();
 
 protected:
 
   /**Start UActorComponent Interface */
   UE_API virtual void OnRegister() override;
-  UE_API virtual void BeginPlay() override;
   UE_API virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 	/**End UActorComponent Interface */
 
@@ -72,11 +90,10 @@ private:
   UPROPERTY(VisibleAnywhere, Category = "PawnInit")
   TObjectPtr<UARChargeAttackComponent> ChargeAttackComponent;
 
+  /**ポーン初期化アセット */
   UPROPERTY(EditDefaultsOnly, Category = "PawnInit", meta = (AllowPrivateAccess = "true"))
   TObjectPtr<const UARPawnInitData> PawnInitData;
-
 };
-
 
 template<typename PawnType>
 PawnType* UARPawnInitComponent::GetPawn()
@@ -105,6 +122,5 @@ ControllerType* UARPawnInitComponent::GetController()
   static_assert(std::is_base_of_v<AController, ControllerType>, "Invalid template parameter of GetController. Must be derived from AController");
   return GetPawnChecked<APawn>()->GetController<ControllerType>();
 }
-
 
 #undef UE_API

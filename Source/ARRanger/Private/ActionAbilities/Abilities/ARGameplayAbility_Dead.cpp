@@ -1,7 +1,5 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "ActionAbilities/Abilities/ARGameplayAbility_Dead.h"
+
 #include "AbilitySystemComponent.h"
 #include "Character/ARHealthComponent.h"
 
@@ -18,15 +16,16 @@ void UARGameplayAbility_Dead::ActivateAbility(
                           const FGameplayEventData* TriggerEventData
                       )
 {
-  
+  Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
+
+  // 全てのアビリティをキャンセルする
   UAbilitySystemComponent* ASC = ActorInfo->AbilitySystemComponent.Get();
   ASC->CancelAbilities(nullptr, nullptr, this);
-  
+
+  // 死亡アビリティがキャンセルできないようにする
   SetCanBeCanceled(false);
   
   OnDeadActivated();
-  
-  Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 }
 
 void UARGameplayAbility_Dead::EndAbility(

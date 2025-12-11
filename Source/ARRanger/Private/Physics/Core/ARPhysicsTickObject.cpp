@@ -1,20 +1,16 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "Physics/Core/ARPhysicsTickObject.h"
 #include "Physics/Core/ARPhysicsTickManagerInterface.h"
+
 #include "Internal/ARLoggingHeader.h"
 
 UARPhysicsTickObject::UARPhysicsTickObject()
   : PreviousResult{}
   , EvaluatedResult{}
-  , m_internalData{::MakeUnique<FInternalData>()}
 { }
 
 void UARPhysicsTickObject::RegisterPhysicsTickFunction()
 {
   check(!PrimaryPhysicsTick.IsTickFunctionRegistered());
-
   PrimaryPhysicsTick.TargetObject = this;
   PrimaryPhysicsTick.SetEnable(true);
   PrimaryPhysicsTick.RegisterPhysicsTickFunction();
@@ -22,11 +18,9 @@ void UARPhysicsTickObject::RegisterPhysicsTickFunction()
 
 void UARPhysicsTickObject::TickPhysics(const FARPhysicsTickParameters& TickParams)
 {
-  BeginTickObject();
-
+  PreTickObject();
   Tick(TickParams);
-
-  EndTickObject();
+  PostTickObject();
 }
 
 void UARPhysicsTickObject::UnregisterPhysicsTickFunction()
@@ -34,49 +28,44 @@ void UARPhysicsTickObject::UnregisterPhysicsTickFunction()
   PrimaryPhysicsTick.UnregisterPhysicsTickFunction();
 }
 
-void UARPhysicsTickObject::SetFrequency(EARPhysicsTickFrequency InFrequency)
+void UARPhysicsTickObject::SetFrequency(EPhysicsExecuteFrequency InFrequency)
 {
   PrimaryPhysicsTick.Frequency = InFrequency;
 }
 
-void UARPhysicsTickObject::BeginTickObject()
+void UARPhysicsTickObject::PreTickObject()
 {
   PreviousResult = EvaluatedResult;
-  m_internalData->bIsEvaluateFinishedCurrentFrame = false;
-  OnBeginTickObject();  
+  bIsEvaluateFinishedCurrentFrame = false;
+  OnPreTickObject();  
 }
 
 void UARPhysicsTickObject::Tick(const FARPhysicsTickParameters& TickParams)
 {
-  check(m_internalData.IsValid());
-  if (!m_internalData->bIsEvaluateFinishedCurrentFrame)
+  if (!bIsEvaluateFinishedCurrentFrame)
   {
     FARPhysicsEvaluationResult result{};
     OnTick(TickParams, result);
 
-    // TODO For blueprint usage
+    // For blueprint usage
     // Same as AActor::Tick
     if (GetClass()->HasAnyClassFlags(CLASS_CompiledFromBlueprint) || !GetClass()->HasAllClassFlags(CLASS_Native))
     {
-      TickOnBlueprint(TickParams.DeltaTime, TickParams.TotalSimTime, result);
+      TickOnBlueprint(TickParams.DeltaTime, result);
     }
 
     EvaluatedResult = result;
-    m_internalData->bIsEvaluateFinishedCurrentFrame = true;
+    bIsEvaluateFinishedCurrentFrame = true;
   }
 }
 
-void UARPhysicsTickObject::EndTickObject()
+void UARPhysicsTickObject::PostTickObject()
 {
-  check(m_internalData.IsValid());
-
-  if (m_internalData->bIsEvaluateFinishedCurrentFrame)
+  if (bIsEvaluateFinishedCurrentFrame)
   {
-    OnEndTickObject();
+    OnPostTickObject();
   }
 }
-
-
 
 void UARPhysicsTickObject::BeginDestroy()
 {

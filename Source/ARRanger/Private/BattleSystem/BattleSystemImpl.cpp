@@ -1,10 +1,7 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #include "BattleSystem/IBattleSystemInterface.h"
 
 #include "BattleSystem/IARAttackable.h"
 #include "BattleSystem/IARAttackerInterface.h"
-#include "BattleSystem/IARBattleNotifyHandler.h"
 #include "BattleSystem/IBattleSystemInterface.h"
 
 /**Internal use */
@@ -23,28 +20,33 @@ class FARBattleSystem final : public ARRanger::Battle::IBattleSystemInterface
 
 FARAttackParameters::FARAttackParameters()
   : Instigator{nullptr}
-  , Damage{0.0f}
   , LaunchDirection{EForceInit::ForceInitToZero}
+  , Damage{0.0f}
   , bUseAttackerActor{true}
 { }
 
 const FARAttackParameters FARAttackParameters::BlankAttackParams = FARAttackParameters{};
 
+bool IARAttackable::IsActorAttackable(const AActor* InActor)
+{
+  if (InActor == nullptr)
+  {
+    // TODO Add error log
+    return false;
+  }
+
+  return InActor->GetClass()->ImplementsInterface(UARAttackable::StaticClass());
+}
+
 // Add default functionality here for any IIARAttackable functions that are not pure virtual.
 bool IARAttackable::AttackTarget(IARAttackerInterface* Attacker, FARAttackParameters InAttackParams)
 {
+  using namespace ARRanger::Battle;
+
   // Attackerが存在しないため、Attackerへの通知を送らない
   if (Attacker == nullptr)
   {
     AR_LOG(LogARBattle, Error, TEXT("Attacker is INVALID!!!"));
-  }
-  else
-  {
-    // TODO Should we notify here? 
-    if (IARBattleNotifyHandler* notifyHandler = Attacker->GetBattleNotifyHandler())
-    {
-      notifyHandler->NotifyBattleState(EARBattleState::StartBattle);
-    }
   }
 
   /**Preattack Phase */
@@ -55,14 +57,13 @@ bool IARAttackable::AttackTarget(IARAttackerInterface* Attacker, FARAttackParame
     InAttackParams.Instigator = Attacker != nullptr ? Attacker->GetActor() : nullptr;
   }
 
-  // Check attack result
-  ARRanger::Battle::FARAttackResult outAttackResult{};
+  FARAttackResult outAttackResult{};
   OnPreAttacked(InAttackParams, outAttackResult);
 
-  /**Notify attack state to attacker */
+  /**攻撃者に攻撃結果を通知する */
   if (Attacker != nullptr)
   {
-    ARRanger::Battle::FARAttackNotifyParameter notifyParams{};
+    FARAttackNotifyParameter notifyParams{};
     notifyParams.WeakAttackableObject = _getUObject();
     Attacker->NotifyAttackResult(outAttackResult.Result, notifyParams);
   }
@@ -71,22 +72,22 @@ bool IARAttackable::AttackTarget(IARAttackerInterface* Attacker, FARAttackParame
   OnPostAttacked(InAttackParams);
   
   /**Handle battle task */
-  // Do not handle battle task if attack is not success
-  if (outAttackResult.Result != ARRanger::Battle::EARAttackResult::Success)
+  // 攻撃が失敗したらバトルタスクを処理しない
+  if (outAttackResult.Result != EARAttackResult::Success)
   {
     return false;
   }
 
-  // Finally we handle battle task
-  ARRanger::Battle::IBattleSystemInterface& battleSystem = ARRanger::Battle::IBattleSystemInterface::Get();
-  ARRanger::Battle::FARBattleTask task{};
-  ARRanger::Battle::FARDamageResult damageResult{};
+  // バトルタスクを処理する
+  FARBattleTask task{};
   task.Instigator = InAttackParams.Instigator;
   task.Target = this->Attackable_GetActor();
   task.OriginDamage = InAttackParams.Damage;
-  battleSystem.HandleBattleTask(task, damageResult);
 
-  /**Handle damage */
+  FARDamageResult damageResult{};
+  IBattleSystemInterface::Get().HandleBattleTask(task, damageResult);
+
+  // ダメージ通知
   damageResult.FinalLaunchDirection = InAttackParams.LaunchDirection;
   damageResult.Instigator = (Attacker != nullptr) ? Attacker->GetActor() : nullptr;
   damageResult.ImpactLocation = InAttackParams.ImpactLocation;
@@ -134,7 +135,6 @@ namespace ARRanger
 
 namespace Battle
 {
-
   IBattleSystemInterface& IBattleSystemInterface::Get()
   {
     return FARBattleSystem::Get();

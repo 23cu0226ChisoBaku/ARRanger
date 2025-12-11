@@ -2,11 +2,11 @@
 
 
 #include "AudioSystem/ARSoundPlayLibrary.h"
-#include "AudioKit.h"
+#include "AudioSystem/AudioKit.h"
 
 // FIXME For player use only now
 // FIXME Delete it when repository is ready
-#include "ARRangerCharacter.h"
+#include "Character/ARRangerCharacter.h"
 
 
 void UARSoundPlayLibrary::PlaySESound(const FARSoundEffectParameters& Parameters)

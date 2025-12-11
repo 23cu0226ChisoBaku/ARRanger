@@ -1,12 +1,14 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "Character/ARHealthComponent.h"
 
 #include "Curves/CurveFloat.h"
 
 #include "ActionAbilities/ARAbilitySystemComponent.h"
 #include "ARGameplayTags.h"
+
+namespace ARRanger::Private
+{
+
+}
 
 void FARHealthRegenerationEntry::ResetRegenerationState()
 {
@@ -23,7 +25,7 @@ void FARHealthRegenerationEntry::EvaluateRegeneration(float DeltaTime)
 {
   if (!bEnableRegeneration)
   {
-    // Start regeneration if delay is finished
+    // 回復遅延期間が過ぎたら回復を開始する
     RegenerationDelayTimeCnt += DeltaTime;
     if (RegenerationDelayTimeCnt >= RegenerationDelay)
     {
@@ -31,7 +33,6 @@ void FARHealthRegenerationEntry::EvaluateRegeneration(float DeltaTime)
     }
   }
 
-  // Evaluate regeneration curve
   if (bEnableRegeneration && bUseRegenerationSpeedOverrideCurve)
   {
     RegenerationCurveEvaluationTimeValue += DeltaTime;
@@ -40,12 +41,12 @@ void FARHealthRegenerationEntry::EvaluateRegeneration(float DeltaTime)
 
 float FARHealthRegenerationEntry::GetRegenerationSpeed() const
 {
-  // Return 0 if it is still in delay state
   if (!bEnableRegeneration)
   {
     return 0.0f;
   }
 
+  // カーブを利用する時
   if (bUseRegenerationSpeedOverrideCurve)
   {
     UCurveFloat* targetCurve = OverrideCurve.LoadSynchronous();
@@ -54,10 +55,8 @@ float FARHealthRegenerationEntry::GetRegenerationSpeed() const
       return targetCurve->GetFloatValue(RegenerationCurveEvaluationTimeValue);
     }
   }
-  // Fallback to use constant value if we dont use curve to evaluate regeneration speed
 
   return RegenerationSpeed;
-  
 }
 
 UARHealthComponent::UARHealthComponent()
@@ -85,10 +84,10 @@ void UARHealthComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAc
     {
       RegenerationEntry.EvaluateRegeneration(DeltaTime);
   
+      // 自動回復
       if (RegenerationEntry.bEnableRegeneration)
       {
         const float regenerationHealth = RegenerationEntry.GetRegenerationSpeed() * DeltaTime;
-  
         HandleHealthChange(GetOwner(), regenerationHealth);
       }
     }
@@ -131,6 +130,11 @@ void UARHealthComponent::HandleHealthChange(AActor* Instigator, float ChangeValu
   {
     OnHealthChanged.Broadcast(this, Instigator, prevHealth, GetHealth());
   }
+
+  if (IsDead())
+  {
+    HandleOutOfHealth(GetOwner());
+  }
 }
 
 void UARHealthComponent::HandleOutOfHealth(AActor* OwningActor)
@@ -145,6 +149,7 @@ void UARHealthComponent::HandleOutOfHealth(AActor* OwningActor)
     UARAbilitySystemComponent* ARASC = UARAbilitySystemComponent::FindARAbilitySystemComponent(OwningActor);
     if (ARASC != nullptr)
     {
+      // 死亡アビリティを起動する
       FGameplayTagContainer deadTag;
       deadTag.AddTag(ARRanger::GameplayTags::Ability_Dead);
 
@@ -153,16 +158,15 @@ void UARHealthComponent::HandleOutOfHealth(AActor* OwningActor)
   }
 }
 
-// Called when the game starts
 void UARHealthComponent::BeginPlay()
 {
   Super::BeginPlay();
 
   SetHealthInternal(GetMaxHealth());
-
   if (OnHealthChanged.IsBound())
   {
-    OnHealthChanged.Broadcast(this, nullptr, GetHealth(), GetHealth());
+    const float curtHP = GetHealth();
+    OnHealthChanged.Broadcast(this, nullptr, curtHP, curtHP);
   }
 }
 
@@ -180,7 +184,6 @@ void UARHealthComponent::SetMaxHealthInternal(float NewMaxHealth)
 void UARHealthComponent::StartDead()
 {
   check(GetOwner() != nullptr);
-
   if (OnDeadEventStarted.IsBound())
   {
     OnDeadEventStarted.Broadcast(GetOwner());
@@ -190,7 +193,6 @@ void UARHealthComponent::StartDead()
 void UARHealthComponent::FinishDead()
 {
   check(GetOwner() != nullptr);
-
   if (OnDeadEventFinished.IsBound())
   {
     OnDeadEventFinished.Broadcast(GetOwner());
@@ -205,5 +207,4 @@ void UARHealthComponent::SetAutoRegenerationEnable(const bool bEnable)
   }
   
   bAutoRegenerationEnable = bEnable;
-
 }

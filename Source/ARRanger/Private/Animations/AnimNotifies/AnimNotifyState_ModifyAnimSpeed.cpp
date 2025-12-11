@@ -1,7 +1,8 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-
 #include "Animations/AnimNotifies/AnimNotifyState_ModifyAnimSpeed.h"
+ 
+#include "Animations/ARRangerAnimInstance.h"
 
 void UAnimNotifyState_ModifyAnimSpeed::NotifyBegin(USkeletalMeshComponent * MeshComp, UAnimSequenceBase * Animation, float TotalDuration, const FAnimNotifyEventReference& EventReference)
 {
@@ -9,17 +10,14 @@ void UAnimNotifyState_ModifyAnimSpeed::NotifyBegin(USkeletalMeshComponent * Mesh
 
   if (MeshComp != nullptr)
   {
-    UAnimInstance* animInst = MeshComp->GetAnimInstance();
+    UARRangerAnimInstance* animInst = ::Cast<UARRangerAnimInstance>(MeshComp->GetAnimInstance());
     if (animInst != nullptr)
     {
       if (UAnimMontage* montage = ::Cast<UAnimMontage>(Animation))
       {
-        if (animInst->Montage_IsPlaying(montage))
-        {
-          // Modify play rate
-          m_speedBeforeModify = animInst->Montage_GetPlayRate(montage);
-          animInst->Montage_SetPlayRate(montage, AnimPlaySpeed);
-        }
+        // Modify play rate
+        m_speedBeforeModify = animInst->Montage_GetPlayRate(montage);
+        animInst->AnimModifiedSpeed = AnimPlaySpeed;      
       }
     }
   }
@@ -29,16 +27,13 @@ void UAnimNotifyState_ModifyAnimSpeed::NotifyEnd(USkeletalMeshComponent * MeshCo
 {
   if (MeshComp != nullptr)
   {
-    UAnimInstance* animInst = MeshComp->GetAnimInstance();
+    UARRangerAnimInstance* animInst = ::Cast<UARRangerAnimInstance>(MeshComp->GetAnimInstance());
     if (animInst != nullptr)
     {
       if (UAnimMontage* montage = ::Cast<UAnimMontage>(Animation))
       {
-        if (animInst->Montage_IsPlaying(montage))
-        {
-          // Resume play rate
-          animInst->Montage_SetPlayRate(montage, m_speedBeforeModify);
-        }
+        // Resume play rate
+        animInst->AnimModifiedSpeed = m_speedBeforeModify;     
       }
     }
   }

@@ -1,6 +1,5 @@
 ﻿#include "ARRangerEditorModule.h"
 #include "PropertyEditorModule.h"
-#include "CustomDetails/RangeDetectorCustomization.h"
 
 #include "CustomDetails/RangeDetectorTargetCustomization.h"
 

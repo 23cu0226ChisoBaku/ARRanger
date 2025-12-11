@@ -1,5 +1,8 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
+/**
+ * @file ARInputMappingContext.h
+ * @author MAI ZHICONG
+ * @brief ARRangerインプットマッピングコンテキスト（Tag付き）
+ */
 #pragma once
 
 #include "Engine/DataAsset.h"
@@ -10,8 +13,12 @@
 
 #define UE_API ARRANGER_API
 
+/**前方宣言 */
 class UInputMappingContext;
 
+/**
+ * @brief InputMappingContext with signature tag
+ */
 USTRUCT(BlueprintType)
 struct FARInputMappingContextAndTag
 {
@@ -25,9 +32,6 @@ struct FARInputMappingContextAndTag
 
 };
 
-/**
- * 
- */
 UCLASS(Const)
 class UARInputMappingContext : public UDataAsset
 {
@@ -35,6 +39,11 @@ class UARInputMappingContext : public UDataAsset
 
 public:
 
+  /**
+   * @brief 与えられたTagでIMCを探す
+   * @param InTag IMCにバインドしたTag
+   * @see InputMappingContexts
+   */
   UE_API UInputMappingContext* FindIMCWithTag(const FGameplayTag& InTag) const;
   
   UPROPERTY(EditDefaultsOnly, Category = "InputMappingContext", meta = (TitleProperty = "{InputMapping} with state tag: {InputStateTag}"))

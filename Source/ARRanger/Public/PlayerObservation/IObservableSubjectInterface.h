@@ -26,6 +26,11 @@ public:
 
   TSharedRef<ARRanger::INotifyHandlerInterface> GetNotifyHandlerRef() const
   {
+    if (!m_notifyHandler.IsValid())
+    {
+      const_cast<IObservableSubjectInterface*>(this)->UpdateNotifyHandler(::MakeShared<FNullNotifyHandler>());
+    }
+
     return m_notifyHandler.ToSharedRef();
   }
 

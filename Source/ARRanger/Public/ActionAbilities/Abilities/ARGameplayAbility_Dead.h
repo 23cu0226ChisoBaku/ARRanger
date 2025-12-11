@@ -1,4 +1,8 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+/**
+ * @file ARGameplayAbility_Dead.h
+ * @author MAI ZHICONG
+ * @brief 死亡アビリティ
+ */
 
 #pragma once
 
@@ -8,9 +12,6 @@
 
 #define UE_API ARRANGER_API
 
-/**
- * 
- */
 UCLASS()
 class UARGameplayAbility_Dead : public UARGameplayAbilityBase
 {
@@ -28,7 +29,6 @@ protected:
                           const FGameplayAbilityActivationInfo ActivationInfo,
                           const FGameplayEventData* TriggerEventData
                       ) override;
-
   UE_API virtual void EndAbility(
                           const FGameplayAbilitySpecHandle Handle,
                           const FGameplayAbilityActorInfo* ActorInfo,
@@ -38,11 +38,9 @@ protected:
   /**End UGameplayAbility Interface */
 
 private:
-
   void OnDeadActivated();
 
   void OnDeadEnded();
-	
 };
 
 #undef UE_API

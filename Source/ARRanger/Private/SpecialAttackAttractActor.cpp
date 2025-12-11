@@ -4,7 +4,7 @@
 
 #include "SpecialAttackAttractActor.h"
 #include "Kismet/KismetSystemLibrary.h"
-#include "ARRangerCharacter.h"
+#include "Character/ARRangerCharacter.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(SpecialAttackAttractActor)
 

@@ -1,4 +1,8 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+/**
+ * @file ARGameplayAbility_Jump.h
+ * @author MAI ZHICONG
+ * @brief ジャンプアビリティ
+ */
 
 #pragma once
 
@@ -24,14 +28,12 @@ public:
                           const FGameplayTagContainer* TargetTags = nullptr, 
                           OUT FGameplayTagContainer* OptionalRelevantTags = nullptr
                       ) const override;
-  
   UE_API virtual void ActivateAbility(
                           const FGameplayAbilitySpecHandle Handle,
                           const FGameplayAbilityActorInfo* ActorInfo,
                           const FGameplayAbilityActivationInfo ActivationInfo,
                           const FGameplayEventData* TriggerEventData
                       ) override;
-
   UE_API virtual void EndAbility(
                           const FGameplayAbilitySpecHandle Handle,
                           const FGameplayAbilityActorInfo* ActorInfo,
@@ -47,10 +49,11 @@ private:
 
   void CharacterJumpEnd();
   
-  // Bind this to LandedDelegate
+  /**
+   * @brief アバターActorが着地する時呼ばれるコールバック
+   */
   UFUNCTION()
   void OnCharacterLanded(const FHitResult& HitResult);
-  
 };
 
 #undef UE_API

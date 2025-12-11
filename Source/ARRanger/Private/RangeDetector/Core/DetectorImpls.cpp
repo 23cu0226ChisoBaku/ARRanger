@@ -1,12 +1,23 @@
 ﻿#include "RangeDetector/Core/DetectorImpls.h"
 
 #include "RangeDetector/Core/PrimitiveDetectorData.h"
-#include "RangeDetector/DetectorDatas/ConeCollisionDataAsset.h"
+#include "RangeDetector/DetectorDatas/ConeDetectorData.h"
 #include "RangeDetector/DetectorDatas/CapsuleDetectorData.h"
 #include "RangeDetector/DetectorDatas/SphereDetectorData.h"
 
 #include "RangeDetector/Utils/CollisionTraceFunctionLibrary.h"
 #include "Kismet/KismetSystemLibrary.h"
+
+namespace
+{
+  const TArray<TEnumAsByte<EObjectTypeQuery>> g_objTypes
+  {
+    UEngineTypes::ConvertToObjectType(ECC_WorldStatic),
+    UEngineTypes::ConvertToObjectType(ECC_WorldDynamic),
+    UEngineTypes::ConvertToObjectType(ECC_Pawn),
+    UEngineTypes::ConvertToObjectType(ECC_PhysicsBody)
+  };
+}
 
 namespace ARRanger
 {
@@ -18,7 +29,7 @@ namespace Detector
     return 0;
   }
 
-  int32 DetectTargetsImpl(UWorld* World, AActor* OriginActor, const FVector& InOriginLocation, const FRotator& InOriginRotation, const FVector& InOriginScale3D, const UConeCollisionDataAsset& InData, TArray<AActor*>& OutResult)
+  int32 DetectTargetsImpl(UWorld* World, AActor* OriginActor, const FVector& InOriginLocation, const FRotator& InOriginRotation, const FVector& InOriginScale3D, const UConeDetectorData& InData, TArray<AActor*>& OutResult)
   {
     if (World == nullptr)
     {
@@ -78,18 +89,12 @@ namespace Detector
     const FVector startLoc = InOriginLocation + InData.CenterPositionOffset;
     const float scale = InOriginScale3D.GetMax();
 
-    TArray<TEnumAsByte<EObjectTypeQuery>> objTypes{};
-    objTypes.Add(UEngineTypes::ConvertToObjectType(ECC_WorldStatic));
-    objTypes.Add(UEngineTypes::ConvertToObjectType(ECC_WorldDynamic));
-    objTypes.Add(UEngineTypes::ConvertToObjectType(ECC_Pawn));
-    objTypes.Add(UEngineTypes::ConvertToObjectType(ECC_PhysicsBody));
-
     const bool bHit = UKismetSystemLibrary::CapsuleOverlapActors(
                         OriginActor,
                         startLoc,
                         InData.CapsuleRadius * scale,
                         InData.CapsuleHalfHeight * scale,
-                        objTypes,
+                        g_objTypes,
                         nullptr,
                         ignoreActors,
                         hitActors
@@ -115,6 +120,7 @@ namespace Detector
     }
 
     OutResult.Reset();
+
     TArray<AActor*> hitActors{};
     // Ignore origin actor
     TArray<TObjectPtr<AActor>> ignoreActors{};
@@ -123,17 +129,11 @@ namespace Detector
     const FVector originLoc = InOriginLocation + InData.CenterPositionOffset;
     const float scale = InOriginScale3D.GetMax();
 
-    TArray<TEnumAsByte<EObjectTypeQuery>> objTypes{};
-    objTypes.Add(UEngineTypes::ConvertToObjectType(ECC_WorldStatic));
-    objTypes.Add(UEngineTypes::ConvertToObjectType(ECC_WorldDynamic));
-    objTypes.Add(UEngineTypes::ConvertToObjectType(ECC_Pawn));
-    objTypes.Add(UEngineTypes::ConvertToObjectType(ECC_PhysicsBody));
-
     const bool bHit = UKismetSystemLibrary::SphereOverlapActors(
                         OriginActor,
                         InOriginLocation,
                         InData.SphereRadius * scale,
-                        objTypes,
+                        g_objTypes,
                         nullptr,
                         ignoreActors,
                         hitActors
@@ -152,6 +152,7 @@ namespace Detector
 
 } // namespace ARRanger
 
-DEFINE_PRIMITIVE_DETECTOR(UConeCollisionDataAsset)
+/**Visitor pattern definition */
+DEFINE_PRIMITIVE_DETECTOR(UConeDetectorData)
 DEFINE_PRIMITIVE_DETECTOR(UCapsuleDetectorData)
 DEFINE_PRIMITIVE_DETECTOR(USphereDetectorData)

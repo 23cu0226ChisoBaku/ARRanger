@@ -32,7 +32,7 @@ namespace ARRanger::Private
        */
       static uint8 GetCreatedObjectNum();
   };
-}
+} // namespace ARRanger::Private
 
 /**
  * CountLimiterプロパティ宣言 

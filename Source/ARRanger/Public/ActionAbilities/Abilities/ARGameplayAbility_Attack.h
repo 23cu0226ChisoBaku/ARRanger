@@ -1,4 +1,7 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+/**
+ * @file ARGameplayAbility_Attack.h
+ * @brief 攻撃アビリティベースクラス
+ */
 
 #pragma once
 
@@ -13,6 +16,10 @@ class UAnimInstance;
 
 #define UE_API ARRANGER_API
 
+/**
+ * @class UARGameplayAbility_Attack
+ * @brief 攻撃アビリティベースクラス
+ */
 UCLASS(Abstract)
 class UARGameplayAbility_Attack : public UARGameplayAbilityBase,
                                   public IARGameplayAbilityNotifyInterface
@@ -20,15 +27,8 @@ class UARGameplayAbility_Attack : public UARGameplayAbilityBase,
 	GENERATED_BODY()
 
 public:
+
   UE_API UARGameplayAbility_Attack();
-
-#if WITH_EDITOR
-
-  /**Start UObject Interface */
-  UE_API virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override; 
-  /**End UObject Interface */
-
-#endif
   
   /**Start IARGameplayAbilityNotifyInterface Interface*/
   UE_API virtual void GANotify_ImpactResult(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const TArray<FGANotify_ImpactResult>& InImpactResults) override;
@@ -43,7 +43,6 @@ protected:
                           const FGameplayAbilityActivationInfo ActivationInfo,
                           const FGameplayEventData* TriggerEventData
                       ) override;
-
   UE_API virtual void EndAbility(
                           const FGameplayAbilitySpecHandle Handle,
                           const FGameplayAbilityActorInfo* ActorInfo,
@@ -53,26 +52,53 @@ protected:
   /**End UGameplayAbility Interface */
 
 private:
+
+  /**
+   * @brief Process after ActivateAbility called
+   * 
+   * ActivateAbilityで呼び出される
+   */
   void OnAttackAbilityActivated();
+
+  /**
+   * @brief Process after EndAbility called
+   * @param bWasCancelled
+   * 
+   * EndAbilityで呼び出される
+   */
   void OnAttackAbilityEnded(bool bWasCancelled);
 
+  /**
+   * @brief Function to bind to delegate OnMontageEnded in AnimInstance
+   * 
+   * AttackMontageのOnMontageEndedにバインドする関数
+   */
   UFUNCTION()
   void OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted);
 
+  /**
+   * @brief Find AnimInstance in avatar actor
+   * @return Valid AnimInstance if avatar actor has one, otherwise nullptr
+   * 
+   * アバターActorからAnimInstanceを探す
+   */
   UAnimInstance* FindAnimInstanceOnAvatar() const;
 
 private:
 
+  /**Montage to play during attack ability */
   UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ability|Attack", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UAnimMontage> AttackMontage;
 
-  // TODO Instead put damage in ability, Maybe it can be put in another structure(GameplayEffect or something else)
+  /**Attack damage */
   UPROPERTY(EditDefaultsOnly, Category = "Ability|Attack", meta = (AllowPrivateAccess = "true"))
   float AttackDamage;
 
+  /**Flag if attack knock back has range */
   UPROPERTY(EditDefaultsOnly, Category = "Ability|Attack")
   bool bClampKnockbackAngle;
 
+  /**Knock back range half angle(Degrees) */
   UPROPERTY(EditDefaultsOnly, Category = "Ability|Attack", meta = (ClampMin = 0, ClampMax = 180, EditCondition = "bClampKnockbackAngle == true", EditConditionHides))
   float KnockbackAngleHalfRange;
 };

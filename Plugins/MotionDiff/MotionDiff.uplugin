@@ -20,9 +20,14 @@
 			"Type": "Editor",
 			"LoadingPhase": "Default",
       "AdditionalDependencies": [
-        "ProceduralMeshComponent",
         "AssetRegistry"
       ]
 		}
-	]
+	],
+  "Plugins":[
+    {
+      "Name": "ProceduralMeshComponent",
+      "Enabled": true
+    }
+  ]
 }

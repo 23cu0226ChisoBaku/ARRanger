@@ -1,7 +1,5 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "ActionAbilities/ARGameplayAbilityBase.h"
+
 #include "GameFramework/Controller.h"
 #include "GameFramework/Pawn.h"
 
@@ -46,24 +44,14 @@ bool UARGameplayAbilityBase::IsAbilityCancelable() const
   return CanBeCanceled();
 }
 
-bool UARGameplayAbilityBase::IsAssociatedWithTag(const FGameplayTag& InTag) const
+bool UARGameplayAbilityBase::HasActivateConditionTag(const FGameplayTag& InTag) const
 {
   return ActivateConditionTag.MatchesTagExact(InTag); 
 }
 
-void UARGameplayAbilityBase::ForceCancelAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateCancelAbility, bool bForceCancel)
-{
-  if (bForceCancel)
-  {
-    SetAbilityCancelable();
-  }
-
-  Super::CancelAbility(Handle, ActorInfo, ActivationInfo, bReplicateCancelAbility);
-}
-
 bool UARGameplayAbilityBase::CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags, const FGameplayTagContainer* TargetTags, OUT FGameplayTagContainer* OptionalRelevantTags) const
 {
-  const bool bCanActivate =  Super::CanActivateAbility(Handle, ActorInfo, SourceTags, TargetTags, OptionalRelevantTags);
+  const bool bCanActivate = Super::CanActivateAbility(Handle, ActorInfo, SourceTags, TargetTags, OptionalRelevantTags);
 
   return bCanActivate;
 }

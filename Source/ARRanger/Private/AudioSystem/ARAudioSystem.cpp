@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "AudioSystem/ARAudioSystem.h"
-#include "AudioKit.h"
+#include "AudioSystem/AudioKit.h"
 #include "Components/AudioComponent.h"
 #include "Kismet/GameplayStatics.h"
 

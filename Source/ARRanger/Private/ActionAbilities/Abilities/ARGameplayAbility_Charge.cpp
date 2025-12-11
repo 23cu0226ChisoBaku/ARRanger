@@ -1,14 +1,7 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "ActionAbilities/Abilities/ARGameplayAbility_Charge.h"
 
-// TODO Currently in UARGameplayAbility_Attack we play montage too. Maybe we should move this to base class?
 #include "GameFramework/Character.h"
-
-#include "Abilities/Tasks/AbilityTask_WaitInputRelease.h"
 #include "Abilities/Tasks/AbilityTask_WaitGameplayTag.h"
-
 
 UARGameplayAbility_Charge::UARGameplayAbility_Charge()
   : m_startTime{0.0f}
@@ -25,7 +18,6 @@ void UARGameplayAbility_Charge::ActivateAbility(
 {
   Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
-  // TODO Currently in UARGameplayAbility_Attack we play montage too. Maybe we should move this to base class?
   if (ChargeMontage != nullptr)
   {
     if (ACharacter* character = ::Cast<ACharacter>(GetAvatarActorFromActorInfo()))
@@ -55,14 +47,14 @@ void UARGameplayAbility_Charge::EndAbility(
 {
   Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 
+  if (OnChargeFinished.IsBound())
+  {
+    const float elapsedTime = GetHeldTime();
+    OnChargeFinished.Broadcast(bWasCancelled, elapsedTime, GetAssetTags());
+  }
+
   if (bWasCancelled)
   {
-    if (OnChargeFinished.IsBound())
-    {
-      const float elapsedTime = GetHeldTime();
-      OnChargeFinished.Broadcast(bWasCancelled, elapsedTime, GetAssetTags());
-    }
-
     if (ChargeMontage != nullptr)
     {
       // TODO Currently in UARGameplayAbility_Attack we stop montage too. Maybe we should move this to base class?

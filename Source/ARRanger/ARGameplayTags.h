@@ -1,4 +1,8 @@
-﻿#pragma once
+﻿/**
+ * ARGameplayTags.h
+ */
+
+#pragma once
 
 #ifndef _AR_GAMEPLAY_TAGS_
 #define _AR_GAMEPLAY_TAGS_
@@ -12,6 +16,12 @@ namespace ARRanger
 
 namespace GameplayTags
 {
+  /**
+   * @brief Find GameplayTag by string
+   * @param InTagString GameplayTag string
+   * 
+   * @return Found GameplayTag or invalid tag if not found
+   */
   extern UE_API FGameplayTag FindExactTagByString(const FString& InTagString);
 
   /**Ability Tags */
@@ -35,6 +45,7 @@ namespace GameplayTags
 
   UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Charge_RepulsionKick);
   UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Charge_Punch_Combo3);
+  UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Charge_Enter_Punch_Combo3);
 
   UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(AbilityCost_ARBurst);
 
@@ -51,7 +62,6 @@ namespace GameplayTags
 
   /**Native Input Tag */
   UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(NativeInput_Move);
-  UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(NativeInput_Look);
   UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(NativeInput_LockOn);
   UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(NativeInput_SwitchTarget_Left);
   UE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(NativeInput_SwitchTarget_Right);

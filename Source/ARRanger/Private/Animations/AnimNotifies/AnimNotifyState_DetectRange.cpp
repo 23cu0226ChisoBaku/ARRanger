@@ -11,6 +11,8 @@
 #include "ActionAbilities/ARAbilitySystemComponent.h"
 #include "ActionAbilities/Abilities/IARGameplayAbilityNotifyInterface.h"
 
+#include "BattleSystem/IARAttackable.h"
+
 #if WITH_EDITOR
 #include "Components/LineBatchComponent.h"
 #endif
@@ -22,10 +24,10 @@ public:
   FDetectTickObject_FrameBase(int32 InStartFrame, int32 InFrameInterval);
   void TickDetection(USkeletalMeshComponent * MeshComp, UAnimSequenceBase * Animation, float FrameDeltaTime) override;
 
+private:
   const int32 FrameInterval;
 
   int32 CurrentFrame = 0;
-
   int32 FrameCnt = 0;
 };
 
@@ -36,8 +38,8 @@ public:
   FDetectTickObject_TimeBase(float InTimeInterval);
   void TickDetection(USkeletalMeshComponent * MeshComp, UAnimSequenceBase * Animation, float FrameDeltaTime) override;
 
+private:
   const float TimeInterval;
-
   float TimeCnt;
 
 };
@@ -53,11 +55,12 @@ void UAnimNotifyState_DetectRange::NotifyBegin(USkeletalMeshComponent * MeshComp
       // TODO
       FDetectorAssetEntry DAE{};
       DAE.DetectorData = RangeData;
-      DAE.Target.TargetType = EDetectorTargetType::Actor;
-      DAE.Target.TargetActor = AActor::StaticClass();
+      DAE.Target.TargetType = EDetectorTargetType::Interface;
+      DAE.Target.TargetInterface = UARAttackable::StaticClass();
       DAE.Priority = 0;
       
       URangeDetectorComponent* RDC = URangeDetectorHelper::AttachRangeDetector(DAE, MeshComp, SocketName, LocationOffset, RotationOffset, FVector::OneVector, EAttachLocation::KeepRelativeOffset, true);
+
 
       if (!m_detectTickObject.IsValid() && DetectionType == EANS_DetectRange_NotifyDetectionType::NotifyDuringHit)
       {
@@ -194,7 +197,6 @@ FString UAnimNotifyState_DetectRange::GetNotifyName_Implementation() const
 bool UAnimNotifyState_DetectRange::ValidateParameters(USkeletalMeshComponent* MeshComp) const
 {
   bool bValid = true;
-
   if (RangeData == nullptr)
   {
     bValid = false;
@@ -281,10 +283,10 @@ void UAnimNotifyState_DetectRange::DrawDebugRange(USceneComponent* RootComponent
 {
   if (RootComponent != nullptr)
   {
-    const UWorld* world = RootComponent->GetWorld();
-    if (world != nullptr)
+    if (bDrawDebugDuringActivation)
     {
-      if (bDrawDebugDuringActivation)
+      const UWorld* world = RootComponent->GetWorld();
+      if (world != nullptr)
       {
         ULineBatchComponent* lineBatch = world->GetLineBatcher(UWorld::ELineBatcherType::WorldPersistent);
 

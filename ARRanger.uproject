@@ -27,16 +27,6 @@
 				"Blutility",
 				"CoreUObject"
 			]
-		},
-		{
-			"Name": "MLibrary",
-			"Type": "Runtime",
-			"LoadingPhase": "Default",
-			"AdditionalDependencies": [
-				"Core",
-				"CoreUObject",
-				"Engine"
-			]
 		}
 	],
 	"Plugins": [

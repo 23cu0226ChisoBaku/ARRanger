@@ -2,10 +2,20 @@
 #include "Physics/Core/ARPhysicsTickTypes.h"
 #include "Physics/Core/ARPhysicsTickTask.h"
 
+#include "Internal/CountLimiter.h"
+
 using ARRanger::Physics::FARPhysicsTickTask;
 
-class FARPhysicsTickManager : public ARRanger::Physics::FARPhysicsTickManagerInterface
+/**
+ * @brief 実際の物理TickManager
+ * 
+ */
+class FARPhysicsTickManager final : public ARRanger::Physics::IARPhysicsTickManagerInterface
+                                  , private ARRanger::Private::FCountLimiter<FARPhysicsTickManager, 1>
 {
+
+  DECLARE_COUNT_LIMITER_PROPERTY(FARPhysicsTickManager, 1)
+
   public:
     ~FARPhysicsTickManager()
     {
@@ -21,7 +31,6 @@ class FARPhysicsTickManager : public ARRanger::Physics::FARPhysicsTickManagerInt
     void AddARPhysicsTickFunction(FARPhysicsTickFunctionInterface* TickFunction)
     {
       check(TickFunction != nullptr)
-
       FARPhysicsTickTask* task = GetValidTickTask(TickFunction->PhysicsTickType);
       task->AddTickFunction(TickFunction);  
     }
@@ -29,7 +38,6 @@ class FARPhysicsTickManager : public ARRanger::Physics::FARPhysicsTickManagerInt
     void RemoveARPhysicsTickFunction(FARPhysicsTickFunctionInterface* TickFunction)
     {
       check(TickFunction != nullptr)
-
       FARPhysicsTickTask* task = GetValidTickTask(TickFunction->PhysicsTickType);
       task->RemoveTickFunction(TickFunction); 
     }
@@ -79,9 +87,11 @@ class FARPhysicsTickManager : public ARRanger::Physics::FARPhysicsTickManagerInt
     TMap<EARPhysicsTickType, FARPhysicsTickTask*> m_tickTasks;
 };
 
+DEFINE_COUNT_LIMITER_PROPERTY(FARPhysicsTickManager);
+
 namespace ARRanger::Physics
 {
-  FARPhysicsTickManagerInterface& FARPhysicsTickManagerInterface::Get()
+  IARPhysicsTickManagerInterface& IARPhysicsTickManagerInterface::Get()
   {
     return FARPhysicsTickManager::Get();
   }
@@ -91,7 +101,7 @@ namespace ARRanger::Physics
 #pragma region FARPhysicsTickFunctionInterface implementation
 FARPhysicsTickFunctionInterface::FARPhysicsTickFunctionInterface()
   : PhysicsTickType{EARPhysicsTickType::TT_Magnetic}
-  , Frequency{EARPhysicsTickFrequency::TF_Default}
+  , Frequency{EPhysicsExecuteFrequency::Constantly}
   , m_internalData{::MakeUnique<FInternalData>()}
 { }
 

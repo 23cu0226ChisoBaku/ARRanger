@@ -8,6 +8,7 @@
 
 /**前方宣言 */
 class IARMagnetizableInterface;
+enum class EPhysicsExecuteFrequency : uint8;
 
 // This class does not need to be modified.
 UINTERFACE(MinimalAPI)
@@ -22,15 +23,6 @@ class UARPhysicsSystemHost : public UInterface
 class ARRANGER_API IARPhysicsSystemHost
 {
 	GENERATED_BODY()
-
-  /**
-   * @brief 磁力タスク計算実行頻度
-   */
-  enum EMagneticTaskFrequency
-  {
-    Once,       // 一回
-    Constantly, // 常に
-  };
 
 public:
 
@@ -75,5 +67,5 @@ private:
    * @param InTarget 磁力対象
    * @param Frequency 更新頻度 @see EMagneticTaskFrequency
    */
-  void Physics_RequestMagneticTaskImpl(IARMagnetizableInterface* InSource, IARMagnetizableInterface* InTarget, EMagneticTaskFrequency Frequency);
+  void Physics_RequestMagneticTaskImpl(IARMagnetizableInterface* InSource, IARMagnetizableInterface* InTarget, EPhysicsExecuteFrequency Frequency);
 };

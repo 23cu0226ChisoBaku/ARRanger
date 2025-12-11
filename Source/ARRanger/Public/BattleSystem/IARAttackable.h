@@ -1,4 +1,8 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+/**
+ * @file IARAttackable.h
+ * @brief 攻撃を受けることができるオブジェクト用のインターフェイス(ARRanger) 
+ */
+
 
 #pragma once
 
@@ -13,11 +17,18 @@ namespace ARRanger
 
 namespace Battle
 {
+
+  /**
+   * @brief 攻撃結果列挙型
+   * ※ Success: 攻撃成功
+   *    Inmune : 攻撃が通らない（相手が無敵）
+   *    Rebound: 攻撃が跳ね返る
+   */
   enum struct EARAttackResult : uint8
   {
-    Success,  // 成功
-    Inmune,   // 無敵
-    Rebound,  // 反発
+    Success,  
+    Inmune,   
+    Rebound,  
   };
 
   /**
@@ -33,17 +44,21 @@ namespace Battle
    */
   struct FARDamageResult
   {
+    /**攻撃元 */
     TObjectPtr<AActor> Instigator;
-
-    float FinalDamage = 0.0f;
-
+    
+    /**攻撃の向き */
     FVector FinalLaunchDirection = FVector::ZeroVector;
-
+    
+    /**攻撃が当たる座標 */
     FVector ImpactLocation = FVector::ZeroVector;
-  };
-}  
 
-}
+    /**ダメージ */
+    float FinalDamage = 0.0f;
+  };
+} // namespace ARRanger::Battle
+
+} // namespace ARRanger
 
 
 /**
@@ -54,21 +69,21 @@ struct FARAttackParameters
 {
   GENERATED_BODY()
   
-  /**扇動者 */
+  /**攻撃元 */
   UPROPERTY(EditDefaultsOnly, Category = "Parameters|Attack")
   TObjectPtr<AActor> Instigator;
-  
-  /**ダメージ */
-  UPROPERTY(EditDefaultsOnly, Category = "Parameters|Attack")
-  float Damage;
   
   /**飛ばす方向(単位ベクトル) */
   UPROPERTY(EditDefaultsOnly, Category = "Parameters|Attack")
   FVector LaunchDirection;
-
+  
   /**攻撃の与える座標 */
   UPROPERTY(EditDefaultsOnly, Category = "Parameters|Attack")
   FVector ImpactLocation;
+  
+  /**ダメージ */
+  UPROPERTY(EditDefaultsOnly, Category = "Parameters|Attack")
+  float Damage;
   
   /**
    * 攻撃者のアクターを使用するか
@@ -77,14 +92,14 @@ struct FARAttackParameters
   UPROPERTY(EditDefaultsOnly, Category = "Parameters|Attack")
   bool bUseAttackerActor;
 
-  ARRANGER_API FARAttackParameters();
+  UE_API FARAttackParameters();
 
-  /**空白攻撃パラメータ */
-  ARRANGER_API static const FARAttackParameters BlankAttackParams;
-  static const FARAttackParameters& GetBlank() { return BlankAttackParams; }
+  /**空白攻撃パラメータ（無効値） */
+  UE_API static const FARAttackParameters BlankAttackParams;
+  static FARAttackParameters GetBlank() { return BlankAttackParams; }
 };
 
-/**Forward declaration */
+/**前方宣言 */
 class IARAttackerInterface;
 
 // This class does not need to be modified.
@@ -94,15 +109,19 @@ class UARAttackable : public UInterface
 	GENERATED_BODY()
 };
 
-/**
- * 
- */
 class IARAttackable
 {
 	GENERATED_BODY()
 
-	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
+
+  /**
+   * @brief アクターが攻撃できるかを確認する
+   * 
+   * @param InActor アクター
+   * @return アクターがIARAttackableを継承していればtrue, それ以外 false
+   */
+  static UE_API bool IsActorAttackable(const AActor* InActor);
 
   /**
    * @brief                 物を攻撃する
@@ -128,16 +147,20 @@ protected:
 
   /**
    * @brief 攻撃を受ける前に呼び出されるコールバック
+   * @param InAttackParams  @see FARAttackParameters
+   * @param OutAttackResult @see ARRanger::Battle::FARAttackResult
    */
   UE_API virtual void OnPreAttacked(const FARAttackParameters& InAttackParams, ARRanger::Battle::FARAttackResult& OutAttackResult) { }
 
   /**
    * @brief 攻撃を受けた後に呼び出されるコールバック
+   * @param InAttackParams  @see FARAttackParameters
    */
   UE_API virtual void OnPostAttacked(const FARAttackParameters& InAttackParams) { }
 
   /**
    * @brief ダメージ計算を済んだ時に呼び出されるコールバック
+   * @param InDamageResult @see ARRanger::Battle::FARDamageResult
    */
   UE_API virtual void OnDamaged(const ARRanger::Battle::FARDamageResult& InDamageResult) { }
 };

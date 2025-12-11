@@ -1,18 +1,25 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+/**
+ * @file ARPhysicsTickProcessorActor.h
+ * @author MAI ZHICONG
+ * @brief Actor to tick PhysicsTickManager every frame in game world
+ */
 
 #pragma once
 
 #include "GameFramework/Actor.h"
 #include "UObject/WeakInterfacePtr.h"
+#include "Physics/Core/IPhysicsTaskRegistrar.h"
 
 #include "ARPhysicsTickProcessorActor.generated.h"
 
+/**前方宣言 */
 class FARPhysicsEngine;
 class IARMagnetizableInterface;
 class UARMagneticTickObject;
+enum class EPhysicsRegistryType : uint8;
+enum class EPhysicsExecuteFrequency : uint8;
 
-enum class EPhysicsRegistryType;
-enum class EPhysicsExecuteFrequency;
+#define ARPHYSICS_API ARRANGER_API
 
 USTRUCT()
 struct FARMagneticTickObjectEntry
@@ -25,44 +32,60 @@ struct FARMagneticTickObjectEntry
   TArray<TWeakInterfacePtr<IARMagnetizableInterface>> AffectedObjectInterfaces;
 
   void RegisterAffectedMagnetizedObject() const;
-
-  ARRANGER_API friend bool operator==(const FARMagneticTickObjectEntry& Lhs, const FARMagneticTickObjectEntry& Rhs);
+  ARPHYSICS_API friend bool operator==(const FARMagneticTickObjectEntry& Lhs, const FARMagneticTickObjectEntry& Rhs);
 };
 
 UCLASS()
-class AARPhysicsTickProcessorActor : public AActor
+class AARPhysicsTickProcessorActor : public AActor , public IPhysicsTaskRegistrar
 {
 	GENERATED_BODY()
 
   public:	
-    // Sets default values for this actor's properties
-    ARRANGER_API AARPhysicsTickProcessorActor();
+    ARPHYSICS_API AARPhysicsTickProcessorActor();
+
+    /**Start IPhysicsTaskRegistrar Interface */
+    ARPHYSICS_API void RegisterMagneticTask(IARMagnetizableInterface* InTarget, IARMagnetizableInterface* InAffectedObj, EPhysicsRegistryType InRequestType, EPhysicsExecuteFrequency InFrequency) override;
+    ARPHYSICS_API void UnregisterMagneticTask(IARMagnetizableInterface* InTarget, IARMagnetizableInterface* InAffectedObj) override;
+    /**End IPhysicsTaskRegistrar Interface */
 
   protected:
-    // Called when the game starts or when spawned
-
     /**Start AActor interface */
-    ARRANGER_API virtual void BeginPlay() override;
-    ARRANGER_API virtual void AsyncPhysicsTickActor(float DeltaTime, float SimTime) override;
-    ARRANGER_API virtual void Tick(float DeltaTime) override;
+    ARPHYSICS_API virtual void Tick(float DeltaTime) override;
     /**End AActor interface */
 
-    // TODO May turn these to virtual
-    ARRANGER_API void PreProcessARPhysicsTasks();
-    ARRANGER_API void ProcessARPhysicsTasks(float DeltaTime, float SimTime);
-    ARRANGER_API void PostProcessARPhysicsTasks();
+    void PreProcessARPhysicsTasks();
+    void ProcessARPhysicsTasks(float DeltaTime);
+    void PostProcessARPhysicsTasks();
   
-  public:
-    void OnSpawnActor(FARPhysicsEngine* PhysicsEnginePtr) { OwningPhysicsEngine = PhysicsEnginePtr; }
-    bool IsBelongTo(const FARPhysicsEngine* PhysicsEngine) const { return OwningPhysicsEngine == PhysicsEngine; }
-    ARRANGER_API void RegisterMagneticTask(IARMagnetizableInterface* InSource, IARMagnetizableInterface* InTarget, EPhysicsRegistryType InRequestType, EPhysicsExecuteFrequency InFrequency);
-    ARRANGER_API void UnregisterMagneticTask(IARMagnetizableInterface* InSource, IARMagnetizableInterface* InTarget);
-
   private:
+    /**
+     * @brief 磁力ターゲットの影響を与えるオブジェクトを登録する
+     * 
+     * @param InTarget ターゲット
+     * @param InAffectedObj 影響を与えるオブジェクト
+     * @param InRequestType 磁力タイプ（引力・斥力）
+     * @param InFrequency Tick頻度（1回や常に実行する）
+     */
     void RegisterMagneticTarget(IARMagnetizableInterface* InTarget, IARMagnetizableInterface* InAffectedObj, EPhysicsRegistryType InRequestType, EPhysicsExecuteFrequency InFrequency);
-    void UnregisterMagneticTarget(IARMagnetizableInterface* InSource, IARMagnetizableInterface* InTarget);
+
+    /**
+     * @brief 磁力ターゲットの影響を与えるオブジェクトを解読する
+     * @param InTarget ターゲット
+     * @param InAffectedObj 影響を与えるオブジェクト
+     */
+    void UnregisterMagneticTarget(IARMagnetizableInterface* InTarget, IARMagnetizableInterface* InAffectedObj);
+
+    /**
+     * @brief キューにあるTickObjectをTickManagerに登録する
+     */
     void RegisterQueuedTickObject();
+
+    /**
+     * @brief キューにあるTickObjectを解読する
+     */
     void UnregisterQueuedTickObject();
+
+
     FARMagneticTickObjectEntry* GetMagneticTickObjectEntry(IARMagnetizableInterface* InTarget);
     FARMagneticTickObjectEntry* AllocateMagneticTickObject(IARMagnetizableInterface* Target, TSubclassOf<UARMagneticTickObject> MagneticTickObjectClass);
 
@@ -73,16 +96,12 @@ class AARPhysicsTickProcessorActor : public AActor
     TSet<UARMagneticTickObject*> RegisterTickObjectQueue;
     TSet<UARMagneticTickObject*> UnregisterTickObjectQueue;
 
-    FARPhysicsEngine* OwningPhysicsEngine;
-
     UPROPERTY(EditDefaultsOnly, meta = (AllowPrivateAccess = "true"))
     TSubclassOf<UARMagneticTickObject> AttractionTickClass;
 
     UPROPERTY(EditDefaultsOnly, meta = (AllowPrivateAccess = "true"))
     TSubclassOf<UARMagneticTickObject> RepulsionTickClass;
 
-#if WITH_EDITOR
-    ARRANGER_API void Debug_LogTickObjectMessage();
-#endif
-
 };
+
+#undef ARPHYSICS_API

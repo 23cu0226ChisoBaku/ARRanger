@@ -1,4 +1,8 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+/**
+ * @file ARHealthComponent.h
+ * @author MAI ZHICONG
+ * @brief HP処理をするコンポーネント
+ */
 
 #pragma once
 
@@ -8,8 +12,12 @@
 
 #define UE_API ARRANGER_API
 
+/**前方宣言 */
 class UCurveFloat;
 
+/**
+ * @brief HP回復情報を持つ構造体
+ */
 USTRUCT(BlueprintType)
 struct FARHealthRegenerationEntry
 {
@@ -17,28 +25,45 @@ struct FARHealthRegenerationEntry
 
 public:
 
+  /**回復遅延（時間） */
   UPROPERTY(EditDefaultsOnly)
   float RegenerationDelay;
 
+  /**回復速度（DeltaTimeベース） */
   UPROPERTY(EditDefaultsOnly)
   float RegenerationSpeed;
 
+  /**回復速度をCurveで表すか */
   UPROPERTY(EditDefaultsOnly)
   bool bUseRegenerationSpeedOverrideCurve;
 
+  /**回復速度カーブ */
   UPROPERTY(EditDefaultsOnly, meta = (EditCondition = "bUseRegenerationSpeedOverrideCurve == true", EditConditionHides))
   TSoftObjectPtr<UCurveFloat> OverrideCurve;
 
+  /**カーブを評価する時間 */
   float RegenerationCurveEvaluationTimeValue = 0.0f;
 
+  /**回復遅延カウンター */
   float RegenerationDelayTimeCnt = 0.0f;
   
+  /**回復が有効か */
   uint8 bEnableRegeneration : 1;
 
+  /**
+   * @brief 回復状態をリセットする
+   */
   UE_API void ResetRegenerationState();
 
+  /**
+   * @brief 回復を評価する
+   * @param DeltaTime 
+   */
   UE_API void EvaluateRegeneration(float DeltaTime);
 
+  /**
+   * @brief 回復速度を取得 
+   */
   UE_API float GetRegenerationSpeed() const;
 };
 
@@ -48,7 +73,7 @@ class UARHealthComponent : public UActorComponent
 	GENERATED_BODY()
 
 public:	
-	// Sets default values for this component's properties
+
 	UE_API UARHealthComponent();
 
   DECLARE_DYNAMIC_MULTICAST_DELEGATE_FourParams(FOnHealthChangedDelegate, UARHealthComponent*, HealthComponent, AActor*, Instigator, float, OldHealthValue, float, NewHealthValue);
@@ -81,14 +106,23 @@ public:
   UFUNCTION(BlueprintPure, Category = "ARRanger|Health")
   UE_API bool IsHealthMax() const;
 
+  /**
+   * @brief HP変化請求を処理する
+   * 
+   * @param Instigator HPへ影響を与えるターゲットActor
+   * @param ChangeValue HPの変化量
+   */
   UE_API void HandleHealthChange(AActor* Instigator, float ChangeValue);
-
-  UE_API void HandleOutOfHealth(AActor* OwningActor);
 
   UE_API void StartDead();
 
   UE_API void FinishDead();
 
+  /**
+   * @brief 自動回復の有効化を設定
+   * 
+   * @param bEnable 
+   */
   UE_API void SetAutoRegenerationEnable(const bool bEnable);
 
   /**TODO Temporary variable */
@@ -105,6 +139,12 @@ protected:
 private:
   void SetHealthInternal(float NewHealth);
   void SetMaxHealthInternal(float NewMaxHealth);
+  /**
+   * @brief HPが0になった時の処理
+   * 
+   * @param OwningActor HPコンポーネントを持っているActor
+   */
+  void HandleOutOfHealth(AActor* OwningActor);
 
 private:
   UPROPERTY(EditAnywhere, Category = "ARRanger|Health", meta = (AllowPrivateAccess = "true"))

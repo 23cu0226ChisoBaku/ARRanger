@@ -1,6 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "ActionAbilities/Abilities/ARGameplayAbility_Jump.h"
 
 #include "GameFramework/Character.h"
@@ -39,9 +36,9 @@ void UARGameplayAbility_Jump::ActivateAbility(
                         const FGameplayEventData* TriggerEventData
                     )
 {
-  CharacterJumpStart();
-
   Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
+  
+  CharacterJumpStart();
 }
 
 void UARGameplayAbility_Jump::EndAbility(
@@ -82,11 +79,9 @@ void UARGameplayAbility_Jump::CharacterJumpEnd()
   }
 }
 
-// Bind this to OnLanded
 void UARGameplayAbility_Jump::OnCharacterLanded(const FHitResult& HitResult)
 {
   const bool bReplicateEndAbility = true;
   const bool bWasCanceled = false;
-  
   EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, bReplicateEndAbility, bWasCanceled);
 }

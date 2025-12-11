@@ -1,6 +1,5 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-
 #include "RangeDetector/GameFramework/RangeDetectorComponent.h"
 
 #include "RangeDetector/Core/RangeDetector.h"
@@ -9,7 +8,7 @@
 #if WITH_EDITOR
 #include "SceneManagement.h"                // Use of FPrimitiveDrawInterface
 #include "Components/LineBatchComponent.h"
-#endif
+#endif // WITH_EDITOR
 
 
 // Sets default values for this component's properties
@@ -19,8 +18,6 @@ URangeDetectorComponent::URangeDetectorComponent()
 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
 	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = true;
-
-	// ...
 }
 
 
@@ -40,7 +37,6 @@ void URangeDetectorComponent::BeginPlay()
 void URangeDetectorComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-  check(GetWorld() != nullptr);
 
   FRangeDetectorEvaluationParameter evaluationParam
   {
@@ -54,7 +50,7 @@ void URangeDetectorComponent::TickComponent(float DeltaTime, ELevelTick TickType
     const TPimplPtr< ARRanger::Detector::FRangeDetector >& detector = m_rangeDetectorInsts[idx];
     if (detector.IsValid())
     {
-      detector->EvaluateDetector(evaluationParam);
+      detector->Evaluate(evaluationParam);
 
       const FRangeDetectorEvaluationResult& result = detector->GetEvaluatedResult();
       if (result.DetectedActors.Num() > 0)
@@ -100,9 +96,7 @@ void URangeDetectorComponent::AddNewDetector(const FDetectorAssetEntry& Entry)
   }
 
   TPimplPtr< ARRanger::Detector::FRangeDetector > detectorInst = 
-    ::MakePimpl< ARRanger::Detector::FRangeDetector >(Entry.DetectorData, Entry.Priority);
-
-  detectorInst->Enable();
+    ::MakePimpl< ARRanger::Detector::FRangeDetector >(*Entry.DetectorData, Entry.Priority);
 
   FRangeDetectorFilterData filter{};
   switch (Entry.Target.TargetType)
@@ -120,15 +114,10 @@ void URangeDetectorComponent::AddNewDetector(const FDetectorAssetEntry& Entry)
       filter.FilterClass = Entry.Target.TargetInterface;
     }
     break;
-
-    default:
-    {
-
-    }
-    break;
   }
 
-  detectorInst->SetFilter(filter);
+  detectorInst->AddFilter(::MoveTemp(filter));
+  detectorInst->SetEnable(true);
 
   m_rangeDetectorInsts.Emplace(::MoveTemp(detectorInst));
 } 

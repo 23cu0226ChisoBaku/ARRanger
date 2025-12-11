@@ -1,4 +1,8 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+/**
+ * @file ARAbilityCostComponent.h
+ * @author MAI ZHICONG
+ * @brief アビリティコストを保存するコンポーネント
+ */
 
 #pragma once
 
@@ -16,17 +20,21 @@ struct FAbilityCostEntry
 {
   GENERATED_BODY()
 
+  /**アビリティコスト資源Tag*/
   UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "AbilityCost")
   FGameplayTag AbilityCostTag;
 
+  /**コスト資源の数 */
   UPROPERTY(VisibleAnywhere, Category = "AbilityCost")
   float ResourceNum;
 
+  /**コスト資源の最大数 */
   UPROPERTY(EditDefaultsOnly, Category = "AbilityCost")
   float MaxResourceNum;
 
   DECLARE_MULTICAST_DELEGATE_ThreeParams(FOnAbilityCostChangedDelegate, float, float, bool);
 
+  /**コスト資源数が変更するとき呼び出されるデリゲート */
   FOnAbilityCostChangedDelegate OnAbilityCostChanged;
 
   UE_API float GetResourceNum() const;
@@ -47,14 +55,11 @@ class UARAbilityCostComponent : public UActorComponent
 public:	
   UPROPERTY(BlueprintAssignable)
   FOnAbilityCostAppliedDynamicDelegate OnAbilityCostApplied;
-	// Sets default values for this component's properties
+
 	UE_API UARAbilityCostComponent();
 
-public:	
   UE_API void HandleAbilityCostChanged(const FGameplayTag& InAbilityCostTag, float InResourceChangeNum, bool& bOutResult);
-
   UE_API [[nodiscard]] FDelegateHandle AddDelegateToAbilityCost(const FGameplayTag& InAbilityCostTag, AbilityCostDelegate_Native&& InDelegate);
-
   UE_API void RemoveDelegateInAbilityCost(const FGameplayTag& InAbilityCostTag, FDelegateHandle InHandle);
 
 private:

@@ -4,7 +4,7 @@
 
 #include "Public/BlinkingSystem/OutlineSystem.h"
 #include "Public/BlinkingSystem/OutlineTickActor.h"
-#include "ARObject/MagnetizableActor.h"
+#include "Magnetic/MagnetizableActor.h"
 
 FOutlineSystem::FOutlineSystem()
 	: m_TickActor{ nullptr }
