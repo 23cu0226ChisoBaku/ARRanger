@@ -16,8 +16,5 @@ AMoveableAttractionActor::AMoveableAttractionActor()
 
 void AMoveableAttractionActor::OnAttractionEvaluated(const FARMagneticForceResult& Result)
 {
-  if (SphereComp != nullptr)
-  {
-    SphereComp->AddImpulse(Result.FinalForce);
-  }
+  SetActorLocation(GetActorLocation() + Result.FinalForce);
 }

@@ -44,7 +44,7 @@ void UARMagneticRepulsionTickObject::OnTick(const FARPhysicsTickParameters& Tick
     if (impactDir.Z > TOP_DETECTED_COMPONENT_NORM_Z_THRESHOLD)
     {
       // TODO 移動速度方向へ押し出す力の大きさ
-      const double velocityPushPower = 1500.0;
+      constexpr double velocityPushPower = 1500.0;
       const FVector pushUpForce{0.0, 0.0, 1200.0};
 
       const FVector targetVeloNorm = targetActor->GetVelocity().GetSafeNormal();
@@ -55,7 +55,7 @@ void UARMagneticRepulsionTickObject::OnTick(const FARPhysicsTickParameters& Tick
     else
     {
       // TODO 水平へ押し出す力の大きさ
-      const double pushPower = 800.0;
+      constexpr double pushPower = 800.0;
       const FVector pushUpForce{0.0, 0.0, 200.0};
 
       const FVector horizontalDir = FVector{impactDir.X, impactDir.Y, 0.0}.GetSafeNormal();
