@@ -20,6 +20,7 @@ EBTNodeResult::Type UBTT_SetChasing::ExecuteTask(UBehaviorTreeComponent& OwnerCo
       {
         if (UEnemyAnimInstance* EnemyAnim = Cast<UEnemyAnimInstance>(Mesh->GetAnimInstance()))
         {
+            EnemyAnim->bIsMoving = bMoving;
           EnemyAnim->bIsChasing = bChasing;
           EnemyAnim->bIsSearch = bIsSearch;
           return EBTNodeResult::Succeeded;

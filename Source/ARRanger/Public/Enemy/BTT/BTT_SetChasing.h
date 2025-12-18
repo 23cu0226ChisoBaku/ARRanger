@@ -15,6 +15,9 @@ public:
 
 protected:
     UPROPERTY(EditAnywhere, Category = "AI")
+    bool bMoving;
+
+    UPROPERTY(EditAnywhere, Category = "AI")
     bool bChasing;
 
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "AI")
