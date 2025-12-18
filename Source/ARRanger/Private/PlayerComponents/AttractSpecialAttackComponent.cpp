@@ -56,7 +56,7 @@ void UAttractSpecialAttackComponent::EndPlay(const EEndPlayReason::Type EndPlayR
  */
 void UAttractSpecialAttackComponent::StartSpecialAttract()
 {
-  m_IsGenerateAttract = true;
+  	m_IsGenerateAttract = true;
 
 	/*キックする方向を取得*/
 	m_kickDirection = FVector(GetPlayerCameraRotation().X, GetPlayerCameraRotation().Y, 0.0f).GetSafeNormal();
@@ -92,24 +92,28 @@ void UAttractSpecialAttackComponent::GenerateAttractActor()
 	FVector startLocation = GetOwner()->GetActorLocation();
 	FVector endLocation = startLocation + m_kickDirection * m_GenerateDistance;
 
-	FHitResult hitResult;
+	TArray<FHitResult> hitResult;
+	FCollisionShape shape = FCollisionShape::MakeSphere(m_KickHitDetectionRadius);
+	FRotator rot = FRotator(0.0, 0.0, 0.0);
 	FCollisionQueryParams params;
 	params.AddIgnoredActor(GetOwner());
 	params.bReturnPhysicalMaterial = false;
 
-	const bool bHit = GetWorld()->LineTraceSingleByChannel(
+	const bool bHit = GetWorld()->SweepMultiByChannel(
 		hitResult,
 		startLocation,
 		endLocation,
-		ECC_Visibility,
+		rot.Quaternion(),
+		ECollisionChannel::ECC_Visibility,
+		shape,
 		params
-	);
+	);	
 
 	/*引力アクターを生成する座標*/
 	FVector generatLocation;
 	if(bHit)
 	{
-		generatLocation = hitResult.Location - m_GenerateDistanceOffset * m_kickDirection;
+		generatLocation = hitResult[0].Location - m_GenerateDistanceOffset * m_kickDirection;
 	}
 	else
 	{
