@@ -2,18 +2,7 @@
 // キャラクターHPバーの基底クラス
 //*************************************************
 
-
 #include "Character/CharHPBar.h"
-
-/**
- * @brief キャラクターの最大HPを保持
- * 
- * @param キャラクターの最大HP
- */
-void UCharHPBar::SetHPBar(const int32 MaxHP)
-{
-    m_MaxHP = MaxHP;
-}
 
 /**
  * @brief バトル状態かどうか通知を受け取る
@@ -29,20 +18,22 @@ void UCharHPBar::BattleStateNotify(const bool onBattle)
 /**
  * @brief HPに変動があった際に変更前と変更後のHPを受け取る
  * 
- * @param true:バトル中　false:バトル中じゃない
+ * @param maxHP:キャラクターの最大HP, prevoisHP:変更前のHP, postHP:変更後のHP
  */
-void UCharHPBar::SetHPNum(int32 prevoisHP, int32 postHP)
+void UCharHPBar::SetFluctuationHP(int32 maxHP, int32 prevoisHP, int32 postHP)
 {
-    m_PrevoisHP = prevoisHP;
-    m_PostHP =  postHP;
+    /*現HPゲージの表示するパーセントを計算・通知*/
+    float HPUnitQuantity = 1.0 / (float)maxHP;
+    float HPGaugePercent = HPUnitQuantity * postHP;
+    OnHPChangeEvent.Broadcast(HPGaugePercent);
 
     /*アニメーション*/
     
     /*バトル以外でHPが全回復している場合*/
-    if(postHP == m_MaxHP)
+    if(postHP == maxHP)
     {
         /*HPバーを非表示*/
-        Display(false);
+        DisplayBar(false);
     }
 }
 
@@ -51,7 +42,7 @@ void UCharHPBar::SetHPNum(int32 prevoisHP, int32 postHP)
  */
 void UCharHPBar::StartAnimation()
 {
-
+    ;
 }
 
 /**
@@ -61,12 +52,7 @@ void UCharHPBar::StartAnimation()
  */
 void UCharHPBar::DisplayBar(const bool display)
 {
-    if(display)
-    {
-
-    }
-    else
-    {
-
-    }
+    /*表示・非表示*/
+    const ESlateVisibility isDisplayType = display ? ESlateVisibility::Visible : ESlateVisibility::Hidden;
+    SetVisibility(isDisplayType);   
 }
