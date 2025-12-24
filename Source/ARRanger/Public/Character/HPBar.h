@@ -6,11 +6,11 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
-#include "CharHPBar.generated.h"
+#include "HPBar.generated.h"
 
 
 UCLASS()
-class UCharHPBar : public UUserWidget
+class UHPBar : public UUserWidget
 {
 	GENERATED_BODY()
 
