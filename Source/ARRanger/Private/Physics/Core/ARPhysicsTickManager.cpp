@@ -31,14 +31,14 @@ class FARPhysicsTickManager final : public ARRanger::Physics::IARPhysicsTickMana
     void AddARPhysicsTickFunction(FARPhysicsTickFunctionInterface* TickFunction)
     {
       check(TickFunction != nullptr)
-      FARPhysicsTickTask* task = GetValidTickTask(TickFunction->PhysicsTickType);
+      FARPhysicsTickTask* task = GetOrCreateTickTask(TickFunction->PhysicsTickType);
       task->AddTickFunction(TickFunction);  
     }
 
     void RemoveARPhysicsTickFunction(FARPhysicsTickFunctionInterface* TickFunction)
     {
       check(TickFunction != nullptr)
-      FARPhysicsTickTask* task = GetValidTickTask(TickFunction->PhysicsTickType);
+      FARPhysicsTickTask* task = GetOrCreateTickTask(TickFunction->PhysicsTickType);
       task->RemoveTickFunction(TickFunction); 
     }
 
@@ -50,7 +50,7 @@ class FARPhysicsTickManager final : public ARRanger::Physics::IARPhysicsTickMana
       }
     }
 
-    FARPhysicsTickTask* GetValidTickTask(EARPhysicsTickType TickType)
+    FARPhysicsTickTask* GetOrCreateTickTask(EARPhysicsTickType TickType)
     {
       if (!m_tickTasks.Contains(TickType))
       {
@@ -79,7 +79,7 @@ class FARPhysicsTickManager final : public ARRanger::Physics::IARPhysicsTickMana
     {
       check(TickFunction != nullptr);
 
-      FARPhysicsTickTask* task = GetValidTickTask(TickFunction->PhysicsTickType);
+      FARPhysicsTickTask* task = GetOrCreateTickTask(TickFunction->PhysicsTickType);
       return ((task != nullptr) && task->HasTickFunction(TickFunction));
     }
 

@@ -31,7 +31,6 @@ bool IARAttackable::IsActorAttackable(const AActor* InActor)
 {
   if (InActor == nullptr)
   {
-    // TODO Add error log
     return false;
   }
 
@@ -50,9 +49,10 @@ bool IARAttackable::AttackTarget(IARAttackerInterface* Attacker, FARAttackParame
   }
 
   /**Preattack Phase */
-  // Use Instigator if Instigator is valid and bUseAttackerActor is false, otherwise use actor of IARAttackerInterface
-  const bool bUseIntigator = (InAttackParams.Instigator != nullptr) && InAttackParams.bUseAttackerActor;
-  if (!bUseIntigator)
+
+  // Use the actor of IARAttackerInterface if we do not use the Instigator
+  const bool bUseInstigator = (InAttackParams.Instigator != nullptr) && InAttackParams.bUseAttackerActor;
+  if (!bUseInstigator)
   {
     InAttackParams.Instigator = Attacker != nullptr ? Attacker->GetActor() : nullptr;
   }
@@ -64,7 +64,7 @@ bool IARAttackable::AttackTarget(IARAttackerInterface* Attacker, FARAttackParame
   if (Attacker != nullptr)
   {
     FARAttackNotifyParameter notifyParams{};
-    notifyParams.WeakAttackableObject = _getUObject();
+    notifyParams.WeakAttackableObject = ::Cast<UObject>(this);
     Attacker->NotifyAttackResult(outAttackResult.Result, notifyParams);
   }
 
@@ -126,7 +126,7 @@ FARBattleSystem& FARBattleSystem::Get()
 
 void FARBattleSystem::HandleBattleTask(const ARRanger::Battle::FARBattleTask& Task, ARRanger::Battle::FARDamageResult& OutResult)
 {
-  // TODO Need Implementation to handle task
+  // FIXME Need Implementation to handle task
   OutResult.FinalDamage = Task.OriginDamage;
 }
 

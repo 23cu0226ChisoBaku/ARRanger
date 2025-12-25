@@ -5,11 +5,6 @@
 #include "ActionAbilities/ARAbilitySystemComponent.h"
 #include "ARGameplayTags.h"
 
-namespace ARRanger::Private
-{
-
-}
-
 void FARHealthRegenerationEntry::ResetRegenerationState()
 {
   if (bUseRegenerationSpeedOverrideCurve)

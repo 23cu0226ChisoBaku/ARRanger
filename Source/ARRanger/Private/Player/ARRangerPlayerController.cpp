@@ -270,8 +270,6 @@ void AARRangerPlayerController::OnGameplayAbilityEnded_Hold(FGameplayTag InEnded
       AbilityInputTagPressed(nextAbilityTag);
     }
   }
-
-
 }
 
 AARRangerPlayerController::FHoldSpec* AARRangerPlayerController::FindHoldSpecFromHandle(const FGA_HoldHandle& InHoldHandle) const
@@ -409,9 +407,8 @@ bool AARRangerPlayerController::IsInputBlocked(const FGameplayTag& InInputTag) c
   {
     return false;
   }
-
-  // TODO Temporary
-  // NOTE Maybe not only holdspec can block input 
+  
+  // 今押されているアビリティのホールドスペックにTagが一つでもあるならブロック
   bool bInputBlocked = m_holdSpecs.Num() > 0;
   for (const FHoldSpec& holdSpec : m_holdSpecs)
   {

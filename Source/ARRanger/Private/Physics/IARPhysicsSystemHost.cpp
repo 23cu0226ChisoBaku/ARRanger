@@ -63,23 +63,22 @@ void IARPhysicsSystemHost::Physics_RequestMagneticTaskImpl(IARMagnetizableInterf
 {
   if ((InSource == nullptr) || (InTarget == nullptr))
   {
-    AR_LOG(LogARPhysics, Error, TEXT("Input is Invalid. Caller:[%s]"), *GetNameSafe(InSource->GetActor()));
+    AR_LOG(LogARPhysics, Error, TEXT("Input is Invalid. Request denied"));
     return;
   }
-
-  FARPhysicsRegistry request{};
-  request.Source = InSource;
-  request.Target = InTarget;
   
   using enum EARMagnetismType;
-  // 同じタイプの磁力オブジェクトかつNoneじゃないタイプだとリクエストを拒否する
+  // 同じタイプの磁力オブジェクトではない、または、タイプがNoneの場合はリクエストを拒否する
   if ((InSource->GetMagnetismType() != InTarget->GetMagnetismType()) || (InSource->GetMagnetismType() == None))
   {
     AR_LOG(LogARPhysics, Warning, TEXT("MagnetismType is not same or one of the type is None.Request denied."));
     return;
   }
-
-  // 磁力リクエストタイプ設定
+  
+  FARPhysicsRegistry request{};
+  request.Source = InSource;
+  request.Target = InTarget;
+  request.Frequency = Frequency;
   if (InSource->GetMagnetismType() == Attraction)
   {
     request.Type = EPhysicsRegistryType::RequestAttraction;
@@ -88,8 +87,7 @@ void IARPhysicsSystemHost::Physics_RequestMagneticTaskImpl(IARMagnetizableInterf
   {
     request.Type = EPhysicsRegistryType::RequestRepulsion;
   }
-
-  request.Frequency = Frequency;
+  
 
   GetPhysicsSystem().RegisterPhysicsTask(request);
 }
