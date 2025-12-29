@@ -401,6 +401,24 @@ private:
 	UFUNCTION()
 	void OnMagnetizedObjectHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
+	// 入力ハンドラ（クライアント側で呼ばれる）
+	UFUNCTION()
+	void OnAttractPressed(); // Uキー（引力）
+
+	UFUNCTION()
+	void OnRepelPressed();   // Iキー（斥力）
+
+	// サーバーRPC：サーバーで力を発火する
+	UFUNCTION(Server, Reliable)
+	void Server_RequestTriggerForce(const FVector& Origin, bool bRepulsive);
+
+	// オプション：クールダウン管理
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Force|Input")
+	float ForceCooldown = 1.0f;
+
+	float LastForceTime = -100.f;
+
+
   /**Start IARMagnetizableInterface interface */
   UE_API virtual void OnRepulsionEvaluated(const FARMagneticForceResult& Result) override;
   UE_API virtual AActor* GetActor() override { return this; }

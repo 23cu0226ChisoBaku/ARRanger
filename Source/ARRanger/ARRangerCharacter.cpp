@@ -4,11 +4,14 @@
 #include "AbilitySystemComponent.h"
 #include "ARRangerAnimInstance.h"
 #include "AttackBaseComponent.h"
+#include "AttractComponent.h"
 #include "Camera/CameraComponent.h"
+#include "Components/ActorComponent.h"
 #include "Components/BoxComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Enemy.h"
 #include "Engine/LocalPlayer.h"
+#include "GameFramework/Actor.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/Controller.h"
 #include "GameFramework/ForceFeedbackEffect.h"
@@ -149,7 +152,68 @@ void AARRangerCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
 void AARRangerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
   Super::SetupPlayerInputComponent(PlayerInputComponent);
+
+  PlayerInputComponent->BindAction("Attract", IE_Pressed, this, &AARRangerCharacter::OnAttractPressed); 
+  PlayerInputComponent->BindAction("Repel", IE_Pressed, this, &AARRangerCharacter::OnRepelPressed);
 }
+
+void AARRangerCharacter::OnAttractPressed()
+{
+    // クールダウンチェック（任意）
+    const float Now = GetWorld()->GetTimeSeconds();
+    if (Now - LastForceTime < ForceCooldown) return;
+    LastForceTime = Now;
+
+    // Origin を決める（例：カメラ前方）
+    FVector Origin = GetActorLocation(); // シンプルにプレイヤー位置
+    // もしカメラを使うなら： CameraComponent->GetComponentLocation() + CameraComponent->GetForwardVector() * 200.0f
+
+    // クライアントからサーバーへ要求
+    if (HasAuthority())
+    {
+        // サーバーなら直接呼ぶ
+        Server_RequestTriggerForce(Origin, /*bRepulsive=*/ false);
+    }
+    else
+    {
+        Server_RequestTriggerForce(Origin, /*bRepulsive=*/ false);
+    }
+
+    // 視覚フィードバック（VFX/SFX）はここでクライアント側に再生して良い
+}
+
+void AARRangerCharacter::OnRepelPressed()
+{
+    const float Now = GetWorld()->GetTimeSeconds();
+    if (Now - LastForceTime < ForceCooldown) return;
+    LastForceTime = Now;
+
+    FVector Origin = GetActorLocation();
+
+    if (HasAuthority())
+    {
+        Server_RequestTriggerForce(Origin, /*bRepulsive=*/ true);
+    }
+    else
+    {
+        Server_RequestTriggerForce(Origin, /*bRepulsive=*/ true);
+    }
+}
+
+// サーバーRPC 実装
+void AARRangerCharacter::Server_RequestTriggerForce_Implementation(const FVector& Origin, bool bRepulsive)
+{
+    // サーバー側で ForceComponent を探して発火する
+    if (UAttractComponent* ForceComp = FindComponentByClass<UAttractComponent>())
+    {
+        ForceComp->TriggerForce(Origin, bRepulsive);
+        return;
+    }
+
+    // もしプレイヤーにアタッチしていない場合はワールド上のEmitterを探す等の処理を入れる
+    // 例: for all actors of class AForceEmitter -> call TriggerForce
+}
+
 
 UAbilitySystemComponent* AARRangerCharacter::GetAbilitySystemComponent() const
 {
