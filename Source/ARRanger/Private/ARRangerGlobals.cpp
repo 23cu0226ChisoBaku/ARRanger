@@ -49,30 +49,18 @@ class FARDebugInputProcessor : public IInputProcessor
       // For Demo Build
 #if AR_DEMO_BUILD
 
-      const FName PunchLevelName = FName{ "Demo_Punch_Stage" };
-      const FName SpecialLevelName = FName{ "Demo_ChargeKick_Special_Stage" };
-      const FName AttractionLevelName = FName{ "Demo_AttractionClimb_Stage" };
-      const FName RepulsionLevelName = FName{ "Demo_RepulsionJump_Stage" };
+      static const TMap<EKeys, FName> s_demoLevelMap =
+      {
+        {EKeys::F5, TEXT("Demo_Punch_Stage")},
+        {EKeys::F6, TEXT("Demo_ChargeKick_Special_Stage")},
+        {EKeys::F7, TEXT("Demo_AttractionClimb_Stage")},
+        {EKeys::F8, TEXT("Demo_RepulsionJump_Stage")}
+      };
 
-      if (pressedKey == EKeys::F5)
+      if (s_demoLevelMap.Contains(pressedKey))
       {
-          UGameplayStatics::OpenLevel(m_gameInst.Get(), PunchLevelName);
-          bKeyDownHandled = true;
-      }
-      else if (pressedKey == EKeys::F6)
-      {
-          UGameplayStatics::OpenLevel(m_gameInst.Get(), SpecialLevelName);
-          bKeyDownHandled = true;
-      }
-      else if (pressedKey == EKeys::F7)
-      {
-          UGameplayStatics::OpenLevel(m_gameInst.Get(), AttractionLevelName);
-          bKeyDownHandled = true;
-      }
-      else if (pressedKey == EKeys::F8)
-      {
-          UGameplayStatics::OpenLevel(m_gameInst.Get(), RepulsionLevelName);
-          bKeyDownHandled = true;
+        UGameplayStatics::OpenLevel(m_gameInst.Get(), s_demoLevelMap[pressedKey]);
+        bKeyDownHandled = true;
       }
 #endif
       

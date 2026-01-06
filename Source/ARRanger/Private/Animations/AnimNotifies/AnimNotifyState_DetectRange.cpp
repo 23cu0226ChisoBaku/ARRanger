@@ -55,8 +55,8 @@ void UAnimNotifyState_DetectRange::NotifyBegin(USkeletalMeshComponent * MeshComp
       // TODO
       FDetectorAssetEntry DAE{};
       DAE.DetectorData = RangeData;
-      DAE.Target.TargetType = EDetectorTargetType::Interface;
-      DAE.Target.TargetInterface = UARAttackable::StaticClass();
+      DAE.TargetInfo.Type = EDetectorTargetType::Interface;
+      DAE.TargetInfo.TargetInterface = UARAttackable::StaticClass();
       DAE.Priority = 0;
       
       URangeDetectorComponent* RDC = URangeDetectorHelper::AttachRangeDetector(DAE, MeshComp, SocketName, LocationOffset, RotationOffset, FVector::OneVector, EAttachLocation::KeepRelativeOffset, true);

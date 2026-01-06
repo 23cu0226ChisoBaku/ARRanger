@@ -11,7 +11,7 @@
 
 #define UE_API ARRANGER_API
 
-/**前方宣言 */
+// 前方宣言 
 struct FRangeDetectorEvaluationResult;
 
 namespace ARRanger
@@ -25,6 +25,8 @@ namespace Detector
   class FRangeDetectorFilter
   {
     protected:
+      // 外部がインスタンスを生成できないようなToken
+      // MakeInstance経由でインスタンス作成する必要がある
       enum class ProtectedToken {};
 
     public:
@@ -51,20 +53,21 @@ namespace Detector
   };
 
   /**
-   * @brief 範囲探知クラス用フィルタークラス(UInterface)
-   * 
+   * @brief 範囲探知クラス用フィルタークラス(UInterface専用)
    */
   class FRangeDetectorFilter_Interface final : public FRangeDetectorFilter
   {
     public:
-
       /**
        * @brief フィルターインスタンス作成
        */
       static UE_API TSharedPtr<FRangeDetectorFilter_Interface> MakeInstance(UClass* InFilterClass);
 
       UE_API FRangeDetectorFilter_Interface(ProtectedToken, UClass* InFilterClass);
+
+      /**Start FRangeDetectorFilter Interface */
       UE_API void ApplyFilter(FRangeDetectorEvaluationResult& OutResult) override final;
+      /**End FRangeDetectorFilter Interface */
   };
 
 } // namespace ARRanger::Detector

@@ -8,8 +8,8 @@
 
 #pragma once
 
-#ifndef _AR_RANGE_DETECTOR_IMPLS_
-#define _AR_RANGE_DETECTOR_IMPLS_
+#ifndef _AR_RANGEDETECTOR_IMPLS_
+#define _AR_RANGEDETECTOR_IMPLS_
 
 /**Forward declaration */
 class UPrimitiveDetectorData;
@@ -45,4 +45,4 @@ namespace Detector
 
 #undef UE_API
 
-#endif // _AR_RANGE_DETECTOR_IMPLS_
+#endif // _AR_RANGEDETECTOR_IMPLS_

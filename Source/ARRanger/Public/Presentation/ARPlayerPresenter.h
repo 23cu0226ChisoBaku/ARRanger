@@ -7,6 +7,7 @@
 #pragma once
 
 #include "UObject/NoExportTypes.h"
+#include "Player/CameraRigType.h"
 
 #include "Physics/IARPhysicsSystemHost.h"
 
@@ -14,7 +15,9 @@
 
 /**前方宣言 */
 class AARRangerCharacter;
+class APlayerController;
 class UARHealthComponent;
+class ULockOnComponent;
 enum class ECameraRigType : uint8;
 enum class EARMagnetismType : uint8;
 
@@ -35,22 +38,32 @@ struct FARPlayerModel
 {
   GENERATED_BODY()
 
+  DECLARE_MULTICAST_DELEGATE_TwoParams(FOnCameraRigChanged, ECameraRigType, ECameraRigType);
+  DECLARE_MULTICAST_DELEGATE_OneParam(FOnLockOnTargetUpdated, AActor*);
+
 public:
   FARPlayerModel();
 
   /**
-   * @brief プレイヤーモデルを初期化する
+   * @brief InViewCharacterのコンポーネントを取得して初期化する
    * @param InViewCharacter プレイヤーキャラクター
    */
   void Initialize(AARRangerCharacter* InViewCharacter);
-
-  /**
-   * @brief プレイヤーモデルを更新
-   */
   void Reset();
+
+  void SetCameraRig(ECameraRigType Type);
+
+  void UpdateLockOnTargets(const TArray<AActor*>& InTargets);
+
+  void ToggleLockOn();
+
+public:
 
   UPROPERTY()
   TObjectPtr<UARHealthComponent> HealthComponent;
+
+  UPROPERTY()
+  TObjectPtr<ULockOnComponent> LockOnComponent;
 
   FVector ChargeStartFaceDir; 
 
@@ -80,12 +93,25 @@ public:
 
   TWeakObjectPtr<AActor> SnapTargetActor;
 
+  TWeakObjectPtr<AActor> LockOnTarget;
+
+  FOnCameraRigChanged RigChangeEvent;
+
+  FOnLockOnTargetUpdated LockOnTargetUpdateEvent;
+
+  ECameraRigType CurrentRigType;
+
   uint8 bIsCharging : 1;
   uint8 bIsInAir : 1;
   uint8 bIsClimbing : 1;
   uint8 bIsInComboAction : 1;
   uint8 bCanUpdateSnapMovement : 1;
   uint8 bIsReadyToSearchSnapTarget : 1;
+  uint8 bCanLockOn : 1;
+  uint8 bIsLockingOn : 1;
+
+private:
+  AActor* GetTopPriorityTarget(const TArray<AActor*>& InCandidates) const;
 };
 
 UCLASS(Blueprintable, BlueprintType)
@@ -100,7 +126,7 @@ public:
    * @brief プレゼンターを初期化する
    * @param InViewCharacter プレイヤーキャラクター
    */
-  UE_API void Initialize(AARRangerCharacter* InViewCharacter);
+  UE_API void Initialize(AARRangerCharacter* InViewCharacter, APlayerController* InPlayerController);
 
   /**
    * @brief プレゼンターを解放する
@@ -255,14 +281,19 @@ private:
 
   UFUNCTION()
   void OnMagnetizedObjectHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
-  
-  UFUNCTION()
-  void OnCameraRigChanged(ECameraRigType InType);
 
   void OnCharacterJumpStarted();
   void OnCharacterJumpStopped();
   bool CanUpdateClimbingInternal() const;
   void StopSnapTargetInternal();
+
+  void OnCameraRigChanged(ECameraRigType OldType, ECameraRigType NewType);
+
+  void OnLockOnDataUpdated(const FVector& CameraPos, const FRotator& CameraRot, const TArray<AActor*>& Targets);
+  void OnLockOnTargetUpdated(AActor* TargetActor);
+  void FilterTargetsInCamera(const FVector& CameraPos, const FRotator& CameraRot, const TArray<AActor*>& OriginTargets, TArray<AActor*>& OutTargets);
+  bool IsActorInCameraView(AActor* TargetActor) const;
+  bool IsActorInFrontOfPlayer(const FVector& CameraPos, AActor* TargetActor) const;
 
 private:
   /**プレイヤーキャラクター */
@@ -272,6 +303,8 @@ private:
   /**プレイヤーモデル */
   UPROPERTY(EditAnywhere)
   FARPlayerModel Model;
+
+  TWeakObjectPtr<class APlayerController> m_controller;
 
   /**登る処理デリゲートハンドル */
   FDelegateHandle Handle_UpdateClimbing{};

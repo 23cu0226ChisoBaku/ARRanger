@@ -19,7 +19,7 @@ void FRangeDetectorEvaluationResult::Reset()
 
 bool FRangeDetectorFilterData::IsValid() const
 {
-  return (FilterType != ERangeDetectorFilterType::RDF_MaxNum) && 
+  return (Type != EDetectorTargetType::INVALID) && 
          (FilterClass != nullptr);
 }
 
@@ -48,22 +48,13 @@ namespace Detector
       return;
     }
 
-    TSharedPtr<ARRanger::Detector::FRangeDetectorFilter> newFilter{};
-
-    switch (InFilterData.FilterType)
+    static const TMap<EDetectorTargetType, TFunction<TSharedPtr<ARRanger::Detector::FRangeDetectorFilter>(UClass*)>> s_filterFactory =
     {
-      case ERangeDetectorFilterType::RDF_Actor:
-      {
-        newFilter = ARRanger::Detector::FRangeDetectorFilter::MakeInstance(InFilterData.FilterClass);
-      }
-      break;
+      {EDetectorTargetType::Actor, ARRanger::Detector::FRangeDetectorFilter::MakeInstance},
+      {EDetectorTargetType::Interface, ARRanger::Detector::FRangeDetectorFilter_Interface::MakeInstance}
+    };
 
-      case ERangeDetectorFilterType::RDF_Interface:
-      {
-        newFilter = ARRanger::Detector::FRangeDetectorFilter_Interface::MakeInstance(InFilterData.FilterClass);
-      }
-      break;
-    }
+    TSharedPtr<ARRanger::Detector::FRangeDetectorFilter> newFilter = s_filterFactory[InFilterData.Type](InFilterData.FilterClass);
 
     m_filters.Emplace(newFilter);
   }

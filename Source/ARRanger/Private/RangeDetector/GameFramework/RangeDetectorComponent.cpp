@@ -1,5 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #include "RangeDetector/GameFramework/RangeDetectorComponent.h"
 
 #include "RangeDetector/Core/RangeDetector.h"
@@ -10,21 +8,16 @@
 #include "Components/LineBatchComponent.h"
 #endif // WITH_EDITOR
 
-
-// Sets default values for this component's properties
 URangeDetectorComponent::URangeDetectorComponent()
   : bStopWhenOwnerDestroyed{true}
 {
-	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
-	// off to improve performance if you don't need them.
-	PrimaryComponentTick.bCanEverTick = true;
+  PrimaryComponentTick.bCanEverTick = true;
+  PrimaryComponentTick.TickGroup = TG_PrePhysics;
 }
 
-
-// Called when the game starts
 void URangeDetectorComponent::BeginPlay()
 {
-	Super::BeginPlay();
+  Super::BeginPlay();
 
   for (const auto& entry : DetectorAssetEntries)
   {
@@ -32,11 +25,9 @@ void URangeDetectorComponent::BeginPlay()
   }
 }
 
-
-// Called every frame
 void URangeDetectorComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
-	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+  Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
   FRangeDetectorEvaluationParameter evaluationParam
   {
@@ -45,30 +36,30 @@ void URangeDetectorComponent::TickComponent(float DeltaTime, ELevelTick TickType
     .OriginSceneComp = this  
   };
 
-	for (int32 idx = 0; idx < m_rangeDetectorInsts.Num(); ++idx)
+  for (int32 idx = 0; idx < m_rangeDetectorInsts.Num(); ++idx)
   {
     const TPimplPtr< ARRanger::Detector::FRangeDetector >& detector = m_rangeDetectorInsts[idx];
     if (detector.IsValid())
     {
       detector->Evaluate(evaluationParam);
 
+#if WITH_EDITOR
       const FRangeDetectorEvaluationResult& result = detector->GetEvaluatedResult();
       if (result.DetectedActors.Num() > 0)
       {
         UE_LOG(LogTemp, Error, TEXT("Hit something!!!! Hit count: [%d]"), result.DetectedActors.Num());
       }
+#endif
 
-      #if WITH_EDITORONLY_DATA
-      
-        if (bDrawDebugRange)
+#if WITH_EDITORONLY_DATA 
+      if (bDrawDebugRange)
+      {
+        if (detector->GetData_Const() != nullptr)
         {
-          if (detector->GetData_Const() != nullptr)
-          {
-            detector->GetData_Const()->DebugDrawRange(this, GetComponentLocation(), GetComponentRotation(), GetComponentScale());
-          }
+          detector->GetData_Const()->DebugDrawRange(this, GetComponentLocation(), GetComponentRotation(), GetComponentScale());
         }
-      
-      #endif 
+      }
+#endif 
     }
   }
 
@@ -98,25 +89,7 @@ void URangeDetectorComponent::AddNewDetector(const FDetectorAssetEntry& Entry)
   TPimplPtr< ARRanger::Detector::FRangeDetector > detectorInst = 
     ::MakePimpl< ARRanger::Detector::FRangeDetector >(*Entry.DetectorData, Entry.Priority);
 
-  FRangeDetectorFilterData filter{};
-  switch (Entry.Target.TargetType)
-  {
-    case EDetectorTargetType::Actor:
-    {
-      filter.FilterType = ERangeDetectorFilterType::RDF_Actor;
-      filter.FilterClass = Entry.Target.TargetActor; 
-    }
-    break;
-
-    case EDetectorTargetType::Interface:
-    {
-      filter.FilterType = ERangeDetectorFilterType::RDF_Interface;
-      filter.FilterClass = Entry.Target.TargetInterface;
-    }
-    break;
-  }
-
-  detectorInst->AddFilter(::MoveTemp(filter));
+  AddFilterInternal(*detectorInst, Entry.TargetInfo);
   detectorInst->SetEnable(true);
 
   m_rangeDetectorInsts.Emplace(::MoveTemp(detectorInst));
@@ -186,6 +159,31 @@ bool URangeDetectorComponent::HasRangeData(const UPrimitiveDetectorData* RangeDa
 bool URangeDetectorComponent::IsDetectorEmpty() const
 {
   return m_rangeDetectorInsts.Num() == 0;
+}
+
+void URangeDetectorComponent::AddFilterInternal(ARRanger::Detector::FRangeDetector& OutRangeDetectorRef, const FDetectorTargetInfo& TargetInfo)
+{
+
+  FRangeDetectorFilterData filter{};
+  filter.Type = TargetInfo.Type;
+
+  switch (TargetInfo.Type)
+  {
+    case EDetectorTargetType::Actor:
+    {
+      filter.FilterClass = TargetInfo.TargetActor; 
+    }
+    break;
+
+    case EDetectorTargetType::Interface:
+    {
+      filter.FilterClass = TargetInfo.TargetInterface;
+    }
+    break;
+  }
+
+  OutRangeDetectorRef.AddFilter(::MoveTemp(filter));
+
 }
 
 #if WITH_EDITOR

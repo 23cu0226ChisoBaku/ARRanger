@@ -1,7 +1,3 @@
-/**
- * @file ARRangerPlayerController.cpp
- */
-
 #include "Player/ARRangerPlayerController.h"
 
 #include "EnhancedInputSubsystems.h"
@@ -107,7 +103,7 @@ void AARRangerPlayerController::BeginPlay()
   if (AARRangerCharacter* character = ::Cast<AARRangerCharacter>(GetPawn()))
   {
     OwningCharacter = character;
-    PlayerPresenter->Initialize(OwningCharacter);
+    PlayerPresenter->Initialize(OwningCharacter, this);
   }
 }
 

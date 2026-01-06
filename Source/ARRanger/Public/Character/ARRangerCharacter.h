@@ -164,32 +164,8 @@ public:
   UFUNCTION(BlueprintCallable)
   void ResetIsAttacked();
 
-  // ロックオンフラグを取得
-  bool GetIsLockedOn() const;
-
-  // 引き寄せ完了フラグをセット
-  void SetIsApproachedEnemy(bool IsApproachedEnemy) { bIsApproachedEnemy = IsApproachedEnemy; }
-
-  // 引き寄せ完了フラグを取得
-  bool GetIsApproachedEnemy() const { return bIsApproachedEnemy; }
-
   // 引き寄せ完了時に呼びだされる関数
   void OnAttractionCompleted();
-  
-  // コンボ受付フラグをセット
-  void SetInComboWindow(bool bIn) { bIsInComboWindow = bIn; }
-
-  // コンボ受付フラグを取得
-  bool GetIsInComboWindow() const { return bIsInComboWindow; }
-
-  // コンボカウントを加算
-  void AddComboCount() { ++ComboCount; }
-
-  // コンボカウントをリセット
-  void ResetComboCount() { ComboCount = 0; }
-
-  // コンボカウントを取得
-  int32 GetComboCount() const { return ComboCount; }
 
   // AttackComponent内で使用するNotifyHandler用
   void OnAttackHitNotify();
@@ -252,15 +228,6 @@ protected:
   void K2_OnHealthChanged(AActor* InInstigator, float InChangeValue, bool bIsDead);
 
 private:
-
-  // 敵引き寄せ完了フラグ
-  bool bIsApproachedEnemy = false;
-
-  // コンボ受付中かどうか
-  bool bIsInComboWindow = false;
-
-  // コンボカウント
-  int32 ComboCount = 0;
 
   // 必殺技コンポーネントを取得
   UPROPERTY()

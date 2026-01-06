@@ -1,7 +1,9 @@
 #include "Presentation/ARPlayerPresenter.h"
 
+#include "GameFramework/PlayerController.h"
 #include "Character/ARRangerCharacter.h"
 #include "Character/ARHealthComponent.h"
+#include "PlayerComponents/LockOnComponent.h"
 #include "BattleSystem/IARAttackable.h"
 #include "Components/CapsuleComponent.h"
 
@@ -11,6 +13,7 @@
 
 FARPlayerModel::FARPlayerModel()
   : HealthComponent{nullptr}
+  , LockOnComponent{nullptr}
   , ChargeStartFaceDir{EForceInit::ForceInitToZero}
   , ClimbSurfaceNormal{EForceInit::ForceInitToZero}
   , TargetSnapInputDirection{EForceInit::ForceInitToZero}
@@ -20,12 +23,15 @@ FARPlayerModel::FARPlayerModel()
   , SnapTimeInterval{0.2f}
   , SnapTimeCounter{0.0f}
   , SnapTargetActor{nullptr}
+  , CurrentRigType{ECameraRigType::FreeAngle}
   , bIsCharging{false}
   , bIsInAir{false}
   , bIsClimbing{false}
   , bIsInComboAction{false}
   , bCanUpdateSnapMovement{false}
   , bIsReadyToSearchSnapTarget{false}
+  , bCanLockOn{true}
+  , bIsLockingOn{false}
 { }
 
 void FARPlayerModel::Initialize(AARRangerCharacter* InViewCharacter)
@@ -33,6 +39,8 @@ void FARPlayerModel::Initialize(AARRangerCharacter* InViewCharacter)
   check(InViewCharacter != nullptr);
 
   HealthComponent = static_cast<UARHealthComponent*>(InViewCharacter->GetComponentByClass(UARHealthComponent::StaticClass()));
+  LockOnComponent = static_cast<ULockOnComponent*>(InViewCharacter->GetComponentByClass(ULockOnComponent::StaticClass()));
+  SetCameraRig(ECameraRigType::Default);
 }
 
 void FARPlayerModel::Reset()
@@ -40,9 +48,42 @@ void FARPlayerModel::Reset()
   HealthComponent = nullptr;
 }
 
-void UARPlayerPresenter::Initialize(AARRangerCharacter* InViewCharacter)
+void FARPlayerModel::SetCameraRig(ECameraRigType Type)
 {
-  check(InViewCharacter != nullptr);
+  if (CurrentRigType == Type)
+  {
+    return;
+  }
+
+  ECameraRigType oldRig = CurrentRigType;
+  CurrentRigType = Type;
+  if (RigChangeEvent.IsBound())
+  {
+    RigChangeEvent.Broadcast(oldRig, CurrentRigType);
+  }
+}
+
+void FARPlayerModel::UpdateLockOnTargets(const TArray<AActor*>& InTargets)
+{
+  if (GEngine)
+  {
+    GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red, FString::Printf(TEXT("Update Lock On Targets: %d"), InTargets.Num()));
+  }
+
+  const bool bIsLockOnFunctional = bCanLockOn;
+  if (bIsLockOnFunctional)
+  {
+    if (LockOnTargetUpdateEvent.IsBound())
+    {
+      LockOnTargetUpdateEvent.Broadcast(nullptr);
+    }
+  }
+}
+
+void UARPlayerPresenter::Initialize(AARRangerCharacter* InViewCharacter, APlayerController* InPlayerController)
+{
+  check(::IsValid(InViewCharacter));
+  check(::IsValid(InPlayerController))
 
   if (ViewCharacter == InViewCharacter)
   {
@@ -55,6 +96,8 @@ void UARPlayerPresenter::Initialize(AARRangerCharacter* InViewCharacter)
   }
 
   ViewCharacter = InViewCharacter;
+  m_controller = InPlayerController;
+
   if (ViewCharacter != nullptr)
   {
     ViewCharacter->OnBattleResultAccepted.AddUObject(this, &ThisClass::HandleBattleResult);
@@ -62,7 +105,6 @@ void UARPlayerPresenter::Initialize(AARRangerCharacter* InViewCharacter)
     ViewCharacter->OnTransformed.AddUObject(this, &ThisClass::HandleTransformedEvent);
     ViewCharacter->OnJumpedDelegate.AddUObject(this, &ThisClass::OnCharacterJumpStarted);
     ViewCharacter->OnJumpStoppedDelegate.AddUObject(this, &ThisClass::OnCharacterJumpStopped);
-    ViewCharacter->CameraRigChangeEvent.AddUObject(this, &ThisClass::OnCameraRigChanged);
     ViewCharacter->AttackAbilityStartDelegate.AddUObject(this, &ThisClass::HandleAttackAbilityStarted);
     ViewCharacter->AttackAbilityEndDelegate.AddUObject(this, &ThisClass::HandleAttackAbilityEnded);
 
@@ -79,6 +121,13 @@ void UARPlayerPresenter::Initialize(AARRangerCharacter* InViewCharacter)
     }
 
     Model.Initialize(ViewCharacter);
+    if (Model.LockOnComponent != nullptr)
+    {
+      Model.LockOnComponent->OnLockOnDataUpdateEvent.AddUObject(this, &ThisClass::OnLockOnDataUpdated);
+    }
+
+    Model.RigChangeEvent.AddUObject(this, &ThisClass::OnCameraRigChanged);
+    Model.LockOnTargetUpdateEvent.AddUObject(this, &ThisClass::OnLockOnTargetUpdated);
   }
 }
 
@@ -157,18 +206,13 @@ void UARPlayerPresenter::Input_HandleTransform()
 
 void UARPlayerPresenter::Input_HandleCameraReset()
 {
-  if (ViewCharacter == nullptr)
-  {
-    return;
-  }
-
   const bool bCanResetCamera = true;
   if (!bCanResetCamera)
   {
     return;
   }
 
-  ViewCharacter->SetCameraRig(ECameraRigType::Reset);
+  Model.SetCameraRig(ECameraRigType::Reset);
 }
 
 void UARPlayerPresenter::OnChargeStartHandled()
@@ -716,11 +760,6 @@ void UARPlayerPresenter::OnMagnetizedObjectHit(UPrimitiveComponent* HitComponent
   }
 }
 
-void UARPlayerPresenter::OnCameraRigChanged(ECameraRigType InType)
-{
-  // TODO Empty implementation
-}
-
 void UARPlayerPresenter::OnCharacterJumpStarted()
 {
   if (Model.bIsClimbing)
@@ -734,7 +773,7 @@ void UARPlayerPresenter::OnCharacterJumpStarted()
 
 void UARPlayerPresenter::OnCharacterJumpStopped()
 {
-  // TODO
+  // TODO Empty implementation
 }
 
 bool UARPlayerPresenter::CanUpdateClimbingInternal() const
@@ -773,4 +812,99 @@ void UARPlayerPresenter::StopSnapTargetInternal()
   Model.TargetSnapInputDirection = FVector2D::ZeroVector;
   Model.SnapTimeCounter = 0.0f;
   Model.SnapTargetActor.Reset();
+}
+
+void UARPlayerPresenter::OnCameraRigChanged(ECameraRigType OldType, ECameraRigType NewType)
+{
+  if (ViewCharacter != nullptr)
+  {
+    ViewCharacter->SetCameraRig(NewType);
+  }
+}
+
+void UARPlayerPresenter::OnLockOnDataUpdated(const FVector& CameraPos, const FRotator& CameraRot, const TArray<AActor*>& Targets)
+{
+  const bool bCanUpdateTarget = true;
+  if (bCanUpdateTarget)
+  {
+    TArray<AActor*> targetsInCameraView{};
+    // ロックオンできるターゲットを絞る
+    FilterTargetsInCamera(CameraPos, CameraRot, Targets, targetsInCameraView);
+    Model.UpdateLockOnTargets(targetsInCameraView);
+  }
+}
+
+void UARPlayerPresenter::OnLockOnTargetUpdated(AActor* TargetActor)
+{
+  // FIXME Give the target to view(Update UI and camera);
+}
+
+void UARPlayerPresenter::FilterTargetsInCamera(const FVector& CameraPos, const FRotator& CameraRot, const TArray<AActor*>& OriginTargets, TArray<AActor*>& OutTargets)
+{
+  OutTargets.Reset();
+  for (AActor* target : OriginTargets)
+  {
+    // カメラに入っているかつプレイヤーの前にあるActor(カメラとプレイヤーの間は対象外)だけ残す
+    if (IsActorInCameraView(target) && IsActorInFrontOfPlayer(CameraPos, target))
+    {
+      OutTargets.Emplace(target);
+    }
+  }
+}
+
+bool UARPlayerPresenter::IsActorInCameraView(AActor* TargetActor) const
+{
+  if ((TargetActor == nullptr) || !m_controller.IsValid())
+  {
+    return false;
+  }
+
+  // ビューポートにあるActorを取る
+  FVector2D screenLoc{};
+  bool bProjected = m_controller->ProjectWorldLocationToScreen
+                        (
+                          TargetActor->GetActorLocation(),
+                          screenLoc,
+                          true        // bPlayerViewportRelative
+                        );
+  if (!bProjected)
+  {
+    return false;
+  }
+
+  int32 viewportSizeX, viewportSizeY;
+  m_controller->GetViewportSize(viewportSizeX, viewportSizeY);
+
+  return    (screenLoc.X >= 0.0 && screenLoc.X <= (double)viewportSizeX)
+         && (screenLoc.Y >= 0.0 && screenLoc.Y <= (double)viewportSizeY);
+}
+
+bool UARPlayerPresenter::IsActorInFrontOfPlayer(const FVector& CameraPos, AActor* TargetActor) const
+{
+  if ((ViewCharacter == nullptr) || (TargetActor == nullptr))
+  {
+    return false;
+  }
+
+  // 俯瞰視点で、カメラとプレイヤーの間にあるActorを絞る
+  FVector cameraToPlayer = ViewCharacter->GetActorLocation() - CameraPos;
+  FVector cameraToTarget = TargetActor->GetActorLocation() - CameraPos;
+  // Z座標が必要ないため、ゼロに設定 
+  cameraToPlayer.Z = 0.0;
+  cameraToTarget.Z = 0.0;
+
+  // 後ろにあるActorを除く（直角方向も）
+  const double dotProduct = FVector::DotProduct(cameraToPlayer.GetSafeNormal(), cameraToTarget.GetSafeNormal());
+  if (dotProduct <= 0)
+  {
+    return false;
+  }
+
+  // カメラからプレイヤーへの方向ベクトル上、距離が小さいActor（カメラとプレイヤーの間にある）を除く
+  if (cameraToTarget.SquaredLength() * dotProduct <= cameraToPlayer.SquaredLength())
+  {
+    return false;
+  }
+
+  return true;
 }

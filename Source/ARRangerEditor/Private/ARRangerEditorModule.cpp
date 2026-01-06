@@ -92,7 +92,7 @@ void FARRangerEditorModule::ShutdownModule()
 
 void FARRangerEditorModule::RegisterPropertyTypeCustomizations()
 {
-  RegisterCustomPropertyTypeLayout("DetectorTarget", FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FRangeDetectorTargetCustomization::MakeInstance));
+  RegisterCustomPropertyTypeLayout("DetectorTargetInfo", FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FRangeDetectorTargetCustomization::MakeInstance));
 }
 
 void FARRangerEditorModule::RegisterCustomPropertyTypeLayout(FName PropertyTypeName, FOnGetPropertyTypeCustomizationInstance PropertyTypeLayoutDelegate)

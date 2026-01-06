@@ -1,8 +1,5 @@
 ﻿/**
  * @file RangeDetector.h
- * @brief Detector class to detect actors in range(Use UPrimitiveDetectorData)
- */
-/**
  * @brief 範囲にあるアクターを探知するクラス（UPrimitiveDetectorData使用）
  */
 
@@ -11,14 +8,21 @@
 #ifndef _AR_RANGE_DETECTOR_
 #define _AR_RANGE_DETECTOR_
 
-/**Forward declaration */
+#include "RangeDetector/DetectorTypes.h"
+
+// 前方宣言
 class UPrimitiveDetectorData;
+namespace ARRanger
+{
+namespace Detector
+{
+  // class ARRanger::Detector::FRangeDetectorFilter
+  class FRangeDetectorFilter;
+} // namespace ARRanger::Detector
+} // namespace ARRanger
 
 #define UE_API ARRANGER_API
 
-/**
- * @brief Parameter struct for evaluating RangeDetector
- */
 /**
  * @brief 範囲探知クラスを評価するパラメータ構造体
  */
@@ -35,10 +39,6 @@ struct FRangeDetectorEvaluationParameter
   TObjectPtr<USceneComponent> OriginSceneComp = nullptr;
 };
 
-
-/**
- * @brief Result struct of evaluated RangeDetector
- */
 /**
  * @brief 探知範囲クラスが評価された結果構造体
  */
@@ -50,11 +50,6 @@ struct FRangeDetectorEvaluationResult
   TArray<FHitResult> HitResults{};
 
   /**
-   * @brief Get result num(Will return 0 if it is not fully evaluated)
-   * 
-   * @return Detected result's num in array
-   */
-  /**
    * @brief 探知結果の数を返す(評価が完全に済んでいないと0を返す可能性がある)
    * 
    * @return 結果を保存する配列要素数
@@ -62,26 +57,9 @@ struct FRangeDetectorEvaluationResult
   UE_API int32 GetResultNum() const;
 
   /**
-   * @brief Clear all results
-   */
-  /**
    * @brief 結果構造体をリセットする
    */
   UE_API void Reset();
-};
-
-/**
- * @brief Filter type(UClass base)
- */
-/**
- * @brief 探知範囲フィルター列挙型（UClassベース）
- */
-enum struct ERangeDetectorFilterType : uint8
-{
-  RDF_Actor,      // UClassはアクター
-  RDF_Interface,  // UClassはUInterface
-
-  RDF_MaxNum,     // ※使用しない。Don't use it
 };
 
 /**
@@ -91,7 +69,7 @@ struct FRangeDetectorFilterData
 {
   TSubclassOf<UObject> FilterClass = nullptr;
 
-  ERangeDetectorFilterType FilterType = ERangeDetectorFilterType::RDF_MaxNum;
+  EDetectorTargetType Type = EDetectorTargetType::INVALID;
 
   /**
    * @brief Check whether filter is valid
@@ -106,24 +84,13 @@ namespace ARRanger
 
 namespace Detector
 {
-  /**Forward declaration */
-  class FRangeDetectorFilter;
 
-  /**
-   * @brief Range detector class. Call EvaluateDetector() to detect targets in current frame.
-   */
   /**
    * @brief 範囲探知クラス。EvaluateDetector()を呼び出し、現在のフレームに範囲内のターゲットを探知する
    */
   class FRangeDetector
   {
     public:
-
-      /**
-       * @brief Constructor
-       * @param InData      Detector data.Must be valid.
-       * @param InPriority  Detector priority // TODO Currently unused
-       */
       /**
        * @brief コンストラクタ
        * @param InData      探知範囲データ。必ず有効なデータが入る
@@ -132,15 +99,10 @@ namespace Detector
       UE_API FRangeDetector(const UPrimitiveDetectorData& InData, int32 InPriority = -1);
 
       /**
-       * @brief Destructor
+       * @brief デストラクタ
        */
       UE_API ~FRangeDetector();
       
-      /**
-       * @brief Set enable of range detector
-       * 
-       * @param bEnable 
-       */
       /**
        * @brief 範囲探知の有効性を設定する
        * 
@@ -149,11 +111,6 @@ namespace Detector
       UE_API void SetEnable(bool bEnable);
 
       /**
-       * @brief Add the filter data
-       * 
-       * @param InFilterData @see FRangeDetectorFilterData
-       */
-      /**
        * @brief フィルターを追加する
        * 
        * @param InFilterData @see FRangeDetectorFilterData
@@ -161,27 +118,16 @@ namespace Detector
       UE_API void AddFilter(FRangeDetectorFilterData&& InFilterData);
 
       /**
-       * @brief Remove filter with given filter UClass
-       * @param InFilterClass Filter class to remove
-       */
-      /**
        * @brief UClassが含んだフィルターを外す
        * @param InFilterClass フィルターUClass 
        */
       UE_API void RemoveFilter(UClass* InFilterClass);
 
       /**
-       * @brief Remove all filters
-       */
-      /**
        * @brief フィルターを全て外す
        */
       UE_API void RemoveAllFilters();
 
-      /**
-       * @brief Get the DataTag of UPrimitiveDetectorData.FString
-       * @return DataTag.ToString() or "Invalid" if UPrimitiveDetectorData is invalid
-       */
       /**
        * @brief UPrimitiveDetectorDataのDataTagをFStringで返す
        * @return DataTag.ToString()。また、UPrimitiveDetectorDataは無効だったら"Invalid"を返す
@@ -196,29 +142,20 @@ namespace Detector
        */
       UE_API int32 Evaluate(const FRangeDetectorEvaluationParameter& EvaluationParam);
 
-      const UPrimitiveDetectorData* GetData_Const() const { return m_constData.Get(); }
-      int32 GetPriority() const { return m_priority; }
-      bool IsActivate() const { return static_cast<bool>(bIsActivated); }
-      const FRangeDetectorEvaluationResult& GetEvaluatedResult() const { return m_evaluatedResult; }
+      __forceinline const UPrimitiveDetectorData* GetData_Const() const { return m_constData.Get(); }
+      __forceinline int32 GetPriority() const { return m_priority; }
+      __forceinline bool IsActivate() const { return static_cast<bool>(bIsActivated); }
+      __forceinline const FRangeDetectorEvaluationResult& GetEvaluatedResult() const { return m_evaluatedResult; }
 
-#if WITH_EDITOR
-      /**
-       * @brief Draw debug line of detector data(Detect range)
-       * 
-       * @param InOriginSceneComp Range center SceneComponent
-       */
       /**
        * @brief UPrimitiveDetectorDataを用いてデバッグラインを描画する
        * 
        * @param InOriginSceneComp 探知範囲の中心座標となるSceneComponent
        */
       UE_API void DebugDrawRange(USceneComponent* InOriginSceneComp);
-#endif // WITH_EDITOR
+
     private:
 
-      /**
-       * @brief Apply filters to evaluated result.May change evaluated result after filters applied
-       */
       /**
        * @brief 評価した結果にフィルターをかける。※評価結果が変わる可能性がある
        */
@@ -228,15 +165,12 @@ namespace Detector
 
     private:
 
-      /**Filters */
       /**フィルター配列 */
       TArray<TSharedPtr<FRangeDetectorFilter>> m_filters;
 
-      /**Const data */
       /**探知範囲データポインター（const） */
       TWeakObjectPtr<const UPrimitiveDetectorData> m_constData;
       
-      /**Stores the result of evaluation */
       /**評価結果 */
       FRangeDetectorEvaluationResult m_evaluatedResult;
 
@@ -246,7 +180,6 @@ namespace Detector
       /**Activation flag of RangeDetector */
       uint8 bIsActivated : 1;
 
-    /**Deny all copy and move*/
     /**コピーとムーブを全て禁止する */
     public:
       FRangeDetector(const FRangeDetector&) = delete;

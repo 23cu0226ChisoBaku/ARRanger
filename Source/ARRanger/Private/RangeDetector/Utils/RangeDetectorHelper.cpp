@@ -6,7 +6,7 @@
 #include "RangeDetector/GameFramework/RangeDetectorComponent.h"
 #include "RangeDetector/Core/PrimitiveDetectorData.h"
 
-namespace
+namespace RangeDetector::Private
 {
   bool ValidateParamaters_DetectorAssetEntry(const FDetectorAssetEntry& Entry);
 }
@@ -16,7 +16,7 @@ URangeDetectorComponent* URangeDetectorHelper::AttachRangeDetector(const FDetect
   // TODO Need implementation
 
   // Check Entry Validation
-  if (!ValidateParamaters_DetectorAssetEntry(Entry))
+  if (!RangeDetector::Private::ValidateParamaters_DetectorAssetEntry(Entry))
   {
     return nullptr;
   }
@@ -64,9 +64,8 @@ URangeDetectorComponent* URangeDetectorHelper::AttachRangeDetector(const FDetect
       }
     }
 
-    // Add new detector
+    // Activate component
     RDC->AddNewDetector(Entry); 
-    // Register component to world to activate
     RDC->RegisterComponentWithWorld(world);
 
     RDC->bStopWhenOwnerDestroyed = bStopWhenAttachedToDestroy;
@@ -75,40 +74,40 @@ URangeDetectorComponent* URangeDetectorHelper::AttachRangeDetector(const FDetect
   return RDC;
 } 
 
-namespace
+namespace RangeDetector::Private
 {
   bool ValidateParamaters_DetectorAssetEntry(const FDetectorAssetEntry& Entry)
   {
-    bool bIsValid = true;
+    bool result = true;
 
     if (Entry.DetectorData == nullptr)
     {
-      bIsValid = false;
+      result = false;
     }
     else
     {
-      switch (Entry.Target.TargetType)
+      switch (Entry.TargetInfo.Type)
       {
         case EDetectorTargetType::Actor:
         {
-          if (Entry.Target.TargetActor == nullptr)
+          if (Entry.TargetInfo.TargetActor == nullptr)
           {
-            bIsValid = false;
+            result = false;
           }
         }
         break;
 
         case EDetectorTargetType::Interface:
         {
-          if (Entry.Target.TargetInterface == nullptr)
+          if (Entry.TargetInfo.TargetInterface == nullptr)
           {
-            bIsValid = false;
+            result = false;
           }
         }
         break;
       }
     }
 
-    return bIsValid;
+    return result;
   }
 }

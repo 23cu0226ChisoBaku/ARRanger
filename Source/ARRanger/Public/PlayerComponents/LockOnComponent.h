@@ -1,76 +1,92 @@
 ﻿#pragma once
 
-#include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
-#include "Enemy/Enemy_Zako.h"
+#include "RangeDetector/DetectorTypes.h"
 
 #include "LockOnComponent.generated.h"
 
+// 
+class UPrimitiveDetectorData;
+class APlayerController;
+class AEnemy_Zako;
+
+namespace ARRanger
+{
+namespace Detector
+{
+  // ARRanger::Detector::FRangeDetector
+  class FRangeDetector;
+} // namespace ARRanger::Detector
+} // namespace ARRanger
+
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
-class ARRANGER_API ULockOnComponent : public UActorComponent
+class ULockOnComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
+  DECLARE_MULTICAST_DELEGATE_ThreeParams(FOnLockOnDataUpdated, const FVector&, const FRotator&, const TArray<AActor*>&);
+
 public:
-    ULockOnComponent();
+  ARRANGER_API ULockOnComponent();
 
-    virtual void BeginPlay() override;
+  ARRANGER_API virtual void BeginPlay() override;
 
-    virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+  ARRANGER_API virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
-    // ロックオン関数
-    UFUNCTION(BlueprintCallable)
-    void ToggleLockOn();
+  ARRANGER_API void SetLockOnRootComponent(USceneComponent* RootComponent);
 
-    // 敵がプレイヤーから見えているか判定
-    bool IsTargetVisible(TWeakObjectPtr<AActor> Target);
+  // ロックオン関数
+  UFUNCTION(BlueprintCallable)
+  ARRANGER_API void ToggleLockOn();
 
-    // ターゲット切り替え(右)
-    UFUNCTION(BlueprintCallable)
-    void SwitchTargetRight();
+  // ターゲット切り替え(右)
+  UFUNCTION(BlueprintCallable)
+  ARRANGER_API void SwitchTargetRight();
 
-    // ターゲット切り替え(左)
-    UFUNCTION(BlueprintCallable)
-    void SwitchTargetLeft();
+  // ターゲット切り替え(左)
+  UFUNCTION(BlueprintCallable)
+  ARRANGER_API void SwitchTargetLeft();
 
-    // ターゲットを取得
-    UPROPERTY()
-    TWeakObjectPtr<AEnemy_Zako> lockedOnTarget;
+  ARRANGER_API void SetupDetector(const FDetectorAssetEntry& InDetectorEntry);
+  
+  // ロックオンフラグをセット
+  void SetIsLockedOn(bool IsLockedOn) { m_bIsLockedOn = IsLockedOn; }
+  
+  // ロックオン中フラグを取得
+  bool GetIsLockedOn() { return m_bIsLockedOn; }
 
-    // ロックオン中フラグを取得
-    bool GetIsLockedOn() { return isLockedOn; }
-
-    // ロックオン中の敵を取得
-    AEnemy_Zako* GetLockedOnTarget() const { return lockedOnTarget.IsValid() ? lockedOnTarget.Get() : nullptr; }
-
-protected:
-    // ロックオン可能距離
-    UPROPERTY(EditAnywhere, Category = "LockOn")
-    float maxLockOnDistance;
-
-    // ロックオン中かどうか
-    bool isLockedOn;
-
-    // 敵検索用のタグ
-    UPROPERTY(EditAnywhere, Category = "LockOn")
-    FName enemyTag;
+  // ロックオン中の敵を取得
+  AEnemy_Zako* GetLockedOnTarget() const { return LockedOnTarget.IsValid() ? LockedOnTarget.Get() : nullptr; }
 
 private:
-    // ターゲット切り替え処理の関数
-    void SwitchTarget(bool IsRight);
-
-    // ロックオン可能な敵を探す
-    AEnemy_Zako* FindNearestEnemy(TWeakObjectPtr<AEnemy_Zako> IgnoreActor = nullptr);
-
-    // プレイヤーのオーナー
-    UPROPERTY()
-    APawn* ownerPawn;
-
-    // プレイヤーのコントローラー
-    UPROPERTY()
-    APlayerController* ownerController;
+  // ターゲット切り替え処理の関数
+  void SwitchTarget(bool IsRight);
+  
+  void GatherCameraInfo(FVector& OutCameraPos, FRotator& OutCameraRot);
+  int32 GatherTargets(TArray<AActor*>& OutTargets);
 
 public:
-    // ロックオンフラグをセット
-    void SetIsLockedOn(bool IsLockedOn) { isLockedOn = IsLockedOn; }
+  FOnLockOnDataUpdated OnLockOnDataUpdateEvent;
+
+private:
+  // ロックオン可能距離
+  UPROPERTY(EditAnywhere, Category = "LockOn")
+  float MaxLockOnDistance;
+
+  UPROPERTY(EditAnywhere, Category = "LockOn")
+  FDetectorAssetEntry DetectorEntry;
+
+  // ターゲットを取得
+  TWeakObjectPtr<class AEnemy_Zako> LockedOnTarget;
+
+  TWeakObjectPtr<APlayerController> PlayerControllerWeak;
+
+  TWeakObjectPtr<USceneComponent> DetectorRootComponent;
+
+  // ロックオン中かどうか
+  // TODO Deprecate this
+  bool m_bIsLockedOn;
+
+  TPimplPtr<ARRanger::Detector::FRangeDetector> m_lockOnTargetDetector;
+
 };

@@ -1,239 +1,235 @@
 ﻿#include "PlayerComponents/LockOnComponent.h"
 
+#include "GameFramework/PlayerController.h"
+#include "GameFramework/Pawn.h"
+#include "RangeDetector/Core/RangeDetector.h"
 #include "Enemy/Enemy_Zako.h"
 #include "Kismet/GameplayStatics.h"
+#include "RangeDetector/Utils/RangeDetectorHelper.h"
 
 ULockOnComponent::ULockOnComponent()
-  : lockedOnTarget(nullptr)
-	, maxLockOnDistance(1500.0f)
-	, isLockedOn(false)
-	, enemyTag("Enemy")
-	, ownerPawn(nullptr)
-	, ownerController(nullptr)
+  : MaxLockOnDistance{1500.0f}
+  , LockedOnTarget{nullptr}
+  , PlayerControllerWeak{nullptr}
+  , DetectorRootComponent{nullptr}
+  , m_bIsLockedOn{false}
+  , m_lockOnTargetDetector{nullptr}
 {
-	PrimaryComponentTick.bCanEverTick = true;
+  PrimaryComponentTick.bCanEverTick = true;
+  PrimaryComponentTick.TickGroup = TG_PrePhysics;
+
 }
 
 void ULockOnComponent::BeginPlay()
 {
-	Super::BeginPlay();
+  Super::BeginPlay();
 
-	// プレイヤーとそのコントローラーを取得
-	ownerPawn = Cast<APawn>(GetOwner());
-	ownerController = ownerPawn ? Cast<APlayerController>(ownerPawn->GetController()) : nullptr;
+  APawn* ownerPawn = ::Cast<APawn>(GetOwner());
+  check(ownerPawn != nullptr);
+  
+  if (ownerPawn != nullptr)
+  {
+    APlayerController* ownerPlayerController = ::Cast<APlayerController>(ownerPawn->GetController());
+    check(ownerPlayerController != nullptr);
+
+    if (ownerPlayerController != nullptr)
+    {
+      PlayerControllerWeak = ownerPlayerController;
+    }
+  }
+
+  DetectorRootComponent = GetOwner()->GetRootComponent();
+
+  // Editorで設定したDetectorEntryで範囲探知を初期化する
+  SetupDetector(DetectorEntry);
+
 }
 
 void ULockOnComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
-	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+  Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	// ロックオン中に処理
-	if (isLockedOn && lockedOnTarget.IsValid())
-	{
-		if (!IsTargetVisible(lockedOnTarget))
-		{
-			// ターゲットが見えなくなったらロックオン解除
-			lockedOnTarget = nullptr;
-            SetIsLockedOn(false);
-		}
-
-        // ロックオン中の敵が死んだら処理
-        if (!lockedOnTarget.IsValid() || lockedOnTarget->isDead)
-        {
-            AEnemy_Zako* NewTarget = FindNearestEnemy(lockedOnTarget);
-            // 新しくターゲットを設定
-            if (NewTarget)
-            {
-                lockedOnTarget = NewTarget;
-            }
-            // いなければロックオン解除
-            else
-            {
-                lockedOnTarget = nullptr;
-                SetIsLockedOn(false);
-            }
-        }
-	}
+  // ロックオン情報を収集する
+  {
+    // カメラ情報
+    FVector cameraPos{};
+    FRotator cameraRot{};
+    GatherCameraInfo(/**Out */cameraPos, /**Out */cameraRot);
+  
+    // ロックオン可能なターゲット
+    TArray<AActor*> targets{};
+    // ロックオン情報を送る
+    if (GatherTargets(/**Out */targets) > 0)
+    {
+      if (OnLockOnDataUpdateEvent.IsBound())
+      {
+        OnLockOnDataUpdateEvent.Broadcast(cameraPos, cameraRot, targets);
+      }
+    }
+  }
 }
 
 void ULockOnComponent::ToggleLockOn()
 {
-    UE_LOG(LogTemp, Warning, TEXT("Lock On Check"));
-
-    // プレイヤーがいなければ処理しない
-    if (!ownerPawn || !ownerController)
+  if (m_bIsLockedOn)
+  {
+    // ロックオンを解除
+    LockedOnTarget = nullptr;
+    SetIsLockedOn(false);
+  }
+  else
+  {
+    AEnemy_Zako* Candidate = nullptr;
+    if (Candidate)
     {
-        return;
+      // プレイヤーから見えていればロックオン開始
+      LockedOnTarget = Candidate;
+      SetIsLockedOn(true);
+      UE_LOG(LogTemp, Warning, TEXT("LockOn: Locked on %s"), *Candidate->GetName());      
     }
-
-    if (isLockedOn)
-    {
-        // ロックオンを解除
-        lockedOnTarget = nullptr;
-        SetIsLockedOn(false);
-        UE_LOG(LogTemp, Warning, TEXT("LockOn: Unlocked"));
-    }
-    else
-    {
-        AEnemy_Zako* Candidate = FindNearestEnemy();
-        if (Candidate)
-        {
-            bool bVisible = IsTargetVisible(Candidate);
-            UE_LOG(LogTemp, Warning, TEXT("ToggleLockOn: Found enemy %s, Visible=%d"),
-                *Candidate->GetName(), bVisible);
-
-            if (bVisible)
-            {
-                // プレイヤーから見えていればロックオン開始
-                lockedOnTarget = Candidate;
-                SetIsLockedOn(true);
-                UE_LOG(LogTemp, Warning, TEXT("LockOn: Locked on %s"), *Candidate->GetName());
-            }
-            else
-            {
-                UE_LOG(LogTemp, Warning, TEXT("LockOn: Candidate not visible"));
-            }
-        }
-        else
-        {
-            UE_LOG(LogTemp, Warning, TEXT("LockOn: No enemy found by FindNearestEnemy()"));
-        }
-    }
+  }
 }
 
 void ULockOnComponent::SwitchTargetRight()
 {
-    SwitchTarget(true);
+  SwitchTarget(true);
 }
 
 void ULockOnComponent::SwitchTargetLeft()
 {
-    SwitchTarget(false);
+  SwitchTarget(false);
 }
 
 void ULockOnComponent::SwitchTarget(bool bRight)
 {
-    // ロックオン中でない、またはプレイヤーがいなければ処理しない
-    if (!isLockedOn || !lockedOnTarget.IsValid() || !ownerPawn)
+  // ロックオン中でない、またはプレイヤーがいなければ処理しない
+  if (!m_bIsLockedOn || !LockedOnTarget.IsValid())
+  {
+    return;
+  }
+
+  // ワールドの敵を取得(To Do：一定範囲内の敵を取得するように修正)
+  TArray<AActor*> Enemies;
+  UGameplayStatics::GetAllActorsWithTag(GetWorld(), TEXT("Enemy"), Enemies);
+
+  // 敵が複数体いなければ処理しない
+  if (Enemies.Num() <= 1)
+  {
+    return;
+  }
+
+  // 敵がいなければ処理しない
+  int32 CurrentIndex = Enemies.IndexOfByKey(LockedOnTarget);
+  if (CurrentIndex == INDEX_NONE)
+  {
+    return;
+  }
+
+  const FVector MyLocation = GetOwner()->GetActorLocation();
+  const int32 EnemyCount = Enemies.Num();
+  int32 Index = CurrentIndex;
+  int32 Checked = 0;
+
+  while (Checked < EnemyCount)
+  {
+    // その他の敵を判定
+    Index = bRight ? (Index + 1) % EnemyCount : (Index - 1 + EnemyCount) % EnemyCount;
+
+    // 現在の敵になったら処理をやめる
+    if (Index == CurrentIndex)
     {
-        return;
+      break;
     }
 
-    // ワールドの敵を取得(To Do：一定範囲内の敵を取得するように修正)
-    TArray<AActor*> Enemies;
-    UGameplayStatics::GetAllActorsWithTag(GetWorld(), enemyTag, Enemies);
-
-    // 敵が複数体いなければ処理しない
-    if (Enemies.Num() <= 1)
+    AActor* Candidate = Enemies[Index];
+    if (!Candidate)
     {
-        return;
+      Checked++;
+      continue;
     }
 
-    // 敵がいなければ処理しない
-    int32 CurrentIndex = Enemies.IndexOfByKey(lockedOnTarget);
-    if (CurrentIndex == INDEX_NONE)
+    float Distance = FVector::Dist(MyLocation, Candidate->GetActorLocation());
+    if (Distance <= MaxLockOnDistance)
     {
-        return;
+      LockedOnTarget = Cast<AEnemy_Zako>(Candidate);
+      return;
     }
 
-    const FVector MyLocation = ownerPawn->GetActorLocation();
-    const int32 EnemyCount = Enemies.Num();
-    int32 Index = CurrentIndex;
-    int32 Checked = 0;
-
-    while (Checked < EnemyCount)
-    {
-        // その他の敵を判定
-        Index = bRight ? (Index + 1) % EnemyCount : (Index - 1 + EnemyCount) % EnemyCount;
-
-        // 現在の敵になったら処理をやめる
-        if (Index == CurrentIndex)
-        {
-            break;
-        }
-
-        AActor* Candidate = Enemies[Index];
-        if (!Candidate)
-        {
-            Checked++;
-            continue;
-        }
-
-        float Distance = FVector::Dist(MyLocation, Candidate->GetActorLocation());
-        if (Distance <= maxLockOnDistance && IsTargetVisible(Candidate))
-        {
-            lockedOnTarget = Cast<AEnemy_Zako>(Candidate);
-            return;
-        }
-
-        Checked++;
-    }
+    Checked++;
+  }
 }
 
-AEnemy_Zako* ULockOnComponent::FindNearestEnemy(TWeakObjectPtr<AEnemy_Zako> IgnoreActor)
+void ULockOnComponent::GatherCameraInfo(FVector& OutCameraPos, FRotator& OutCameraRot)
 {
-    // プレイヤーがいなければ処理しない
-    if (!ownerPawn)
-    {
-        return nullptr;
-    }
+  OutCameraPos = FVector{0.0, 0.0, 0.0};
+  OutCameraRot = FRotator{0.0, 0.0, 0.0};
 
-    // ワールドの敵を取得(To Do：一定範囲内の敵を取得するように修正)
-    TArray<AActor*> Enemies;
-    UGameplayStatics::GetAllActorsWithTag(GetWorld(), enemyTag, Enemies);
-
-    AEnemy_Zako* NearestEnemy = nullptr;
-    float MinDistSq = FLT_MAX;
-    FVector MyLocation = ownerPawn->GetActorLocation();
-    float MaxDistSq = maxLockOnDistance * maxLockOnDistance;
-
-    for (AActor* Enemy : Enemies)
-    {
-        if (!Enemy || Enemy == IgnoreActor)
-        {
-            continue;
-        }
-
-        float DistSq = FVector::DistSquared(MyLocation, Enemy->GetActorLocation());
-        if (DistSq <= MaxDistSq && DistSq < MinDistSq && IsTargetVisible(Enemy))
-        {
-            MinDistSq = DistSq;
-            NearestEnemy = Cast<AEnemy_Zako>(Enemy);
-        }
-    }
-
-    return NearestEnemy;
+  if (PlayerControllerWeak.IsValid())
+  {
+    PlayerControllerWeak->GetPlayerViewPoint(OutCameraPos, OutCameraRot);
+  }
 }
 
-bool ULockOnComponent::IsTargetVisible(TWeakObjectPtr<AActor> Target)
+int32 ULockOnComponent::GatherTargets(TArray<AActor*>& OutTargets)
 {
-    // ターゲットまたはプレイヤーがいなければ処理しない
-    if (!Target.IsValid() || !ownerController)
+  OutTargets.Reset();
+
+  FRangeDetectorEvaluationParameter param = 
+  {
+    .World = GetWorld(),
+    .OriginActor = GetOwner(),
+    .OriginSceneComp = DetectorRootComponent.IsValid() ? DetectorRootComponent.Get() : GetOwner()->GetRootComponent()
+  };
+
+  // ロックオン可能なActorを探知する
+  if (m_lockOnTargetDetector.IsValid())
+  {
+    m_lockOnTargetDetector->Evaluate(param);
+    OutTargets = m_lockOnTargetDetector->GetEvaluatedResult().DetectedActors;
+  }
+
+  return OutTargets.Num();
+}
+
+void ULockOnComponent::SetupDetector(const FDetectorAssetEntry& InDetectorEntry)
+{
+  // 古いDetectorを解放する
+  if (m_lockOnTargetDetector != nullptr)
+  {
+    m_lockOnTargetDetector.Reset();
+  }
+
+  if (InDetectorEntry.DetectorData != nullptr)
+  {
+    m_lockOnTargetDetector = ::MakePimpl<ARRanger::Detector::FRangeDetector>(*InDetectorEntry.DetectorData, InDetectorEntry.Priority);
+  }
+
+  // フィルターを追加
+  if (m_lockOnTargetDetector.IsValid())
+  {
+    const FDetectorTargetInfo& targetInfoRef = InDetectorEntry.TargetInfo;
+
+    FRangeDetectorFilterData filter{};
+    filter.Type = targetInfoRef.Type;
+
+    switch (targetInfoRef.Type)
     {
-        return false;
+      case EDetectorTargetType::Actor:
+      {
+        filter.FilterClass = targetInfoRef.TargetActor; 
+      }
+      break;
+
+      case EDetectorTargetType::Interface:
+      {
+        filter.FilterClass = targetInfoRef.TargetInterface;
+      }
+      break;
     }
 
-    FVector ViewLocation;
-    FRotator ViewRotation;
-    ownerController->GetPlayerViewPoint(ViewLocation, ViewRotation);
+    m_lockOnTargetDetector->AddFilter(::MoveTemp(filter));
 
-    // 少し頭上を狙う
-    FVector TargetLocation = Target->GetActorLocation() + FVector(0, 0, 50.f);
-
-    FHitResult HitResult;
-    FCollisionQueryParams Params;
-    // プレイヤー自身とターゲットは無視
-    Params.AddIgnoredActor(GetOwner());
-    Params.AddIgnoredActor(Target.Get());
-
-    bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, ViewLocation, TargetLocation, ECC_Visibility, Params);
-
-    // ヒットしていてかつそのActorがTargetでなければ、
-    // 視界を遮られたとみなす
-    if (bHit && HitResult.GetActor() != Target)
-    {
-        return false;
-    }
-
-    return true;
+    // 起動する
+    m_lockOnTargetDetector->SetEnable(true);
+  }
 }

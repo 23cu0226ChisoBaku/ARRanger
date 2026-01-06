@@ -1,78 +1,30 @@
-
 #pragma once
 
 #include "Components/SceneComponent.h"
+#include "RangeDetector/DetectorTypes.h"
 
 #include "RangeDetectorComponent.generated.h"
 
-/**
- * Forward declaration
- */
+// 前方宣言
 struct FRangeDetectorEvaluationResult;
-
+class UPrimitiveDetectorData;
 namespace ARRanger
 {
-  
 namespace Detector
 {
+  // class ARRanger::Detector::FRangeDetector
   class FRangeDetector;
 } // namespace ARRanger::Detector
-
 } // namespace ARRanger
-
-class UPrimitiveDetectorData;
 
 #define UE_API ARRANGER_API
 
-UENUM(BlueprintType)
-enum struct EDetectorTargetType : uint8
-{
-  /**アクター */
-  Actor,
-
-  /**アンリアル インターフェイス */
-  Interface,
-};
-
-USTRUCT(BlueprintType)
-struct FDetectorTarget
-{
-  GENERATED_BODY()
-
-  UPROPERTY(EditDefaultsOnly)
-  EDetectorTargetType TargetType = EDetectorTargetType::Actor;
-
-  UPROPERTY(EditDefaultsOnly, meta = (DisplayName = "Target Actor Class"))
-  TSubclassOf<AActor> TargetActor = nullptr;
-
-  UPROPERTY(EditDefaultsOnly, meta = (DisplayName = "Target UInterface Class"))
-  TSubclassOf<UInterface> TargetInterface = nullptr;
-};
-
-USTRUCT(BlueprintType)
-struct FDetectorAssetEntry
-{
-  GENERATED_BODY()
-
-  UPROPERTY(EditDefaultsOnly, Category = "RangeDetector|Data", meta = (DisplayName = "AssetPtr"))
-  TObjectPtr<UPrimitiveDetectorData> DetectorData = nullptr;
-
-  UPROPERTY(EditDefaultsOnly, Category = "RangeDetector|Target", meta = (EditCondition = "DetectorData != nullptr", EditConditionHides))
-  FDetectorTarget Target;
-
-  UPROPERTY(EditDefaultsOnly, Category = "RangeDetector|Data", meta = (EditCondition = "DetectorData != nullptr", EditConditionHides))
-  int32 Priority = 0;
-
-};
-
-// Use USceneComponent to attach this to mesh component
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class URangeDetectorComponent : public USceneComponent
 {
 	GENERATED_BODY()
 
 public:	
-	// Sets default values for this component's properties
 	UE_API URangeDetectorComponent();
 
 protected:
@@ -81,7 +33,6 @@ protected:
 
 public:	
   /**Start UActorComponent Interface */
-	// Called every frame
 	UE_API virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
   UE_API virtual void OnUnregister() override;
   /**End UActorComponent Interface */
@@ -106,22 +57,21 @@ public:
 #endif 
 
 private:
+  void AddFilterInternal(ARRanger::Detector::FRangeDetector& OutRangeDetectorRef, const FDetectorTargetInfo& TargetInfo);
+
+private:
 
   UPROPERTY(EditDefaultsOnly, Category = "RangeDetector", meta = (DisplayName = "DataAssetEntry", AllowPrivateAccess = "true"))
   TArray<FDetectorAssetEntry> DetectorAssetEntries;
 
-  
-  private:
   TArray< TPimplPtr< ARRanger::Detector::FRangeDetector > > m_rangeDetectorInsts;
   
 public:
 
-  #if WITH_EDITORONLY_DATA
-
+#if WITH_EDITORONLY_DATA
   UPROPERTY(EditDefaultsOnly, Category = "RangeDetector|Debug", Transient)
   bool bDrawDebugRange = false;
-  
-  #endif // WITH_EDITORONLY_DATA
+#endif // WITH_EDITORONLY_DATA
   
   uint8 bStopWhenOwnerDestroyed : 1;
 };

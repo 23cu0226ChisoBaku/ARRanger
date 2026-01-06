@@ -32,6 +32,7 @@ void FRangeDetectorFilter::ApplyFilter(FRangeDetectorEvaluationResult& OutResult
   while (idx < outResultArray.Num())
   {
     AActor* actor = outResultArray[idx];
+    // FilterClassの子クラスじゃないものを削除
     if ((actor == nullptr) || !actor->GetClass()->IsChildOf(FilterClass))
     {
       outResultArray.RemoveAt(idx);
@@ -65,6 +66,7 @@ void FRangeDetectorFilter_Interface::ApplyFilter(FRangeDetectorEvaluationResult&
   while (idx < outResultArray.Num())
   {
     AActor* actor = outResultArray[idx];
+    // FilterClass(UInterface)であるインターフェイスを継承していないActorを削除
     if ((actor == nullptr) || !actor->GetClass()->ImplementsInterface(FilterClass))
     {
       outResultArray.RemoveAt(idx);
@@ -75,6 +77,6 @@ void FRangeDetectorFilter_Interface::ApplyFilter(FRangeDetectorEvaluationResult&
   }
 }
 
-}
+} // namespace ARRanger::Detector
 
-}
+} // namespace ARRanger

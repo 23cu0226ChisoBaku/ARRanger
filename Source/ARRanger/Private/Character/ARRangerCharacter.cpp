@@ -158,7 +158,7 @@ void AARRangerCharacter::OnClimbEnded()
 void AARRangerCharacter::OnAttractionCompleted()
 {
   // 引き寄せ完了フラグを立てる
-  SetIsApproachedEnemy(true);
+
 }
 
 void AARRangerCharacter::ToggleLockOn()
@@ -473,11 +473,6 @@ bool AARRangerCharacter::TryApplyAbilityCost(const FGameplayTag& InAbilityCostTa
   }
 
   return bSuccess;
-}
-
-bool AARRangerCharacter::GetIsLockedOn() const
-{ 
-  return LockOnComponent->GetIsLockedOn(); 
 }
 
 void AARRangerCharacter::OnLanded(const FHitResult& Hit)

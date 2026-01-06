@@ -1,6 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "RangeDetector/Utils/CollisionTraceFunctionLibrary.h"
 
 int32 UCollisionTraceFunctionLibrary::SweepConeMulti(UWorld* World, const FVector& StartPosition, const FRotator& Direction, float ConeHeight, float ConeHalfAngle, const TArray<TObjectPtr<AActor>>& ActorsToIgnore, TArray<FHitResult>& OutHitResults)

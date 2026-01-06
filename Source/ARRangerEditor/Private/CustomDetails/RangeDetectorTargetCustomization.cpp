@@ -32,9 +32,9 @@ void FRangeDetectorTargetCustomization::CustomizeHeader(TSharedRef< IPropertyHan
 
 void FRangeDetectorTargetCustomization::CustomizeChildren(TSharedRef< IPropertyHandle > PropertyHandle, IDetailChildrenBuilder& ChildBuilder, IPropertyTypeCustomizationUtils& CustomizationUtils)
 {
-  m_targetTypeHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FDetectorTarget, TargetType));
-  m_actorClassHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FDetectorTarget, TargetActor));
-  m_interfaceClassHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FDetectorTarget, TargetInterface));
+  m_targetTypeHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FDetectorTargetInfo, Type));
+  m_actorClassHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FDetectorTargetInfo, TargetActor));
+  m_interfaceClassHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FDetectorTargetInfo, TargetInterface));
 
   ChildBuilder.AddProperty(m_targetTypeHandle.ToSharedRef());
 
