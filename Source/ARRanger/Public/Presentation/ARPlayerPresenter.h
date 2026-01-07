@@ -18,6 +18,7 @@ class AARRangerCharacter;
 class APlayerController;
 class UARHealthComponent;
 class ULockOnComponent;
+class UCameraRouterComponent;
 enum class ECameraRigType : uint8;
 enum class EARMagnetismType : uint8;
 
@@ -64,6 +65,9 @@ public:
 
   UPROPERTY()
   TObjectPtr<ULockOnComponent> LockOnComponent;
+
+  UPROPERTY()
+  TObjectPtr<UCameraRouterComponent> CameraRouter;
 
   FVector ChargeStartFaceDir; 
 

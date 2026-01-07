@@ -68,7 +68,6 @@ void AARRangerCharacter::BeginPlay()
 
   // Start with Repulsion
   SetMagnetismType(EARMagnetismType::Repulsion);
-  SetCameraRig(ECameraRigType::Default);
   TransformInternal();
 }
 
@@ -393,17 +392,6 @@ void AARRangerCharacter::OnAttackAbilityEnded()
   {
     AttackAbilityEndDelegate.Broadcast();
   }
-}
-
-void AARRangerCharacter::SetCameraRig(ECameraRigType InType)
-{
-  CameraRigType = InType;
-  CameraRigChangeEvent.Broadcast(CameraRigType);
-}
-
-ECameraRigType AARRangerCharacter::GetCameraRig() const
-{
-  return CameraRigType;
 }
 
 void AARRangerCharacter::OnTargetSnapped(const FVector& InNewPosition, const FRotator& InNewRotation)

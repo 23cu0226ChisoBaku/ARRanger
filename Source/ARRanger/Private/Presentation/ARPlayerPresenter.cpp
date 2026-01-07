@@ -4,6 +4,7 @@
 #include "Character/ARRangerCharacter.h"
 #include "Character/ARHealthComponent.h"
 #include "PlayerComponents/LockOnComponent.h"
+#include "PlayerComponents/CameraRouterComponent.h"
 #include "BattleSystem/IARAttackable.h"
 #include "Components/CapsuleComponent.h"
 
@@ -40,12 +41,15 @@ void FARPlayerModel::Initialize(AARRangerCharacter* InViewCharacter)
 
   HealthComponent = static_cast<UARHealthComponent*>(InViewCharacter->GetComponentByClass(UARHealthComponent::StaticClass()));
   LockOnComponent = static_cast<ULockOnComponent*>(InViewCharacter->GetComponentByClass(ULockOnComponent::StaticClass()));
-  SetCameraRig(ECameraRigType::Default);
+  CameraRouter = static_cast<UCameraRouterComponent*>(InViewCharacter->GetComponentByClass(UCameraRouterComponent::StaticClass()));
+  
+  SetCameraRig(ECameraRigType::FreeAngle);
 }
 
 void FARPlayerModel::Reset()
 {
   HealthComponent = nullptr;
+  CameraRouter = nullptr;
 }
 
 void FARPlayerModel::SetCameraRig(ECameraRigType Type)
@@ -148,8 +152,6 @@ void UARPlayerPresenter::Deinitialize()
 
   ViewCharacter->LandedDelegate.RemoveDynamic(this, &ThisClass::OnGroundLanded);
 
-  ViewCharacter->CameraRigChangeEvent.RemoveAll(this);
-
   UCapsuleComponent* capsuleComp = ViewCharacter->GetCapsuleComponent();
   if (capsuleComp != nullptr)
   {
@@ -212,7 +214,11 @@ void UARPlayerPresenter::Input_HandleCameraReset()
     return;
   }
 
-  Model.SetCameraRig(ECameraRigType::Reset);
+  if (Model.CameraRouter != nullptr)
+  {
+    Model.CameraRouter->ChangeCameraRig(ECameraRigType::Reset);
+  }
+
 }
 
 void UARPlayerPresenter::OnChargeStartHandled()

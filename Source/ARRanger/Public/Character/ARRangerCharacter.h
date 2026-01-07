@@ -14,8 +14,6 @@
 #include "BattleSystem/IARAttackerInterface.h"
 #include "BattleSystem/IARAttackable.h"
 
-#include "Player/CameraRigType.h"
-
 #include "ARRangerCharacter.generated.h"
 
 /**前方宣言 */
@@ -37,7 +35,6 @@ DECLARE_MULTICAST_DELEGATE_TwoParams(FAcceptBattleResultEvent, AARRangerCharacte
 DECLARE_MULTICAST_DELEGATE_OneParam(FBattleStateChangeEvent, bool);
 DECLARE_MULTICAST_DELEGATE_OneParam(FTransformEvent, EARMagnetismType);
 DECLARE_MULTICAST_DELEGATE_OneParam(FExtraTickTask, float);
-DECLARE_MULTICAST_DELEGATE_OneParam(FOnCameraRigChanged, ECameraRigType);
 
 /**
  *  @brief シンプルでプレイヤーが操作可能な三人称視点キャラクター
@@ -184,19 +181,6 @@ public:
 
   FSimpleMulticastDelegate AttackAbilityStartDelegate;
   FSimpleMulticastDelegate AttackAbilityEndDelegate;
- 
-/**Start Camera Rig */
-  UFUNCTION(BlueprintCallable, Category = "Camera")
-  void SetCameraRig(ECameraRigType InType);
-
-  UFUNCTION(BlueprintPure, Category = "Camera")
-  ECameraRigType GetCameraRig() const;
-  
-  FOnCameraRigChanged CameraRigChangeEvent;
-
-private:
-  ECameraRigType CameraRigType;
-/**End Camera Rig */
 
 private:
 
