@@ -11,7 +11,7 @@ class UMagneticParametersList;
 
 /**デモ用ビルドマクロ定義 */
 #if !WITH_EDITOR
-#define AR_DEMO_BUILD 1
+#define AR_DEMO_BUILD 0
 #endif
 
 #ifndef AR_DEMO_BUILD

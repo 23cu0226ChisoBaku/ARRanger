@@ -134,7 +134,7 @@ void UARPlayerPresenter::Initialize(AARRangerCharacter* InViewCharacter, APlayer
     Model.LockOnTargetUpdateEvent.AddUObject(this, &ThisClass::OnLockOnTargetUpdated);
 
     // カメラリグを初期状態にする
-    Model.SetCameraRig(ECameraRigType::FreeAngle);
+    Model.SetCameraRig(ECameraRigType::Default);
   }
 }
 

@@ -12,7 +12,7 @@ namespace ARRanger::Private
   template<typename UserType, uint8 MaxSize>
   FCountLimiter<UserType, MaxSize>::FCountLimiter()
   {
-    ensureMsgf(UserType::NumInstance < MaxSize, TEXT("Create too many instances. Type:[%hs]"), typeid(UserType).name());
+    ensureMsgf(UserType::NumInstance < MaxSize, TEXT("Create too many instances."));
     ++UserType::NumInstance;
   }
 

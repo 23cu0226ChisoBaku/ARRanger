@@ -10,13 +10,18 @@
 
 namespace
 {
-  const TArray<TEnumAsByte<EObjectTypeQuery>> g_objTypes
+  const TArray<TEnumAsByte<EObjectTypeQuery>>& GetGlobalObjectType()
   {
-    UEngineTypes::ConvertToObjectType(ECC_WorldStatic),
-    UEngineTypes::ConvertToObjectType(ECC_WorldDynamic),
-    UEngineTypes::ConvertToObjectType(ECC_Pawn),
-    UEngineTypes::ConvertToObjectType(ECC_PhysicsBody)
-  };
+    static const TArray<TEnumAsByte<EObjectTypeQuery>> s_objTypes
+    {
+      UEngineTypes::ConvertToObjectType(ECC_WorldStatic),
+      UEngineTypes::ConvertToObjectType(ECC_WorldDynamic),
+      UEngineTypes::ConvertToObjectType(ECC_Pawn),
+      UEngineTypes::ConvertToObjectType(ECC_PhysicsBody)
+    };
+
+    return s_objTypes;
+  }
 }
 
 namespace ARRanger
@@ -94,7 +99,7 @@ namespace Detector
                         startLoc,
                         InData.CapsuleRadius * scale,
                         InData.CapsuleHalfHeight * scale,
-                        g_objTypes,
+                        GetGlobalObjectType(),
                         nullptr,
                         ignoreActors,
                         hitActors
@@ -133,7 +138,7 @@ namespace Detector
                         OriginActor,
                         InOriginLocation,
                         InData.SphereRadius * scale,
-                        g_objTypes,
+                        GetGlobalObjectType(),
                         nullptr,
                         ignoreActors,
                         hitActors
