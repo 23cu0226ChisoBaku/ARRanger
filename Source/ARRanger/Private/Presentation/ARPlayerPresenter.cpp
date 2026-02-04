@@ -42,8 +42,7 @@ void FARPlayerModel::Initialize(AARRangerCharacter* InViewCharacter)
   HealthComponent = static_cast<UARHealthComponent*>(InViewCharacter->GetComponentByClass(UARHealthComponent::StaticClass()));
   LockOnComponent = static_cast<ULockOnComponent*>(InViewCharacter->GetComponentByClass(ULockOnComponent::StaticClass()));
   CameraRouter = static_cast<UCameraRouterComponent*>(InViewCharacter->GetComponentByClass(UCameraRouterComponent::StaticClass()));
-  
-  SetCameraRig(ECameraRigType::FreeAngle);
+
 }
 
 void FARPlayerModel::Reset()
@@ -125,6 +124,7 @@ void UARPlayerPresenter::Initialize(AARRangerCharacter* InViewCharacter, APlayer
     }
 
     Model.Initialize(ViewCharacter);
+
     if (Model.LockOnComponent != nullptr)
     {
       Model.LockOnComponent->OnLockOnDataUpdateEvent.AddUObject(this, &ThisClass::OnLockOnDataUpdated);
@@ -132,6 +132,9 @@ void UARPlayerPresenter::Initialize(AARRangerCharacter* InViewCharacter, APlayer
 
     Model.RigChangeEvent.AddUObject(this, &ThisClass::OnCameraRigChanged);
     Model.LockOnTargetUpdateEvent.AddUObject(this, &ThisClass::OnLockOnTargetUpdated);
+
+    // カメラリグを初期状態にする
+    Model.SetCameraRig(ECameraRigType::FreeAngle);
   }
 }
 
@@ -168,21 +171,23 @@ void UARPlayerPresenter::Deinitialize()
 
 void UARPlayerPresenter::Input_HandleLeftStick(double InX, double InY, double InDeadZone, double InMinInput)
 {
-  const bool bInputAllowed = (ViewCharacter != nullptr) 
-                             && !Model.bIsClimbing;
+  const bool bInputAllowed = (ViewCharacter != nullptr) && !Model.bIsClimbing;
   if (!bInputAllowed)
   {
     return;
   }
 
+  // チャージ状態の回転処理
   if (Model.bIsCharging)
   {
     HandleCharacterChargeRotate(InX, InY);
   }
+  // 吸着攻撃ターゲット更新処理
   else if (Model.bIsInComboAction)
   {
     HandleSnapTargetUpdate(InX, InY);
   }
+  // 移動処理
   else
   {
     HandleCharacterMove(InX, InY, InDeadZone, InMinInput);
@@ -197,6 +202,7 @@ void UARPlayerPresenter::Input_HandleTransform()
     return;
   }
 
+  // TODO 変身条件を追加する予定
   const bool bCanTransform = true;
   if (!bCanTransform)
   {
@@ -208,17 +214,14 @@ void UARPlayerPresenter::Input_HandleTransform()
 
 void UARPlayerPresenter::Input_HandleCameraReset()
 {
+  // TODO カメラ初期化条件を追加する予定
   const bool bCanResetCamera = true;
   if (!bCanResetCamera)
   {
     return;
   }
 
-  if (Model.CameraRouter != nullptr)
-  {
-    Model.CameraRouter->ChangeCameraRig(ECameraRigType::Reset);
-  }
-
+  Model.SetCameraRig(ECameraRigType::Reset);
 }
 
 void UARPlayerPresenter::OnChargeStartHandled()
@@ -233,6 +236,7 @@ void UARPlayerPresenter::OnChargeStartHandled()
 void UARPlayerPresenter::OnChargeEndHandled()
 {
   Model.bIsCharging = false;
+  Model.ChargeStartFaceDir = FVector::Zero();
 }
 
 void UARPlayerPresenter::HandleCharacterMove(double InX, double InY, double InDeadZone, double InMinInput)
@@ -389,6 +393,7 @@ void UARPlayerPresenter::RegisterSnapTargetTask()
       Model.SnapStartRotation = ViewCharacter->GetActorRotation();
       Model.bIsReadyToSearchSnapTarget = false;
 
+      // 吸着移動処理をキャラクターのTick処理に追加
       Handle_UpdateSnapTarget = ViewCharacter->TickTaskDelegate.AddUObject(this, &ThisClass::UpdateSnapTarget);
     }
   }
@@ -433,7 +438,6 @@ void UARPlayerPresenter::UpdateSnapTarget(float DeltaTime)
       newLocation = FMath::InterpCircularIn(Model.SnapStartPosition, newTargetLocation_UsePlayerZ, locLerpAlpha);
     }
   }
-  // 吸着処理を止める
   else
   {
     StopSnapTargetInternal();
@@ -457,7 +461,7 @@ void UARPlayerPresenter::UnregisterSnapTargetTask()
 
 void UARPlayerPresenter::HandleCharacterChargeRotate(double InX, double InY)
 {
-  // 使わない
+  // 使わないため
   (void)InY;
 
   const bool bCanRotate = (ViewCharacter != nullptr) && !Model.bIsInAir && Model.bIsCharging;
@@ -822,9 +826,9 @@ void UARPlayerPresenter::StopSnapTargetInternal()
 
 void UARPlayerPresenter::OnCameraRigChanged(ECameraRigType OldType, ECameraRigType NewType)
 {
-  if (ViewCharacter != nullptr)
+  if (Model.CameraRouter != nullptr)
   {
-    ViewCharacter->SetCameraRig(NewType);
+    Model.CameraRouter->ChangeCameraRig(NewType);
   }
 }
 
@@ -878,7 +882,7 @@ bool UARPlayerPresenter::IsActorInCameraView(AActor* TargetActor) const
     return false;
   }
 
-  int32 viewportSizeX, viewportSizeY;
+  int32 viewportSizeX{0}, viewportSizeY{0};
   m_controller->GetViewportSize(viewportSizeX, viewportSizeY);
 
   return    (screenLoc.X >= 0.0 && screenLoc.X <= (double)viewportSizeX)
@@ -895,7 +899,7 @@ bool UARPlayerPresenter::IsActorInFrontOfPlayer(const FVector& CameraPos, AActor
   // 俯瞰視点で、カメラとプレイヤーの間にあるActorを絞る
   FVector cameraToPlayer = ViewCharacter->GetActorLocation() - CameraPos;
   FVector cameraToTarget = TargetActor->GetActorLocation() - CameraPos;
-  // Z座標が必要ないため、ゼロに設定 
+  // Z座標が必要ないため、0に設定 
   cameraToPlayer.Z = 0.0;
   cameraToTarget.Z = 0.0;
 

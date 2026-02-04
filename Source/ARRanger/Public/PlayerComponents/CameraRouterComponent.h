@@ -6,6 +6,9 @@
 
 #include "CameraRouterComponent.generated.h"
 
+/**
+ * @brief Router class for transfroming event to BP
+ */
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class ARRANGER_API UCameraRouterComponent : public UActorComponent
 {
