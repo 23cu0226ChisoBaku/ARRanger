@@ -12,6 +12,11 @@
 
 #include "Kismet/KismetSystemLibrary.h"
 
+namespace 
+{
+  double CalcLockTargetPriority(const FVector& TargetDirNorm, const FVector& BaseDirNorm);
+}
+
 FARPlayerModel::FARPlayerModel()
   : HealthComponent{nullptr}
   , LockOnComponent{nullptr}
@@ -24,6 +29,7 @@ FARPlayerModel::FARPlayerModel()
   , SnapTimeInterval{0.2f}
   , SnapTimeCounter{0.0f}
   , SnapTargetActor{nullptr}
+  , LockOnTarget{nullptr}
   , CurrentRigType{ECameraRigType::FreeAngle}
   , bIsCharging{false}
   , bIsInAir{false}
@@ -33,6 +39,7 @@ FARPlayerModel::FARPlayerModel()
   , bIsReadyToSearchSnapTarget{false}
   , bCanLockOn{true}
   , bIsLockingOn{false}
+  , m_switchLockTargetState{None}
 { }
 
 void FARPlayerModel::Initialize(AARRangerCharacter* InViewCharacter)
@@ -43,11 +50,14 @@ void FARPlayerModel::Initialize(AARRangerCharacter* InViewCharacter)
   LockOnComponent = static_cast<ULockOnComponent*>(InViewCharacter->GetComponentByClass(ULockOnComponent::StaticClass()));
   CameraRouter = static_cast<UCameraRouterComponent*>(InViewCharacter->GetComponentByClass(UCameraRouterComponent::StaticClass()));
 
+  LockOnTarget.Reset();
+
 }
 
 void FARPlayerModel::Reset()
 {
   HealthComponent = nullptr;
+  LockOnComponent = nullptr;
   CameraRouter = nullptr;
 }
 
@@ -66,21 +76,142 @@ void FARPlayerModel::SetCameraRig(ECameraRigType Type)
   }
 }
 
-void FARPlayerModel::UpdateLockOnTargets(const TArray<AActor*>& InTargets)
+void FARPlayerModel::UpdateLockOnTargets(AActor* UserActor, const TArray<AActor*>& InTargets)
 {
   if (GEngine)
   {
     GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red, FString::Printf(TEXT("Update Lock On Targets: %d"), InTargets.Num()));
   }
 
-  const bool bIsLockOnFunctional = bCanLockOn;
-  if (bIsLockOnFunctional)
+  const bool bIsLockOnFunctional = bIsLockingOn && (UserActor != nullptr);
+  if (!bIsLockOnFunctional)
+  {
+    return;
+  }
+
+  AActor* currentTarget = LockOnTarget.Get();
+  bool bShouldTargetUpdate = false;
+  // Unlock target if currentTarget is not valid to lock on
+  if (!IsTargetValidToLockOn(currentTarget))
+  {
+    LockOnTarget.Reset();
+    // Since it is lock target state currently,
+    // switch to unlock target state
+    ToggleLockOn();
+
+    bShouldTargetUpdate = true;
+  }
+
+  else
+  {
+    if (InTargets.Num() == 0)
+    {
+      return;
+    }
+    
+    // Priority check of all targets
+    if (m_switchLockTargetState != None)
+    {
+      // Sort all targets(Include current target)
+      TArray<AActor*> allTargets{InTargets};
+      if (!allTargets.Contains(currentTarget))
+      {
+        allTargets.Add(currentTarget);
+      }
+
+      // TODO Need comment
+      /**
+       *
+       * 
+       */
+      auto sortLockTargetsPred = 
+      [
+        UserActorLocation = UserActor->GetActorLocation(),
+        CurrentTargetDirNorm2D = (currentTarget->GetActorLocation() - UserActor->GetActorLocation()).GetSafeNormal2D()
+      ]
+      (const AActor* InElementA, const AActor* InElementB) -> bool
+      {
+        const FVector ALocation = InElementA->GetActorLocation();
+        const FVector ADirNorm2D = (ALocation - UserActorLocation).GetSafeNormal2D();
+        const FVector BLocation = InElementB->GetActorLocation();
+        const FVector BDirNorm2D = (BLocation - UserActorLocation).GetSafeNormal2D();
+
+        const double APriority = CalcLockTargetPriority(ADirNorm2D, CurrentTargetDirNorm2D);
+        const double BPriority = CalcLockTargetPriority(BDirNorm2D, CurrentTargetDirNorm2D);
+
+        return APriority < BPriority;
+      };
+
+      allTargets.Sort(sortLockTargetsPred);
+
+      int32 newTargetIdx = allTargets.IndexOfByKey(currentTarget);
+      check(newTargetIdx != INDEX_NONE);
+      switch(m_switchLockTargetState)
+      {
+        case Left:
+        {
+          newTargetIdx -= 1;
+        }
+        break;
+
+        case Right:
+        {
+          newTargetIdx += 1;
+        }
+        break;
+      }
+
+      newTargetIdx = FMath::Clamp(newTargetIdx, 0, allTargets.Num() - 1);
+      if (currentTarget != allTargets[newTargetIdx])
+      {
+        currentTarget = allTargets[newTargetIdx];
+        bShouldTargetUpdate = true;
+      }
+    }
+  }
+
+  if (bShouldTargetUpdate)
   {
     if (LockOnTargetUpdateEvent.IsBound())
     {
-      LockOnTargetUpdateEvent.Broadcast(nullptr);
+      LockOnTargetUpdateEvent.Broadcast(currentTarget);
     }
   }
+  
+}
+
+void FARPlayerModel::ToggleLockOn()
+{
+  // Switch lock on state
+  bIsLockingOn = !bIsLockingOn;
+  if (bIsLockingOn)
+  {
+    LockTargetInternal();
+  }
+  else
+  {
+    UnlockTargetInternal();
+  }
+}
+
+void FARPlayerModel::SwitchLockTarget_Left()
+{
+  m_switchLockTargetState = Left;
+}
+
+void FARPlayerModel::SwitchLockTarget_Right()
+{
+  m_switchLockTargetState = Right;
+}
+
+void FARPlayerModel::LockTargetInternal()
+{
+  SetCameraRig(ECameraRigType::LockOn);
+}
+
+void FARPlayerModel::UnlockTargetInternal()
+{
+  SetCameraRig(ECameraRigType::Default);
 }
 
 void UARPlayerPresenter::Initialize(AARRangerCharacter* InViewCharacter, APlayerController* InPlayerController)
@@ -222,6 +353,17 @@ void UARPlayerPresenter::Input_HandleCameraReset()
   }
 
   Model.SetCameraRig(ECameraRigType::Reset);
+}
+
+void UARPlayerPresenter::Input_HandleLockOn()
+{
+  const bool bCanToggleLockOn = true;
+  if (!bCanToggleLockOn)
+  {
+    return;
+  }
+
+  Model.ToggleLockOn();
 }
 
 void UARPlayerPresenter::OnChargeStartHandled()
@@ -840,12 +982,20 @@ void UARPlayerPresenter::OnLockOnDataUpdated(const FVector& CameraPos, const FRo
     TArray<AActor*> targetsInCameraView{};
     // ロックオンできるターゲットを絞る
     FilterTargetsInCamera(CameraPos, CameraRot, Targets, targetsInCameraView);
-    Model.UpdateLockOnTargets(targetsInCameraView);
+    Model.UpdateLockOnTargets(ViewCharacter, targetsInCameraView);
   }
 }
 
 void UARPlayerPresenter::OnLockOnTargetUpdated(AActor* TargetActor)
 {
+  if (TargetActor != nullptr)
+  {
+    if (GEngine)
+    {
+      GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red, FString::Printf(TEXT("OnLockOnTargetUpdated: %s"), *TargetActor->GetName()));
+    }
+  }
+
   // FIXME Give the target to view(Update UI and camera);
 }
 
@@ -917,4 +1067,15 @@ bool UARPlayerPresenter::IsActorInFrontOfPlayer(const FVector& CameraPos, AActor
   }
 
   return true;
+}
+
+namespace 
+{
+  double CalcLockTargetPriority(const FVector& TargetDirNorm, const FVector& BaseDirNorm)
+  {
+    const FVector Cross = FVector::CrossProduct(TargetDirNorm, BaseDirNorm);
+    const double SignedDotVal = FVector::DotProduct(TargetDirNorm, BaseDirNorm) * FMath::Sign(Cross.Z);
+
+    return (SignedDotVal < 0.0) ? -SignedDotVal - 1 : SignedDotVal;
+  }
 }

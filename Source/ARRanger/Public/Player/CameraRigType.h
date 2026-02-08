@@ -7,4 +7,6 @@ enum class ECameraRigType : uint8
   Dead,       // 死亡状態のカメラリグ
   Reset,      // カメラ向きリセット専用カメラリグ
   FreeAngle,  // 自由に回転できるカメラリグ(※未実装)
+
+  LockOn,     // ロックオン状態のカメラリグ
 };

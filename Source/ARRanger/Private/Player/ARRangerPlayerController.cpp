@@ -455,10 +455,9 @@ void AARRangerPlayerController::NativeInput_ToggleLockOn(const FInputActionValue
     return;
   }
 
-  if (OwningCharacter != nullptr)
+  if (PlayerPresenter != nullptr)
   {
-    // TODO Uncomment it when we finish debugging
-    // OwningCharacter->ToggleLockOn();
+    PlayerPresenter->Input_HandleLockOn();
   }
 }
 

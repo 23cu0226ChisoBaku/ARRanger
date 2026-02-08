@@ -42,6 +42,14 @@ struct FARPlayerModel
   DECLARE_MULTICAST_DELEGATE_TwoParams(FOnCameraRigChanged, ECameraRigType, ECameraRigType);
   DECLARE_MULTICAST_DELEGATE_OneParam(FOnLockOnTargetUpdated, AActor*);
 
+private:
+  enum ESwitchTargetState : uint8
+  {
+    None,
+    Left,
+    Right,
+  };
+
 public:
   FARPlayerModel();
 
@@ -54,11 +62,21 @@ public:
 
   void SetCameraRig(ECameraRigType Type);
 
-  void UpdateLockOnTargets(const TArray<AActor*>& InTargets);
+  void UpdateLockOnTargets(AActor* UserActor, const TArray<AActor*>& InTargets);
 
   void ToggleLockOn();
 
+  void SwitchLockTarget_Left();
+  void SwitchLockTarget_Right();
+
+private:
+  void LockTargetInternal();
+  void UnlockTargetInternal();
+
 public:
+
+  UPROPERTY()
+  TObjectPtr<AActor> PlayerActor;
 
   UPROPERTY()
   TObjectPtr<UARHealthComponent> HealthComponent;
@@ -115,7 +133,13 @@ public:
   uint8 bIsLockingOn : 1;
 
 private:
+  ESwitchTargetState m_switchLockTargetState;
+
+private:
   AActor* GetTopPriorityTarget(const TArray<AActor*>& InCandidates) const;
+  
+  bool IsTargetValidToLockOn(const AActor* InTarget) const;
+
 };
 
 UCLASS(Blueprintable, BlueprintType)
@@ -155,6 +179,8 @@ public:
    * @brief カメラリセット入力を処理する
    */
   UE_API void Input_HandleCameraReset();
+
+  UE_API void Input_HandleLockOn();
 
   /**
    * @brief 溜め攻撃開始通知
