@@ -88,27 +88,61 @@ void FARPlayerModel::UpdateLockOnTargets(AActor* UserActor, const TArray<AActor*
   {
     return;
   }
-
+  
   AActor* currentTarget = LockOnTarget.Get();
   bool bShouldTargetUpdate = false;
-  // Unlock target if currentTarget is not valid to lock on
-  if (!IsTargetValidToLockOn(currentTarget))
+
+  // Try updating target.
+  // Otherwise we find a new target
+  if (currentTarget == nullptr)
   {
-    LockOnTarget.Reset();
-    // Since it is lock target state currently,
-    // switch to unlock target state
-    ToggleLockOn();
+    if (InTargets.Num() == 0)
+    {
+      return;
+    }
+
+    TArray<AActor*> allTargets{InTargets};
+
+    // Get the nearest target to BaseDirection(Biggest dot value)
+    // After sort, the first element in the array should be the nearest target
+    auto sortGreaterDotValPred = 
+    [
+      UserActorLocation = UserActor->GetActorLocation(),
+      BaseDirection = UserActor->GetActorForwardVector()
+    ]
+    (const AActor& InElementA, const AActor& InElementB) -> bool
+    {
+      const FVector ALocation = InElementA.GetActorLocation();
+      const FVector ADirNorm2D = (ALocation - UserActorLocation).GetSafeNormal2D();
+      const FVector BLocation = InElementB.GetActorLocation();
+      const FVector BDirNorm2D = (BLocation - UserActorLocation).GetSafeNormal2D();
+
+      const double ADotVal = FVector::DotProduct(ADirNorm2D, BaseDirection);
+      const double BDotVal = FVector::DotProduct(BDirNorm2D, BaseDirection);
+
+      return ADotVal > BDotVal;
+      
+    };
+
+    allTargets.Sort(sortGreaterDotValPred);
+    check(allTargets.Num() != 0);
+    currentTarget = allTargets[0];
 
     bShouldTargetUpdate = true;
   }
+  else if (!IsTargetValidToLockOn(currentTarget))
+  {
+    currentTarget = nullptr;
 
+    bShouldTargetUpdate = true;
+  }
   else
   {
     if (InTargets.Num() == 0)
     {
       return;
     }
-    
+
     // Priority check of all targets
     if (m_switchLockTargetState != None)
     {
@@ -129,11 +163,11 @@ void FARPlayerModel::UpdateLockOnTargets(AActor* UserActor, const TArray<AActor*
         UserActorLocation = UserActor->GetActorLocation(),
         CurrentTargetDirNorm2D = (currentTarget->GetActorLocation() - UserActor->GetActorLocation()).GetSafeNormal2D()
       ]
-      (const AActor* InElementA, const AActor* InElementB) -> bool
+      (const AActor& InElementA, const AActor& InElementB) -> bool
       {
-        const FVector ALocation = InElementA->GetActorLocation();
+        const FVector ALocation = InElementA.GetActorLocation();
         const FVector ADirNorm2D = (ALocation - UserActorLocation).GetSafeNormal2D();
-        const FVector BLocation = InElementB->GetActorLocation();
+        const FVector BLocation = InElementB.GetActorLocation();
         const FVector BDirNorm2D = (BLocation - UserActorLocation).GetSafeNormal2D();
 
         const double APriority = CalcLockTargetPriority(ADirNorm2D, CurrentTargetDirNorm2D);
@@ -161,6 +195,9 @@ void FARPlayerModel::UpdateLockOnTargets(AActor* UserActor, const TArray<AActor*
         break;
       }
 
+      // Consume switch state
+      ConsumeSwitchTargetState();
+
       newTargetIdx = FMath::Clamp(newTargetIdx, 0, allTargets.Num() - 1);
       if (currentTarget != allTargets[newTargetIdx])
       {
@@ -170,11 +207,20 @@ void FARPlayerModel::UpdateLockOnTargets(AActor* UserActor, const TArray<AActor*
     }
   }
 
+
   if (bShouldTargetUpdate)
   {
+    LockOnTarget = currentTarget;
+    
     if (LockOnTargetUpdateEvent.IsBound())
     {
       LockOnTargetUpdateEvent.Broadcast(currentTarget);
+    }
+    // Since it is lock target state currently,
+    // switch to unlock target state
+    if (currentTarget == nullptr)
+    {
+      ToggleLockOn();
     }
   }
   
@@ -206,7 +252,7 @@ void FARPlayerModel::SwitchLockTarget_Right()
 
 void FARPlayerModel::LockTargetInternal()
 {
-  SetCameraRig(ECameraRigType::LockOn);
+  // SetCameraRig(ECameraRigType::LockOn);
 }
 
 void FARPlayerModel::UnlockTargetInternal()
@@ -214,10 +260,20 @@ void FARPlayerModel::UnlockTargetInternal()
   SetCameraRig(ECameraRigType::Default);
 }
 
+bool FARPlayerModel::IsTargetValidToLockOn(const AActor* InTarget) const
+{
+  return InTarget != nullptr;
+}
+
+void FARPlayerModel::ConsumeSwitchTargetState()
+{
+  m_switchLockTargetState = None;
+}
+
 void UARPlayerPresenter::Initialize(AARRangerCharacter* InViewCharacter, APlayerController* InPlayerController)
 {
-  check(::IsValid(InViewCharacter));
-  check(::IsValid(InPlayerController))
+  check(InViewCharacter != nullptr);
+  check(InPlayerController != nullptr);
 
   if (ViewCharacter == InViewCharacter)
   {
@@ -364,6 +420,26 @@ void UARPlayerPresenter::Input_HandleLockOn()
   }
 
   Model.ToggleLockOn();
+}
+
+void UARPlayerPresenter::Input_HandleRightStick(double InX, double InY)
+{
+  // Y軸入力は使わない
+  (void)InY;
+
+  if (!Model.bIsLockingOn)
+  {
+    return;
+  }
+
+  if (InX > 0.0)
+  {
+    Model.SwitchLockTarget_Right();
+  }
+  else if (InX < 0.0)
+  {
+    Model.SwitchLockTarget_Left();
+  }
 }
 
 void UARPlayerPresenter::OnChargeStartHandled()

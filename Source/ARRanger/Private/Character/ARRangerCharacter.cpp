@@ -168,22 +168,6 @@ void AARRangerCharacter::ToggleLockOn()
   }
 }
 
-void AARRangerCharacter::SwitchTargetRight()
-{
-  if (LockOnComponent != nullptr)
-  {
-    LockOnComponent->SwitchTargetRight();
-  }
-}
-
-void AARRangerCharacter::SwitchTargetLeft()
-{
-  if (LockOnComponent != nullptr)
-  {
-    LockOnComponent->SwitchTargetLeft();
-  }
-}
-
 void AARRangerCharacter::OnAttackHitNotify()
 {
   // プレイヤー内でのみ扱いたいのでこちらで攻撃のコールバック

@@ -181,11 +181,12 @@ private:
   /**Start native input callback function */
   void NativeInput_Move(const FInputActionValue& InputActionValue, /**PayLoad */ FGameplayTag InInputTag);
   void NativeInput_ToggleLockOn(const FInputActionValue& InputActionValue, /**PayLoad */ FGameplayTag InInputTag);
-  void NativeInput_SwitchTarget_Right(const FInputActionValue& InputActionValue, /**PayLoad */ FGameplayTag InInputTag);
-  void NativeInput_SwitchTarget_Left(const FInputActionValue& InputActionValue, /**PayLoad */ FGameplayTag InInputTag);
   void NativeInput_Transform(const FInputActionValue& InputActionValue, /**PayLoad */ FGameplayTag InInputTag);
   void NativeInput_ChargeRotate(const FInputActionValue& InputActionValue, /**PayLoad */ FGameplayTag InInputTag);
   void NativeInput_ResetCamera(const FInputActionValue& InputActionValue, /**PayLoad */ FGameplayTag InInputTag);
+
+  // 右スティック入力イベント入り口
+  void NativeInput_Look(const FInputActionValue& InputActionValue, /**PayLoad */ FGameplayTag InInputTag);
   /**End native input callback function */
   
 private:

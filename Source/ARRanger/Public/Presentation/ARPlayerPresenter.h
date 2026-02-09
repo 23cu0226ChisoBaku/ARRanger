@@ -140,6 +140,8 @@ private:
   
   bool IsTargetValidToLockOn(const AActor* InTarget) const;
 
+  void ConsumeSwitchTargetState();
+
 };
 
 UCLASS(Blueprintable, BlueprintType)
@@ -181,6 +183,8 @@ public:
   UE_API void Input_HandleCameraReset();
 
   UE_API void Input_HandleLockOn();
+
+  UE_API void Input_HandleRightStick(double InX, double InY);
 
   /**
    * @brief 溜め攻撃開始通知

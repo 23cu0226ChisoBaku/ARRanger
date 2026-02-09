@@ -333,10 +333,9 @@ void AARRangerPlayerController::Initialize()
   // Bind native input actions
   ARIC->BindNativeAction(InputConfig, ARRanger::GameplayTags::NativeInput_Move, ETriggerEvent::Triggered, this, &ThisClass::NativeInput_Move);
   ARIC->BindNativeAction(InputConfig, ARRanger::GameplayTags::NativeInput_LockOn, ETriggerEvent::Triggered, this, &ThisClass::NativeInput_ToggleLockOn);
-  ARIC->BindNativeAction(InputConfig, ARRanger::GameplayTags::NativeInput_SwitchTarget_Left, ETriggerEvent::Triggered, this, &ThisClass::NativeInput_SwitchTarget_Left);
-  ARIC->BindNativeAction(InputConfig, ARRanger::GameplayTags::NativeInput_SwitchTarget_Right, ETriggerEvent::Triggered, this, &ThisClass::NativeInput_SwitchTarget_Right);
   ARIC->BindNativeAction(InputConfig, ARRanger::GameplayTags::NativeInput_Transform, ETriggerEvent::Triggered, this, &ThisClass::NativeInput_Transform);
   ARIC->BindNativeAction(InputConfig, ARRanger::GameplayTags::NativeInput_ResetCamera, ETriggerEvent::Started, this, &ThisClass::NativeInput_ResetCamera);
+  ARIC->BindNativeAction(InputConfig, ARRanger::GameplayTags::NativeInput_Look, ETriggerEvent::Triggered, this, &ThisClass::NativeInput_Look);
 
   if (InputBufferClass != nullptr)
   {
@@ -461,32 +460,6 @@ void AARRangerPlayerController::NativeInput_ToggleLockOn(const FInputActionValue
   }
 }
 
-void AARRangerPlayerController::NativeInput_SwitchTarget_Right(const FInputActionValue& InputActionValue, /**PayLoad */ FGameplayTag InInputTag)
-{
-  if (IsInputBlocked(InInputTag))
-  {
-    return;
-  }
-
-  if (OwningCharacter != nullptr)
-  {
-    OwningCharacter->SwitchTargetRight();
-  }
-}
-
-void AARRangerPlayerController::NativeInput_SwitchTarget_Left(const FInputActionValue& InputActionValue, /**PayLoad */ FGameplayTag InInputTag)
-{
-  if (IsInputBlocked(InInputTag))
-  {
-    return;
-  }
-
-  if (OwningCharacter != nullptr)
-  {
-    OwningCharacter->SwitchTargetLeft();
-  }
-}
-
 void AARRangerPlayerController::NativeInput_Transform(const FInputActionValue& InputActionValue, /**PayLoad */ FGameplayTag InInputTag)
 {
   if (IsInputBlocked(InInputTag))
@@ -511,4 +484,19 @@ void AARRangerPlayerController::NativeInput_ResetCamera(const FInputActionValue&
   {
     PlayerPresenter->Input_HandleCameraReset();
   }
+}
+
+void AARRangerPlayerController::NativeInput_Look(const FInputActionValue& InputActionValue, /**PayLoad */ FGameplayTag InInputTag)
+{
+  if (IsInputBlocked(InInputTag))
+  {
+    return;
+  }
+
+  if (PlayerPresenter != nullptr)
+  {
+    const FVector2D lookInputVal = InputActionValue.Get<FVector2D>();
+    PlayerPresenter->Input_HandleRightStick(lookInputVal.X, lookInputVal.Y);
+  }
+
 }

@@ -115,12 +115,6 @@ public:
   UFUNCTION(BlueprintCallable, Category = "InputCallback")
   void ToggleLockOn();
 
-  UFUNCTION(BlueprintCallable, Category = "InputCallback")
-  void SwitchTargetRight();
-  
-  UFUNCTION(BlueprintCallable, Category = "InputCallback")
-  void SwitchTargetLeft();
-
   UFUNCTION(BlueprintImplementableEvent, Category = "ARRanger|Transform", meta = (DisplayName = "OnTransformed"))
   void K2_OnTransformed(EARMagnetismType NewType);
 
